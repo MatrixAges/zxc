@@ -1,4 +1,5 @@
 const std = @import("std");
+const zx = @import("zx");
 const node = @import("../node.zig");
 const view = @import("../node/view.zig");
 const Builder = @import("../builder.zig");
@@ -32,7 +33,10 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
 
     if (!output.valid) return error.OutOfMemory;
 
-    const expressions = view.join(output.expressions.*, output.forms.*);
+    const Output = std.meta.Child(entry.Output);
+    const values = zx.columns.view(std.meta.Child(@FieldType(Output, "expressions")), output.expressions);
+    const forms = zx.columns.view(std.meta.Child(@FieldType(Output, "forms")), output.forms);
+    const expressions = view.join(values, forms);
     const Constants = @TypeOf(output.declarations);
     const constants = if (@typeInfo(Constants) == .@"struct") output.declarations.items else output.declarations;
     @import("../node/import_rows.zig").appendBorrowed(builder.allocator, &builder.nodes.expressions, &expressions) catch |err| return failure(err);

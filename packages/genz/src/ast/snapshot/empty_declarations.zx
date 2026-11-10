@@ -1,0 +1,34 @@
+import type { Declarations as Output } from "../../printer/model/declarations"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    return {
+        tags: [],
+        offsets: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: [],
+        variable_name: [],
+        variable_type_expr: [],
+        variable_value: [],
+        variable_exported: [],
+        function_name: [],
+        function_parameters_start: [],
+        function_parameters_len: [],
+        function_return_type: [],
+        function_body_start: [],
+        function_body_len: [],
+        function_exported: [],
+        function_abi_export: [],
+        function_inlined: [],
+        function_calling_convention: [],
+        field_name: [],
+        field_value: [],
+        field_default_value: [],
+        field_comptime_parameter: [],
+        comptime_scope_start: [],
+        comptime_scope_len: []
+    }
+}

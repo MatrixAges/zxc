@@ -1,8 +1,6 @@
 import type { Input as Bases, State as Context } from "../../../ast/context/model"
-import type {
-    State as Builder,
-    Columns as Declarations
-} from "../../../ast/declarations/builder/model"
+import type { State as Builder } from "../../../ast/declarations/builder/model"
+import type { Module as Snapshot } from "../../../ast/snapshot/model"
 import type { Object, Policy } from "../lifecycle/model"
 
 export type Input = {
@@ -25,9 +23,4 @@ export type State = {
     nil: u32
 }
 
-export type Output = {
-    context: Context,
-    declarations: Declarations,
-    extra: Extra,
-    valid: bool
-}
+export type Output = Snapshot

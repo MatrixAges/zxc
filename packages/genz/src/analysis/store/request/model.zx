@@ -1,12 +1,8 @@
-import type {
-    Input as Bases,
-    State as Context,
-    Variables
-} from "../../../ast/context/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
 import type { Table as Declarations } from "../../../ast/declarations/table/model"
 import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Module as Snapshot } from "../../../ast/snapshot/model"
 import type { State as Statements } from "../../../ast/statements/builder/model"
-import type { Columns as StatementColumns } from "../../../ast/statements/model"
 import type { Object, Policy } from "../lifecycle/model"
 
 export type Input = {
@@ -72,13 +68,4 @@ export type Commit = {
     child_allocator: u32
 }
 
-export type Output = {
-    context: Context,
-    statements: StatementColumns,
-    variables: Variables,
-    fields: Fields,
-    declarations: Declarations,
-    extra: Extra,
-    roots: u32[],
-    valid: bool
-}
+export type Output = Snapshot

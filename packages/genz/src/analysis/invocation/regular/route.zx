@@ -10,10 +10,17 @@ export default function (in: Input): Output {
         property: Property.Represented
     })
 
-    const state_callee = represented || query({
+    const input_state = query({
+        value: in.input_query,
+        property: Property.Represented
+    })
+
+    const inline_rows = query({
         value: in.input_query,
         property: Property.InlineRows
     })
+
+    const state_callee = represented || input_state || inline_rows
 
     const active = in.active
     const allows_allocation = in.allows_allocation

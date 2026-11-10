@@ -1,0 +1,36 @@
+import { include_path } from "./const"
+import evaluate from "./evaluate"
+import includeValue from "./include_value"
+import invoke from "./invoke"
+
+import type { Ast as Output } from "./model"
+
+export type Input = {
+    ast: Output,
+    module: u32,
+    paths: string[]
+}
+
+export default function (in: Input): Output {
+    return loop({
+        ast: in.ast,
+        index: 0
+    }, {
+        while: current => current.index < in.paths.length,
+        next: current => {
+            const value = in.paths[current.index]
+            const node = includeValue({
+                ast: current.ast,
+                value
+            })
+            current.ast = evaluate(invoke({
+                ast: node.ast,
+                target: in.module,
+                method: include_path,
+                arguments: [node.id]
+            }))
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+}

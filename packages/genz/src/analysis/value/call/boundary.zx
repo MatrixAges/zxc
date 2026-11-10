@@ -13,10 +13,17 @@ export default function (in: Input): Output {
         property: Property.Represented
     })
 
-    const state_callee = state_result || query({
+    const input_state = query({
+        value: in.input_query,
+        property: Property.Represented
+    })
+
+    const inline_rows = query({
         value: in.input_query,
         property: Property.InlineRows
     })
+
+    const state_callee = state_result || input_state || inline_rows
 
     const target = kind(in.types.kinds[integers.widen(in.output)])
     const product = target == Kind.Object || target == Kind.Tuple

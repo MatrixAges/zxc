@@ -219,7 +219,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
             try output.append(temporary, .{ .constant = .{ .name = "zx_native", .value = try lower.builtin(.import, &.{try lower.builder.string(module.import_name)}) } });
 
             break :native try @import("external.zig").lower(&lower, selected, @backingInt(id));
-        } else try lower.function("call", false);
+        } else if (try @import("functions/adapter.zig").build(&lower, id)) |adapter| adapter else try lower.function("call", false);
 
         declaration.function.name = "call";
         declaration.function.exported = true;

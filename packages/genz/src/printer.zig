@@ -141,10 +141,16 @@ pub fn expression(self: *Self, value: node.ExpressionId) Error!void {
 
             try self.write("}");
         },
-        .enum_type => |members| {
-            try self.write("enum { ");
+        .enum_type => |enumeration| {
+            if (enumeration.base) |base| {
+                try self.write("enum(");
+                try self.expression(base);
+                try self.write(") { ");
+            } else {
+                try self.write("enum { ");
+            }
 
-            for (members) |member| {
+            for (enumeration.members) |member| {
                 try self.identifier(member);
                 try self.write(", ");
             }

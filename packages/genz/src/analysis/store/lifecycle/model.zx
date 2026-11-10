@@ -1,9 +1,6 @@
 import type { State as Context, Input as Bases } from "../../../ast/context/model"
-import type { Variables } from "../../../ast/context/model"
-import type { Columns as Functions } from "../../../ast/declarations/function"
-import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Module as Snapshot } from "../../../ast/snapshot/model"
 import type { State as StatementsBuilder } from "../../../ast/statements/builder/model"
-import type { Columns as Statements } from "../../../ast/statements/model"
 
 export type Object = {
     module_name: u8[],
@@ -53,12 +50,4 @@ export type Work = {
     index: u64
 }
 
-export type Output = {
-    context: Context,
-    extra: Extra,
-    statements: Statements,
-    variables: Variables,
-    fields: Fields,
-    functions: Functions,
-    valid: bool
-}
+export type Output = Snapshot

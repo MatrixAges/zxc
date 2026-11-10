@@ -1,0 +1,50 @@
+import type { Statements as Output } from "../../printer/model/statements"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    return {
+        tags: [],
+        offsets: [],
+        scope_start: [],
+        scope_len: [],
+        defer_expression: [],
+        errdefer_expression: [],
+        defer_scope_start: [],
+        defer_scope_len: [],
+        discard_error: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: [],
+        variable_name: [],
+        variable_type_expr: [],
+        variable_value: [],
+        variable_exported: [],
+        assignment_target: [],
+        assignment_value: [],
+        for_loop_iterable: [],
+        for_loop_capture: [],
+        for_loop_body_start: [],
+        for_loop_body_len: [],
+        for_loop_capture_reference: [],
+        for_loop_index_capture: [],
+        while_loop_condition: [],
+        while_loop_body_start: [],
+        while_loop_body_len: [],
+        while_loop_capture: [],
+        break_value_label: [],
+        break_value_value: [],
+        result: [],
+        branch_condition: [],
+        branch_yes_start: [],
+        branch_yes_len: [],
+        branch_no_start: [],
+        branch_no_len: [],
+        branch_capture: [],
+        branch_capture_reference: [],
+        branch_error_capture: [],
+        discard: [],
+        expression: []
+    }
+}

@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Library" />
+
+    <Args in={Library.Input} out={Library.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prelude" in={$ctx.initialize} />
+    <Call fn="native" in={$ctx.prelude} />
+    <Call fn="generated" in={$ctx.native} />
+    <Call fn="generated_dependencies" in={$ctx.generated} />
+
+    <If on={$ctx.generated_dependencies.status != Library.Status.Ready}>
+        <Call fn="publish" in={$ctx.generated_dependencies} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="native_dependencies" in={$ctx.generated_dependencies} />
+
+    <If on={$ctx.native_dependencies.status != Library.Status.Ready}>
+        <Call fn="publish" in={$ctx.native_dependencies} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="public" in={$ctx.native_dependencies} />
+    <Call fn="finish" in={$ctx.public} />
+    <Call fn="publish" in={$ctx.finish} />
+
+    <Return value={$ctx.publish} />
+</Module>

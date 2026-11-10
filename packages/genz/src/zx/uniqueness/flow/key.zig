@@ -7,9 +7,10 @@ const Input = std.meta.Child(generated.Input);
 
 pub fn build(flow: Flow, function: zx.ir.Function, types: *const [32]u8, content: *const [32]u8) [32]u8 {
     var hash: zx.Sha256 = undefined;
+    const hash_state = zx.Sha256State{ .value = &hash };
 
     const input: Input = .{
-        .hash = @ptrCast(&hash),
+        .hash = @ptrCast(&hash_state),
         .types = types,
         .content = content,
         .kinds = zx.columns.slice(@FieldType(Input, "kinds"), function.expressions.kinds),

@@ -31,7 +31,7 @@ fn seedDefinitions(self: *Lower, output: *std.ArrayList(node.Declaration), expor
 
                 const definition = switch (value) {
                     .native_reference => try self.builder.expression(.opaque_type),
-                    .enumeration => |enumeration| try self.builder.expression(.{ .enum_type = enumeration.members }),
+                    .enumeration => |enumeration| try self.builder.expression(.{ .enum_type = .{ .members = enumeration.members } }),
                     .tuple => |children| tuple: {
                         const items = try self.allocator.alloc(node.ExpressionId, children.len);
 

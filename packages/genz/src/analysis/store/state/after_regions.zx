@@ -1,7 +1,5 @@
 import integers from "std:integer"
 
-import advance from "../../../ast/context/advance"
-
 import type { Output as Regions } from "../regions/model"
 import type { Input as Output } from "../request/model"
 import type { Input as Source } from "./model"
@@ -18,11 +16,7 @@ export default function (in: Input): Output {
 
     return {
         objects: in.source.objects,
-        bases: advance({
-            context: regions.context,
-            statement_count: regions.statements.tags.length,
-            field_count: regions.fields.name.length
-        }),
+        bases: regions.next,
         declaration_base: integers.narrow(
             in.storage_count + in.lifecycle_count + regions.declarations.tags.length
         ),

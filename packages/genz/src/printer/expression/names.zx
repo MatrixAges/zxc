@@ -49,7 +49,7 @@ export default function (in: Input): Output {
     }
 
     const names = match kind {
-        ExpressionsKind.EnumType => tree.enum_type[row],
+        ExpressionsKind.EnumType => tree.enum_type_members[row],
         ExpressionsKind.ErrorSet => tree.error_set[row],
         _ => tree.error_union_errors[row] ?? [],
     }
@@ -61,10 +61,32 @@ export default function (in: Input): Output {
             _ => ByteSource.ErrorUnionMember,
         }
 
-    const opening: Frame[] = [{
-        ...frame,
-        token: kind == ExpressionsKind.EnumType ? Token.EnumOpen : Token.ErrorSetOpen
-    }]
+    const base = match kind {
+        ExpressionsKind.EnumType => tree.enum_type_base[row],
+        _ => null
+    }
+
+    const opening: Frame[] = match {
+        base != null => [
+            {
+                ...frame,
+                token: Token.EnumBaseOpen
+            },
+            {
+                ...frame,
+                action: Action.Expression,
+                id: base
+            },
+            {
+                ...frame,
+                token: Token.EnumBaseClose
+            }
+        ],
+        _ => [{
+            ...frame,
+            token: kind == ExpressionsKind.EnumType ? Token.EnumOpen : Token.ErrorSetOpen
+        }]
+    }
 
     const expanded = loop({
         frames: opening,

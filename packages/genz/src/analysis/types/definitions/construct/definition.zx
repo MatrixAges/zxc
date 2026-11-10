@@ -33,8 +33,10 @@ export default function (in: Input): Output {
         return {
             ...state,
             tags: state.tags.push(ExpressionsKind.EnumType)[0],
-            offsets: state.offsets.push(integers.narrow(state.enum_type.length))[0],
-            enum_type: state.enum_type.push(members({
+            offsets:
+                state.offsets.push(integers.narrow(state.enum_type_members.length))[0],
+            enum_type_base: state.enum_type_base.push(null)[0],
+            enum_type_members: state.enum_type_members.push(members({
                 names: state.source.types.names,
                 start: in.first,
                 count: in.count

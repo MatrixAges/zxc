@@ -8,7 +8,7 @@ const conversion = @import("../state_value/conversion.zig");
 
 pub fn declarations(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!bool {
     const represented_output = self.state_plan.represented(self.program, self.program.output_type);
-    const represented_input = self.state_plan.inlineRows(self.program, self.program.input_type);
+    const represented_input = self.state_plan.represented(self.program, self.program.input_type) or self.state_plan.inlineRows(self.program, self.program.input_type);
 
     if (self.entry_flags.tasks or (!represented_output and !represented_input)) return false;
 

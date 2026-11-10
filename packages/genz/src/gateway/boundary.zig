@@ -10,6 +10,21 @@ pub fn lower(builder: Builder) std.mem.Allocator.Error![3]node.Declaration {
         try @import("head_seed.zig").lower(builder),
     };
 
+    const selected = try lowerStored(builder);
+    var result: [3]node.Declaration = undefined;
+
+    for (&result, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, selected.start + @as(u32, @intCast(index)));
+
+    return result;
+}
+
+pub fn lowerStored(builder: Builder) std.mem.Allocator.Error!@import("../node/stored.zig").Declarations {
+    if (comptime !@import("genz_options").generated_analysis) {
+        const declarations = try lower(builder);
+
+        return builder.nodes.declarations(builder.allocator, &declarations);
+    }
+
     const entry = @import("generated_gateway_http");
     const Input = std.meta.Child(entry.Input);
 
@@ -28,11 +43,7 @@ pub fn lower(builder: Builder) std.mem.Allocator.Error![3]node.Declaration {
     const first = builder.nodes.declaration_rows.tags.items.len;
     @import("../node/import_module.zig").appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
 
-    var result: [3]node.Declaration = undefined;
-
-    for (&result, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(first + index));
-
-    return result;
+    return .{ .start = @intCast(first), .len = 3 };
 }
 
 fn failure(err: anyerror) std.mem.Allocator.Error {

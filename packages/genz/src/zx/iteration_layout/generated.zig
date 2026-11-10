@@ -29,7 +29,7 @@ fn queries() [@typeInfo(Type).@"enum".field_names.len][@typeInfo(Property).@"enu
         for (std.enums.values(Property)) |property| {
             const input: std.meta.Child(generated.Input) = .{ .value = value, .property = property };
 
-            values[@backingInt(value)][@backingInt(property)] = generated.executeValue(std.heap.page_allocator, &input) catch unreachable;
+            values[@backingInt(value)][@backingInt(property)] = zx.columns.invoke(generated.executeValue, std.heap.page_allocator, &input) catch unreachable;
         }
     }
 

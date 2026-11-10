@@ -1,0 +1,57 @@
+import bind from "./bind"
+import { target_name, optimize_name, abi_name, abi_path } from "./const"
+import { target_options, optimize_options } from "./const"
+import create from "./create"
+import invoke from "./invoke"
+import object from "./object"
+import reference from "./reference"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty = object({
+        ast: in.ast,
+        fields: []
+    })
+
+    const target = bind({
+        name: target_name,
+        node: invoke({
+            ast: empty.ast,
+            target: null,
+            method: target_options,
+            arguments: [empty.id]
+        })
+    })
+
+    const optimize = bind({
+        name: optimize_name,
+        node: invoke({
+            ast: target,
+            target: null,
+            method: optimize_options,
+            arguments: [empty.id]
+        })
+    })
+
+    const ast = bind({
+        name: abi_name,
+        node: create({
+            ast: optimize,
+            path: abi_path,
+            libc: null,
+            public_name: null
+        })
+    })
+
+    const abi = reference({
+        ast,
+        name: abi_name
+    })
+
+    return {
+        ...in,
+        ast: abi.ast,
+        abi: abi.id
+    }
+}

@@ -21,17 +21,20 @@ pub fn appendBorrowed(allocator: std.mem.Allocator, target: *Storage, comptime M
 }
 
 fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module: type, source: anytype, comptime mode: Mode) Error!void {
-    const Context = std.meta.Child(@FieldType(Module, "context"));
-    const context = source.context;
-    const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
-    const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
-    const values = if (@hasField(Module, "extra")) view.join(view.join(expressions, forms), zx.columns.view(Descriptor(@FieldType(Module, "extra")), source.extra)) else view.join(expressions, forms);
+    const values = if (@hasField(Module, "context")) legacy: {
+        const Context = Descriptor(@FieldType(Module, "context"));
+        const context = source.context;
+        const expressions = zx.columns.view(Descriptor(@FieldType(Context, "expressions")), context.expressions);
+        const forms = zx.columns.view(Descriptor(@FieldType(Context, "forms")), context.forms);
+
+        break :legacy if (@hasField(Module, "extra")) view.join(view.join(expressions, forms), zx.columns.view(Descriptor(@FieldType(Module, "extra")), source.extra)) else view.join(expressions, forms);
+    } else zx.columns.view(Descriptor(@FieldType(Module, "expressions")), source.expressions);
 
     try appendRows(allocator, &target.expressions, &values, mode);
 
     if (@hasField(Module, "statements")) {
         const statements = zx.columns.view(Descriptor(@FieldType(Module, "statements")), source.statements);
-        const commands = if (@hasField(Module, "variables")) view.join(statements, zx.columns.view(std.meta.Child(@FieldType(Module, "variables")), source.variables)) else statements;
+        const commands = if (@hasField(Module, "variables")) view.join(statements, zx.columns.view(Descriptor(@FieldType(Module, "variables")), source.variables)) else statements;
 
         if (@hasField(Module, "statement_forms") or @hasField(Module, "loops")) {
             const extra_name = if (@hasField(Module, "statement_forms")) "statement_forms" else "loops";
@@ -51,7 +54,7 @@ fn appendModule(allocator: std.mem.Allocator, target: *Storage, comptime Module:
     if (!@hasField(Module, "declarations") and !@hasField(Module, "functions")) return;
 
     const name = if (@hasField(Module, "declarations")) "declarations" else "functions";
-    const declarations = zx.columns.view(std.meta.Child(@FieldType(Module, name)), @field(source, name));
+    const declarations = zx.columns.view(Descriptor(@FieldType(Module, name)), @field(source, name));
 
     try appendRows(allocator, &target.declaration_rows, &declarations, mode);
 }

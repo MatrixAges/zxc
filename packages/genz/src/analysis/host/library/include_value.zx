@@ -1,0 +1,25 @@
+import path from "std:path"
+
+import buildPath from "./build_path"
+import { cwd_relative } from "./const"
+import literal from "./literal"
+import object from "./object"
+
+import type { Input } from "./literal"
+import type { Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!path.isAbsolute(in.value)) {
+        return buildPath(in)
+    }
+
+    const text = literal(in)
+
+    return object({
+        ast: text.ast,
+        fields: [{
+            name: cwd_relative,
+            value: text.id
+        }]
+    })
+}

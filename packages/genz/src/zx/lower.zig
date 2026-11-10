@@ -121,7 +121,7 @@ pub fn valuePrototype(self: *Self, name: []const u8) Error!node.Function {
 }
 
 fn valueMode(self: *Self, name: []const u8, prototype_only: bool) Error!node.Declaration {
-    const state = if (self.state_plan.represented(self.program, self.program.output_type) or self.state_plan.inlineRows(self.program, self.program.input_type)) try @import("state_value/root.zig").enter(self) else null;
+    const state = if (self.state_plan.represented(self.program, self.program.output_type) or self.state_plan.represented(self.program, self.program.input_type) or self.state_plan.inlineRows(self.program, self.program.input_type)) try @import("state_value/root.zig").enter(self) else null;
 
     defer if (state) |saved| saved.restore();
 
@@ -129,8 +129,11 @@ fn valueMode(self: *Self, name: []const u8, prototype_only: bool) Error!node.Dec
 
     defer _ = self.state_symbols.remove(@fromBackingInt(0));
     const output = self.program.typeOf(self.program.output_type);
+    var payload = output;
 
-    self.value_output = state == null or self.state_plan.represented(self.program, self.program.output_type) or (output != .object and output != .tuple);
+    while (payload == .optional) payload = self.program.typeOf(payload.optional);
+
+    self.value_output = payload != .native_reference and (state == null or self.state_plan.represented(self.program, self.program.output_type) or (output != .object and output != .tuple));
     defer self.value_output = false;
 
     return if (prototype_only) .{ .function = try self.prototype(name, false) } else self.function(name, false);

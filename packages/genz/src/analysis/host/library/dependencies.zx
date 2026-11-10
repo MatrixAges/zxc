@@ -1,0 +1,68 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import get from "core/bytes/index/get"
+
+import addImport from "./add_import"
+import { alias_separator } from "./const"
+import { Status } from "./model"
+
+import type { State, State as Output } from "./model"
+
+export type Input = {
+    state: State,
+    module: u32,
+    values: string[],
+    aliases: bool
+}
+
+export default function (in: Input): Output {
+    return loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: current => current.index < in.values.length &&
+            current.state.status == Status.Ready,
+        next: current => {
+            const value = in.values[current.index]
+            const raw = bytes.fromText(value)
+            const separator = match {
+                in.aliases => bytes.indexOfScalar(raw, 0, alias_separator),
+                _ => null
+            }
+            const alias = match {
+                separator != null => encoding.sliceBytes(value, 0, separator),
+                _ => value
+            }
+            const target = match {
+                separator != null =>
+                    encoding.sliceBytes(value, separator + 1, value.length),
+                _ => value
+            }
+            const module = get({
+                index: current.state.pick([
+                    "keys",
+                    "values",
+                    "buckets"
+                ]),
+                key: bytes.fromText(target)
+            })
+            current.state = match {
+                module == null => {
+                    ...current.state,
+                    status: Status.UnknownModuleDependency
+                },
+                _ => {
+                    ...current.state,
+                    ast: addImport({
+                        ast: current.state.ast,
+                        module: in.module,
+                        name: alias,
+                        target: module
+                    })
+                }
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

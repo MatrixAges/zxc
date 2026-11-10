@@ -1,13 +1,9 @@
-import type {
-    Input as Bases,
-    State as Context,
-    Variables
-} from "../../../ast/context/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
 import type { Table as Declarations } from "../../../ast/declarations/table/model"
 import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Module as Snapshot } from "../../../ast/snapshot/model"
 import type { State as Statements, Scope } from "../../../ast/statements/builder/model"
 import type { Columns as Loops } from "../../../ast/statements/builder/while_loop"
-import type { Columns as StatementColumns } from "../../../ast/statements/model"
 import type { Object, Policy } from "../lifecycle/model"
 
 export type Input = {
@@ -46,13 +42,4 @@ export type Release = {
     owned: u32
 }
 
-export type Output = {
-    context: Context,
-    statements: StatementColumns,
-    variables: Variables,
-    loops: Loops,
-    fields: Fields,
-    declarations: Declarations,
-    extra: Extra,
-    valid: bool
-}
+export type Output = Snapshot

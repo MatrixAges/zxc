@@ -1,0 +1,61 @@
+import addImport from "./add_import"
+import bind from "./bind"
+import { translated_prefix, native_directory, header_suffix } from "./const"
+import { translate_c, create_module } from "./const"
+import { c_import } from "./const"
+import includes from "./includes"
+import invoke from "./invoke"
+import options from "./options"
+import reference from "./reference"
+
+import type { Ast as Output } from "./model"
+import type { NativeConfig as Input } from "./model"
+
+export default function (in: Input): Output {
+    if (in.value.header == null || in.value.path != null) {
+        return in.ast
+    }
+
+    const name = `${translated_prefix}${in.index}`
+
+    const config = options({
+        ast: in.ast,
+        path: `${native_directory}${in.value.name}${header_suffix}`,
+        libc: null
+    })
+
+    const bound = bind({
+        name,
+        node: invoke({
+            ast: config.ast,
+            target: null,
+            method: translate_c,
+            arguments: [config.id]
+        })
+    })
+
+    const module = reference({
+        ast: bound,
+        name
+    })
+
+    const ast = includes({
+        ast: module.ast,
+        module: module.id,
+        paths: in.value.include_paths
+    })
+
+    const c_module = invoke({
+        ast,
+        target: module.id,
+        method: create_module,
+        arguments: []
+    })
+
+    return addImport({
+        ast: c_module.ast,
+        module: in.module,
+        name: c_import,
+        target: c_module.id
+    })
+}

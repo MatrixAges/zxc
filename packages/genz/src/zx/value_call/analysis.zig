@@ -53,7 +53,7 @@ pub fn analyzeExported(allocator: std.mem.Allocator, program: ir.Program, export
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
 
-        eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or (function.external == null and (state.represented(program, function.output_type) or state.inlineRows(program, function.input_type))));
+        eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or (function.external == null and (state.represented(program, function.output_type) or state.represented(program, function.input_type) or state.inlineRows(program, function.input_type))));
     }
 
     return .{ .pure = pure, .local = local, .values = eligible, .state = state };

@@ -1,0 +1,72 @@
+import { cwd_relative, library_path, system_library } from "./const"
+import evaluate from "./evaluate"
+import invoke from "./invoke"
+import literal from "./literal"
+import object from "./object"
+
+import type { Ast as Output } from "./model"
+
+export type Input = {
+    ast: Output,
+    module: u32,
+    libraries: string[],
+    paths: string[]
+}
+
+export default function (in: Input): Output {
+    const linked = loop({
+        ast: in.ast,
+        index: 0
+    }, {
+        while: current => current.index < in.libraries.length,
+        next: current => {
+            const name = literal({
+                ast: current.ast,
+                value: in.libraries[current.index]
+            })
+            const options = object({
+                ast: name.ast,
+                fields: []
+            })
+            current.ast = evaluate(invoke({
+                ast: options.ast,
+                target: in.module,
+                method: system_library,
+                arguments: [
+                    name.id,
+                    options.id
+                ]
+            }))
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    return loop({
+        ast: linked,
+        index: 0
+    }, {
+        while: current => current.index < in.paths.length,
+        next: current => {
+            const path = literal({
+                ast: current.ast,
+                value: in.paths[current.index]
+            })
+            const value = object({
+                ast: path.ast,
+                fields: [{
+                    name: cwd_relative,
+                    value: path.id
+                }]
+            })
+            current.ast = evaluate(invoke({
+                ast: value.ast,
+                target: in.module,
+                method: library_path,
+                arguments: [value.id]
+            }))
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+}

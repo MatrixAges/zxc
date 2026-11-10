@@ -6,7 +6,11 @@ export type Output = State
 
 export default function (in: Input): Output {
     const left = in.left.map(item => item)[0]
-    const right = in.enabled ? in.right.map(item => item)[0] : left
+
+    const right = match in.enabled {
+        true => in.right.map(item => item)[0],
+        _ => left
+    }
 
     return {
         columns: {

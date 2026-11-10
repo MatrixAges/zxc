@@ -1,0 +1,15 @@
+import type { Declarations } from "../../printer/model/declarations"
+import type { Expressions } from "../../printer/model/expressions"
+import type { Fields } from "../../printer/model/members"
+import type { Statements } from "../../printer/model/statements"
+import type { Input as Bases } from "../context/model"
+
+export type Module = {
+    expressions: Expressions,
+    statements: Statements,
+    declarations: Declarations,
+    fields: Fields,
+    next: Bases,
+    roots: u32[],
+    valid: bool
+}

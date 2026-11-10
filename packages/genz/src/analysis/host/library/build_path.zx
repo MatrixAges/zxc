@@ -1,0 +1,17 @@
+import { path_method } from "./const"
+import invoke from "./invoke"
+import literal from "./literal"
+
+import type { Input } from "./literal"
+import type { Node as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = literal(in)
+
+    return invoke({
+        ast: value.ast,
+        target: null,
+        method: path_method,
+        arguments: [value.id]
+    })
+}

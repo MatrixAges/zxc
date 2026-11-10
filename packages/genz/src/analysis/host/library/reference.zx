@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../ast/context/identifier"
+
+import type { Ast, Node as Output } from "./model"
+
+export type Input = {
+    ast: Ast,
+    name: string
+}
+
+export default function (in: Input): Output {
+    const node = identifier({
+        state: in.ast.context,
+        name: bytes.fromText(in.name)
+    })
+
+    return {
+        ast: {
+            ...in.ast,
+            context: node.state
+        },
+        id: node.id
+    }
+}

@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+import put from "core/bytes/index/put"
+
+import addImport from "./add_import"
+import bind from "./bind"
+import { generated_prefix, abi_import } from "./const"
+import create from "./create"
+import reference from "./reference"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.generated.length,
+        next: current => {
+            const value = in.source.generated[current.index]
+            const name = `${generated_prefix}${current.index}`
+            const bound = bind({
+                name,
+                node: create({
+                    ast: current.state.ast,
+                    path: value.path,
+                    libc: null,
+                    public_name: null
+                })
+            })
+            const module = reference({
+                ast: bound,
+                name
+            })
+            const names = put({
+                index: current.state.pick([
+                    "keys",
+                    "values",
+                    "buckets"
+                ]),
+                key: bytes.fromText(value.name),
+                value: module.id
+            })
+            current.state = {
+                ...current.state,
+                ...names,
+                ast: addImport({
+                    ast: module.ast,
+                    module: module.id,
+                    name: abi_import,
+                    target: in.abi
+                })
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

@@ -49,15 +49,23 @@ fn Forward(comptime F: type, comptime symbol: []const u8, comptime implementatio
                 return invoke(implementation, arguments);
             }
 
-            var result: Payload(F) = undefined;
-            const status = entry(arguments, &result);
-
             switch (@typeInfo(Return(F))) {
-                .error_union => |union_info| if (status != 0) return failure(union_info.error_set, status),
-                else => {},
-            }
+                .error_union => |union_info| {
+                    var result: Return(F) = @as(Payload(F), undefined);
+                    const payload = if (result) |*value| value else |_| unreachable;
+                    const status = entry(arguments, payload);
 
-            return result;
+                    if (status != 0) result = failure(union_info.error_set, status);
+
+                    return result;
+                },
+                else => {
+                    var result: Payload(F) = undefined;
+                    _ = entry(arguments, &result);
+
+                    return result;
+                },
+            }
         }
 
         inline fn take0() Return(F) {

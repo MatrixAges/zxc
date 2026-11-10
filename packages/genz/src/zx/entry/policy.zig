@@ -19,7 +19,7 @@ pub fn value(self: *const Lower) std.meta.Child(@import("generated_public_entry_
         .tasks = self.entry_flags.tasks,
         .enabled = self.entry_flags.value,
         .type_only = self.program.type_only,
-        .represented_input = self.state_plan.inlineRows(self.program, self.program.input_type),
+        .represented_input = self.state_plan.represented(self.program, self.program.input_type) or self.state_plan.inlineRows(self.program, self.program.input_type),
         .represented_output = self.state_plan.represented(self.program, self.program.output_type),
         .output_kind = @fromBackingInt(@intCast(self.program.types.kinds[@backingInt(self.program.output_type)])),
     };

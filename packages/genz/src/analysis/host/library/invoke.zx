@@ -1,0 +1,40 @@
+import method from "../../../ast/context/method"
+import path from "../../../ast/context/path"
+import { builder_name } from "./const"
+
+import type { Ast, Node as Output } from "./model"
+
+export type Input = {
+    ast: Ast,
+    target?: u32,
+    method: string,
+    arguments: u32[]
+}
+
+export default function (in: Input): Output {
+    const target = match {
+        in.target != null => {
+            state: in.ast.context,
+            id: in.target
+        },
+        _ => path({
+            state: in.ast.context,
+            path: [builder_name]
+        })
+    }
+
+    const node = method({
+        state: target.state,
+        target: target.id,
+        path: [in.method],
+        arguments: in.arguments
+    })
+
+    return {
+        id: node.id,
+        ast: {
+            ...in.ast,
+            context: node.state
+        }
+    }
+}

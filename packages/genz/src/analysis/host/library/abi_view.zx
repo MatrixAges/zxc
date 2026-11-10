@@ -1,0 +1,51 @@
+import addImport from "./add_import"
+import bind from "./bind"
+import { view_prefix } from "./const"
+import { abi_import, canonical_import } from "./const"
+import create from "./create"
+import reference from "./reference"
+
+import type { Ast as Output } from "./model"
+import type { NativeConfig as Input } from "./model"
+
+export default function (in: Input): Output {
+    if (in.value.abi_view == null) {
+        return addImport({
+            ast: in.ast,
+            module: in.module,
+            name: abi_import,
+            target: in.abi
+        })
+    }
+
+    const name = `${view_prefix}${in.index}`
+
+    const bound = bind({
+        name,
+        node: create({
+            ast: in.ast,
+            path: in.value.abi_view,
+            libc: null,
+            public_name: null
+        })
+    })
+
+    const view = reference({
+        ast: bound,
+        name
+    })
+
+    const ast = addImport({
+        ast: view.ast,
+        module: view.id,
+        name: canonical_import,
+        target: in.abi
+    })
+
+    return addImport({
+        ast,
+        module: in.module,
+        name: abi_import,
+        target: view.id
+    })
+}

@@ -1,0 +1,66 @@
+import addImport from "./add_import"
+import bind from "./bind"
+import { public_prefix, abi_import } from "./const"
+import create from "./create"
+import dependencies from "./dependencies"
+import link from "./link"
+import { Status } from "./model"
+import reference from "./reference"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.public.length &&
+            current.state.status == Status.Ready,
+        next: current => {
+            const value = in.source.public[current.index]
+            const name = `${public_prefix}${current.index}`
+            const bound = bind({
+                name,
+                node: create({
+                    ast: current.state.ast,
+                    path: value.path,
+                    libc: null,
+                    public_name: value.name
+                })
+            })
+            const module = reference({
+                ast: bound,
+                name
+            })
+            const ast = addImport({
+                ast: module.ast,
+                module: module.id,
+                name: abi_import,
+                target: in.abi
+            })
+            const state = dependencies({
+                state: {
+                    ...current.state,
+                    ast
+                },
+                module: module.id,
+                values: value.dependencies,
+                aliases: false
+            })
+            current.state = match state.status {
+                Status.Ready => {
+                    ...state,
+                    ast: link({
+                        ast: state.ast,
+                        module: module.id,
+                        libraries: in.source.libraries,
+                        paths: in.source.library_paths
+                    })
+                },
+                _ => state
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

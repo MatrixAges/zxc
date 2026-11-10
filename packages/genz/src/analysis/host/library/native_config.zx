@@ -1,0 +1,20 @@
+import abiView from "./abi_view"
+import includes from "./includes"
+import translate from "./translate"
+
+import type { NativeConfig as Input, Ast as Output } from "./model"
+
+export default function (in: Input): Output {
+    const translated = translate(in)
+
+    const configured = abiView({
+        ...in,
+        ast: translated
+    })
+
+    return includes({
+        ast: configured,
+        module: in.module,
+        paths: in.value.include_paths
+    })
+}

@@ -75,7 +75,7 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
         break :temporary try self.builder.expression(.{ .address_of = layout });
     } else try self.expr(value.argument);
 
-    const state_callee = self.state_plan.represented(self.program, function.output_type) or self.state_plan.inlineRows(self.program, function.input_type);
+    const state_callee = self.state_plan.represented(self.program, function.output_type) or self.state_plan.represented(self.program, function.input_type) or self.state_plan.inlineRows(self.program, function.input_type);
     const state_result = self.state_plan.represented(self.program, function.output_type);
     const output_kind = self.program.typeOf(function.output_type);
     const pointer_result = state_callee and !state_result and (output_kind == .object or output_kind == .tuple);

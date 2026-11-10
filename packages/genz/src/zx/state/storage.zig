@@ -3,7 +3,6 @@ const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 const Object = @import("../state.zig").Object;
 const zx = @import("zx");
-const view = @import("../../node/view.zig");
 
 pub fn writable(objects: []const Object) bool {
     if (@import("genz_options").generated_analysis) return policy(objects) != .ReadOnly;
@@ -67,17 +66,7 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
     if (!output.valid) return error.OutOfMemory;
 
     const Output = std.meta.Child(entry.Output);
-    const Context = std.meta.Child(@FieldType(Output, "context"));
-    const context = output.context;
-    const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
-    const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
-    const extra = zx.columns.view(std.meta.Child(@FieldType(Output, "extra")), output.extra);
-    const columns = zx.columns.view(std.meta.Child(@FieldType(Output, "declarations")), output.declarations);
-    const values = view.join(view.join(expressions, forms), extra);
-    const rows = @import("../../node/import_rows.zig");
-
-    rows.append(builder.allocator, &builder.nodes.expressions, &values) catch |err| return failure(err);
-    rows.append(builder.allocator, &builder.nodes.declaration_rows, &columns) catch |err| return failure(err);
+    @import("../../node/import_module.zig").append(builder.allocator, builder.nodes, Output, output) catch |err| return failure(err);
     for (first..builder.nodes.declaration_rows.tags.items.len) |index| try declarations.append(builder.allocator, try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index)));
 }
 

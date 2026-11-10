@@ -12,7 +12,7 @@ pub const Expression = union(enum) {
     unreachable_value,
     optional_type: ExpressionId,
     tuple_type: []const ExpressionId,
-    enum_type: []const []const u8,
+    enum_type: struct { members: []const []const u8, base: ?ExpressionId = null },
     enum_literal: []const u8,
     array: struct { element_type: ExpressionId, values: []const ExpressionId },
     tuple: []const ExpressionId,

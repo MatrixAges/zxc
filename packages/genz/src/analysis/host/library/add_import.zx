@@ -1,0 +1,30 @@
+import { add_import } from "./const"
+import evaluate from "./evaluate"
+import invoke from "./invoke"
+import literal from "./literal"
+
+import type { Ast as Output } from "./model"
+
+export type Input = {
+    ast: Output,
+    module: u32,
+    name: string,
+    target: u32
+}
+
+export default function (in: Input): Output {
+    const name = literal({
+        ast: in.ast,
+        value: in.name
+    })
+
+    return evaluate(invoke({
+        ast: name.ast,
+        target: in.module,
+        method: add_import,
+        arguments: [
+            name.id,
+            in.target
+        ]
+    }))
+}

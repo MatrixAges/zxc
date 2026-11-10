@@ -1,0 +1,38 @@
+import bytes from "std:bytes"
+import get from "core/bytes/index/get"
+
+import dependencies from "./dependencies"
+import { Status } from "./model"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.native.length &&
+            current.state.status == Status.Ready,
+        next: current => {
+            const value = in.source.native[current.index]
+            const module = get({
+                index: current.state.pick([
+                    "keys",
+                    "values",
+                    "buckets"
+                ]),
+                key: bytes.fromText(value.name)
+            })
+            if (module != null) {
+                current.state = dependencies({
+                    state: current.state,
+                    module,
+                    values: value.dependencies,
+                    aliases: true
+                })
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

@@ -1,7 +1,5 @@
 import integers from "std:integer"
 
-import advance from "../../../ast/context/advance"
-
 import type { Output as Lifecycle } from "../lifecycle/model"
 import type { Input as Output } from "../regions/model"
 import type { Input as Source } from "./model"
@@ -17,12 +15,8 @@ export default function (in: Input): Output {
 
     return {
         objects: in.source.objects,
-        bases: advance({
-            context: lifecycle.context,
-            statement_count: lifecycle.statements.tags.length,
-            field_count: lifecycle.fields.name.length
-        }),
+        bases: lifecycle.next,
         declaration_base:
-            integers.narrow(in.storage_count + lifecycle.functions.tags.length)
+            integers.narrow(in.storage_count + lifecycle.declarations.tags.length)
     }
 }

@@ -3,7 +3,10 @@ import integers from "std:integer"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
-import { ExpressionsKind } from "../../../../printer/model/expressions"
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../../printer/model/expressions"
 import {
     list_field_count,
     storage_plain,
@@ -44,8 +47,10 @@ export default function (in: Input): Output {
     const storage = {
         ...slice,
         tags: slice.tags.push(ExpressionsKind.EnumType)[0],
-        offsets: slice.offsets.push(integers.narrow(slice.enum_type.length))[0],
-        enum_type: slice.enum_type.push([
+        offsets:
+            slice.offsets.push(integers.narrow(slice.enum_type_members.length))[0],
+        enum_type_base: slice.enum_type_base.push(in.start + 2)[0],
+        enum_type_members: slice.enum_type_members.push([
             bytes.fromText(storage_plain),
             bytes.fromText(storage_owned),
             bytes.fromText(storage_shared),
@@ -53,24 +58,31 @@ export default function (in: Input): Output {
         ])[0]
     }
 
-    return {
+    const backing = {
         ...storage,
-        tags: storage.tags.push(ExpressionsKind.StructType)[0],
+        tags: storage.tags.push(ExpressionsKind.Primitive)[0],
+        offsets: storage.offsets.push(integers.narrow(storage.primitive.length))[0],
+        primitive: storage.primitive.push(ExpressionsPrimitive.Usize)[0]
+    }
+
+    return {
+        ...backing,
+        tags: backing.tags.push(ExpressionsKind.StructType)[0],
         offsets:
-            storage.offsets.push(integers.narrow(storage.struct_type_start.length))[0],
-        struct_type_start: storage.struct_type_start.push(
+            backing.offsets.push(integers.narrow(backing.struct_type_start.length))[0],
+        struct_type_start: backing.struct_type_start.push(
             integers.narrow(
                 integers.widen(
                     source.field_base
-                ) + storage.field_count
+                ) + backing.field_count
             )
         )[0],
-        struct_type_len: storage.struct_type_len.push(list_field_count)[0],
-        records: storage.records.push({
+        struct_type_len: backing.struct_type_len.push(list_field_count)[0],
+        records: backing.records.push({
             owner: index,
             view: false,
             start: in.start
         })[0],
-        field_count: storage.field_count + integers.widen(list_field_count)
+        field_count: backing.field_count + integers.widen(list_field_count)
     }
 }

@@ -32,5 +32,7 @@ pub fn digest(allocator: std.mem.Allocator, in: *const anyopaque) std.mem.Alloca
 }
 
 fn state(in: *const anyopaque) *Hash {
-    return @ptrCast(@alignCast(@constCast(in)));
+    const reference: *const @import("sha256_backend").Sha256State = @ptrCast(@alignCast(in));
+
+    return reference.value;
 }

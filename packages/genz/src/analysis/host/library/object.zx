@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../ast/context/object"
+import append from "../../../ast/fields/append"
+
+import type { Ast, Node as Output } from "./model"
+
+export type Field = {
+    name: string,
+    value: u32
+}
+
+export type Input = {
+    ast: Ast,
+    fields: Field[]
+}
+
+export default function (in: Input): Output {
+    const first = integers.narrow(in.ast.fields.name.length)
+
+    const fields = loop({
+        table: in.ast.fields,
+        index: 0
+    }, {
+        while: current => current.index < in.fields.length,
+        next: current => {
+            const field = in.fields[current.index]
+
+            current.table = append({
+                table: current.table,
+                name: bytes.fromText(field.name),
+                value: field.value,
+                default_value: null,
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current.table
+    })
+
+    const node = object({
+        state: in.ast.context,
+        type_expr: null,
+        first,
+        count: integers.narrow(in.fields.length)
+    })
+
+    return {
+        id: node.id,
+        ast: {
+            ...in.ast,
+            context: node.state,
+            fields
+        }
+    }
+}

@@ -1,0 +1,33 @@
+import index from "core/bytes/index/initialize"
+
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+import { Status } from "./model"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = index(in.native.length + in.generated.length)
+
+    return {
+        source: in,
+        ast: {
+            body: statements(0),
+            context: context({
+                capture: null,
+                expression_base: 0,
+                statement_base: 0,
+                field_base: 0,
+                serial: 0
+            }),
+            fields: fields({})
+        },
+        declarations: declarations({}),
+        ...names,
+        abi: 0,
+        valid: true,
+        status: Status.Ready
+    }
+}

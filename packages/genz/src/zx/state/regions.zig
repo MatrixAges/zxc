@@ -1,7 +1,6 @@
 const std = @import("std");
 const zx = @import("zx");
 const node = @import("../../node.zig");
-const view = @import("../../node/view.zig");
 const Builder = @import("../../builder.zig");
 const Object = @import("../state.zig").Object;
 
@@ -45,25 +44,7 @@ pub fn lower(builder: Builder, declarations: *std.ArrayList(node.Declaration), o
     if (!output.valid) return error.OutOfMemory;
 
     const Output = std.meta.Child(entry.Output);
-    const Context = std.meta.Child(@FieldType(Output, "context"));
-    const context = output.context;
-    const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), context.expressions);
-    const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), context.forms);
-    const extra = zx.columns.view(std.meta.Child(@FieldType(Output, "extra")), output.extra);
-    const statements = zx.columns.view(std.meta.Child(@FieldType(Output, "statements")), output.statements);
-    const variables = zx.columns.view(std.meta.Child(@FieldType(Output, "variables")), output.variables);
-    const loops = zx.columns.view(std.meta.Child(@FieldType(Output, "loops")), output.loops);
-    const columns = zx.columns.view(std.meta.Child(@FieldType(Output, "declarations")), output.declarations);
-    const values = view.join(view.join(expressions, forms), extra);
-    const commands = view.join(view.join(statements, variables), loops);
-    const rows = @import("../../node/import_rows.zig");
-
-    rows.append(builder.allocator, &builder.nodes.expressions, &values) catch |err| return failure(err);
-    rows.append(builder.allocator, &builder.nodes.statements, &commands) catch |err| return failure(err);
-
-    _ = @import("../../node/import_fields.zig").append(builder.allocator, &builder.nodes.field_columns, output.fields) catch |err| return failure(err);
-
-    rows.append(builder.allocator, &builder.nodes.declaration_rows, &columns) catch |err| return failure(err);
+    @import("../../node/import_module.zig").append(builder.allocator, builder.nodes, Output, output) catch |err| return failure(err);
     for (first..builder.nodes.declaration_rows.tags.items.len) |index| try declarations.append(builder.allocator, try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index)));
 }
 

@@ -1,4 +1,8 @@
+import advance from "../../../ast/context/advance"
 import fields from "../../../ast/fields/empty"
+import emptyDeclarations from "../../../ast/snapshot/empty_declarations"
+import emptyStatements from "../../../ast/snapshot/empty_statements"
+import expressions from "../../../ast/snapshot/expressions"
 import statements from "../../../ast/statements/builder/publish"
 import { Method } from "./const"
 import method from "./method"
@@ -57,11 +61,26 @@ export default function (in: Input): Output {
     const body = statements(in.statements)
 
     return {
-        ...output,
-        context: in.context,
-        extra: in.extra,
-        statements: body.statements,
-        variables: body.variables,
+        expressions: {
+            ...expressions(in.context),
+            ...in.extra
+        },
+        statements: {
+            ...emptyStatements({}),
+            ...body.statements,
+            ...body.variables
+        },
+        declarations: {
+            ...emptyDeclarations({}),
+            ...output.functions
+        },
+        fields: output.fields,
+        next: advance({
+            context: in.context,
+            statement_count: body.statements.tags.length,
+            field_count: output.fields.name.length
+        }),
+        roots: [],
         valid: in.context.valid && body.valid && output.valid
     }
 }

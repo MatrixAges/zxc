@@ -6,12 +6,13 @@ const Input = std.meta.Child(generated.Input);
 
 pub fn build(symbols: ir.SymbolTable, expressions: ir.ExpressionTable, block: ir.Block, input_type: ir.TypeId, output_type: ir.TypeId) [32]u8 {
     var hash: zx.Sha256 = undefined;
+    const hash_state = zx.Sha256State{ .value = &hash };
     const borrowed_symbols = zx.columns.borrow(std.meta.Child(@FieldType(Input, "symbols")), &symbols);
     const borrowed_expressions = zx.columns.borrow(std.meta.Child(@FieldType(Input, "expressions")), &expressions);
     const control = zx.columns.borrow(std.meta.Child(@FieldType(Input, "control")), block.control);
 
     const input: Input = .{
-        .hash = @ptrCast(&hash),
+        .hash = @ptrCast(&hash_state),
         .symbols = &borrowed_symbols,
         .expressions = &borrowed_expressions,
         .control = &control,

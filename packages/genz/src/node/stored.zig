@@ -5,7 +5,7 @@ pub const Arms = struct { start: u32, len: u32 };
 pub const Declarations = struct { start: u32, len: u32 };
 
 pub fn Value(comptime Source: type) type {
-    @setEvalBranchQuota(10_000);
+    @setEvalBranchQuota(20_000);
 
     if (Source == []const node.Field) return Fields;
     if (Source == []const node.SelectionArm) return Arms;

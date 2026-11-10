@@ -1,0 +1,12 @@
+import empty from "./empty_expressions"
+
+import type { Expressions as Output } from "../../printer/model/expressions"
+import type { State as Input } from "../context/model"
+
+export default function (in: Input): Output {
+    return {
+        ...empty({}),
+        ...in.expressions,
+        ...in.forms
+    }
+}

@@ -1,6 +1,5 @@
 const std = @import("std");
 const zx = @import("zx");
-const node = @import("../../node.zig");
 const Builder = @import("../../builder.zig");
 
 pub fn render(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
@@ -25,13 +24,12 @@ pub fn render(allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
     const output = zx.columns.invoke(entry.executeValue, builder.allocator, &input) catch |err| return failure(err);
 
     if (!output.valid) return error.OutOfMemory;
-
     @import("../../node/import_module.zig").appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
-    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
 
-    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
-
-    return @import("../../render.zig").render(allocator, builder.nodes, declarations);
+    return @import("../../render.zig").renderStored(allocator, builder.nodes, .{
+        .start = 0,
+        .len = std.math.cast(u32, builder.nodes.declaration_rows.tags.items.len) orelse return error.OutOfMemory,
+    });
 }
 
 fn failure(err: anyerror) std.mem.Allocator.Error {

@@ -6,9 +6,10 @@ const Input = std.meta.Child(generated.Input);
 
 pub fn build(value: zx.ir.Program, basis: *const Basis) [32]u8 {
     var hash: zx.Sha256 = undefined;
+    const hash_state = zx.Sha256State{ .value = &hash };
 
     const input: Input = .{
-        .hash = @ptrCast(&hash),
+        .hash = @ptrCast(&hash_state),
         .types = &basis.types,
         .input_types = @ptrCast(value.functions.input_types),
         .output_types = @ptrCast(value.functions.output_types),

@@ -1,0 +1,68 @@
+import boolean from "../../../ast/context/boolean"
+import buildPath from "./build_path"
+import { root_source_file, target_name, optimize_name, link_libc } from "./const"
+import object from "./object"
+import reference from "./reference"
+
+import type { Ast, Node as Output } from "./model"
+
+export type Input = {
+    ast: Ast,
+    path: string,
+    libc?: bool
+}
+
+export default function (in: Input): Output {
+    const source = buildPath({
+        ast: in.ast,
+        value: in.path
+    })
+
+    const target = reference({
+        ast: source.ast,
+        name: target_name
+    })
+
+    const optimize = reference({
+        ast: target.ast,
+        name: optimize_name
+    })
+
+    const fields = [
+        {
+            name: root_source_file,
+            value: source.id
+        },
+        {
+            name: target_name,
+            value: target.id
+        },
+        {
+            name: optimize_name,
+            value: optimize.id
+        }
+    ]
+
+    if (in.libc == null) {
+        return object({
+            ast: optimize.ast,
+            fields
+        })
+    }
+
+    const enabled = boolean({
+        state: optimize.ast.context,
+        value: in.libc
+    })
+
+    return object({
+        ast: {
+            ...optimize.ast,
+            context: enabled.state
+        },
+        fields: fields.push({
+            name: link_libc,
+            value: enabled.id
+        })[0]
+    })
+}

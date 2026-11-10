@@ -7,6 +7,18 @@ const Service = @import("root.zig").Service;
 pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator.Error!?node.Declaration {
     if (comptime !@import("genz_options").generated_analysis) return @import("adapter_seed.zig").lower(builder, service, index);
 
+    const root = (try lowerStored(builder, service, index)) orelse return null;
+
+    return builder.nodes.materializeDeclaration(builder.allocator, root);
+}
+
+pub fn lowerStored(builder: Builder, service: Service, index: usize) std.mem.Allocator.Error!?u32 {
+    if (comptime !@import("genz_options").generated_analysis) {
+        const declaration = (try @import("adapter_seed.zig").lower(builder, service, index)) orelse return null;
+
+        return (try builder.nodes.declarations(builder.allocator, &.{declaration})).start;
+    }
+
     const entry = @import("generated_gateway_adapter");
     const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
     const indirect = @typeInfo(Parameter) == .pointer;
@@ -41,7 +53,7 @@ pub fn lower(builder: Builder, service: Service, index: usize) std.mem.Allocator
     const Module = if (@typeInfo(Output) == .pointer) std.meta.Child(Output) else Output;
     @import("../node/import_module.zig").appendBorrowed(builder.allocator, builder.nodes, Module, output) catch |err| return failure(err);
 
-    return try builder.nodes.materializeDeclaration(builder.allocator, output.root);
+    return output.root;
 }
 
 fn failure(err: anyerror) std.mem.Allocator.Error {

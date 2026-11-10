@@ -25,10 +25,11 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, 
     const query: Query = .{ .facts = &facts, .node = @backingInt(id), .type_id = @backingInt(type_id), .slot = slot };
     const outline: Outline = .{ .source = &query, .referenced = self.state_plan.borrowed };
     var hash: zx.Sha256 = undefined;
+    const hash_state = zx.Sha256State{ .value = &hash };
 
     const plan_input: PlanInput = .{
         .source = &outline,
-        .hash = @ptrCast(&hash),
+        .hash = @ptrCast(&hash_state),
         .names = self.type_names,
         .key = &self.state_plan.keys[@backingInt(type_id)],
         .serial = self.serial,

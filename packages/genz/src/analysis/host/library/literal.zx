@@ -1,0 +1,27 @@
+import bytes from "std:bytes"
+
+import text from "../../../ast/context/text"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { Ast, Node as Output } from "./model"
+
+export type Input = {
+    ast: Ast,
+    value: string
+}
+
+export default function (in: Input): Output {
+    const node = text({
+        state: in.ast.context,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(in.value)
+    })
+
+    return {
+        ast: {
+            ...in.ast,
+            context: node.state
+        },
+        id: node.id
+    }
+}

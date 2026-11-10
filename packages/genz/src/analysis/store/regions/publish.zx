@@ -1,3 +1,7 @@
+import advance from "../../../ast/context/advance"
+import emptyDeclarations from "../../../ast/snapshot/empty_declarations"
+import emptyStatements from "../../../ast/snapshot/empty_statements"
+import expressions from "../../../ast/snapshot/expressions"
 import publish from "../../../ast/statements/builder/publish"
 
 import type { State as Input, Output } from "./model"
@@ -6,13 +10,27 @@ export default function (in: Input): Output {
     const body = publish(in.statements)
 
     return {
-        context: in.context,
-        statements: body.statements,
-        variables: body.variables,
-        loops: in.loops,
+        expressions: {
+            ...expressions(in.context),
+            ...in.extra
+        },
+        statements: {
+            ...emptyStatements({}),
+            ...body.statements,
+            ...body.variables,
+            ...in.loops
+        },
         fields: in.fields,
-        declarations: in.declarations,
-        extra: in.extra,
+        declarations: {
+            ...emptyDeclarations({}),
+            ...in.declarations
+        },
+        next: advance({
+            context: in.context,
+            statement_count: body.statements.tags.length,
+            field_count: in.fields.name.length
+        }),
+        roots: [],
         valid: in.valid && in.context.valid && body.valid
     }
 }

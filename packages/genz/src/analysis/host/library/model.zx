@@ -1,0 +1,77 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { State as StatementsBuilder } from "../../../ast/statements/builder/model"
+import type {
+    Declarations as PublishedDeclarations
+} from "../../../printer/model/declarations"
+import type { Expressions } from "../../../printer/model/expressions"
+import type { Statements } from "../../../printer/model/statements"
+
+export type Module = {
+    dependencies: string[],
+    name: string,
+    path: string
+}
+
+export type Native = {
+    abi_view?: string,
+    dependencies: string[],
+    header?: string,
+    include_paths: string[],
+    name: string,
+    path?: string
+}
+
+export type Input = {
+    native: Native[],
+    generated: Module[],
+    public: Module[],
+    libraries: string[],
+    library_paths: string[]
+}
+
+export enum Status {
+    Ready,
+    UnknownModuleDependency
+}
+
+export type Ast = {
+    body: StatementsBuilder,
+    context: Context,
+    fields: Fields
+}
+
+export type Node = {
+    ast: Ast,
+    id: u32
+}
+
+export type State = {
+    source: Input,
+    ast: Ast,
+    declarations: Declarations,
+    keys: u8[][],
+    values: u32[],
+    buckets: u32?[],
+    abi: u32,
+    valid: bool,
+    status: Status
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    fields: Fields,
+    declarations: PublishedDeclarations,
+    valid: bool,
+    status: Status
+}
+
+export type NativeConfig = {
+    ast: Ast,
+    value: Native,
+    index: u64,
+    module: u32,
+    abi: u32
+}

@@ -1,0 +1,42 @@
+import { create_module, add_module } from "./const"
+import invoke from "./invoke"
+import literal from "./literal"
+import options from "./options"
+
+import type { Ast } from "./model"
+import type { Node as Output } from "./model"
+
+export type Input = {
+    ast: Ast,
+    path: string,
+    libc?: bool,
+    public_name?: string
+}
+
+export default function (in: Input): Output {
+    const value = options(in.omit(["public_name"]))
+
+    if (in.public_name == null) {
+        return invoke({
+            ast: value.ast,
+            target: null,
+            method: create_module,
+            arguments: [value.id]
+        })
+    }
+
+    const name = literal({
+        ast: value.ast,
+        value: in.public_name
+    })
+
+    return invoke({
+        ast: name.ast,
+        target: null,
+        method: add_module,
+        arguments: [
+            name.id,
+            value.id
+        ]
+    })
+}

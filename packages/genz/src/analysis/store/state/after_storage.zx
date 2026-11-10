@@ -1,5 +1,3 @@
-import advance from "../../../ast/context/advance"
-
 import type { Input as Output } from "../lifecycle/model"
 import type { Output as Storage } from "../storage/model"
 import type { Input as Source } from "./model"
@@ -12,10 +10,6 @@ export type Input = {
 export default function (in: Input): Output {
     return {
         objects: in.source.objects,
-        bases: advance({
-            context: in.storage.context,
-            statement_count: 0,
-            field_count: 0
-        })
+        bases: in.storage.next
     }
 }

@@ -1,0 +1,26 @@
+import emptyDeclarations from "../../../ast/snapshot/empty_declarations"
+import emptyStatements from "../../../ast/snapshot/empty_statements"
+import expressions from "../../../ast/snapshot/expressions"
+import statements from "../../../ast/statements/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = statements(in.ast.body)
+
+    return {
+        expressions: expressions(in.ast.context),
+        statements: {
+            ...emptyStatements({}),
+            ...body.statements,
+            ...body.variables
+        },
+        fields: in.ast.fields,
+        declarations: {
+            ...emptyDeclarations({}),
+            ...in.declarations
+        },
+        valid: in.valid && in.ast.context.valid && body.valid,
+        status: in.status
+    }
+}

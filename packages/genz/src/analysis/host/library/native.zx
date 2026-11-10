@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+import put from "core/bytes/index/put"
+
+import bind from "./bind"
+import { native_prefix, native_directory, zig_suffix } from "./const"
+import create from "./create"
+import configure from "./native_config"
+import reference from "./reference"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < in.source.native.length,
+        next: current => {
+            const value = in.source.native[current.index]
+            const name = `${native_prefix}${current.index}`
+            const path = value.path ??
+                `${native_directory}${value.name}${zig_suffix}`
+            const bound = bind({
+                name,
+                node: create({
+                    ast: current.state.ast,
+                    path,
+                    libc: value.header != null,
+                    public_name: null
+                })
+            })
+            const module = reference({
+                ast: bound,
+                name
+            })
+            const names = put({
+                index: current.state.pick([
+                    "keys",
+                    "values",
+                    "buckets"
+                ]),
+                key: bytes.fromText(value.name),
+                value: module.id
+            })
+            current.state = {
+                ...current.state,
+                ...names,
+                ast: configure({
+                    ast: module.ast,
+                    value,
+                    index: current.index,
+                    module: module.id,
+                    abi: current.state.abi
+                })
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

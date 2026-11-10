@@ -7,7 +7,7 @@ pub const Operation = @FieldType(@FieldType(ir.ExpressionRow, "value"), "call");
 pub fn lower(self: *Lower, invocation: Operation) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const callee_function = self.program.functions.at(@backingInt(invocation.function));
-    const state_callee = self.state_plan.represented(self.program, callee_function.output_type) or self.state_plan.inlineRows(self.program, callee_function.input_type);
+    const state_callee = self.state_plan.represented(self.program, callee_function.output_type) or self.state_plan.represented(self.program, callee_function.input_type) or self.state_plan.inlineRows(self.program, callee_function.input_type);
 
     if (self.state_active and self.value_functions[@backingInt(invocation.function)] and state_callee) {
         if (self.state_plan.represented(self.program, callee_function.output_type)) return @import("../value_call/root.zig").invocation(self, invocation);

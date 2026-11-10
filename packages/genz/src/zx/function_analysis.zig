@@ -44,13 +44,13 @@ pub fn hasValueEntry(self: Self) bool {
 
 pub fn hasStateEntry(self: Self, program: ir.Program) bool {
     if (!@import("genz_options").generated_analysis) return !program.type_only and self.entry_flags.value and !self.entry_flags.tasks and
-        (self.value.state.represented(program, program.output_type) or self.value.state.inlineRows(program, program.input_type));
+        (self.value.state.represented(program, program.output_type) or self.value.state.represented(program, program.input_type) or self.value.state.inlineRows(program, program.input_type));
 
     return @import("entry/policy.zig").select(.{
         .tasks = self.entry_flags.tasks,
         .enabled = self.entry_flags.value,
         .type_only = program.type_only,
-        .represented_input = self.value.state.inlineRows(program, program.input_type),
+        .represented_input = self.value.state.represented(program, program.input_type) or self.value.state.inlineRows(program, program.input_type),
         .represented_output = self.value.state.represented(program, program.output_type),
         .output_kind = @fromBackingInt(@intCast(program.types.kinds[@backingInt(program.output_type)])),
     }).state;
