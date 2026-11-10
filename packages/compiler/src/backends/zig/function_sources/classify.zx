@@ -1,0 +1,32 @@
+import { Kind } from "./model"
+
+import type { Input, Selection as Output } from "./model"
+
+export default function (in: Input): Output {
+    const reused: u64[] = []
+    const pending: u64[] = []
+
+    return loop({
+        index: 0,
+        reused,
+        pending
+    }, {
+        while: state => state.index < in.length,
+        next: state => {
+            const kind = in[state.index].kind
+
+            if (kind == Kind.held || kind == Kind.stored) {
+                state.reused = state.reused.push(state.index)[0]
+            } else {
+                state.pending = state.pending.push(state.index)[0]
+            }
+
+            state.index += 1
+        },
+        return: state => {
+            source: in,
+            reused: state.reused,
+            pending: state.pending
+        }
+    })
+}

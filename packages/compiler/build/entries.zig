@@ -89,6 +89,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/partition/exports/build.rx", .name = "partition_exports", .owner = .compiler },
     .{ .path = "genz/analysis/partition/stub/build.rx", .name = "partition_stub", .owner = .compiler },
     .{ .path = "genz/analysis/partition/root/build.rx", .name = "partition_root", .owner = .compiler },
+    .{ .path = "backends/zig/function_sources/plan.rx", .name = "function_sources_plan", .owner = .compiler },
     .{ .path = "backends/zig/function_files/initialize.zx", .name = "function_files_initialize", .owner = .compiler },
     .{ .path = "backends/zig/function_files/register.rx", .name = "function_files_register", .owner = .compiler },
     .{ .path = "backends/zig/store_initializers/validation/eligible.zx", .name = "store_initializer_eligible", .owner = .compiler },

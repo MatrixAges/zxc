@@ -110,66 +110,46 @@ pub fn createJobs(owned: std.mem.Allocator, backing: std.mem.Allocator, jobs: []
 
     try spread(Search, &search, arenas[0..@min(arenas.len, jobs.len)]);
 
-    // Reused sources are copied straight from what the search fetched, before recording can replace cache entries.
-    var reused: std.ArrayList([]const u8) = .empty;
-    var size: usize = 0;
+    const plan = try @import("function_sources_plan.zig").create(temporary, search.fetched);
+    const buffer = try owned.alloc(u8, @intCast(plan.size));
+    const reused = try temporary.alloc([]const u8, plan.reused.len);
+    const copies = try temporary.alloc([]u8, plan.reused.len);
 
-    for (search.fetched) |fetched| if (reusable(fetched)) |value| {
-        try reused.append(temporary, value);
+    // Copy borrowed cache bytes before record can replace and release cache entries.
+    for (plan.reused, plan.offsets, reused, copies) |position, offset, *source, *copy| {
+        source.* = switch (search.fetched[@intCast(position)]) {
+            .held, .stored => |value| value,
+            else => unreachable,
+        };
 
-        size += value.len;
-    };
-
-    const buffer = try owned.alloc(u8, size);
-    const copies = try temporary.alloc([]u8, reused.items.len);
-    var offset: usize = 0;
-
-    for (reused.items, copies) |value, *copy| {
-        copy.* = buffer[offset..][0..value.len];
-        offset += value.len;
+        copy.* = buffer[@intCast(offset)..][0..source.len];
     }
 
-    var copying = Copying{ .from = reused.items, .to = copies };
+    var copying = Copying{ .from = reused, .to = copies };
 
-    try spread(Copying, &copying, arenas[0..@min(arenas.len, reused.items.len)]);
+    try spread(Copying, &copying, arenas[0..@min(arenas.len, reused.len)]);
 
-    var pending: std.ArrayList(Job) = .empty;
-    var positions: std.ArrayList(usize) = .empty;
-    var next: usize = 0;
-
-    for (jobs, search.lookups, search.fetched, sources, 0..) |job, found, fetched, *source, position| {
+    for (jobs, search.lookups, search.fetched) |job, found, fetched| {
         if (job.batch.cache) |cache| _ = try cache.record(found.name, found.key, fetched);
-
-        if (reusable(fetched) != null) {
-            source.* = copies[next];
-            next += 1;
-
-            continue;
-        }
-
-        try pending.append(temporary, job);
-        try positions.append(temporary, position);
     }
 
-    var work = Work{ .pending = pending.items, .results = try temporary.alloc([]const u8, pending.items.len) };
+    for (plan.reused, copies) |position, copy| sources[@intCast(position)] = copy;
 
-    try spread(Work, &work, arenas[0..@min(arenas.len, pending.items.len)]);
+    const pending = try temporary.alloc(Job, plan.pending.len);
 
-    for (positions.items, work.results) |position, generated| {
+    for (plan.pending, pending) |position, *job| job.* = jobs[@intCast(position)];
+
+    var work = Work{ .pending = pending, .results = try temporary.alloc([]const u8, pending.len) };
+
+    try spread(Work, &work, arenas[0..@min(arenas.len, pending.len)]);
+
+    for (plan.pending, work.results) |position, generated| {
         sources[position] = try owned.dupe(u8, generated);
 
         try jobs[position].batch.remember(search.lookups[position], sources[position]);
     }
 
     return sources;
-}
-
-fn reusable(fetched: Cache.Fetched) ?[]const u8 {
-    return switch (fetched) {
-        .held => |value| value,
-        .stored => |value| value,
-        else => null,
-    };
 }
 
 /// Runs `task` on this thread and the shared workers, one arena per participant, and reports the first failure.

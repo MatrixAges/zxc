@@ -1,0 +1,27 @@
+export enum Kind {
+    held,
+    stored,
+    absent,
+    invalid,
+    failed
+}
+
+export type Fetch = {
+    kind: Kind,
+    length: u64
+}
+
+export type Input = Fetch[]
+
+export type Selection = {
+    source: Input,
+    reused: u64[],
+    pending: u64[]
+}
+
+export type Output = {
+    reused: u64[],
+    pending: u64[],
+    offsets: u64[],
+    size: u64
+}

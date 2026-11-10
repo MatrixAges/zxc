@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Batch" />
+
+    <Args in={Batch.Input} out={Batch.Output} />
+
+    <Call fn="classify" in={$in} />
+    <Call fn="layout" in={$ctx.classify} />
+
+    <Return value={$ctx.layout} />
+</Module>

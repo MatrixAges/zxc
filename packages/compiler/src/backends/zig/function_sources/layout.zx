@@ -1,0 +1,26 @@
+import type { Selection as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const offsets: u64[] = []
+
+    return loop({
+        index: 0,
+        offsets,
+        size: 0
+    }, {
+        while: state => state.index < in.reused.length,
+        next: state => {
+            const position = in.reused[state.index]
+
+            state.offsets = state.offsets.push(state.size)[0]
+            state.size += in.source[position].length
+            state.index += 1
+        },
+        return: state => {
+            reused: in.reused,
+            pending: in.pending,
+            offsets: state.offsets,
+            size: state.size
+        }
+    })
+}
