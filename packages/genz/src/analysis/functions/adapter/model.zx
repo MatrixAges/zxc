@@ -1,0 +1,24 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Query } from "../../state/queries/model"
+
+export type Eligibility = {
+    value: bool,
+    tasks: bool,
+    io: bool,
+    process: bool,
+    stores: bool,
+    contracts: bool,
+    input: Query,
+    output: Query
+}
+
+export type Argument = {
+    kinds: ExpressionKind[],
+    payloads: u32[],
+    references: u32[],
+    errors: string[]
+}
+
+export type Eligible = bool
+
+export type Reference = u32?

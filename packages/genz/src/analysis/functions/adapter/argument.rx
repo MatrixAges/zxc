@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Adapter" />
+
+    <Args in={Adapter.Argument} out={Adapter.Reference} />
+
+    <Call fn="allocates" in={$in.errors} />
+
+    <If on={$ctx.allocates}>
+        <Call fn="find" in={$in} />
+
+        <Return value={$ctx.find} />
+    </If>
+
+    <Return value={null} />
+</Module>

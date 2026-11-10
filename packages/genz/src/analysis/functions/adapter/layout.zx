@@ -1,0 +1,25 @@
+import { Property } from "../../state/queries/model"
+import read from "../../state/queries/read"
+
+import type { Eligibility as Input, Eligible as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (read({
+        value: in.output,
+        property: Property.Represented
+    })) {
+        return true
+    }
+
+    if (read({
+        value: in.input,
+        property: Property.Represented
+    })) {
+        return true
+    }
+
+    return read({
+        value: in.input,
+        property: Property.InlineRows
+    })
+}

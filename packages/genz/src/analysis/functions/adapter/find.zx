@@ -1,0 +1,32 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import { input_symbol } from "../../value/locals/const"
+
+import type { Argument as Input, Reference as Output } from "./model"
+
+export default function (in: Input): Output {
+    const index: u64 = 0
+    const found: Output = null
+
+    return loop({
+        index,
+        found
+    }, {
+        while: state => state.index < in.kinds.length && state.found == null,
+        next: state => {
+            const row = state.index
+
+            if (in.kinds[row] == ExpressionKind.Reference) {
+                const payload = integers.widen(in.payloads[row])
+
+                if (in.references[payload] == input_symbol) {
+                    state.found = integers.narrow(row)
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.found
+    })
+}

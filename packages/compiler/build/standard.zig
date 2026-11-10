@@ -36,7 +36,7 @@ fn generate(b: *std.Build, generator: ?*std.Build.Step.Compile) !*std.Build.Modu
     const tool = generator orelse b.addExecutable(.{ .name = "standard-catalog", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_catalog.zig"),
         .target = b.graph.host,
-        .optimize = .fast,
+        .optimize = .small,
         .imports = &.{.{ .name = "genz", .module = b.dependency("genz", .{ .target = b.graph.host, .optimize = .fast }).module("genz") }},
     }) });
 

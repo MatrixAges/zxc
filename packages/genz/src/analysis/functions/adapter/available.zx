@@ -1,0 +1,13 @@
+import type { Eligibility as Input, Eligible as Output } from "./model"
+
+export default function (in: Input): Output {
+    const needs_runtime = (
+        - in.tasks
+        - or in.io
+        - or in.process
+    )
+
+    const uses_state = in.stores || in.contracts
+
+    return in.value && !needs_runtime && !uses_state
+}

@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Adapter" />
+
+    <Args in={Adapter.Eligibility} out={Adapter.Eligible} />
+
+    <Call fn="available" in={$in} />
+
+    <If on={$ctx.available}>
+        <Call fn="layout" in={$in} />
+
+        <Return value={$ctx.layout} />
+    </If>
+
+    <Return value={false} />
+</Module>
