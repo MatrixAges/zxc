@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Root" />
+
+    <Args in={Root.Member} out={Root.State} />
+
+    <Call fn="alias" in={$in} />
+
+    <Call
+        module="read"
+        in={{
+            ...$in,
+            state: $ctx.alias
+        }}
+    />
+
+    <Call
+        module="write"
+        in={{
+            ...$in,
+            state: {
+                ...$ctx.alias,
+                codec: $ctx.read
+            }
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.alias,
+            codec: $ctx.write
+        }}
+    />
+</Module>

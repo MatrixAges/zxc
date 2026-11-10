@@ -1,6 +1,6 @@
 const std = @import("std");
-const node = @import("../../../node.zig");
-const Builder = @import("../../../builder.zig");
+const node = @import("../../../../node.zig");
+const Builder = @import("../../../../builder.zig");
 const common = @import("common.zig");
 
 pub fn declarations(builder: Builder) std.mem.Allocator.Error![]const node.Declaration {

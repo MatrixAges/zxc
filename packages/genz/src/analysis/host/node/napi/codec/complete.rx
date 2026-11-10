@@ -1,0 +1,9 @@
+<Module>
+    <If on={$in.supported}>
+        <Call fn="finish" in={$in} />
+
+        <Return value={$ctx.finish} />
+
+        <Else><Return value={$in} /></Else>
+    </If>
+</Module>

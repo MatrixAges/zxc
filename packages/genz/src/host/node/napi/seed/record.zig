@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const node = @import("../../../node.zig");
+const node = @import("../../../../node.zig");
 const Types = @import("types.zig");
 const common = @import("common.zig");
 

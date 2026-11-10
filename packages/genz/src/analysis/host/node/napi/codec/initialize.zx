@@ -1,31 +1,14 @@
-import integers from "std:integer"
-import { scalar_u8 } from "core/type_table/const"
-import kind from "core/type_table/kind"
-import { Kind } from "core/type_table/model"
-
 import context from "../../../../../ast/context/initialize"
 import statements from "../../../../../ast/statements/builder/initialize"
 import initialize from "../../task/initialize"
-import route from "./scalar_route"
+import classify from "./classify"
 
 import type { Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    const index = integers.widen(in.id)
-
     const tree = initialize({
         stateful: false
     })
-
-    const target = kind(in.types.kinds[index])
-    const child = integers.widen(in.types.first[index])
-
-    const byte_child = match target {
-        Kind.List =>
-            kind(in.types.kinds[child]) == Kind.Scalar &&
-            in.types.first[child] == scalar_u8,
-        _ => false
-    }
 
     return {
         source: in,
@@ -50,11 +33,7 @@ export default function (in: Input): Output {
             scope_len: []
         },
         many_pointer: [],
-        kind: target,
-        scalar: in.types.first[index],
-        scalar_route: route(in.types.first[index]),
-        byte_child,
-        child: in.types.first[index],
+        ...classify(in),
         supported: true
     }
 }

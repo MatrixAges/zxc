@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+import member from "./member.rx"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        value: in,
+        index: 0
+    }, {
+        while: current => current.index < in.aliases.length &&
+            current.value.codec.supported,
+        next: current => {
+            const alias = in.aliases[current.index]
+
+            if (alias != null) {
+                current.value = member({
+                    state: current.value,
+                    id: integers.narrow(current.index),
+                    alias,
+                    reading: in.reads[current.index],
+                    writing: in.writes[current.index]
+                })
+            }
+
+            current.index += 1
+        },
+        return: current => current.value
+    })
+}

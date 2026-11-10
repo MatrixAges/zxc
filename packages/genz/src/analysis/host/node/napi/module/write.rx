@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Root" />
+    <Type from="../codec/model" as="Codec" />
+
+    <Args in={Root.Member} out={Codec.State} />
+
+    <If on={$in.writing && $in.state.codec.supported}>
+        <Call
+            fn="../codec/select"
+            in={{
+                state: $in.state.codec,
+                id: $in.id,
+                reading: false
+            }}
+        />
+
+        <Call module="../codec/extend" in={$ctx.select} />
+
+        <Return value={$ctx.extend} />
+
+        <Else><Return value={$in.state.codec} /></Else>
+    </If>
+</Module>

@@ -1,0 +1,17 @@
+import classify from "./classify"
+
+import type { Selection as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = {
+        ...in.state.source,
+        id: in.id,
+        reading: in.reading
+    }
+
+    return {
+        ...in.state,
+        source,
+        ...classify(source)
+    }
+}

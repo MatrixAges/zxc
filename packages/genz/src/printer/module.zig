@@ -11,7 +11,10 @@ pub fn render(allocator: std.mem.Allocator, workspace: std.mem.Allocator, compti
         const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), module.context.expressions);
         const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), module.context.forms);
 
-        break :legacy .{ expressions, forms };
+        break :legacy if (@hasField(Module, "extra"))
+            .{ expressions, forms, zx.columns.view(std.meta.Child(@FieldType(Module, "extra")), module.extra) }
+        else
+            .{ expressions, forms };
     } else .{zx.columns.view(std.meta.Child(@FieldType(Module, "expressions")), module.expressions)};
 
     const statements = zx.columns.view(std.meta.Child(@FieldType(Module, "statements")), module.statements);

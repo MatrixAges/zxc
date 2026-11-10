@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Value" />
+
+    <Args in={Value.State} out={Value.State} />
+
+    <Call fn="check" in={$in} />
+    <Call fn="fail" in={$ctx.check} />
+    <Call fn="kind" in={$ctx.fail} />
+    <Call fn="length" in={$ctx.kind} />
+    <Call fn="size" in={$ctx.length} />
+    <Call fn="allocate" in={$ctx.size} />
+    <Call fn="string" in={$ctx.allocate} />
+
+    <Return value={$ctx.string} />
+</Module>

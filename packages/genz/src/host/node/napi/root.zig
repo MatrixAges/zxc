@@ -1,53 +1,31 @@
 const std = @import("std");
-const ir = @import("zx").ir;
-const node = @import("../../../node.zig");
-const Builder = @import("../../../builder.zig");
-const Types = @import("types.zig");
-const common = @import("common.zig");
-pub const Error = Types.Error;
+const zx = @import("zx");
+pub const Error = std.mem.Allocator.Error || error{UnsupportedNodeType};
 
-pub fn render(allocator: std.mem.Allocator, values: ir.TypeTable, input: ir.TypeId, output: ir.TypeId) Error![]u8 {
+pub fn render(allocator: std.mem.Allocator, types: zx.ir.TypeTable, input_id: zx.ir.TypeId, output_id: zx.ir.TypeId) Error![]u8 {
+    if (comptime !@import("genz_options").generated_analysis) return @import("seed/root.zig").render(allocator, types, input_id, output_id);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
-    const builder = try Builder.init(arena.allocator());
-    const types = try Types.create(builder, values, input, output);
-    var declarations: std.ArrayList(node.Declaration) = .empty;
+    const entry = @import("generated_node_napi");
+    const Input = std.meta.Child(entry.Input);
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
+    const table = zx.ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), types);
+    const bases: Bases = .{ .capture = null, .expression_base = 0, .statement_base = 0, .field_base = 0, .serial = 0 };
+    const input: Input = .{ .types = &table, .input = @backingInt(input_id), .output = @backingInt(output_id), .bases = &bases };
+    const output = zx.columns.invoke(entry.executeValue, arena.allocator(), &input) catch |err| return failure(err);
 
-    for ([_][]const u8{ "std", "application", "api.zig" }, [_][]const u8{ "std", "application", "api" }) |module, name| {
-        try declarations.append(builder.allocator, .{ .constant = .{ .name = name, .value = try builder.builtin(.import, &.{try builder.string(module)}), .exported = std.mem.eql(u8, name, "api") } });
-    }
+    if (!output.supported) return error.UnsupportedNodeType;
+    if (!output.valid) return error.OutOfMemory;
 
-    try declarations.appendSlice(builder.allocator, try @import("value.zig").declarations(builder));
+    return @import("../../../printer/module.zig").render(allocator, arena.allocator(), std.meta.Child(@FieldType(std.meta.Child(entry.Output), "module")), output.module);
+}
 
-    for (types.aliases, 0..) |alias, index| {
-        const source = alias orelse continue;
-        const id: ir.TypeId = @fromBackingInt(@intCast(index));
-
-        try declarations.append(builder.allocator, .{ .constant = .{ .name = try types.name("Type", id), .value = @fromBackingInt(source) } });
-        if (types.reads[index]) try declarations.append(builder.allocator, try @import("read.zig").lower(types, id));
-        if (types.writes[index]) try declarations.append(builder.allocator, try @import("write.zig").lower(types, id));
-    }
-
-    const env = try builder.identifier("env");
-    const value = try builder.identifier("value");
-
-    var read = try common.function(builder, "read", try common.parameters(builder, true), try types.typeExpression(input), &.{
-        .{ .result = try builder.call(try builder.identifier(try types.name("read_", input)), &.{ try builder.identifier("allocator"), env, value }) },
-    });
-
-    var write = try common.function(builder, "write", try builder.allocator.dupe(node.Field, &.{
-        .{ .name = "env", .value = try builder.path(&.{ "api", "Env" }) },
-        .{ .name = "value", .value = try types.typeExpression(output) },
-    }), try builder.path(&.{ "api", "Value" }), &.{
-        .{ .result = try builder.call(try builder.identifier(try types.name("write_", output)), &.{ env, value }) },
-    });
-
-    read.function.exported = true;
-    write.function.exported = true;
-
-    try declarations.appendSlice(builder.allocator, &.{ read, write });
-
-    return @import("../../../render.zig").render(allocator, builder.nodes, declarations.items);
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid N-API module AST"),
+    };
 }

@@ -1,0 +1,151 @@
+import call from "../../../../../ast/context/call"
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import result from "../../../../../ast/statements/builder/result"
+import { api_name, env_name, env_type, std_name } from "../../context/const"
+import {
+    allocator_name,
+    value_name,
+    value_type,
+    read_name,
+    write_name
+} from "../../task/const"
+import errorUnion from "../../task/error_union"
+import method from "../../task/method"
+import { mem_name, allocator_type, read_prefix, write_prefix } from "../codec/const"
+import name from "../codec/name"
+import { type_prefix } from "../plan/const"
+
+import type { Selection as Input, State as Output } from "../codec/model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.state.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const allocator = path({
+        state: value.state,
+        path: [allocator_name]
+    })
+
+    const fn_name = identifier({
+        state: allocator.state,
+        name: name({
+            prefix: in.reading ? read_prefix : write_prefix,
+            id: in.id
+        })
+    })
+
+    const called = call({
+        state: fn_name.state,
+        callee: fn_name.id,
+        arguments: match in.reading {
+            true => [
+                allocator.id,
+                env.id,
+                value.id
+            ],
+            _ => [
+                env.id,
+                value.id
+            ]
+        },
+        fallible: false
+    })
+
+    const returned = result({
+        state: in.state.tree.ast.statements,
+        value: called.id
+    })
+
+    const allocator_type_node = path({
+        state: called.state,
+        path: [
+            std_name,
+            mem_name,
+            allocator_type
+        ]
+    })
+
+    const env_type_node = path({
+        state: allocator_type_node.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const value_type_node = path({
+        state: env_type_node.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const target = identifier({
+        state: value_type_node.state,
+        name: name({
+            prefix: type_prefix,
+            id: in.id
+        })
+    })
+
+    const returned_type = errorUnion({
+        state: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                context: target.state,
+                statements: returned
+            }
+        },
+        payload: in.reading ? target.id : value_type_node.id,
+        inferred: false
+    })
+
+    const parameters = match in.reading {
+        true => [
+            {
+                name: allocator_name,
+                value: allocator_type_node.id
+            },
+            {
+                name: env_name,
+                value: env_type_node.id
+            },
+            {
+                name: value_name,
+                value: value_type_node.id
+            }
+        ],
+        _ => [
+            {
+                name: env_name,
+                value: env_type_node.id
+            },
+            {
+                name: value_name,
+                value: target.id
+            }
+        ]
+    }
+
+    return {
+        ...in.state,
+        tree: method({
+            state: returned_type.state,
+            name: in.reading ? read_name : write_name,
+            parameters,
+            return_type: returned_type.id,
+            exported: true,
+            abi_export: false
+        })
+    }
+}

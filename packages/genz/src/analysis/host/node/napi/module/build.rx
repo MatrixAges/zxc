@@ -1,0 +1,39 @@
+<Module>
+    <Type from="model" as="Root" />
+
+    <Args in={Root.Input} out={Root.Output} />
+
+    <Call module="../plan/build" in={$in} />
+
+    <Call
+        fn="initialize"
+        in={{
+            source: $in,
+            plan: $ctx.build
+        }}
+    />
+
+    <If on={!$ctx.initialize.codec.supported}>
+        <Call fn="../codec/publish" in={$ctx.initialize.codec} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="imports" in={$ctx.initialize} />
+
+    <Call module="helpers" in={$ctx.imports} />
+
+    <Call fn="types" in={$ctx.helpers} />
+
+    <If on={$ctx.types.codec.supported}>
+        <Call module="public" in={$ctx.types} />
+
+        <Return value={$ctx.public} />
+
+        <Else>
+            <Call fn="../codec/publish" in={$ctx.types.codec} />
+
+            <Return value={$ctx.publish} />
+        </Else>
+    </If>
+</Module>

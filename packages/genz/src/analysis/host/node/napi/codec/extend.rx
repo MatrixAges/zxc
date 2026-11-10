@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Codec" />
+
+    <Args in={Codec.State} out={Codec.State} />
+
+    <If on={$in.source.reading}>
+        <Call module="read" in={$in} />
+        <Call module="complete" in={$ctx.read} />
+
+        <Return value={$ctx.complete} />
+
+        <Else>
+            <Call fn="write_result" in={$in} />
+
+            <Call module="write" in={$ctx.write_result} />
+
+            <Call fn="return_result" in={$ctx.write} />
+
+            <Call module="complete" in={$ctx.return_result} />
+
+            <Return value={$ctx.complete} />
+        </Else>
+    </If>
+</Module>

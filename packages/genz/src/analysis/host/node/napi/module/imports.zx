@@ -1,0 +1,65 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../../ast/context/builtin"
+import text from "../../../../../ast/context/text"
+import append from "../../../../../ast/declarations/table/constant"
+import {
+    ExpressionsBuiltinName as B,
+    ExpressionsKind as K
+} from "../../../../../printer/model/expressions"
+import { std_name, api_name } from "../../context/const"
+import { application_name } from "../../task/const"
+import { api_module } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const modules = [
+        std_name,
+        application_name,
+        api_module
+    ]
+
+    const names = [
+        std_name,
+        application_name,
+        api_name
+    ]
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const tree = current.state.codec.tree
+            const path = text({
+                state: tree.ast.context,
+                kind: K.String,
+                value: bytes.fromText(modules[current.index])
+            })
+
+            const imported = builtin({
+                state: path.state,
+                name: B.Import,
+                arguments: [path.id]
+            })
+
+            const declared = append({
+                state: tree.ast.declarations,
+                value: {
+                    name: bytes.fromText(names[current.index]),
+                    value: imported.id,
+                    exported: names[current.index] == api_name
+                }
+            })
+
+            current.state.codec.tree.ast.context = imported.state
+            current.state.codec.tree.ast.declarations = declared.state
+            current.state.codec.tree.ast.valid =
+                tree.ast.valid && declared.valid
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

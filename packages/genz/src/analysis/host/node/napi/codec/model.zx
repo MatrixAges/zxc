@@ -61,3 +61,17 @@ export type Member = {
     state: State,
     position: u64
 }
+
+export type Classification = {
+    kind: TypeKind,
+    scalar: u32,
+    scalar_route: ScalarRoute,
+    byte_child: bool,
+    child: u32,
+}
+
+export type Selection = {
+    state: State,
+    id: u32,
+    reading: bool
+}

@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Root" />
+
+    <Args in={Root.State} out={Root.Output} />
+
+    <Task name="read" out={$ctx.public}>
+        <Call
+            fn="public"
+            in={{
+                state: $in.codec,
+                id: $in.source.input,
+                reading: true
+            }}
+        />
+    </Task>
+
+    <Task name="write" out={$ctx.public}>
+        <Call
+            fn="public"
+            in={{
+                state: $ctx.task.read,
+                id: $in.source.output,
+                reading: false
+            }}
+        />
+    </Task>
+
+    <Call fn="../codec/publish" in={$ctx.task.write} />
+
+    <Return value={$ctx.publish} />
+</Module>

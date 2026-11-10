@@ -1,0 +1,27 @@
+import type { State as Codec, Output as Published } from "../codec/model"
+import type { Input as PlanInput, Output as Plan } from "../plan/model"
+
+export type Input = PlanInput
+
+export type Output = Published
+
+export type State = {
+    source: Input,
+    codec: Codec,
+    aliases: u32?[],
+    reads: bool[],
+    writes: bool[]
+}
+
+export type Initialize = {
+    source: Input,
+    plan: Plan
+}
+
+export type Member = {
+    state: State,
+    id: u32,
+    alias: u32,
+    reading: bool,
+    writing: bool
+}

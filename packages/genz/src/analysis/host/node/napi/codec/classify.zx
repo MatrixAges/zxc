@@ -1,0 +1,29 @@
+import integers from "std:integer"
+import { scalar_u8 } from "core/type_table/const"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import route from "./scalar_route"
+
+import type { Input, Classification as Output } from "./model"
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+    const target = kind(in.types.kinds[index])
+    const child = in.types.first[index]
+    const child_index = integers.widen(child)
+
+    const byte_child = match target {
+        Kind.List => kind(in.types.kinds[child_index]) == Kind.Scalar &&
+            in.types.first[child_index] == scalar_u8,
+        _ => false
+    }
+
+    return {
+        kind: target,
+        scalar: child,
+        scalar_route: route(child),
+        byte_child,
+        child
+    }
+}

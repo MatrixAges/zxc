@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Root" />
+
+    <Args in={Root.State} out={Root.State} />
+
+    <Call
+        module="../value/extend"
+        in={{
+            tree: $in.codec.tree
+        }}
+    />
+
+    <Return
+        value={{
+            ...$in,
+            codec: {
+                ...$in.codec,
+                tree: $ctx.extend.tree
+            }
+        }}
+    />
+</Module>

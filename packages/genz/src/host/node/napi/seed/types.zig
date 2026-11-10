@@ -1,7 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const node = @import("../../../node.zig");
-const Builder = @import("../../../builder.zig");
+const node = @import("../../../../node.zig");
+const Builder = @import("../../../../builder.zig");
 const Self = @This();
 pub const Error = std.mem.Allocator.Error || error{UnsupportedNodeType};
 

@@ -1,6 +1,6 @@
 const std = @import("std");
-const node = @import("../../../node.zig");
-const Builder = @import("../../../builder.zig");
+const node = @import("../../../../node.zig");
+const Builder = @import("../../../../builder.zig");
 
 pub fn check(builder: Builder, name: []const u8, arguments: []const node.ExpressionId) std.mem.Allocator.Error!node.Statement {
     return .{ .expression = try builder.expression(.{ .try_value = try builder.call(try builder.identifier("check"), &.{try builder.call(try builder.path(&.{ "api", name }), arguments)}) }) };

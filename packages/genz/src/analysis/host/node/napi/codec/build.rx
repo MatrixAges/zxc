@@ -5,22 +5,9 @@
 
     <Call fn="initialize" in={$in} />
 
-    <If on={$in.reading}>
-        <Call module="read" in={$ctx.initialize} />
-        <Call module="finalize" in={$ctx.read} />
+    <Call module="extend" in={$ctx.initialize} />
 
-        <Return value={$ctx.finalize} />
+    <Call fn="publish" in={$ctx.extend} />
 
-        <Else>
-            <Call fn="write_result" in={$ctx.initialize} />
-
-            <Call module="write" in={$ctx.write_result} />
-
-            <Call fn="return_result" in={$ctx.write} />
-
-            <Call module="finalize" in={$ctx.return_result} />
-
-            <Return value={$ctx.finalize} />
-        </Else>
-    </If>
+    <Return value={$ctx.publish} />
 </Module>

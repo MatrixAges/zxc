@@ -1,0 +1,33 @@
+import initialize from "../codec/initialize"
+
+import type { Initialize as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const codec = initialize({
+        types: in.source.types,
+        id: in.source.input,
+        reading: true,
+        bases: in.source.bases
+    })
+
+    return {
+        source: in.source,
+        codec: {
+            ...codec,
+            supported: in.plan.supported,
+            tree: {
+                ...codec.tree,
+                ast: {
+                    ...codec.tree.ast,
+                    context: in.plan.context,
+                    valid: in.plan.valid
+                }
+            }
+        },
+        ...in.plan.pick([
+            "aliases",
+            "reads",
+            "writes"
+        ])
+    }
+}

@@ -1,0 +1,36 @@
+import append from "../../../../../ast/declarations/table/constant"
+import name from "../codec/name"
+import { type_prefix } from "../plan/const"
+
+import type { Member as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const tree = in.state.codec.tree
+
+    const declared = append({
+        state: tree.ast.declarations,
+        value: {
+            name: name({
+                prefix: type_prefix,
+                id: in.id
+            }),
+            value: in.alias,
+            exported: false
+        }
+    })
+
+    return {
+        ...in.state,
+        codec: {
+            ...in.state.codec,
+            tree: {
+                ...tree,
+                ast: {
+                    ...tree.ast,
+                    declarations: declared.state,
+                    valid: tree.ast.valid && declared.valid
+                }
+            }
+        }
+    }
+}
