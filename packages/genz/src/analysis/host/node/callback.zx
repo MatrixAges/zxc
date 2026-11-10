@@ -1,0 +1,164 @@
+import bytes from "std:bytes"
+
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import { api_name, env_name, env_type, c_convention } from "./context/const"
+import { fail_name } from "./enqueue/const"
+import caught from "./task/catch"
+import { napi_name, value_type, error_capture } from "./task/const"
+import invoke from "./task/invoke"
+import method from "./task/method"
+
+import type { State as Tree } from "./task/model"
+
+export type Input = {
+    tree: Tree,
+    name: string,
+    target: string,
+    parameter_name: string,
+    parameter_type: string,
+    exported: bool,
+    abi_export: bool,
+    c_callback: bool
+}
+
+export type Output = Tree
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const info = path({
+        state: env.state,
+        path: [in.parameter_name]
+    })
+
+    const called = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: info.state
+            }
+        },
+        path: [in.target],
+        arguments: [
+            env.id,
+            info.id
+        ],
+        fallible: false
+    })
+
+    const error = path({
+        state: called.state.ast.context,
+        path: [error_capture]
+    })
+
+    const failure = invoke({
+        state: {
+            ...called.state,
+            ast: {
+                ...called.state.ast,
+                context: error.state
+            }
+        },
+        path: [
+            napi_name,
+            fail_name
+        ],
+        arguments: [
+            env.id,
+            error.id
+        ],
+        fallible: false
+    })
+
+    const scope = open(in.tree.ast.statements)
+
+    const body = result({
+        state: scope.state,
+        value: failure.id
+    })
+
+    const handled = caught({
+        state: {
+            ...failure.state,
+            ast: {
+                ...failure.state.ast,
+                statements: body
+            }
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        value: called.id,
+        capture: bytes.fromText(error_capture)
+    })
+
+    const returned = result({
+        state: handled.state.ast.statements,
+        value: handled.id
+    })
+
+    const environment_type = path({
+        state: handled.state.ast.context,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const information_type = path({
+        state: environment_type.state,
+        path: [
+            api_name,
+            in.parameter_type
+        ]
+    })
+
+    const value = path({
+        state: information_type.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const convention = text({
+        state: value.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    const tree = method({
+        state: {
+            ...handled.state,
+            ast: {
+                ...handled.state.ast,
+                context: convention.state,
+                statements: returned
+            }
+        },
+        name: in.name,
+        parameters: [
+            {
+                name: env_name,
+                value: environment_type.id
+            },
+            {
+                name: in.parameter_name,
+                value: information_type.id
+            }
+        ],
+        return_type: value.id,
+        exported: in.exported,
+        abi_export: in.abi_export,
+        convention: match in.c_callback { true => convention.id, _ => null }
+    })
+
+    return tree
+}

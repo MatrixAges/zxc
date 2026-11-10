@@ -1,0 +1,14 @@
+import arguments from "../arguments"
+import { argument_capacity } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        tree: arguments({
+            tree: in.tree,
+            capacity: argument_capacity
+        })
+    }
+}

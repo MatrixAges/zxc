@@ -1,0 +1,22 @@
+import header from "../../../../ast/statements/builder/header"
+import { StatementsKind as S } from "../../../../printer/model/statements"
+
+import type { Node as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.state,
+        ast: {
+            ...in.state.ast,
+            statements: header({
+                state: in.state.ast.statements,
+                kind: S.DeferExpression,
+                offset: in.state.extra.defer_expression.length
+            })
+        },
+        extra: {
+            ...in.state.extra,
+            defer_expression: in.state.extra.defer_expression.push(in.id)[0]
+        }
+    }
+}

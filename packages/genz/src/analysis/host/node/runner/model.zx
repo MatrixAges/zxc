@@ -1,0 +1,13 @@
+import type { Columns as Scopes } from "../../../../ast/statements/builder/scope"
+import type { State as Tree, Input, Output as Published } from "../task/model"
+
+export type State = {
+    tree: Tree,
+    scopes: Scopes,
+    comptime_start: u32[],
+    comptime_len: u32[]
+}
+
+export type Args = Input
+
+export type Output = Published

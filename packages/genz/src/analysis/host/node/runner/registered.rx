@@ -1,0 +1,25 @@
+<Module>
+    <Call fn="cleanup" in={$in} />
+    <Call fn="bindings" in={$ctx.cleanup} />
+    <Call fn="registered" in={$ctx.bindings} />
+    <Call fn="finalize" in={$ctx.registered} />
+    <Call fn="callback" in={$ctx.finalize} />
+    <Call fn="arguments" in={$ctx.callback} />
+    <Call fn="arity" in={$ctx.arguments} />
+    <Call fn="context" in={$ctx.arity} />
+    <Call fn="guard_context" in={$ctx.context} />
+
+    <If on={$in.tree.ast.stateful}>
+        <Call fn="pending" in={$ctx.guard_context} />
+
+        <Call module="execution" in={$ctx.pending} />
+
+        <Return value={$ctx.execution} />
+
+        <Else>
+            <Call module="execution" in={$ctx.guard_context} />
+
+            <Return value={$ctx.execution} />
+        </Else>
+    </If>
+</Module>

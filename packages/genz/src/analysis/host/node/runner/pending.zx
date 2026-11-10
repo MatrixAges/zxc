@@ -1,0 +1,34 @@
+import path from "../../../../ast/context/path"
+import { running_name } from "../context/const"
+import { context_name } from "../task/const"
+import { pending_async } from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const running = path({
+        state: in.tree.ast.context,
+        path: [
+            context_name,
+            running_name
+        ]
+    })
+
+    const guarded = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: running.state
+                }
+            }
+        },
+        condition: running.id,
+        error: pending_async
+    })
+
+    return guarded
+}

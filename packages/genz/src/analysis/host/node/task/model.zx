@@ -45,7 +45,8 @@ export type Method = {
     parameters: Parameter[],
     return_type: u32,
     exported: bool,
-    convention?: u32
+    convention?: u32,
+    abi_export?: bool
 }
 
 export type Saved = {

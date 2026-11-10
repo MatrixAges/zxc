@@ -41,7 +41,7 @@ export default function (in: Input): Output {
         body_start: body.first,
         body_count: body.count,
         exported: in.exported,
-        abi_export: false,
+        abi_export: in.abi_export ?? false,
         inlined: false,
         calling_convention: in.convention
     })

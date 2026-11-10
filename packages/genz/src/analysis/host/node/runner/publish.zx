@@ -1,0 +1,20 @@
+import publish from "../task/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = publish(in.tree)
+
+    return {
+        ...value,
+        declarations: {
+            ...value.declarations,
+            comptime_scope_start: in.comptime_start,
+            comptime_scope_len: in.comptime_len
+        },
+        statements: {
+            ...value.statements,
+            ...in.scopes
+        }
+    }
+}

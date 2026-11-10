@@ -1,0 +1,81 @@
+import path from "../../../../ast/context/path"
+import result from "../../../../ast/statements/builder/result"
+import { api_name, env_name, env_type } from "../context/const"
+import { value_type } from "../task/const"
+import errorUnion from "../task/error_union"
+import method from "../task/method"
+import { register_name, exports_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const exports = path({
+        state: in.tree.ast.context,
+        path: [exports_name]
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: exports.id
+    })
+
+    const environment_type = path({
+        state: exports.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const value_type_node = path({
+        state: environment_type.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const returned_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value_type_node.state,
+                statements: returned
+            }
+        },
+        payload: value_type_node.id,
+        inferred: true
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: returned_type.state.ast.context,
+                statements: returned
+            },
+            extra: returned_type.state.extra
+        },
+        name: register_name,
+        parameters: [
+            {
+                name: env_name,
+                value: environment_type.id
+            },
+            {
+                name: exports_name,
+                value: value_type_node.id
+            }
+        ],
+        return_type: returned_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

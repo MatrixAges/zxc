@@ -1,0 +1,119 @@
+import bytes from "std:bytes"
+
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import text from "../../../../ast/context/text"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import {
+    api_name,
+    env_type,
+    data_name,
+    release_name,
+    c_convention
+} from "../context/const"
+import decode from "../data_context"
+import dataType from "../data_type"
+import { context_name, blank_name } from "../task/const"
+import invoke from "../task/invoke"
+import method from "../task/method"
+import { finalize_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const environment_type = path({
+        state: in.tree.ast.context,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const data_type = dataType({
+        ...in.tree.ast,
+        context: environment_type.state
+    })
+
+    const decoded = decode({
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: data_type.state.context
+            }
+        }
+    })
+
+    const released = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: decoded.ast.context,
+                statements: decoded.ast.statements
+            }
+        },
+        path: [
+            context_name,
+            release_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const done = evaluate({
+        state: decoded.ast.statements,
+        value: released.id,
+        discard: false
+    })
+
+    const returned_type = primitive({
+        state: released.state.ast.context,
+        value: P.Void
+    })
+
+    const convention = text({
+        state: returned_type.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: convention.state,
+                statements: done
+            }
+        },
+        name: finalize_name,
+        parameters: [
+            {
+                name: blank_name,
+                value: environment_type.id
+            },
+            {
+                name: data_name,
+                value: data_type.id
+            },
+            {
+                name: blank_name,
+                value: data_type.id
+            }
+        ],
+        return_type: returned_type.id,
+        exported: false,
+        abi_export: false,
+        convention: convention.id
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

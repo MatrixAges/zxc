@@ -1,0 +1,131 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import call from "../../../../ast/context/call"
+import conditional from "../../../../ast/context/conditional"
+import field from "../../../../ast/context/field"
+import index from "../../../../ast/context/index"
+import integer from "../../../../ast/context/integer"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import binding from "../../../../ast/statements/builder/binding"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { env_name, arena_name } from "../context/const"
+import { arguments_name } from "../enqueue/const"
+import {
+    napi_name,
+    request_name,
+    input_name,
+    allocator_name,
+    read_name
+} from "../task/const"
+import invoke from "../task/invoke"
+import { expected_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const storage_path = match in.tree.ast.stateful { true => [
+        request_name,
+        arena_name
+    ], _ => [arena_name] }
+
+    const arena = path({
+        state: in.tree.ast.context,
+        path: storage_path
+    })
+
+    const allocator = field({
+        state: arena.state,
+        target: arena.id,
+        name: bytes.fromText(allocator_name)
+    })
+
+    const memory = call({
+        state: allocator.state,
+        callee: allocator.id,
+        arguments: [],
+        fallible: false
+    })
+
+    const env = path({
+        state: memory.state,
+        path: [env_name]
+    })
+
+    const expected = path({
+        state: env.state,
+        path: [expected_name]
+    })
+
+    const zero = integer({
+        state: expected.state,
+        value: 0
+    })
+
+    const empty = binary({
+        state: zero.state,
+        operator: B.Equal,
+        left: expected.id,
+        right: zero.id
+    })
+
+    const nil = nullValue(empty.state)
+
+    const arguments = path({
+        state: nil.state,
+        path: [arguments_name]
+    })
+
+    const argument = index({
+        state: arguments.state,
+        target: arguments.id,
+        index: zero.id
+    })
+
+    const selected = conditional({
+        state: argument.state,
+        condition: empty.id,
+        yes: nil.id,
+        no: argument.id
+    })
+
+    const read = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: selected.state
+            }
+        },
+        path: [
+            napi_name,
+            read_name
+        ],
+        arguments: [
+            memory.id,
+            env.id,
+            selected.id
+        ],
+        fallible: true
+    })
+
+    const bound = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(input_name),
+        value: read.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: read.state.ast.context,
+                statements: bound
+            }
+        }
+    }
+}

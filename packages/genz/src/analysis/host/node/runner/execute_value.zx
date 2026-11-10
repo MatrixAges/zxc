@@ -1,0 +1,55 @@
+import address from "../../../../ast/context/address"
+import path from "../../../../ast/context/path"
+import { arena_name } from "../context/const"
+import { application_name, request_name, execute_name } from "../task/const"
+import invoke from "../task/invoke"
+
+import type { State, Node as Output } from "../task/model"
+
+export type Input = {
+    state: State,
+    input: u32
+}
+
+export default function (in: Input): Output {
+    if (in.state.ast.stateful) {
+        return invoke({
+            state: in.state,
+            path: [
+                request_name,
+                execute_name
+            ],
+            arguments: [in.input],
+            fallible: true
+        })
+    }
+
+    const arena = path({
+        state: in.state.ast.context,
+        path: [arena_name]
+    })
+
+    const pointer = address({
+        state: arena.state,
+        value: arena.id
+    })
+
+    return invoke({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: pointer.state
+            }
+        },
+        path: [
+            application_name,
+            execute_name
+        ],
+        arguments: [
+            pointer.id,
+            in.input
+        ],
+        fallible: true
+    })
+}

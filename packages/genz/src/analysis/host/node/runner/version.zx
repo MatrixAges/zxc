@@ -1,0 +1,46 @@
+import integer from "../../../../ast/context/integer"
+import primitive from "../../../../ast/context/primitive"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsPrimitive as P } from "../../../../printer/model/expressions"
+import method from "../task/method"
+import { version_name, napi_version } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const version = integer({
+        state: in.tree.ast.context,
+        value: napi_version
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: version.id
+    })
+
+    const payload = primitive({
+        state: version.state,
+        value: P.I32
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: payload.state,
+                statements: returned
+            }
+        },
+        name: version_name,
+        parameters: [],
+        return_type: payload.id,
+        exported: false,
+        abi_export: true
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

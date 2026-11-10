@@ -1,0 +1,77 @@
+import boolean from "../../../../ast/context/boolean"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import { env_name, hooked_name, cleanup_name } from "../context/const"
+import check from "../task/check"
+import { context_name, context_type } from "../task/const"
+import { add_cleanup } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const hook = path({
+        state: env.state,
+        path: [
+            context_type,
+            cleanup_name
+        ]
+    })
+
+    const context = path({
+        state: hook.state,
+        path: [context_name]
+    })
+
+    const hooked = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: context.state
+            }
+        },
+        name: add_cleanup,
+        arguments: [
+            env.id,
+            hook.id,
+            context.id
+        ]
+    })
+
+    const target = path({
+        state: hooked.ast.context,
+        path: [
+            context_name,
+            hooked_name
+        ]
+    })
+
+    const yes = boolean({
+        state: target.state,
+        value: true
+    })
+
+    const assigned = assignment({
+        state: hooked.ast.statements,
+        target: target.id,
+        value: yes.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: yes.state,
+                statements: assigned
+            },
+            extra: hooked.extra
+        }
+    }
+}

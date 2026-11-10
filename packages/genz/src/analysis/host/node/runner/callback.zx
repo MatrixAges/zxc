@@ -1,0 +1,21 @@
+import callback from "../callback"
+import { info_name, info_type } from "../enqueue/const"
+import { callback_name, execute_name } from "../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        tree: callback({
+            tree: in.tree,
+            name: callback_name,
+            target: execute_name,
+            parameter_name: info_name,
+            parameter_type: info_type,
+            exported: false,
+            abi_export: false,
+            c_callback: true
+        })
+    }
+}

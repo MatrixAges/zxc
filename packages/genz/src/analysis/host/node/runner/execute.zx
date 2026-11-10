@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import path from "../../../../ast/context/path"
+import unreachableValue from "../../../../ast/context/unreachable"
+import binding from "../../../../ast/statements/builder/binding"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { application_name, input_name, output_name } from "../task/const"
+import { requires_io, requires_process } from "./const"
+import executeValue from "./execute_value"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input = path({
+        state: in.tree.ast.context,
+        path: [input_name]
+    })
+
+    const called = executeValue({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: input.state
+            }
+        },
+        input: input.id
+    })
+
+    const io = path({
+        state: called.state.ast.context,
+        path: [
+            application_name,
+            requires_io
+        ]
+    })
+
+    const process = path({
+        state: io.state,
+        path: [
+            application_name,
+            requires_process
+        ]
+    })
+
+    const needed = binary({
+        state: process.state,
+        operator: B.LogicalOr,
+        left: io.id,
+        right: process.id
+    })
+
+    const unreachable_value = unreachableValue(needed.state)
+
+    const value = conditional({
+        state: unreachable_value.state,
+        condition: needed.id,
+        yes: unreachable_value.id,
+        no: called.id
+    })
+
+    const bound = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(output_name),
+        value: value.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state,
+                statements: bound
+            }
+        }
+    }
+}

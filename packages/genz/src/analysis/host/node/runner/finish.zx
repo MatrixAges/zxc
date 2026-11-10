@@ -1,0 +1,120 @@
+import path from "../../../../ast/context/path"
+import result from "../../../../ast/statements/builder/result"
+import { api_name, env_name, env_type } from "../context/const"
+import { info_name, info_type } from "../enqueue/const"
+import {
+    napi_name,
+    value_type,
+    execute_name,
+    output_name,
+    write_name
+} from "../task/const"
+import errorUnion from "../task/error_union"
+import invoke from "../task/invoke"
+import method from "../task/method"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const output = path({
+        state: env.state,
+        path: [output_name]
+    })
+
+    const written = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: output.state
+            }
+        },
+        path: [
+            napi_name,
+            write_name
+        ],
+        arguments: [
+            env.id,
+            output.id
+        ],
+        fallible: false
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: written.id
+    })
+
+    const environment_type = path({
+        state: written.state.ast.context,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const information_type = path({
+        state: environment_type.state,
+        path: [
+            api_name,
+            info_type
+        ]
+    })
+
+    const value_type_node = path({
+        state: information_type.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const returned_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value_type_node.state,
+                statements: returned
+            }
+        },
+        payload: value_type_node.id,
+        inferred: true
+    })
+
+    const tree = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: returned_type.state.ast.context,
+                statements: returned
+            },
+            extra: returned_type.state.extra
+        },
+        name: execute_name,
+        parameters: [
+            {
+                name: env_name,
+                value: environment_type.id
+            },
+            {
+                name: info_name,
+                value: information_type.id
+            }
+        ],
+        return_type: returned_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

@@ -1,0 +1,21 @@
+import callback from "../callback"
+import { value_type } from "../task/const"
+import { entry_name, register_name, exports_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        tree: callback({
+            tree: in.tree,
+            name: entry_name,
+            target: register_name,
+            parameter_name: exports_name,
+            parameter_type: value_type,
+            exported: false,
+            abi_export: true,
+            c_callback: false
+        })
+    }
+}

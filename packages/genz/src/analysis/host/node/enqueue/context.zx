@@ -1,64 +1,12 @@
-import bytes from "std:bytes"
-
-import builtin from "../../../../ast/context/builtin"
-import unwrap from "../../../../ast/context/optional_unwrap"
-import path from "../../../../ast/context/path"
-import pointer from "../../../../ast/context/pointer"
-import binding from "../../../../ast/statements/builder/binding"
-import { ExpressionsBuiltinName as B } from "../../../../printer/model/expressions"
-import { data_name } from "../context/const"
-import { context_type, context_name } from "../task/const"
+import construct from "../data_context"
 
 import type { State as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    const context_type_node = path({
-        state: in.tree.ast.context,
-        path: [context_type]
-    })
-
-    const pointed = pointer({
-        state: context_type_node.state,
-        value: context_type_node.id
-    })
-
-    const data = path({
-        state: pointed.state,
-        path: [data_name]
-    })
-
-    const unwrapped = unwrap({
-        state: data.state,
-        value: data.id
-    })
-
-    const aligned = builtin({
-        state: unwrapped.state,
-        name: B.AlignCast,
-        arguments: [unwrapped.id]
-    })
-
-    const cast = builtin({
-        state: aligned.state,
-        name: B.PtrCast,
-        arguments: [aligned.id]
-    })
-
     return {
         ...in,
-        tree: {
-            ...in.tree,
-            ast: {
-                ...in.tree.ast,
-                context: cast.state,
-                statements: binding({
-                    state: in.tree.ast.statements,
-                    name: bytes.fromText(context_name),
-                    type_expr: pointed.id,
-                    value: cast.id,
-                    mutable: false
-                })
-            }
-        }
+        tree: construct({
+            tree: in.tree
+        })
     }
 }

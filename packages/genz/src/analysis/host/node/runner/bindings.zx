@@ -1,0 +1,71 @@
+import open from "../../../../ast/statements/builder/open"
+import scope from "../../../../ast/statements/builder/scope"
+import { enqueue_name } from "../enqueue/const"
+import { execute_name, callback_name } from "../task/const"
+import binding from "./binding"
+import { execute_task } from "./const"
+import property from "./property"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        execute_name,
+        execute_task
+    ]
+
+    const callbacks = [
+        callback_name,
+        enqueue_name
+    ]
+
+    return loop({
+        tree: in.tree,
+        scopes: in.scopes,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const child = open(current.tree.ast.statements)
+            const created = binding({
+                state: {
+                    ...current.tree,
+                    ast: {
+                        ...current.tree.ast,
+                        statements: child.state
+                    }
+                },
+                name: names[current.index],
+                callback: callbacks[current.index]
+            })
+
+            const defined = property({
+                state: created,
+                name: names[current.index]
+            })
+
+            const closed = scope({
+                scope: {
+                    ...child,
+                    state: defined.ast.statements
+                },
+                columns: current.scopes
+            })
+
+            current.tree = {
+                ...defined,
+                ast: {
+                    ...defined.ast,
+                    statements: closed.state
+                }
+            }
+            current.scopes = closed.columns
+            current.index += 1
+        },
+        return: current => {
+            ...in,
+            tree: current.tree,
+            scopes: current.scopes
+        }
+    })
+}

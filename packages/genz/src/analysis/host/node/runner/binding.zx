@@ -1,0 +1,159 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import integer from "../../../../ast/context/integer"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import text from "../../../../ast/context/text"
+import binding from "../../../../ast/statements/builder/binding"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+import { api_name, env_name, retain_name } from "../context/const"
+import check from "../task/check"
+import { context_name, value_type } from "../task/const"
+import invoke from "../task/invoke"
+import { finalize_name, create_function, add_finalizer, function_name } from "./const"
+
+import type { State, State as Output } from "../task/model"
+
+export type Input = {
+    state: State,
+    name: string,
+    callback: string
+}
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.state.ast.context,
+        path: [env_name]
+    })
+
+    const nil = nullValue(env.state)
+
+    const function_type = path({
+        state: nil.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const declared = binding({
+        state: in.state.ast.statements,
+        name: bytes.fromText(function_name),
+        value: nil.id,
+        mutable: true,
+        type_expr: function_type.id
+    })
+
+    const name = text({
+        state: function_type.state,
+        kind: K.String,
+        value: bytes.fromText(in.name)
+    })
+
+    const size = integer({
+        state: name.state,
+        value: in.name.length
+    })
+
+    const callback = path({
+        state: size.state,
+        path: [in.callback]
+    })
+
+    const context = path({
+        state: callback.state,
+        path: [context_name]
+    })
+
+    const javascript_function = path({
+        state: context.state,
+        path: [function_name]
+    })
+
+    const pointer = address({
+        state: javascript_function.state,
+        value: javascript_function.id
+    })
+
+    const created = check({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: create_function,
+        arguments: [
+            env.id,
+            name.id,
+            size.id,
+            callback.id,
+            context.id,
+            pointer.id
+        ]
+    })
+
+    const finalizer = path({
+        state: created.ast.context,
+        path: [finalize_name]
+    })
+
+    const finalized = check({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: finalizer.state,
+                statements: created.ast.statements
+            },
+            extra: created.extra
+        },
+        name: add_finalizer,
+        arguments: [
+            env.id,
+            javascript_function.id,
+            context.id,
+            finalizer.id,
+            nil.id,
+            nil.id
+        ]
+    })
+
+    const retained = invoke({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: finalized.ast.context,
+                statements: finalized.ast.statements
+            },
+            extra: finalized.extra
+        },
+        path: [
+            context_name,
+            retain_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const done = evaluate({
+        state: finalized.ast.statements,
+        value: retained.id,
+        discard: false
+    })
+
+    return {
+        ...in.state,
+        ast: {
+            ...in.state.ast,
+            context: retained.state.ast.context,
+            statements: done
+        },
+        extra: finalized.extra
+    }
+}

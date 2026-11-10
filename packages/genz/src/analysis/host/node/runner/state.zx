@@ -1,0 +1,95 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import address from "../../../../ast/context/address"
+import object from "../../../../ast/context/object"
+import path from "../../../../ast/context/path"
+import field from "../../../../ast/fields/append"
+import assignment from "../../../../ast/statements/builder/assignment"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { arena_name, state_field } from "../context/const"
+import { context_name } from "../task/const"
+import invoke from "../task/invoke"
+import { initialize_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const arena = path({
+        state: in.tree.ast.context,
+        path: [
+            context_name,
+            arena_name
+        ]
+    })
+
+    const pointer = address({
+        state: arena.state,
+        value: arena.id
+    })
+
+    const arena_field = field({
+        table: in.tree.ast.fields,
+        name: bytes.fromText(arena_name),
+        value: pointer.id,
+        comptime_parameter: false
+    })
+
+    const value = object({
+        state: pointer.state,
+        first: integers.narrow(in.tree.ast.fields.name.length),
+        count: 1
+    })
+
+    const target = path({
+        state: value.state,
+        path: [
+            context_name,
+            state_field
+        ]
+    })
+
+    const assigned = assignment({
+        state: in.tree.ast.statements,
+        target: target.id,
+        value: value.id
+    })
+
+    const initialized = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: target.state,
+                statements: assigned,
+                fields: arena_field
+            }
+        },
+        path: [
+            context_name,
+            state_field,
+            initialize_name
+        ],
+        arguments: [],
+        fallible: true
+    })
+
+    const done = evaluate({
+        state: assigned,
+        value: initialized.id,
+        discard: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: initialized.state.ast.context,
+                statements: done,
+                fields: arena_field
+            }
+        }
+    }
+}

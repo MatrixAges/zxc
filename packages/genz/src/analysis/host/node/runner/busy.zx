@@ -1,0 +1,61 @@
+import boolean from "../../../../ast/context/boolean"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import open from "../../../../ast/statements/builder/open"
+import { busy_name } from "../context/const"
+import { context_name } from "../task/const"
+import deferred from "../task/defer_scope"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const busy = path({
+        state: in.tree.ast.context,
+        path: [
+            context_name,
+            busy_name
+        ]
+    })
+
+    const yes = boolean({
+        state: busy.state,
+        value: true
+    })
+
+    const marked = assignment({
+        state: in.tree.ast.statements,
+        target: busy.id,
+        value: yes.id
+    })
+
+    const no = boolean({
+        state: yes.state,
+        value: false
+    })
+
+    const scope = open(marked)
+
+    const cleared = assignment({
+        state: scope.state,
+        target: busy.id,
+        value: no.id
+    })
+
+    const tree = deferred({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: no.state,
+                statements: cleared
+            }
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

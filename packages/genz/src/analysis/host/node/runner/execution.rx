@@ -1,0 +1,10 @@
+<Module>
+    <Call fn="busy" in={$in} />
+    <Call fn="storage" in={$ctx.busy} />
+    <Call fn="input" in={$ctx.storage} />
+    <Call fn="execute" in={$ctx.input} />
+    <Call fn="finish" in={$ctx.execute} />
+    <Call fn="publish" in={$ctx.finish} />
+
+    <Return value={$ctx.publish} />
+</Module>

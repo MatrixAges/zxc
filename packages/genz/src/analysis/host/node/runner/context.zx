@@ -1,0 +1,12 @@
+import context from "../data_context"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        tree: context({
+            tree: in.tree
+        })
+    }
+}

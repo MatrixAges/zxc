@@ -1,0 +1,54 @@
+import path from "../../../../ast/context/path"
+import {
+    arena_type,
+    std_name,
+    heap_name,
+    page_allocator_name,
+    state_field
+} from "../context/const"
+import { context_name, request_name, init_name } from "../task/const"
+import invoke from "../task/invoke"
+
+import type { State as Input, Node as Output } from "../task/model"
+
+export default function (in: Input): Output {
+    if (in.ast.stateful) {
+        return invoke({
+            state: in,
+            path: [
+                context_name,
+                state_field,
+                request_name
+            ],
+            arguments: [],
+            fallible: false
+        })
+    }
+
+    const allocator = path({
+        state: in.ast.context,
+        path: [
+            std_name,
+            heap_name,
+            page_allocator_name
+        ]
+    })
+
+    return invoke({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: allocator.state
+            }
+        },
+        path: [
+            std_name,
+            heap_name,
+            arena_type,
+            init_name
+        ],
+        arguments: [allocator.id],
+        fallible: false
+    })
+}

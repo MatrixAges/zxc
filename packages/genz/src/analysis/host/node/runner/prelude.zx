@@ -1,0 +1,123 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../../ast/context/boolean"
+import imported from "../../../../ast/context/import_path"
+import path from "../../../../ast/context/path"
+import constant from "../../../../ast/declarations/table/constant"
+import { std_name, api_name, napi_module } from "../context/const"
+import { enqueue_name } from "../enqueue/const"
+import { application_name, napi_name, context_type, callback_name } from "../task/const"
+import { stateful_name, context_module, enqueue_module } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = boolean({
+        state: in.tree.ast.context,
+        value: in.tree.ast.stateful
+    })
+
+    const enabled = constant({
+        state: in.tree.ast.declarations,
+        value: {
+            name: bytes.fromText(stateful_name),
+            value: value.id,
+            exported: true
+        }
+    })
+
+    const names = [
+        std_name,
+        application_name,
+        napi_name,
+        context_type
+    ]
+
+    const modules = [
+        std_name,
+        application_name,
+        napi_module,
+        context_module
+    ]
+
+    const imports = loop({
+        context: value.state,
+        declarations: enabled.state,
+        valid: in.tree.ast.valid && enabled.valid,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const node = imported({
+                state: current.context,
+                module: modules[current.index],
+                path: []
+            })
+
+            const declaration = constant({
+                state: current.declarations,
+                value: {
+                    name: bytes.fromText(names[current.index]),
+                    value: node.id,
+                    exported: false
+                }
+            })
+
+            current.context = node.state
+            current.declarations = declaration.state
+            current.valid = current.valid && declaration.valid
+            current.index += 1
+        }
+    })
+
+    const api = path({
+        state: imports.context,
+        path: [
+            napi_name,
+            api_name
+        ]
+    })
+
+    const api_declaration = constant({
+        state: imports.declarations,
+        value: {
+            name: bytes.fromText(api_name),
+            value: api.id,
+            exported: false
+        }
+    })
+
+    const enqueue = imported({
+        state: api.state,
+        module: enqueue_module,
+        path: [callback_name]
+    })
+
+    const enqueue_declaration = constant({
+        state: api_declaration.state,
+        value: {
+            name: bytes.fromText(enqueue_name),
+            value: enqueue.id,
+            exported: false
+        }
+    })
+
+    const valid = (
+        - imports.valid
+        - and api_declaration.valid
+        - and enqueue_declaration.valid
+    )
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: enqueue.state,
+                declarations: enqueue_declaration.state,
+                valid
+            }
+        }
+    }
+}

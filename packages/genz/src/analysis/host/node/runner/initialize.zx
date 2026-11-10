@@ -1,0 +1,15 @@
+import initialize from "../task/initialize"
+
+import type { Args as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        tree: initialize(in),
+        scopes: {
+            scope_start: [],
+            scope_len: []
+        },
+        comptime_start: [],
+        comptime_len: []
+    }
+}
