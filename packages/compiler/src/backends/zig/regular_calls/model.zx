@@ -1,0 +1,30 @@
+import type { AtomicRows } from "std:bytes"
+import type { Index } from "core/bytes/index/model"
+
+export type Input = {
+    ids: u32?[],
+    names: u8[][],
+    values: bool[]
+}
+
+export type Indexed = {
+    index: Index,
+    source: Input
+}
+
+export type Scan = {
+    source: string,
+    index: Index,
+    wanted: AtomicRows
+}
+
+export type Selection = {
+    source: Input,
+    index: Index,
+    wanted: AtomicRows
+}
+
+export type Selected = {
+    ids: u32[],
+    positions: u64[]
+}

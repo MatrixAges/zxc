@@ -49,7 +49,7 @@ pub fn lastIndexOfScalar(haystack: []const u8, needle: u8) ?u64 {
 pub fn indexOfSlice(haystack: []const u8, start: u64, needle: []const u8) ?u64 {
     if (start > haystack.len) return null;
 
-    return if (std.mem.indexOfPos(u8, haystack, @intCast(start), needle)) |index| @intCast(index) else null;
+    return if (@import("bytes/find.zig").find(haystack, @intCast(start), needle)) |index| @intCast(index) else null;
 }
 
 pub fn indexOfText(haystack: []const u8, start: u64, needle: []const u8) ?u64 {

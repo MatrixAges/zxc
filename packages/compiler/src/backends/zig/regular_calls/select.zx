@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import get from "core/bytes/index/get"
+
+import { marked } from "./const"
+
+import type { Selection as Input, Selected as Output } from "./model"
+
+export default function (in: Input): Output {
+    const ids: u32[] = []
+    const positions: u64[] = []
+
+    return loop({
+        ids,
+        positions,
+        position: 0
+    }, {
+        while: current => current.position < in.source.ids.length,
+        next: current => {
+            const id = in.source.ids[current.position]
+
+            if (id != null && in.source.values[integers.widen(id)]) {
+                const representative = get({
+                    index: in.index,
+                    key: in.source.names[integers.widen(id)]
+                })
+
+                if (representative != null) {
+                    const wanted = bytes.loadAtomicCell(
+                        in.wanted,
+                        0,
+                        integers.widen(representative)
+                    )
+
+                    if (wanted == marked) {
+                        current.ids = current.ids.push(id)[0]
+                        current.positions =
+                            current.positions.push(current.position)[0]
+                    }
+                }
+            }
+
+            current.position += 1
+        },
+        return: current => current.pick([
+            "ids",
+            "positions"
+        ])
+    })
+}

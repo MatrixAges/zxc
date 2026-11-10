@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Calls" />
+    <Type from="core/bytes/index/model" as="Bytes" />
+
+    <Args in={Calls.Input} out={Bytes.Index} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="build" in={$ctx.initialize} />
+
+    <Return value={$ctx.build} />
+</Module>

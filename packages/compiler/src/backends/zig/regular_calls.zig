@@ -1,89 +1,91 @@
-//! The value functions generated code still calls through their pointer-ABI `call`. A value function's file holds
-//! only its value variant unless a caller lowers a call to it the pointer way, which lowering decides per call site;
-//! the decision is read back from the generated sources, where each such call reads `@import("<module>")).call(`.
 const std = @import("std");
 const generating = @import("genz").zx.modules;
 const Batch = @import("batch.zig");
 const function_sources = @import("function_sources.zig");
-const search = @import("search.zig");
-const needle = "\")).call(";
+const indexing = @import("generated_regular_calls_index");
+const scanning = @import("generated_regular_calls_scan");
+const selection = @import("generated_regular_calls_select");
+const Index = std.meta.Child(indexing.Output);
+const zx = @import("zx");
 
-/// Gives `call` to every value function in `units` that `roots` or the files reach through it, regenerating those
-/// files until every `call` they reach exists; `sources` are the files of `units` and are updated in place.
 pub fn complete(owned: std.mem.Allocator, batch: *const Batch, roots: []const []const u8, units: []generating.Unit, sources: [][]const u8) generating.Error!void {
+    if (comptime !@import("parser_options").generated_parser) return @import("regular_calls_seed.zig").complete(owned, batch, roots, units, sources);
+
     var scratch = std.heap.ArenaAllocator.init(batch.backing);
 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
     const values = batch.analysis.value.value.values;
-    const wanted = try temporary.alloc(bool, values.len);
-    var modules: @import("zx").bytes.Map(u32) = .empty;
+    const ids = try temporary.alloc(?u32, units.len);
 
-    @memset(wanted, false);
+    for (units, ids) |unit, *id| id.* = if (unit == .function) @backingInt(unit.function) else null;
 
-    for (units) |unit| if (unit == .function and values[@backingInt(unit.function)]) {
-        try modules.put(temporary, batch.names.functions[@backingInt(unit.function)], @backingInt(unit.function));
-    };
+    const Input = std.meta.Child(indexing.Input);
+    const input: Input = .{ .ids = ids, .names = batch.names.functions, .values = values };
+    const output = zx.columns.invoke(indexing.executeValue, temporary, &input) catch |err| return failure(err);
+    const index = zx.columns.view(Index, output);
 
-    if (modules.count() == 0) return;
+    if (index.keys.len == 0) return;
 
+    const wanted = try temporary.alloc(u8, values.len);
+
+    @memset(wanted, 0);
+
+    var rows: [1][]u8 = .{wanted};
+    var cells: [][]u8 = &rows;
     var scanned = try std.mem.concat(temporary, []const u8, &.{ roots, sources });
 
     while (true) {
-        var scan = Scan{ .sources = scanned, .modules = &modules, .wanted = wanted };
+        var scan = Scan{ .sources = scanned, .index = index, .wanted = @ptrCast(&cells) };
 
         try function_sources.spread(Scan, &scan, try arenas(temporary, scanned.len));
 
-        var added: std.ArrayList(generating.Unit) = .empty;
-        var positions: std.ArrayList(usize) = .empty;
+        const SelectInput = std.meta.Child(selection.Input);
+        const request: SelectInput = .{ .source = &input, .index = &index, .wanted = @ptrCast(&cells) };
+        const selected = selection.executeValue(temporary, &request) catch |err| return failure(err);
 
-        for (units, 0..) |*unit, position| if (unit.* == .function and values[@backingInt(unit.function)]) {
-            const id = unit.function;
-            const representative = modules.get(batch.names.functions[@backingInt(id)]).?;
+        if (selected.ids.len == 0) return;
 
-            if (!wanted[representative]) continue;
+        const added = try temporary.alloc(generating.Unit, selected.ids.len);
 
-            unit.* = .{ .regular = id };
+        for (selected.ids, selected.positions, added) |id, position, *unit| {
+            unit.* = .{ .regular = @fromBackingInt(id) };
 
-            try added.append(temporary, unit.*);
-            try positions.append(temporary, position);
-        };
+            units[@intCast(position)] = unit.*;
+            ids[@intCast(position)] = null;
+        }
 
-        if (added.items.len == 0) return;
+        const regenerated = try function_sources.create(owned, batch, added);
 
-        const regenerated = try function_sources.create(owned, batch, added.items);
-
-        for (positions.items, regenerated) |position, source| sources[position] = source;
+        for (selected.positions, regenerated) |position, source| sources[@intCast(position)] = source;
 
         scanned = regenerated;
     }
 }
 
-/// Marks the value functions each source calls through `call`, on all cores.
 const Scan = struct {
     sources: []const []const u8,
-    modules: *const @import("zx").bytes.Map(u32),
-    wanted: []bool,
+    index: Index,
+    wanted: *const anyopaque,
     next: std.atomic.Value(usize) = .init(0),
     failure: std.atomic.Value(u16) = .init(0),
     pub fn run(self: *Scan, _: *std.heap.ArenaAllocator) void {
-        while (true) {
+        while (self.failure.load(.monotonic) == 0) {
             const position = self.next.fetchAdd(1, .monotonic);
 
             if (position >= self.sources.len) return;
 
-            const source = self.sources[position];
-            var cursor: usize = 0;
+            const Input = std.meta.Child(scanning.Input);
+            const input: Input = .{ .source = self.sources[position], .index = &self.index, .wanted = @ptrCast(self.wanted) };
+            var memory = std.heap.FixedBufferAllocator.init(&.{});
 
-            while (search.find(source, cursor, needle)) |at| {
-                cursor = at + needle.len;
+            scanning.executeValue(memory.allocator(), &input) catch |err| {
+                const problem = failure(err);
+                _ = self.failure.cmpxchgStrong(0, @intFromError(problem), .monotonic, .monotonic);
 
-                const open = std.mem.lastIndexOfScalar(u8, source[0..at], '"') orelse continue;
-                const index = self.modules.get(source[open + 1 .. at]) orelse continue;
-
-                @atomicStore(bool, &self.wanted[index], true, .monotonic);
-            }
+                return;
+            };
         }
     }
 };
@@ -94,4 +96,11 @@ fn arenas(temporary: std.mem.Allocator, count: usize) std.mem.Allocator.Error![]
     for (result) |*arena| arena.* = .init(temporary);
 
     return result;
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid regular call demand"),
+    };
 }

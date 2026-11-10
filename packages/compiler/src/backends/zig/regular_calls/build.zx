@@ -1,0 +1,28 @@
+import integers from "std:integer"
+import insert from "core/bytes/index/insert"
+
+import type { Index as Output } from "core/bytes/index/model"
+import type { Indexed as Input } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        index: in.index,
+        position: 0
+    }, {
+        while: current => current.position < in.source.ids.length,
+        next: current => {
+            const id = in.source.ids[current.position]
+
+            if (id != null && in.source.values[integers.widen(id)]) {
+                current.index = insert({
+                    index: current.index,
+                    key: in.source.names[integers.widen(id)],
+                    value: id
+                })
+            }
+
+            current.position += 1
+        },
+        return: current => current.index
+    })
+}

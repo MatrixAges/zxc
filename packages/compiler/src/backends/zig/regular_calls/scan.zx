@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import integers from "std:integer"
+import get from "core/bytes/index/get"
+
+import { call_marker, quote, marked } from "./const"
+
+import type { Scan as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        cursor: 0,
+        done: false
+    }, {
+        while: current => !current.done,
+        next: current => {
+            const at = bytes.indexOfText(
+                bytes.fromText(in.source),
+                current.cursor,
+                call_marker
+            )
+
+            if (at == null) {
+                current.done = true
+            } else {
+                current.cursor = at + call_marker.length
+
+                const prefix = encoding.sliceBytes(in.source, 0, at)
+                const open = bytes.lastIndexOfScalar(bytes.fromText(prefix), quote)
+
+                if (open != null) {
+                    const key =
+                        bytes.fromText(encoding.sliceBytes(
+                            in.source,
+                            open + 1,
+                            at
+                        ))
+                    const id = get({
+                        index: in.index,
+                        key
+                    })
+
+                    if (id != null) {
+                        bytes.storeAtomicCell(
+                            in.wanted,
+                            0,
+                            integers.widen(id),
+                            marked
+                        )
+                    }
+                }
+            }
+        }
+    })
+}

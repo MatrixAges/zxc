@@ -1,0 +1,12 @@
+import type { Input, Indexed as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        index: {
+            keys: [],
+            values: [],
+            buckets: []
+        }
+    }
+}
