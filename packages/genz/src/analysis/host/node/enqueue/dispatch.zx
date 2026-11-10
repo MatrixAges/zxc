@@ -1,0 +1,80 @@
+import boolean from "../../../../ast/context/boolean"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import close from "../../../../ast/statements/builder/close"
+import elseBranch from "../../../../ast/statements/builder/else_branch"
+import open from "../../../../ast/statements/builder/open"
+import { running_name } from "../context/const"
+import { context_name } from "../task/const"
+import link from "./link"
+import start from "./start"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const running = path({
+        state: in.tree.ast.context,
+        path: [
+            context_name,
+            running_name
+        ]
+    })
+
+    const scope = open(in.tree.ast.statements)
+
+    const linked = link({
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: running.state,
+                statements: scope.state
+            }
+        }
+    })
+
+    const yes = close(linked.tree.ast.statements)
+
+    const started = start({
+        ...linked,
+        tree: {
+            ...linked.tree,
+            ast: {
+                ...linked.tree.ast,
+                statements: yes.state
+            }
+        }
+    })
+
+    const value = boolean({
+        state: started.tree.ast.context,
+        value: true
+    })
+
+    const marked = assignment({
+        state: started.tree.ast.statements,
+        target: running.id,
+        value: value.id
+    })
+
+    return {
+        ...started,
+        tree: {
+            ...started.tree,
+            ast: {
+                ...started.tree.ast,
+                context: value.state,
+                statements: elseBranch({
+                    scope: {
+                        ...scope,
+                        state: marked
+                    },
+                    condition: running.id,
+                    yes_first: yes.first,
+                    yes_count: yes.count
+                })
+            }
+        }
+    }
+}

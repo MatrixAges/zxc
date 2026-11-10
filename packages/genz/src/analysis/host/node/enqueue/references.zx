@@ -1,0 +1,108 @@
+import address from "../../../../ast/context/address"
+import binary from "../../../../ast/context/binary"
+import index from "../../../../ast/context/index"
+import integer from "../../../../ast/context/integer"
+import path from "../../../../ast/context/path"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { env_name, task_capture } from "../context/const"
+import check from "../task/check"
+import { resolve_name, reject_name } from "../task/const"
+import {
+    arguments_name,
+    input_count_name,
+    retained_reference_count,
+    create_reference
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        resolve_name,
+        reject_name
+    ]
+
+    return loop({
+        state: in,
+        offset: 0
+    }, {
+        while: current => current.offset < names.length,
+        next: current => {
+            const context = current.state.tree.ast.context
+            const env = path({
+                state: context,
+                path: [env_name]
+            })
+
+            const count = path({
+                state: env.state,
+                path: [input_count_name]
+            })
+
+            const offset = integer({
+                state: count.state,
+                value: current.offset
+            })
+
+            const position = binary({
+                state: offset.state,
+                operator: B.Add,
+                left: count.id,
+                right: offset.id
+            })
+
+            const arguments = path({
+                state: position.state,
+                path: [arguments_name]
+            })
+
+            const value = index({
+                state: arguments.state,
+                target: arguments.id,
+                index: position.id
+            })
+
+            const retained = integer({
+                state: value.state,
+                value: retained_reference_count
+            })
+
+            const target = path({
+                state: retained.state,
+                path: [
+                    task_capture,
+                    names[current.offset]
+                ]
+            })
+
+            const pointer = address({
+                state: target.state,
+                value: target.id
+            })
+
+            const tree = check({
+                state: {
+                    ...current.state.tree,
+                    ast: {
+                        ...current.state.tree.ast,
+                        context: pointer.state
+                    }
+                },
+                name: create_reference,
+                arguments: [
+                    env.id,
+                    value.id,
+                    retained.id,
+                    pointer.id
+                ]
+            })
+
+            current.state = {
+                ...current.state,
+                tree
+            }
+            current.offset += 1
+        },
+        return: current => current.state
+    })
+}

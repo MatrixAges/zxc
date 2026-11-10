@@ -1,0 +1,95 @@
+import bytes from "std:bytes"
+
+import importPath from "../../../../ast/context/import_path"
+import path from "../../../../ast/context/path"
+import constant from "../../../../ast/declarations/table/constant"
+import {
+    std_name,
+    api_name,
+    napi_module,
+    task_name,
+    task_module
+} from "../context/const"
+import { application_name, napi_name, context_type, context_module } from "../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        std_name,
+        application_name,
+        napi_name,
+        context_type,
+        task_name
+    ]
+
+    const modules = [
+        std_name,
+        application_name,
+        napi_module,
+        context_module,
+        task_module
+    ]
+
+    const tree = loop({
+        tree: in.tree,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const imported = importPath({
+                state: current.tree.ast.context,
+                module: modules[current.index],
+                path: []
+            })
+
+            const declared = constant({
+                state: current.tree.ast.declarations,
+                value: {
+                    name: bytes.fromText(names[current.index]),
+                    value: imported.id,
+                    exported: false
+                }
+            })
+
+            current.tree.ast = {
+                ...current.tree.ast,
+                context: imported.state,
+                declarations: declared.state,
+                valid: current.tree.ast.valid && declared.valid
+            }
+            current.index += 1
+        },
+        return: current => current.tree
+    })
+
+    const api = path({
+        state: tree.ast.context,
+        path: [
+            napi_name,
+            api_name
+        ]
+    })
+
+    const declared = constant({
+        state: tree.ast.declarations,
+        value: {
+            name: bytes.fromText(api_name),
+            value: api.id,
+            exported: false
+        }
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...tree,
+            ast: {
+                ...tree.ast,
+                context: api.state,
+                declarations: declared.state,
+                valid: tree.ast.valid && declared.valid
+            }
+        }
+    }
+}

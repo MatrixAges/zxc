@@ -1,0 +1,55 @@
+import path from "../../../../ast/context/path"
+import { closing_name, busy_name } from "../context/const"
+import { context_name } from "../task/const"
+import { environment_closing, reentrant_invocation } from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const closing = path({
+        state: in.tree.ast.context,
+        path: [
+            context_name,
+            closing_name
+        ]
+    })
+
+    const available = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: closing.state
+                }
+            }
+        },
+        condition: closing.id,
+        error: environment_closing
+    })
+
+    const busy = path({
+        state: available.tree.ast.context,
+        path: [
+            context_name,
+            busy_name
+        ]
+    })
+
+    return guard({
+        state: {
+            ...available,
+            tree: {
+                ...available.tree,
+                ast: {
+                    ...available.tree.ast,
+                    context: busy.state
+                }
+            }
+        },
+        condition: busy.id,
+        error: reentrant_invocation
+    })
+}

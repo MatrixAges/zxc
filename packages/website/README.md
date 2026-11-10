@@ -24,7 +24,7 @@ pnpm deploy:website
 pnpm --filter @zxc/website typecheck
 ```
 
-Development and production preview use http://127.0.0.1:4320. The existing zray services are independent.
+Development and production preview use http://127.0.0.1:4320.
 
 `dev` and `build` run through `cf`. Production preview uses the Cloudflare Vite plugin. Deployment uses the official `vinext-cloudflare deploy` adapter, which delegates publishing to `cf` for the typed configuration. Authenticate with `pnpm --filter @zxc/website login` before explicitly deploying. Deployment creates or updates the configured `zxc-website` Worker.
 

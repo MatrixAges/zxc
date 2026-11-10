@@ -1,0 +1,46 @@
+import header from "../../../../ast/statements/builder/header"
+import { StatementsKind as S } from "../../../../printer/model/statements"
+import { retain_name, destroy_name, task_capture } from "../context/const"
+import { context_name } from "../task/const"
+import evaluate from "../task/evaluate"
+import invoke from "../task/invoke"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const retained = evaluate(invoke({
+        state: in.tree,
+        path: [
+            context_name,
+            retain_name
+        ],
+        arguments: [],
+        fallible: false
+    }))
+
+    const cleanup = invoke({
+        state: retained,
+        path: [
+            task_capture,
+            destroy_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...cleanup.state,
+            ast: {
+                ...cleanup.state.ast,
+                statements: header({
+                    state: cleanup.state.ast.statements,
+                    kind: S.ErrdeferExpression,
+                    offset: in.cleanup.length
+                })
+            }
+        },
+        cleanup: in.cleanup.push(cleanup.id)[0]
+    }
+}

@@ -1,0 +1,113 @@
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import index from "../../../../ast/context/index"
+import integer from "../../../../ast/context/integer"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { env_name, task_capture, arena_name } from "../context/const"
+import { input_name, napi_name, read_name, allocator_name } from "../task/const"
+import invoke from "../task/invoke"
+import { arguments_name, input_count_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = path({
+        state: in.tree.ast.context,
+        path: [input_count_name]
+    })
+
+    const zero = integer({
+        state: count.state,
+        value: 0
+    })
+
+    const empty = binary({
+        state: zero.state,
+        operator: B.Equal,
+        left: count.id,
+        right: zero.id
+    })
+
+    const nil = nullValue(empty.state)
+
+    const arguments = path({
+        state: nil.state,
+        path: [arguments_name]
+    })
+
+    const first = index({
+        state: arguments.state,
+        target: arguments.id,
+        index: zero.id
+    })
+
+    const selected = conditional({
+        state: first.state,
+        condition: empty.id,
+        yes: nil.id,
+        no: first.id
+    })
+
+    const env = path({
+        state: selected.state,
+        path: [env_name]
+    })
+
+    const allocator = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: env.state
+            }
+        },
+        path: [
+            task_capture,
+            arena_name,
+            allocator_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const read = invoke({
+        state: allocator.state,
+        path: [
+            napi_name,
+            read_name
+        ],
+        arguments: [
+            allocator.id,
+            env.id,
+            selected.id
+        ],
+        fallible: true
+    })
+
+    const target = path({
+        state: read.state.ast.context,
+        path: [
+            task_capture,
+            input_name
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...read.state,
+            ast: {
+                ...read.state.ast,
+                context: target.state,
+                statements: assignment({
+                    state: in.tree.ast.statements,
+                    target: target.id,
+                    value: read.id
+                })
+            }
+        }
+    }
+}

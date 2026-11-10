@@ -1,0 +1,68 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import binding from "../../../../ast/statements/builder/binding"
+import { env_name, api_name } from "../context/const"
+import check from "../task/check"
+import { value_type, get_undefined } from "../task/const"
+import { undefined_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(value_type_node.state)
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(undefined_name),
+        type_expr: value_type_node.id,
+        value: nil.id,
+        mutable: true
+    })
+
+    const value = path({
+        state: nil.state,
+        path: [undefined_name]
+    })
+
+    const pointer = address({
+        state: value.state,
+        value: value.id
+    })
+
+    const env = path({
+        state: pointer.state,
+        path: [env_name]
+    })
+
+    const tree = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: env.state,
+                statements: declared
+            }
+        },
+        name: get_undefined,
+        arguments: [
+            env.id,
+            pointer.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

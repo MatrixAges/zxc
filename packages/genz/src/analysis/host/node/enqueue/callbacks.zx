@@ -1,0 +1,161 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import binary from "../../../../ast/context/binary"
+import path from "../../../../ast/context/path"
+import slice from "../../../../ast/context/slice"
+import text from "../../../../ast/context/text"
+import undefinedValue from "../../../../ast/context/undefined"
+import binding from "../../../../ast/statements/builder/binding"
+import forLoop from "../../../../ast/statements/builder/for_loop"
+import open from "../../../../ast/statements/builder/open"
+import {
+    ExpressionsKind as K,
+    ExpressionsBinaryOperator as B
+} from "../../../../printer/model/expressions"
+import { api_name, env_name } from "../context/const"
+import check from "../task/check"
+import {
+    arguments_name,
+    input_count_name,
+    count_name,
+    callback_value,
+    kind_name,
+    kind_type,
+    typeof_name,
+    function_tag,
+    expected_function
+} from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const arguments = path({
+        state: in.tree.ast.context,
+        path: [arguments_name]
+    })
+
+    const first = path({
+        state: arguments.state,
+        path: [input_count_name]
+    })
+
+    const end = path({
+        state: first.state,
+        path: [count_name]
+    })
+
+    const values = slice({
+        state: end.state,
+        target: arguments.id,
+        start: first.id,
+        end: end.id
+    })
+
+    const kind_type_node = path({
+        state: values.state,
+        path: [
+            api_name,
+            kind_type
+        ]
+    })
+
+    const missing = undefinedValue(kind_type_node.state)
+    const scope = open(in.tree.ast.statements)
+
+    const declared = binding({
+        state: scope.state,
+        name: bytes.fromText(kind_name),
+        type_expr: kind_type_node.id,
+        value: missing.id,
+        mutable: true
+    })
+
+    const env = path({
+        state: missing.state,
+        path: [env_name]
+    })
+
+    const callback = path({
+        state: env.state,
+        path: [callback_value]
+    })
+
+    const kind = path({
+        state: callback.state,
+        path: [kind_name]
+    })
+
+    const pointer = address({
+        state: kind.state,
+        value: kind.id
+    })
+
+    const checked = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: typeof_name,
+        arguments: [
+            env.id,
+            callback.id,
+            pointer.id
+        ]
+    })
+
+    const function_kind = text({
+        state: checked.ast.context,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(function_tag)
+    })
+
+    const condition = binary({
+        state: function_kind.state,
+        operator: B.NotEqual,
+        left: kind.id,
+        right: function_kind.id
+    })
+
+    const guarded = guard({
+        state: {
+            ...in,
+            tree: {
+                ...checked,
+                ast: {
+                    ...checked.ast,
+                    context: condition.state
+                }
+            }
+        },
+        condition: condition.id,
+        error: expected_function
+    })
+
+    const loop = forLoop({
+        scope: {
+            ...scope,
+            state: guarded.tree.ast.statements
+        },
+        columns: in.loops,
+        iterable: values.id,
+        capture: bytes.fromText(callback_value)
+    })
+
+    return {
+        ...guarded,
+        tree: {
+            ...guarded.tree,
+            ast: {
+                ...guarded.tree.ast,
+                statements: loop.state
+            }
+        },
+        loops: loop.columns
+    }
+}

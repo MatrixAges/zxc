@@ -1,0 +1,31 @@
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import optional from "./context/optional"
+
+import type { State as Input, State } from "./context/model"
+
+export type Output = {
+    state: State,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const opaque = primitive({
+        state: in.context,
+        value: P.Anyopaque
+    })
+
+    const pointed = pointer({
+        state: opaque.state,
+        value: opaque.id
+    })
+
+    return optional({
+        state: {
+            ...in,
+            context: pointed.state
+        },
+        value: pointed.id
+    })
+}

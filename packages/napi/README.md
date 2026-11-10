@@ -19,3 +19,9 @@ declarations.zig 从编译器保留的入口类型表生成 TypeScript 声明，
 Zig 消费者通过模块 napi 使用 read、write、check、fail；CLI 使用 --host node 构建 addon.node，公开用法见 [N-API reference](../../docs/2026-10-05/NAPI参考.md)。正式 Node 插件最低声明 Node-API 6。
 
 executeAsync 返回 Promise<Output>；CLI 的 node 宿主管理原生任务队列、Store 调用顺序及环境生命周期，本包提供相应的稳定 C ABI。
+
+## 实现与迁移参考
+
+以 [napi-rs](https://github.com/napi-rs/napi-rs) 为 Node-API 边界的实现参考，核对参数转换、异步任务、引用持有、错误清理与环境退出。保留 ZX 的不可变语义、静态生成及零成本约束，不引入 Rust 运行库。
+
+参考其 [async_work](https://github.com/napi-rs/napi-rs/blob/main/crates/napi/src/async_work.rs) 的提交成功前资源所有权与失败清理，以及 [ArrayBuffer/TypedArray](https://github.com/napi-rs/napi-rs/blob/main/crates/napi/src/bindgen_runtime/js_values/arraybuffer.rs) 的借用与持有引用区分。持有 JS 引用只延长可达性，不能代替异步不可变输入的独立存储保证。

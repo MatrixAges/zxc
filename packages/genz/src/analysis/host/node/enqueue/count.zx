@@ -1,0 +1,114 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import integer from "../../../../ast/context/integer"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import binding from "../../../../ast/statements/builder/binding"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B
+} from "../../../../printer/model/expressions"
+import { application_name, input_type } from "../task/const"
+import { input_count_name, count_name, callback_count, invalid_argc } from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const empty = primitive({
+        state: input.state,
+        value: P.Void
+    })
+
+    const unused = binary({
+        state: empty.state,
+        operator: B.Equal,
+        left: input.id,
+        right: empty.id
+    })
+
+    const zero = integer({
+        state: unused.state,
+        value: 0
+    })
+
+    const one = integer({
+        state: zero.state,
+        value: 1
+    })
+
+    const selected = conditional({
+        state: one.state,
+        condition: unused.id,
+        yes: zero.id,
+        no: one.id
+    })
+
+    const size_type = primitive({
+        state: selected.state,
+        value: P.Usize
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(input_count_name),
+        type_expr: size_type.id,
+        value: selected.id,
+        mutable: false
+    })
+
+    const input_count = path({
+        state: size_type.state,
+        path: [input_count_name]
+    })
+
+    const callbacks = integer({
+        state: input_count.state,
+        value: callback_count
+    })
+
+    const expected = binary({
+        state: callbacks.state,
+        operator: B.Add,
+        left: input_count.id,
+        right: callbacks.id
+    })
+
+    const count = path({
+        state: expected.state,
+        path: [count_name]
+    })
+
+    const wrong = binary({
+        state: count.state,
+        operator: B.NotEqual,
+        left: count.id,
+        right: expected.id
+    })
+
+    return guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: wrong.state,
+                    statements: declared
+                }
+            }
+        },
+        condition: wrong.id,
+        error: invalid_argc
+    })
+}

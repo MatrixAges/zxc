@@ -1,0 +1,145 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import integer from "../../../../ast/context/integer"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import text from "../../../../ast/context/text"
+import binding from "../../../../ast/statements/builder/binding"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+import { env_name, api_name, task_name, task_capture } from "../context/const"
+import check from "../task/check"
+import {
+    value_type,
+    name_name,
+    create_string,
+    execute_name,
+    complete_name,
+    work_name
+} from "../task/const"
+import { work_label, create_async } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(value_type_node.state)
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(name_name),
+        type_expr: value_type_node.id,
+        value: nil.id,
+        mutable: true
+    })
+
+    const name = path({
+        state: nil.state,
+        path: [name_name]
+    })
+
+    const pointer = address({
+        state: name.state,
+        value: name.id
+    })
+
+    const label = text({
+        state: pointer.state,
+        kind: K.String,
+        value: bytes.fromText(work_label)
+    })
+
+    const length = integer({
+        state: label.state,
+        value: work_label.length
+    })
+
+    const env = path({
+        state: length.state,
+        path: [env_name]
+    })
+
+    const named = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: env.state,
+                statements: declared
+            }
+        },
+        name: create_string,
+        arguments: [
+            env.id,
+            label.id,
+            length.id,
+            pointer.id
+        ]
+    })
+
+    const execute = path({
+        state: named.ast.context,
+        path: [
+            task_name,
+            execute_name
+        ]
+    })
+
+    const complete = path({
+        state: execute.state,
+        path: [
+            task_name,
+            complete_name
+        ]
+    })
+
+    const task = path({
+        state: complete.state,
+        path: [task_capture]
+    })
+
+    const work = path({
+        state: task.state,
+        path: [
+            task_capture,
+            work_name
+        ]
+    })
+
+    const output = address({
+        state: work.state,
+        value: work.id
+    })
+
+    const tree = check({
+        state: {
+            ...named,
+            ast: {
+                ...named.ast,
+                context: output.state
+            }
+        },
+        name: create_async,
+        arguments: [
+            env.id,
+            nil.id,
+            name.id,
+            execute.id,
+            complete.id,
+            task.id,
+            output.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

@@ -1,0 +1,12 @@
+import type { Columns as Loops } from "../../../../ast/statements/builder/for_loop"
+import type { State as Tree, Input, Output as Published } from "../task/model"
+
+export type State = {
+    tree: Tree,
+    loops: Loops,
+    cleanup: u32[]
+}
+
+export type Args = Input
+
+export type Output = Published

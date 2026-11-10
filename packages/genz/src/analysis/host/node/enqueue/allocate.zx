@@ -1,0 +1,134 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import dereference from "../../../../ast/context/dereference"
+import object from "../../../../ast/context/object"
+import path from "../../../../ast/context/path"
+import field from "../../../../ast/fields/append"
+import assignment from "../../../../ast/statements/builder/assignment"
+import binding from "../../../../ast/statements/builder/binding"
+import {
+    std_name,
+    heap_name,
+    page_allocator_name,
+    task_name,
+    task_capture,
+    arena_name,
+    arena_type
+} from "../context/const"
+import { context_name, init_name } from "../task/const"
+import invoke from "../task/invoke"
+import { create_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const task_type = path({
+        state: in.tree.ast.context,
+        path: [task_name]
+    })
+
+    const created = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: task_type.state
+            }
+        },
+        path: [
+            std_name,
+            heap_name,
+            page_allocator_name,
+            create_name
+        ],
+        arguments: [task_type.id],
+        fallible: true
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(task_capture),
+        value: created.id,
+        mutable: false
+    })
+
+    const task = path({
+        state: created.state.ast.context,
+        path: [task_capture]
+    })
+
+    const target = dereference({
+        state: task.state,
+        value: task.id
+    })
+
+    const context = path({
+        state: target.state,
+        path: [context_name]
+    })
+
+    const fields = field({
+        table: in.tree.ast.fields,
+        name: bytes.fromText(context_name),
+        value: context.id,
+        comptime_parameter: false
+    })
+
+    const allocator = path({
+        state: context.state,
+        path: [
+            std_name,
+            heap_name,
+            page_allocator_name
+        ]
+    })
+
+    const arena = invoke({
+        state: {
+            ...created.state,
+            ast: {
+                ...created.state.ast,
+                context: allocator.state
+            }
+        },
+        path: [
+            std_name,
+            heap_name,
+            arena_type,
+            init_name
+        ],
+        arguments: [allocator.id],
+        fallible: false
+    })
+
+    const initialized = object({
+        state: arena.state.ast.context,
+        first: integers.narrow(in.tree.ast.fields.name.length),
+        count: 2
+    })
+
+    const members = field({
+        table: fields,
+        name: bytes.fromText(arena_name),
+        value: arena.id,
+        comptime_parameter: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...arena.state,
+            ast: {
+                ...arena.state.ast,
+                context: initialized.state,
+                fields: members,
+                statements: assignment({
+                    state: declared,
+                    target: target.id,
+                    value: initialized.id
+                })
+            }
+        }
+    }
+}

@@ -1,0 +1,86 @@
+import bytes from "std:bytes"
+
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import close from "../../../../ast/statements/builder/close"
+import elseBranch from "../../../../ast/statements/builder/else_branch"
+import open from "../../../../ast/statements/builder/open"
+import { task_capture, tail_name, head_name, next_name } from "../context/const"
+import { context_name } from "../task/const"
+import { tail_capture } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const tail = path({
+        state: in.tree.ast.context,
+        path: [
+            context_name,
+            tail_name
+        ]
+    })
+
+    const next = path({
+        state: tail.state,
+        path: [
+            tail_capture,
+            next_name
+        ]
+    })
+
+    const task = path({
+        state: next.state,
+        path: [task_capture]
+    })
+
+    const scope = open(in.tree.ast.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: next.id,
+        value: task.id
+    })
+
+    const yes = close(assigned)
+
+    const head = path({
+        state: task.state,
+        path: [
+            context_name,
+            head_name
+        ]
+    })
+
+    const empty = assignment({
+        state: yes.state,
+        target: head.id,
+        value: task.id
+    })
+
+    const linked = elseBranch({
+        scope: {
+            ...scope,
+            state: empty
+        },
+        condition: tail.id,
+        capture: bytes.fromText(tail_capture),
+        yes_first: yes.first,
+        yes_count: yes.count
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: head.state,
+                statements: assignment({
+                    state: linked,
+                    target: tail.id,
+                    value: task.id
+                })
+            }
+        }
+    }
+}

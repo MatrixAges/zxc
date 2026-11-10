@@ -1,0 +1,80 @@
+import path from "../../../../ast/context/path"
+import result from "../../../../ast/statements/builder/result"
+import { api_name, env_name, env_type } from "../context/const"
+import { value_type } from "../task/const"
+import errorUnion from "../task/error_union"
+import method from "../task/method"
+import { info_name, info_type, undefined_name, enqueue_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = path({
+        state: in.tree.ast.context,
+        path: [undefined_name]
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: value.id
+    })
+
+    const env = path({
+        state: value.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const info = path({
+        state: env.state,
+        path: [
+            api_name,
+            info_type
+        ]
+    })
+
+    const payload = path({
+        state: info.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const returned_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: payload.state,
+                statements: returned
+            }
+        },
+        payload: payload.id,
+        inferred: true
+    })
+
+    const tree = method({
+        state: returned_type.state,
+        name: enqueue_name,
+        parameters: [
+            {
+                name: env_name,
+                value: env.id
+            },
+            {
+                name: info_name,
+                value: info.id
+            }
+        ],
+        return_type: returned_type.id,
+        exported: false
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

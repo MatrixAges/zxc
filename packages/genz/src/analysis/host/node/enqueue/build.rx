@@ -1,0 +1,39 @@
+<Module>
+    <Type from="model" as="Enqueue" />
+
+    <Args in={Enqueue.Args} out={Enqueue.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prelude" in={$ctx.initialize} />
+    <Call fn="callback" in={$ctx.prelude} />
+
+    <Call fn="arguments" in={$ctx.callback} />
+    <Call fn="count" in={$ctx.arguments} />
+    <Call fn="context" in={$ctx.count} />
+    <Call fn="guard_context" in={$ctx.context} />
+    <Call fn="busy" in={$ctx.guard_context} />
+    <Call fn="callbacks" in={$ctx.busy} />
+    <Call fn="result_value" in={$ctx.callbacks} />
+
+    <Call fn="allocate" in={$ctx.result_value} />
+    <Call fn="retain" in={$ctx.allocate} />
+    <Call fn="input" in={$ctx.retain} />
+    <Call fn="references" in={$ctx.input} />
+    <Call fn="work" in={$ctx.references} />
+
+    <If on={$in.stateful}>
+        <Call fn="dispatch" in={$ctx.work} />
+        <Call fn="finish" in={$ctx.dispatch} />
+        <Call fn="publish" in={$ctx.finish} />
+
+        <Return value={$ctx.publish} />
+
+        <Else>
+            <Call fn="start" in={$ctx.work} />
+            <Call fn="finish" in={$ctx.start} />
+            <Call fn="publish" in={$ctx.finish} />
+
+            <Return value={$ctx.publish} />
+        </Else>
+    </If>
+</Module>
