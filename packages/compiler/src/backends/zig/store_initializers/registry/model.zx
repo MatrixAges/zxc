@@ -1,0 +1,27 @@
+import type { Index } from "core/bytes/index/model"
+
+export enum Status {
+    Ready,
+    DuplicateInitializer,
+    MissingInitializer,
+    InvalidInitializer
+}
+
+export type Registry = {
+    index: Index,
+    status: Status
+}
+
+export type Empty = {}
+
+export type Registration = {
+    registry: Registry,
+    identity: u8[],
+    type_id: u32
+}
+
+export type Coverage = {
+    registry: Registry,
+    paths: u8[][],
+    types: u32[]
+}

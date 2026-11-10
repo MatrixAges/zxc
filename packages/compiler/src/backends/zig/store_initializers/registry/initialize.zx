@@ -1,0 +1,14 @@
+import { Status } from "./model"
+
+import type { Empty as Input, Registry as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        index: {
+            keys: [],
+            values: [],
+            buckets: []
+        },
+        status: Status.Ready
+    }
+}

@@ -1,5 +1,4 @@
 const std = @import("std");
-const ir = @import("zx").ir;
 const frontend = @import("frontend");
 const modules = @import("modules.zig");
 const names = @import("names.zig");
@@ -16,7 +15,6 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
     const shared = try names.create(allocator, bundle.arena.child_allocator, application, options.analysis.nominal_types);
     var files: std.ArrayList(modules.File) = .empty;
     var metadata: std.ArrayList(modules.StoreInitializer) = .empty;
-    var identities: std.StringHashMapUnmanaged(ir.TypeId) = .empty;
 
     try files.appendSlice(allocator, bundle.modules);
 
@@ -28,6 +26,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 
     defer scratch.deinit();
 
+    var identities = try @import("store_initializers/registry.zig").create(scratch.allocator());
     const entry = @import("generated_store_initializer_selection");
     const zx = @import("zx");
     const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
@@ -84,11 +83,9 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         for (own.types, shared.types) |left, right| if (!std.mem.eql(u8, left, right)) return error.InvalidInitializer;
 
         const identity = try allocator.dupe(u8, initial.identity);
-        const found = try identities.getOrPut(allocator, identity);
 
-        if (found.found_existing) return error.DuplicateInitializer;
+        try identities.register(identity, program.output_type);
 
-        found.value_ptr.* = program.output_type;
         var digest: [32]u8 = undefined;
 
         @import("zx").Sha256.hash(identity, &digest, .{});
@@ -100,12 +97,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         try metadata.append(allocator, .{ .identity = identity, .schema_version = initial.schema_version, .module_name = module_name, .type_name = shared.types[@backingInt(program.output_type)] });
     }
 
-    for (0..application.stores.count()) |store_index| {
-        const slot = application.stores.at(store_index);
-        const type_id = identities.get(slot.path) orelse return error.MissingInitializer;
-
-        if (type_id != slot.type_id) return error.InvalidInitializer;
-    }
+    try identities.validate(&application.stores);
 
     const expanded = try files.toOwnedSlice(allocator);
     const stores = try metadata.toOwnedSlice(allocator);

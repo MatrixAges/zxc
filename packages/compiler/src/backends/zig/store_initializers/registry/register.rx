@@ -1,0 +1,38 @@
+<Module>
+    <Type from="model" as="Registry" />
+
+    <Args in={Registry.Registration} out={Registry.Registry} />
+
+    <Call
+        module="core/bytes/index/get"
+        in={{
+            index: $in.registry.index,
+            key: $in.identity
+        }}
+    />
+
+    <If on={$ctx.get != null}>
+        <Return
+            value={{
+                ...$in.registry,
+                status: Registry.Status.DuplicateInitializer
+            }}
+        />
+    </If>
+
+    <Call
+        module="core/bytes/index/insert"
+        in={{
+            index: $in.registry.index,
+            key: $in.identity,
+            value: $in.type_id
+        }}
+    />
+
+    <Return
+        value={{
+            index: $ctx.insert,
+            status: Registry.Status.Ready
+        }}
+    />
+</Module>

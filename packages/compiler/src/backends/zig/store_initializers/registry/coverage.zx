@@ -1,0 +1,30 @@
+import get from "core/bytes/index/get"
+
+import { Status } from "./model"
+
+import type { Coverage as Input, Status as Output } from "./model"
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        status: Status.Ready
+    }, {
+        while: current => current.status == Status.Ready &&
+            current.index < in.paths.length,
+        next: current => {
+            const type_id = get({
+                index: in.registry.index,
+                key: in.paths[current.index]
+            })
+
+            if (type_id == null) {
+                current.status = Status.MissingInitializer
+            } else if (type_id != in.types[current.index]) {
+                current.status = Status.InvalidInitializer
+            }
+
+            current.index += 1
+        },
+        return: current => current.status
+    })
+}
