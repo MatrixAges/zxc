@@ -1,0 +1,39 @@
+import type { Table } from "core/type_table/model"
+import type { Input as Bases, State as Context } from "../../../../../ast/context/model"
+
+export type Input = {
+    types: Table,
+    input: u32,
+    output: u32,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    aliases: u32?[],
+    reads: bool[],
+    writes: bool[],
+    supported: bool
+}
+
+export type Visit = {
+    state: State,
+    id: u32,
+    source: u32,
+    incoming: bool
+}
+
+export type Projection = {
+    context: Context,
+    id: u32
+}
+
+export type Output = {
+    context: Context,
+    aliases: u32?[],
+    reads: bool[],
+    writes: bool[],
+    supported: bool,
+    valid: bool
+}

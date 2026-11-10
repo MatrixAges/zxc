@@ -1,0 +1,25 @@
+import path from "../../../../../ast/context/path"
+import { application_name, input_type } from "../../task/const"
+import walk from "./walk"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = path({
+        state: in.context,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    return walk({
+        state: {
+            ...in,
+            context: source.state
+        },
+        id: in.source.input,
+        source: source.id,
+        incoming: true
+    })
+}

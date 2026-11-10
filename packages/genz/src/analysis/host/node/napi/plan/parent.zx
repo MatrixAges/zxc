@@ -1,0 +1,22 @@
+import identifier from "../../../../../ast/context/identifier"
+import name from "./name"
+
+import type { State as Context } from "../../../../../ast/context/model"
+import type { Projection as Output } from "./model"
+
+export type Input = {
+    context: Context,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const parent = identifier({
+        state: in.context,
+        name: name(in.id)
+    })
+
+    return {
+        context: parent.state,
+        id: parent.id
+    }
+}

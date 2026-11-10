@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Input} out={Plan.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="input" in={$ctx.initialize} />
+
+    <If on={$ctx.input.supported}>
+        <Call fn="output" in={$ctx.input} />
+        <Call fn="publish" in={$ctx.output} />
+
+        <Return value={$ctx.publish} />
+
+        <Else>
+            <Call fn="publish" in={$ctx.input} />
+
+            <Return value={$ctx.publish} />
+        </Else>
+    </If>
+</Module>

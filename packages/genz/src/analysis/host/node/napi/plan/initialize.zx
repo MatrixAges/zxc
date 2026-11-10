@@ -1,0 +1,16 @@
+import context from "../../../../../ast/context/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const empty: u32? = null
+
+    return {
+        source: in,
+        context: context(in.bases),
+        aliases: in.types.kinds.map(row => empty)[0],
+        reads: in.types.kinds.map(row => false)[0],
+        writes: in.types.kinds.map(row => false)[0],
+        supported: true
+    }
+}

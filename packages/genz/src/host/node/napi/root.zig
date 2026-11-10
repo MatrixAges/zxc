@@ -12,11 +12,8 @@ pub fn render(allocator: std.mem.Allocator, values: ir.TypeTable, input: ir.Type
     defer arena.deinit();
 
     const builder = try Builder.init(arena.allocator());
-    const types = try Types.init(builder, values);
+    const types = try Types.create(builder, values, input, output);
     var declarations: std.ArrayList(node.Declaration) = .empty;
-
-    try types.mark(input, try builder.path(&.{ "application", "Input" }), true);
-    try types.mark(output, try builder.path(&.{ "application", "Output" }), false);
 
     for ([_][]const u8{ "std", "application", "api.zig" }, [_][]const u8{ "std", "application", "api" }) |module, name| {
         try declarations.append(builder.allocator, .{ .constant = .{ .name = name, .value = try builder.builtin(.import, &.{try builder.string(module)}), .exported = std.mem.eql(u8, name, "api") } });
@@ -28,7 +25,7 @@ pub fn render(allocator: std.mem.Allocator, values: ir.TypeTable, input: ir.Type
         const source = alias orelse continue;
         const id: ir.TypeId = @fromBackingInt(@intCast(index));
 
-        try declarations.append(builder.allocator, .{ .constant = .{ .name = try types.name("Type", id), .value = source } });
+        try declarations.append(builder.allocator, .{ .constant = .{ .name = try types.name("Type", id), .value = @fromBackingInt(source) } });
         if (types.reads[index]) try declarations.append(builder.allocator, try @import("read.zig").lower(types, id));
         if (types.writes[index]) try declarations.append(builder.allocator, try @import("write.zig").lower(types, id));
     }

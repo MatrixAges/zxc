@@ -1,0 +1,12 @@
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        context: in.context,
+        aliases: in.aliases,
+        reads: in.reads,
+        writes: in.writes,
+        supported: in.supported,
+        valid: in.context.valid
+    }
+}

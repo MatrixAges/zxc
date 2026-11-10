@@ -1,0 +1,40 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../../ast/context/builtin"
+import field from "../../../../../ast/context/field"
+import { ExpressionsBuiltinName as B } from "../../../../../printer/model/expressions"
+import { optional_field, pointer_field, child_field } from "./const"
+
+import type { State as Context } from "../../../../../ast/context/model"
+import type { Projection as Output } from "./model"
+
+export type Input = {
+    context: Context,
+    parent: u32,
+    optional: bool
+}
+
+export default function (in: Input): Output {
+    const info = builtin({
+        state: in.context,
+        name: B.TypeInfo,
+        arguments: [in.parent]
+    })
+
+    const branch = field({
+        state: info.state,
+        target: info.id,
+        name: bytes.fromText(in.optional ? optional_field : pointer_field)
+    })
+
+    const child = field({
+        state: branch.state,
+        target: branch.id,
+        name: bytes.fromText(child_field)
+    })
+
+    return {
+        context: child.state,
+        id: child.id
+    }
+}

@@ -1,0 +1,112 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import child from "./child"
+import claim from "./claim"
+import field from "./field"
+import parent from "./parent"
+
+import type { Visit as Input, State as Output } from "./model"
+
+export default function walk(in: Input): Output {
+    const index = integers.widen(in.id)
+    const seen = in.incoming ? in.state.reads[index] : in.state.writes[index]
+
+    if (!in.state.supported || seen) {
+        return in.state
+    }
+
+    const state = claim(in)
+    const types = in.state.source.types
+    const target = kind(types.kinds[index])
+
+    if (target == Kind.Task) {
+        return {
+            ...state,
+            supported: false
+        }
+    }
+
+    const composite = (
+        - target == Kind.Optional
+        - or target == Kind.List
+        - or target == Kind.Object
+        - or target == Kind.Tuple
+    )
+
+    if (!composite) {
+        return state
+    }
+
+    const expression = parent({
+        context: state.context,
+        id: in.id
+    })
+
+    const optional = target == Kind.Optional
+    const scalar_child = optional || target == Kind.List
+
+    if (scalar_child) {
+        const source = child({
+            context: expression.context,
+            parent: expression.id,
+            optional
+        })
+
+        return walk({
+            state: {
+                ...state,
+                context: source.context
+            },
+            id: types.first[index],
+            source: source.id,
+            incoming: in.incoming
+        })
+    }
+
+    const layout = child({
+        context: expression.context,
+        parent: expression.id,
+        optional: false
+    })
+
+    const first = integers.widen(types.first[index])
+    const count = integers.widen(types.second[index])
+    const tuple = target == Kind.Tuple
+
+    return loop({
+        state: {
+            ...state,
+            context: layout.context
+        },
+        index: 0
+    }, {
+        while: current => current.state.supported && current.index < count,
+        next: current => {
+            const position = first + current.index
+            const id = tuple ? types.children[position] : types.field_types[position]
+            const name = tuple ? "" : types.field_names[position]
+
+            const source = field({
+                context: current.state.context,
+                layout: layout.id,
+                tuple,
+                position: current.index,
+                name
+            })
+
+            current.state = walk({
+                state: {
+                    ...current.state,
+                    context: source.context
+                },
+                id,
+                source: source.id,
+                incoming: in.incoming
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

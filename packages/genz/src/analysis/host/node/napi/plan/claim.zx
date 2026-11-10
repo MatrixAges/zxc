@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import type { Visit as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+
+    return loop({
+        state: in.state,
+        pending: true
+    }, {
+        while: current => current.pending,
+        next: current => {
+            if (in.incoming) {
+                current.state.reads[index] = true
+            } else {
+                current.state.writes[index] = true
+            }
+
+            if (current.state.aliases[index] == null) {
+                current.state.aliases[index] = in.source
+            }
+
+            current.pending = false
+        },
+        return: current => current.state
+    })
+}

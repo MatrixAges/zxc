@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../../ast/context/builtin"
+import text from "../../../../../ast/context/text"
+import {
+    ExpressionsBuiltinName as B,
+    ExpressionsKind as K
+} from "../../../../../printer/model/expressions"
+import integer from "../../../../../printer/text/integer"
+
+import type { State as Context } from "../../../../../ast/context/model"
+import type { Projection as Output } from "./model"
+
+export type Input = {
+    context: Context,
+    layout: u32,
+    tuple: bool,
+    position: u64,
+    name: string
+}
+
+export default function (in: Input): Output {
+    const name = match in.tuple {
+        true => integer({
+            output: [],
+            value: in.position
+        }),
+        _ => bytes.fromText(in.name)
+    }
+
+    const key = text({
+        state: in.context,
+        kind: K.String,
+        value: name
+    })
+
+    const value = builtin({
+        state: key.state,
+        name: B.FieldType,
+        arguments: [
+            in.layout,
+            key.id
+        ]
+    })
+
+    return {
+        context: value.state,
+        id: value.id
+    }
+}
