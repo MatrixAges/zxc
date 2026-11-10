@@ -1,0 +1,133 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import branch from "../../../ast/statements/builder/branch"
+import close from "../../../ast/statements/builder/close"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import { DeclarationsKind } from "../../../printer/model/declarations"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    application_name,
+    requires_io,
+    requires_process,
+    unsupported_capability
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const io = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            requires_io
+        ]
+    })
+
+    const process = path({
+        state: io.state,
+        path: [
+            application_name,
+            requires_process
+        ]
+    })
+
+    const unsupported = binary({
+        state: process.state,
+        operator: B.LogicalOr,
+        left: io.id,
+        right: process.id
+    })
+
+    const outer_opened = open(in.tree.ast.statements)
+
+    const outer = outer_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const inner_opened = open(outer_opened.state)
+
+    const inner = inner_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const message = text({
+        state: unsupported.state,
+        kind: K.String,
+        value: bytes.fromText(unsupported_capability)
+    })
+
+    const unsupported_error = builtin({
+        state: message.state,
+        name: Builtin.CompileError,
+        arguments: [message.id]
+    })
+
+    const failed = evaluate({
+        state: inner_opened.state,
+        value: unsupported_error.id,
+        discard: false
+    })
+
+    const guarded = branch({
+        scope: {
+            ...inner,
+            state: failed
+        },
+        condition: unsupported.id
+    })
+
+    const capability_scope_body = close(guarded)
+
+    const capability_scope_extra = {
+        ...in.declarations,
+        comptime_scope_start:
+            in.declarations.comptime_scope_start.push(capability_scope_body.first)[0],
+        comptime_scope_len:
+            in.declarations.comptime_scope_len.push(capability_scope_body.count)[0]
+    }
+
+    const capability_scope_declarations = {
+        ...in.tree.ast.declarations,
+        tags:
+            in.tree.ast.declarations.tags.push(
+                DeclarationsKind.ComptimeScope
+            )[0],
+        offsets:
+            in.tree.ast.declarations.offsets.push(
+                integers.narrow(
+                    in.declarations.comptime_scope_start.length
+                )
+            )[0]
+    }
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: unsupported_error.state,
+                statements: {
+                    ...capability_scope_body.state,
+                    root_tags: outer.parent_tags,
+                    root_offsets: outer.parent_offsets
+                },
+                declarations: capability_scope_declarations
+            },
+            extra: in.tree.extra
+        },
+        declarations: capability_scope_extra
+    }
+}

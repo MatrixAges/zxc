@@ -1,0 +1,13 @@
+<Module>
+    <If on={$in.source.stateful}>
+        <Call fn="request_shared" in={$in} />
+
+        <Return value={$ctx.request_shared} />
+
+        <Else>
+            <Call fn="request_owned" in={$in} />
+
+            <Return value={$ctx.request_owned} />
+        </Else>
+    </If>
+</Module>

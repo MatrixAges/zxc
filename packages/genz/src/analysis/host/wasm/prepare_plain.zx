@@ -1,0 +1,90 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../ast/context/object"
+import path from "../../../ast/context/path"
+import field from "../../../ast/fields/append"
+import assignment from "../../../ast/statements/builder/assignment"
+import invoke from "../node/task/invoke"
+import {
+    std_name,
+    arena_name,
+    request_name,
+    heap_name,
+    arena_type,
+    wasm_allocator,
+    init_name
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const arena_allocator = path({
+        state: in.tree.ast.context,
+        path: [
+            std_name,
+            heap_name,
+            wasm_allocator
+        ]
+    })
+
+    const arena = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: arena_allocator.state
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            std_name,
+            heap_name,
+            arena_type,
+            init_name
+        ],
+        arguments: [arena_allocator.id],
+        fallible: false
+    })
+
+    const request_value_first = integers.narrow(in.tree.ast.fields.name.length)
+
+    const request_value_field_0 = field({
+        table: in.tree.ast.fields,
+        name: bytes.fromText(arena_name),
+        value: arena.id,
+        comptime_parameter: false
+    })
+
+    const request_value = object({
+        state: arena.state.ast.context,
+        type_expr: null,
+        first: request_value_first,
+        count: 1
+    })
+
+    const request_target = path({
+        state: request_value.state,
+        path: [request_name]
+    })
+
+    const prepared = assignment({
+        state: in.tree.ast.statements,
+        target: request_target.id,
+        value: request_value.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: request_target.state,
+                statements: prepared,
+                fields: request_value_field_0
+            },
+            extra: in.tree.extra
+        }
+    }
+}

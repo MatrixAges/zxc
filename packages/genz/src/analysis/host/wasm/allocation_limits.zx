@@ -1,0 +1,144 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import binding from "../../../ast/statements/builder/binding"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin
+} from "../../../printer/model/expressions"
+import {
+    std_name,
+    heap_name,
+    classes_name,
+    largest_block,
+    overhead_name,
+    page_size_max,
+    allocation_metadata_words
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const one = integer({
+        state: in.tree.ast.context,
+        value: 1
+    })
+
+    const wide_type = primitive({
+        state: one.state,
+        value: P.U64
+    })
+
+    const classes = path({
+        state: wide_type.state,
+        path: [classes_name]
+    })
+
+    const shift = binary({
+        state: classes.state,
+        operator: B.Subtract,
+        left: classes.id,
+        right: one.id
+    })
+
+    const wide_one = builtin({
+        state: shift.state,
+        name: Builtin.As,
+        arguments: [
+            wide_type.id,
+            one.id
+        ]
+    })
+
+    const blocks = binary({
+        state: wide_one.state,
+        operator: B.ShiftLeft,
+        left: wide_one.id,
+        right: shift.id
+    })
+
+    const page_size = path({
+        state: blocks.state,
+        path: [
+            std_name,
+            heap_name,
+            page_size_max
+        ]
+    })
+
+    const largest = binary({
+        state: page_size.state,
+        operator: B.Multiply,
+        left: blocks.id,
+        right: page_size.id
+    })
+
+    const largest_bound = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(largest_block),
+        value: largest.id,
+        mutable: false
+    })
+
+    const size_type = primitive({
+        state: largest.state,
+        value: P.Usize
+    })
+
+    const word_size = builtin({
+        state: size_type.state,
+        name: Builtin.SizeOf,
+        arguments: [size_type.id]
+    })
+
+    const words = integer({
+        state: word_size.state,
+        value: allocation_metadata_words
+    })
+
+    const metadata_size = binary({
+        state: words.state,
+        operator: B.Multiply,
+        left: words.id,
+        right: word_size.id
+    })
+
+    const total = binary({
+        state: metadata_size.state,
+        operator: B.Add,
+        left: page_size.id,
+        right: metadata_size.id
+    })
+
+    const overhead = binary({
+        state: total.state,
+        operator: B.Subtract,
+        left: total.id,
+        right: one.id
+    })
+
+    const overhead_bound = binding({
+        state: largest_bound,
+        name: bytes.fromText(overhead_name),
+        value: overhead.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: overhead.state,
+                statements: overhead_bound
+            },
+            extra: in.tree.extra
+        }
+    }
+}

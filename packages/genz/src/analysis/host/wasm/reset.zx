@@ -1,0 +1,225 @@
+import bytes from "std:bytes"
+
+import makeAddress from "../../../ast/context/address"
+import boolean from "../../../ast/context/boolean"
+import nullValue from "../../../ast/context/null_value"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import tuple from "../../../ast/context/tuple"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import guard from "../../../ast/statements/builder/guard"
+import open from "../../../ast/statements/builder/open"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    std_name,
+    request_name,
+    input_storage,
+    input_name,
+    result_name,
+    ready_name,
+    executing_name,
+    scalar_ready,
+    value_name,
+    heap_name,
+    wasm_allocator,
+    deinit_name,
+    free_name,
+    zxc_reset,
+    input_value
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const return_type = primitive({
+        state: in.tree.ast.context,
+        value: P.Void
+    })
+
+    const running = path({
+        state: return_type.state,
+        path: [executing_name]
+    })
+
+    const busy_guard = guard({
+        state: in.tree.ast.statements,
+        condition: running.id,
+        value: null
+    })
+
+    const request_value = path({
+        state: running.state,
+        path: [request_name]
+    })
+
+    const request_scope_opened = open(busy_guard)
+
+    const request_scope = request_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const request_deinit = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: request_value.state,
+                statements: request_scope_opened.state
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            value_name,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deinitialized = evaluate({
+        state: request_scope_opened.state,
+        value: request_deinit.id,
+        discard: false
+    })
+
+    const request_closed = branch({
+        scope: {
+            ...request_scope,
+            state: deinitialized
+        },
+        condition: request_value.id,
+        capture: bytes.fromText(value_name),
+        capture_reference: true
+    })
+
+    const storage = path({
+        state: request_deinit.state.ast.context,
+        path: [input_storage]
+    })
+
+    const free = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: storage.state,
+                statements: request_closed
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            std_name,
+            heap_name,
+            wasm_allocator,
+            free_name
+        ],
+        arguments: [storage.id],
+        fallible: false
+    })
+
+    const freed = evaluate({
+        state: request_closed,
+        value: free.id,
+        discard: false
+    })
+
+    const nil = nullValue(free.state.ast.context)
+
+    const request_cleared = assignment({
+        state: freed,
+        target: request_value.id,
+        value: nil.id
+    })
+
+    const empty = tuple({
+        state: nil.state,
+        values: []
+    })
+
+    const address = makeAddress({
+        state: empty.state,
+        value: empty.id
+    })
+
+    const storage_cleared = assignment({
+        state: request_cleared,
+        target: storage.id,
+        value: address.id
+    })
+
+    const input_value = path({
+        state: address.state,
+        path: [input_name]
+    })
+
+    const input_cleared = assignment({
+        state: storage_cleared,
+        target: input_value.id,
+        value: address.id
+    })
+
+    const result_value = path({
+        state: input_value.state,
+        path: [result_name]
+    })
+
+    const result_cleared = assignment({
+        state: input_cleared,
+        target: result_value.id,
+        value: address.id
+    })
+
+    const no = boolean({
+        state: result_value.state,
+        value: false
+    })
+
+    const ready_value = path({
+        state: no.state,
+        path: [ready_name]
+    })
+
+    const ready_cleared = assignment({
+        state: result_cleared,
+        target: ready_value.id,
+        value: no.id
+    })
+
+    const scalar = path({
+        state: ready_value.state,
+        path: [scalar_ready]
+    })
+
+    const scalar_cleared = assignment({
+        state: ready_cleared,
+        target: scalar.id,
+        value: no.id
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: scalar.state,
+                statements: scalar_cleared
+            },
+            extra: in.tree.extra
+        },
+        name: zxc_reset,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: true
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

@@ -1,0 +1,236 @@
+import integers from "std:integer"
+
+import address from "../../../ast/context/address"
+import binary from "../../../ast/context/binary"
+import conditional from "../../../ast/context/conditional"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import branch from "../../../ast/statements/builder/branch"
+import close from "../../../ast/statements/builder/close"
+import open from "../../../ast/statements/builder/open"
+import { DeclarationsKind } from "../../../printer/model/declarations"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B
+} from "../../../printer/model/expressions"
+import {
+    application_name,
+    zxc_call,
+    zxc_scalar_result,
+    scalar_call,
+    scalar_call_void,
+    scalar_result_fn,
+    input_type,
+    output_type
+} from "./const"
+import exportBinding from "./export_binding"
+import scalarSupported from "./scalar_supported"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const output_type_node = path({
+        state: input_type_node.state,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const void_type_node = primitive({
+        state: output_type_node.state,
+        value: P.Void
+    })
+
+    const supported = scalarSupported({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: void_type_node.state
+                },
+                extra: in.tree.extra
+            }
+        },
+        input_id: input_type_node.id,
+        output_id: output_type_node.id
+    })
+
+    const outer_opened = open(supported.state.tree.ast.statements)
+
+    const outer = outer_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const body_opened = open(outer_opened.state)
+
+    const body = body_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const empty_input = binary({
+        state: supported.state.tree.ast.context,
+        operator: B.Equal,
+        left: input_type_node.id,
+        right: void_type_node.id
+    })
+
+    const plain = path({
+        state: empty_input.state,
+        path: [scalar_call]
+    })
+
+    const empty = path({
+        state: plain.state,
+        path: [scalar_call_void]
+    })
+
+    const plain_address = address({
+        state: empty.state,
+        value: plain.id
+    })
+
+    const empty_address = address({
+        state: plain_address.state,
+        value: empty.id
+    })
+
+    const call_target = conditional({
+        state: empty_address.state,
+        condition: empty_input.id,
+        yes: empty_address.id,
+        no: plain_address.id
+    })
+
+    const call_exported = exportBinding({
+        state: {
+            ...supported.state,
+            tree: {
+                ...supported.state.tree,
+                ast: {
+                    ...supported.state.tree.ast,
+                    context: call_target.state,
+                    statements: body_opened.state
+                },
+                extra: supported.state.tree.extra
+            }
+        },
+        target: call_target.id,
+        name: zxc_call
+    })
+
+    const has_result = binary({
+        state: call_exported.tree.ast.context,
+        operator: B.NotEqual,
+        left: output_type_node.id,
+        right: void_type_node.id
+    })
+
+    const result_scope_opened = open(call_exported.tree.ast.statements)
+
+    const result_scope = result_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const result_function = path({
+        state: has_result.state,
+        path: [scalar_result_fn]
+    })
+
+    const result_address = address({
+        state: result_function.state,
+        value: result_function.id
+    })
+
+    const result_exported = exportBinding({
+        state: {
+            ...call_exported,
+            tree: {
+                ...call_exported.tree,
+                ast: {
+                    ...call_exported.tree.ast,
+                    context: result_address.state,
+                    statements: result_scope_opened.state
+                },
+                extra: call_exported.tree.extra
+            }
+        },
+        target: result_address.id,
+        name: zxc_scalar_result
+    })
+
+    const result_guarded = branch({
+        scope: {
+            ...result_scope,
+            state: result_exported.tree.ast.statements
+        },
+        condition: has_result.id
+    })
+
+    const scalar_guarded = branch({
+        scope: {
+            ...body,
+            state: result_guarded
+        },
+        condition: supported.id
+    })
+
+    const exports_scope_body = close(scalar_guarded)
+
+    const exports_scope_extra = {
+        ...result_exported.declarations,
+        comptime_scope_start:
+            result_exported.declarations.comptime_scope_start.push(
+                exports_scope_body.first
+            )[0],
+        comptime_scope_len:
+            result_exported.declarations.comptime_scope_len.push(
+                exports_scope_body.count
+            )[0]
+    }
+
+    const exports_scope_declarations = {
+        ...result_exported.tree.ast.declarations,
+        tags:
+            result_exported.tree.ast.declarations.tags.push(
+                DeclarationsKind.ComptimeScope
+            )[0],
+        offsets:
+            result_exported.tree.ast.declarations.offsets.push(
+                integers.narrow(
+                    result_exported.declarations.comptime_scope_start.length
+                )
+            )[0]
+    }
+
+    return {
+        ...result_exported,
+        tree: {
+            ...result_exported.tree,
+            ast: {
+                ...result_exported.tree.ast,
+                statements: {
+                    ...exports_scope_body.state,
+                    root_tags: outer.parent_tags,
+                    root_offsets: outer.parent_offsets
+                },
+                declarations: exports_scope_declarations
+            },
+            extra: result_exported.tree.extra
+        },
+        declarations: exports_scope_extra
+    }
+}

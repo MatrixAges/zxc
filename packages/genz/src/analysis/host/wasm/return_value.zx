@@ -1,0 +1,55 @@
+import construct from "../../../ast/expressions/return_value"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value?: u32
+}
+
+export default function (in: Input): Output {
+    const context = in.state.tree.ast.context
+
+    const node = construct({
+        table: {
+            ...context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.state.expressions.pick(["return_value"])
+        },
+        base: context.source.expression_base,
+        value: in.value
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                ...node.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            tree: {
+                ...in.state.tree,
+                ast: {
+                    ...in.state.tree.ast,
+                    context: {
+                        ...context,
+                        expressions: {
+                            ...context.expressions,
+                            ...node.table.pick([
+                                "tags",
+                                "offsets"
+                            ])
+                        },
+                        valid: context.valid && node.valid
+                    }
+                }
+            }
+        }
+    }
+}

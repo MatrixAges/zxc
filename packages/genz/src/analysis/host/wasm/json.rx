@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Wasm" />
+
+    <Args in={Wasm.State} out={Wasm.State} />
+
+    <Call fn="run_begin" in={$in} />
+    <Call fn="input_empty" in={$ctx.run_begin} />
+    <Call fn="input_parse" in={$ctx.input_empty} />
+    <Call fn="input_select" in={$ctx.input_parse} />
+    <Call fn="run_execute" in={$ctx.input_select} />
+
+    <Call module="validation" in={$ctx.run_execute} />
+
+    <Call fn="run_finish" in={$ctx.validation} />
+
+    <Return value={$ctx.run_finish} />
+</Module>

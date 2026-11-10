@@ -1,0 +1,120 @@
+import bytes from "std:bytes"
+
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import assignment from "../../../ast/statements/builder/assignment"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import guard from "../../../ast/statements/builder/guard"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    result_name,
+    executing_name,
+    invalid_scalar_input,
+    zxc_reset,
+    scalar_invalid,
+    failure_code,
+    busy_code
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const running = path({
+        state: in.tree.ast.context,
+        path: [executing_name]
+    })
+
+    const busy = integer({
+        state: running.state,
+        value: busy_code
+    })
+
+    const busy_guard = guard({
+        state: in.tree.ast.statements,
+        condition: running.id,
+        value: busy.id
+    })
+
+    const reset = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: busy.state,
+                statements: busy_guard
+            },
+            extra: in.tree.extra
+        },
+        path: [zxc_reset],
+        arguments: [],
+        fallible: false
+    })
+
+    const reset_called = evaluate({
+        state: busy_guard,
+        value: reset.id,
+        discard: false
+    })
+
+    const message = text({
+        state: reset.state.ast.context,
+        kind: K.String,
+        value: bytes.fromText(invalid_scalar_input)
+    })
+
+    const result_target = path({
+        state: message.state,
+        path: [result_name]
+    })
+
+    const message_assigned = assignment({
+        state: reset_called,
+        target: result_target.id,
+        value: message.id
+    })
+
+    const failed = integer({
+        state: result_target.state,
+        value: failure_code
+    })
+
+    const returned = result({
+        state: message_assigned,
+        value: failed.id
+    })
+
+    const return_type = primitive({
+        state: failed.state,
+        value: P.U32
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state,
+                statements: returned
+            },
+            extra: in.tree.extra
+        },
+        name: scalar_invalid,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

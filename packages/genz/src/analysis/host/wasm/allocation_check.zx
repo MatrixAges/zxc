@@ -1,0 +1,128 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    result_name,
+    length_name,
+    largest_block,
+    overhead_name,
+    out_of_memory,
+    null_pointer
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const length = path({
+        state: in.tree.ast.context,
+        path: [length_name]
+    })
+
+    const wide_type = primitive({
+        state: length.state,
+        value: P.U64
+    })
+
+    const wide_length = builtin({
+        state: wide_type.state,
+        name: Builtin.As,
+        arguments: [
+            wide_type.id,
+            length.id
+        ]
+    })
+
+    const overhead = path({
+        state: wide_length.state,
+        path: [overhead_name]
+    })
+
+    const required = binary({
+        state: overhead.state,
+        operator: B.Add,
+        left: wide_length.id,
+        right: overhead.id
+    })
+
+    const largest = path({
+        state: required.state,
+        path: [largest_block]
+    })
+
+    const overflow = binary({
+        state: largest.state,
+        operator: B.Greater,
+        left: required.id,
+        right: largest.id
+    })
+
+    const overflow_scope_opened = open(in.tree.ast.statements)
+
+    const overflow_scope = overflow_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const message = text({
+        state: overflow.state,
+        kind: K.String,
+        value: bytes.fromText(out_of_memory)
+    })
+
+    const result_target = path({
+        state: message.state,
+        path: [result_name]
+    })
+
+    const message_assigned = assignment({
+        state: overflow_scope_opened.state,
+        target: result_target.id,
+        value: message.id
+    })
+
+    const null_pointer_node = integer({
+        state: result_target.state,
+        value: null_pointer
+    })
+
+    const overflow_return = result({
+        state: message_assigned,
+        value: null_pointer_node.id
+    })
+
+    const checked = branch({
+        scope: {
+            ...overflow_scope,
+            state: overflow_return
+        },
+        condition: overflow.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: null_pointer_node.state,
+                statements: checked
+            },
+            extra: in.tree.extra
+        }
+    }
+}

@@ -1,0 +1,219 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import makeBoolean from "../../../ast/context/boolean"
+import builtin from "../../../ast/context/builtin"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import unreachableValue from "../../../ast/context/unreachable"
+import assignment from "../../../ast/statements/builder/assignment"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import method from "../node/task/method"
+import {
+    application_name,
+    scalar_ready,
+    scalar_result,
+    value_name,
+    output_name,
+    scalar_execute,
+    int_tag,
+    float_tag,
+    bool_tag,
+    void_tag,
+    input_type,
+    output_type,
+    success_code
+} from "./const"
+import selection from "./selection"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const output_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const output = path({
+        state: output_type_node.state,
+        path: [output_name]
+    })
+
+    const zero = integer({
+        state: output.state,
+        value: 0
+    })
+
+    const boolean = builtin({
+        state: zero.state,
+        name: Builtin.IntFromBool,
+        arguments: [output.id]
+    })
+
+    const never = unreachableValue(boolean.state)
+
+    const selected_first = integers.narrow(in.arms.value.length)
+
+    const selected_label_0 = text({
+        state: never.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(void_tag)
+    })
+
+    const selected_arm_0 = {
+        value: in.arms.value.push(selected_label_0.id)[0],
+        capture: in.arms.capture.push(null)[0],
+        result: in.arms.result.push(zero.id)[0]
+    }
+
+    const selected_label_1 = text({
+        state: selected_label_0.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(bool_tag)
+    })
+
+    const selected_arm_1 = {
+        value: selected_arm_0.value.push(selected_label_1.id)[0],
+        capture: selected_arm_0.capture.push(null)[0],
+        result: selected_arm_0.result.push(boolean.id)[0]
+    }
+
+    const selected_label_2 = text({
+        state: selected_label_1.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(int_tag)
+    })
+
+    const selected_arm_2 = {
+        value: selected_arm_1.value.push(selected_label_2.id)[0],
+        capture: selected_arm_1.capture.push(null)[0],
+        result: selected_arm_1.result.push(output.id)[0]
+    }
+
+    const selected_label_3 = text({
+        state: selected_label_2.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(float_tag)
+    })
+
+    const selected_arm_3 = {
+        value: selected_arm_2.value.push(selected_label_3.id)[0],
+        capture: selected_arm_2.capture.push(null)[0],
+        result: selected_arm_2.result.push(output.id)[0]
+    }
+
+    const selected_arm_4 = {
+        value: selected_arm_3.value.push(null)[0],
+        capture: selected_arm_3.capture.push(null)[0],
+        result: selected_arm_3.result.push(never.id)[0]
+    }
+
+    const selected_info = builtin({
+        state: selected_label_3.state,
+        name: Builtin.TypeInfo,
+        arguments: [output_type_node.id]
+    })
+
+    const selected = selection({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: selected_info.state
+                },
+                extra: in.tree.extra
+            },
+            arms: selected_arm_4
+        },
+        subject: selected_info.id,
+        first: selected_first,
+        count: 5
+    })
+
+    const result_target = path({
+        state: selected.state.tree.ast.context,
+        path: [scalar_result]
+    })
+
+    const result_assigned = assignment({
+        state: selected.state.tree.ast.statements,
+        target: result_target.id,
+        value: selected.id
+    })
+
+    const yes = makeBoolean({
+        state: result_target.state,
+        value: true
+    })
+
+    const ready_target = path({
+        state: yes.state,
+        path: [scalar_ready]
+    })
+
+    const ready_assigned = assignment({
+        state: result_assigned,
+        target: ready_target.id,
+        value: yes.id
+    })
+
+    const success = integer({
+        state: ready_target.state,
+        value: success_code
+    })
+
+    const returned = result({
+        state: ready_assigned,
+        value: success.id
+    })
+
+    const input_type_node = path({
+        state: success.state,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const return_type = primitive({
+        state: input_type_node.state,
+        value: P.U32
+    })
+
+    const declared = method({
+        state: {
+            ...selected.state.tree,
+            ast: {
+                ...selected.state.tree.ast,
+                context: return_type.state,
+                statements: returned
+            },
+            extra: selected.state.tree.extra
+        },
+        name: scalar_execute,
+        parameters: [{
+            name: value_name,
+            value: input_type_node.id
+        }],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...selected.state,
+        tree: declared
+    }
+}

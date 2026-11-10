@@ -1,0 +1,99 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import conditional from "../../../ast/context/conditional"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import makeResult from "../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import method from "../node/task/method"
+import {
+    application_name,
+    scalar_ready,
+    scalar_result,
+    scalar_result_fn,
+    scalar_type,
+    c_convention,
+    output_type
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const ready = path({
+        state: in.tree.ast.context,
+        path: [scalar_ready]
+    })
+
+    const result = path({
+        state: ready.state,
+        path: [scalar_result]
+    })
+
+    const zero = integer({
+        state: result.state,
+        value: 0
+    })
+
+    const selected = conditional({
+        state: zero.state,
+        condition: ready.id,
+        yes: result.id,
+        no: zero.id
+    })
+
+    const returned = makeResult({
+        state: in.tree.ast.statements,
+        value: selected.id
+    })
+
+    const output_type_node = path({
+        state: selected.state,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const scalar_type_fn = path({
+        state: output_type_node.state,
+        path: [scalar_type]
+    })
+
+    const return_type = call({
+        state: scalar_type_fn.state,
+        callee: scalar_type_fn.id,
+        arguments: [output_type_node.id],
+        fallible: false
+    })
+
+    const convention = text({
+        state: return_type.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: convention.state,
+                statements: returned
+            },
+            extra: in.tree.extra
+        },
+        name: scalar_result_fn,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false,
+        convention: convention.id
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

@@ -1,0 +1,67 @@
+import path from "../../../ast/context/path"
+import branch from "../../../ast/statements/builder/branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import invoke from "../node/task/invoke"
+import { state_name, initialized_name, deinit_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const flag = path({
+        state: in.tree.ast.context,
+        path: [initialized_name]
+    })
+
+    const scope_opened = open(in.tree.ast.statements)
+
+    const scope = scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const deinit = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: flag.state,
+                statements: scope_opened.state
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            state_name,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deinitialized = evaluate({
+        state: scope_opened.state,
+        value: deinit.id,
+        discard: false
+    })
+
+    const closed = branch({
+        scope: {
+            ...scope,
+            state: deinitialized
+        },
+        condition: flag.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: deinit.state.ast.context,
+                statements: closed
+            },
+            extra: in.tree.extra
+        }
+    }
+}

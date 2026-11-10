@@ -1,0 +1,196 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import conditional from "../../../ast/context/conditional"
+import field from "../../../ast/context/field"
+import object from "../../../ast/context/object"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import assignment from "../../../ast/statements/builder/assignment"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import errorUnion from "../node/task/error_union"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    std_name,
+    application_name,
+    result_name,
+    allocator_name,
+    output_name,
+    output_type,
+    run_name,
+    json_name,
+    stringify_name,
+    value_alloc,
+    result_module,
+    emit_name,
+    null_text
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = path({
+        state: in.tree.ast.context,
+        path: [allocator_name]
+    })
+
+    const output_value = path({
+        state: allocator.state,
+        path: [output_name]
+    })
+
+    const json_options_first = integers.narrow(in.tree.ast.fields.name.length)
+
+    const json_options = object({
+        state: output_value.state,
+        type_expr: null,
+        first: json_options_first,
+        count: 0
+    })
+
+    const encoded = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: json_options.state
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            std_name,
+            json_name,
+            stringify_name,
+            value_alloc
+        ],
+        arguments: [
+            allocator.id,
+            output_value.id,
+            json_options.id
+        ],
+        fallible: true
+    })
+
+    const output_type_node = path({
+        state: encoded.state.ast.context,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const void_type = primitive({
+        state: output_type_node.state,
+        value: P.Void
+    })
+
+    const is_void = binary({
+        state: void_type.state,
+        operator: B.Equal,
+        left: output_type_node.id,
+        right: void_type.id
+    })
+
+    const null_value = text({
+        state: is_void.state,
+        kind: K.String,
+        value: bytes.fromText(null_text)
+    })
+
+    const encoded_value = conditional({
+        state: null_value.state,
+        condition: is_void.id,
+        yes: null_value.id,
+        no: encoded.id
+    })
+
+    const result_path = text({
+        state: encoded_value.state,
+        kind: K.String,
+        value: bytes.fromText(result_module)
+    })
+
+    const result_module_node = builtin({
+        state: result_path.state,
+        name: Builtin.Import,
+        arguments: [result_path.id]
+    })
+
+    const enabled = field({
+        state: result_module_node.state,
+        target: result_module_node.id,
+        name: bytes.fromText(emit_name)
+    })
+
+    const empty_text = text({
+        state: enabled.state,
+        kind: K.String,
+        value: []
+    })
+
+    const result_value = conditional({
+        state: empty_text.state,
+        condition: enabled.id,
+        yes: encoded_value.id,
+        no: empty_text.id
+    })
+
+    const result_target = path({
+        state: result_value.state,
+        path: [result_name]
+    })
+
+    const result_assigned = assignment({
+        state: in.tree.ast.statements,
+        target: result_target.id,
+        value: result_value.id
+    })
+
+    const return_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: result_target.state,
+                statements: result_assigned
+            },
+            extra: in.tree.extra
+        },
+        payload: void_type.id,
+        inferred: true
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state.ast.context,
+                statements: return_type.state.ast.statements,
+                fields: return_type.state.ast.fields,
+                declarations: return_type.state.ast.declarations,
+                valid: return_type.state.ast.valid
+            },
+            extra: return_type.state.extra
+        },
+        name: run_name,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

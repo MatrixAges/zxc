@@ -1,6 +1,6 @@
 const std = @import("std");
-const node = @import("../../node.zig");
-const Builder = @import("../../builder.zig");
+const node = @import("../../../node.zig");
+const Builder = @import("../../../builder.zig");
 
 pub fn select(builder: Builder, type_expr: node.ExpressionId, arms: []const node.SelectionArm) std.mem.Allocator.Error!node.ExpressionId {
     return builder.expression(.{ .selection = .{ .subject = try builder.builtin(.typeInfo, &.{type_expr}), .arms = try builder.allocator.dupe(node.SelectionArm, arms) } });

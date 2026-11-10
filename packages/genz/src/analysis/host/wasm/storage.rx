@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Wasm" />
+
+    <Args in={Wasm.State} out={Wasm.State} />
+
+    <Call module="request" in={$in} />
+
+    <Call fn="prelude" in={$ctx.request} />
+    <Call fn="storage_state" in={$ctx.prelude} />
+    <Call fn="storage_buffers" in={$ctx.storage_state} />
+    <Call fn="storage_flags" in={$ctx.storage_buffers} />
+    <Call fn="capabilities" in={$ctx.storage_flags} />
+
+    <Return value={$ctx.capabilities} />
+</Module>

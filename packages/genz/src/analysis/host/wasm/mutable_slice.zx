@@ -1,0 +1,49 @@
+import header from "../../../ast/expressions/header"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const context = in.state.tree.ast.context
+
+    const node = header({
+        ...context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: context.source.expression_base,
+        kind: ExpressionsKind.MutableSlice,
+        offset: in.state.expressions.mutable_slice.length
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                mutable_slice: in.state.expressions.mutable_slice.push(in.value)[0]
+            },
+            tree: {
+                ...in.state.tree,
+                ast: {
+                    ...in.state.tree.ast,
+                    context: {
+                        ...context,
+                        expressions: {
+                            ...context.expressions,
+                            tags: node.tags,
+                            offsets: node.offsets
+                        },
+                        valid: context.valid && node.valid
+                    }
+                }
+            }
+        }
+    }
+}

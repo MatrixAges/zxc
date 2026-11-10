@@ -1,0 +1,54 @@
+import boolean from "../../../ast/context/boolean"
+import { ready_name, executing_name } from "./const"
+import variable from "./variable"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const no = boolean({
+        state: in.tree.ast.context,
+        value: false
+    })
+
+    const ready_declared = variable({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: no.state
+                },
+                extra: in.tree.extra
+            }
+        },
+        name: ready_name,
+        value: no.id
+    })
+
+    const executing_declared = variable({
+        state: {
+            ...ready_declared,
+            tree: {
+                ...ready_declared.tree,
+                ast: {
+                    ...ready_declared.tree.ast,
+                },
+                extra: ready_declared.tree.extra
+            }
+        },
+        name: executing_name,
+        value: no.id
+    })
+
+    return {
+        ...executing_declared,
+        tree: {
+            ...executing_declared.tree,
+            ast: {
+                ...executing_declared.tree.ast,
+            },
+            extra: executing_declared.tree.extra
+        }
+    }
+}

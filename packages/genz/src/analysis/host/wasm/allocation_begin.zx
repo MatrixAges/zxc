@@ -1,0 +1,130 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import binding from "../../../ast/statements/builder/binding"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import guard from "../../../ast/statements/builder/guard"
+import {
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import {
+    std_name,
+    executing_name,
+    heap_name,
+    len_name,
+    classes_name,
+    brk_allocator,
+    big_frees,
+    array_name,
+    zxc_reset,
+    null_pointer
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const running = path({
+        state: in.tree.ast.context,
+        path: [executing_name]
+    })
+
+    const zero = integer({
+        state: running.state,
+        value: null_pointer
+    })
+
+    const busy_guard = guard({
+        state: in.tree.ast.statements,
+        condition: running.id,
+        value: zero.id
+    })
+
+    const reset = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: zero.state,
+                statements: busy_guard
+            },
+            extra: in.tree.extra
+        },
+        path: [zxc_reset],
+        arguments: [],
+        fallible: false
+    })
+
+    const reset_called = evaluate({
+        state: busy_guard,
+        value: reset.id,
+        discard: false
+    })
+
+    const allocator_type = path({
+        state: reset.state.ast.context,
+        path: [
+            std_name,
+            heap_name,
+            brk_allocator
+        ]
+    })
+
+    const key = text({
+        state: allocator_type.state,
+        kind: K.String,
+        value: bytes.fromText(big_frees)
+    })
+
+    const field_type = builtin({
+        state: key.state,
+        name: Builtin.FieldType,
+        arguments: [
+            allocator_type.id,
+            key.id
+        ]
+    })
+
+    const metadata = builtin({
+        state: field_type.state,
+        name: Builtin.TypeInfo,
+        arguments: [field_type.id]
+    })
+
+    const array = field({
+        state: metadata.state,
+        target: metadata.id,
+        name: bytes.fromText(array_name)
+    })
+
+    const count = field({
+        state: array.state,
+        target: array.id,
+        name: bytes.fromText(len_name)
+    })
+
+    const classes_bound = binding({
+        state: reset_called,
+        name: bytes.fromText(classes_name),
+        value: count.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: count.state,
+                statements: classes_bound
+            },
+            extra: in.tree.extra
+        }
+    }
+}

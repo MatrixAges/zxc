@@ -1,6 +1,6 @@
 const std = @import("std");
-const node = @import("../../node.zig");
-const Builder = @import("../../builder.zig");
+const node = @import("../../../node.zig");
+const Builder = @import("../../../builder.zig");
 
 pub fn assign(builder: Builder, name: []const u8, value: node.ExpressionId) std.mem.Allocator.Error!node.Statement {
     return .{ .assignment = .{ .target = try builder.identifier(name), .value = value } };

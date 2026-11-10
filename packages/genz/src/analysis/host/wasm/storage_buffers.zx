@@ -1,0 +1,108 @@
+import address from "../../../ast/context/address"
+import constSlice from "../../../ast/context/const_slice"
+import primitive from "../../../ast/context/primitive"
+import tuple from "../../../ast/context/tuple"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import { input_storage, input_name, result_name } from "./const"
+import mutableSlice from "./mutable_slice"
+import variable from "./variable"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const byte = primitive({
+        state: in.tree.ast.context,
+        value: P.U8
+    })
+
+    const mutable_bytes = mutableSlice({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: byte.state
+                },
+                extra: in.tree.extra
+            }
+        },
+        value: byte.id
+    })
+
+    const empty = tuple({
+        state: mutable_bytes.state.tree.ast.context,
+        values: []
+    })
+
+    const empty_address = address({
+        state: empty.state,
+        value: empty.id
+    })
+
+    const storage_declared = variable({
+        state: {
+            ...mutable_bytes.state,
+            tree: {
+                ...mutable_bytes.state.tree,
+                ast: {
+                    ...mutable_bytes.state.tree.ast,
+                    context: empty_address.state
+                },
+                extra: mutable_bytes.state.tree.extra
+            }
+        },
+        name: input_storage,
+        value: empty_address.id,
+        type_expr: mutable_bytes.id
+    })
+
+    const input_declared = variable({
+        state: {
+            ...storage_declared,
+            tree: {
+                ...storage_declared.tree,
+                ast: {
+                    ...storage_declared.tree.ast,
+                },
+                extra: storage_declared.tree.extra
+            }
+        },
+        name: input_name,
+        value: empty_address.id,
+        type_expr: mutable_bytes.id
+    })
+
+    const const_bytes = constSlice({
+        state: input_declared.tree.ast.context,
+        value: byte.id
+    })
+
+    const result_declared = variable({
+        state: {
+            ...input_declared,
+            tree: {
+                ...input_declared.tree,
+                ast: {
+                    ...input_declared.tree.ast,
+                    context: const_bytes.state
+                },
+                extra: input_declared.tree.extra
+            }
+        },
+        name: result_name,
+        value: empty_address.id,
+        type_expr: const_bytes.id
+    })
+
+    return {
+        ...result_declared,
+        tree: {
+            ...result_declared.tree,
+            ast: {
+                ...result_declared.tree.ast,
+            },
+            extra: result_declared.tree.extra
+        }
+    }
+}

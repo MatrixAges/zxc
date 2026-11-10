@@ -23,7 +23,7 @@ export default function (in: Input): Output {
                 table: current.fields,
                 name: bytes.fromText(parameter.name),
                 value: parameter.value,
-                comptime_parameter: false
+                comptime_parameter: parameter.comptime_parameter ?? false
             })
             current.index += 1
         },

@@ -1,0 +1,177 @@
+import boolean from "../../../ast/context/boolean"
+import nullValue from "../../../ast/context/null_value"
+import path from "../../../ast/context/path"
+import undefinedValue from "../../../ast/context/undefined"
+import optionalType from "../node/context/optional"
+import invoke from "../node/task/invoke"
+import {
+    std_name,
+    state_type,
+    request_type,
+    state_name,
+    state_arena,
+    initialized_name,
+    request_name,
+    heap_name,
+    arena_type,
+    wasm_allocator,
+    init_name
+} from "./const"
+import variable from "./variable"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initial_arena_allocator = path({
+        state: in.tree.ast.context,
+        path: [
+            std_name,
+            heap_name,
+            wasm_allocator
+        ]
+    })
+
+    const initial_arena = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: initial_arena_allocator.state
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            std_name,
+            heap_name,
+            arena_type,
+            init_name
+        ],
+        arguments: [initial_arena_allocator.id],
+        fallible: false
+    })
+
+    const arena_declared = variable({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: initial_arena.state.ast.context
+                },
+                extra: in.tree.extra
+            }
+        },
+        name: state_arena,
+        value: initial_arena.id
+    })
+
+    const state_type_node = path({
+        state: arena_declared.tree.ast.context,
+        path: [state_type]
+    })
+
+    const undefined_state = undefinedValue(state_type_node.state)
+
+    const state_declared = variable({
+        state: {
+            ...arena_declared,
+            tree: {
+                ...arena_declared.tree,
+                ast: {
+                    ...arena_declared.tree.ast,
+                    context: undefined_state.state
+                },
+                extra: arena_declared.tree.extra
+            }
+        },
+        name: state_name,
+        value: undefined_state.id,
+        type_expr: state_type_node.id
+    })
+
+    const no = boolean({
+        state: state_declared.tree.ast.context,
+        value: false
+    })
+
+    const initialized_declared = variable({
+        state: {
+            ...state_declared,
+            tree: {
+                ...state_declared.tree,
+                ast: {
+                    ...state_declared.tree.ast,
+                    context: no.state
+                },
+                extra: state_declared.tree.extra
+            }
+        },
+        name: initialized_name,
+        value: no.id
+    })
+
+    const request_type_node = path({
+        state: initialized_declared.tree.ast.context,
+        path: [request_type]
+    })
+
+    const request_optional = optionalType({
+        state: ({
+            ...initialized_declared.tree,
+            ast: {
+                ...initialized_declared.tree.ast,
+                context: request_type_node.state
+            },
+            extra: initialized_declared.tree.extra
+        }).ast,
+        value: request_type_node.id
+    })
+
+    const request_optional_tree = {
+        ...{
+            ...initialized_declared.tree,
+            ast: {
+                ...initialized_declared.tree.ast,
+                context: request_type_node.state
+            },
+            extra: initialized_declared.tree.extra
+        },
+        ast: request_optional.state
+    }
+
+    const nil = nullValue(request_optional_tree.ast.context)
+
+    const request_declared = variable({
+        state: {
+            ...initialized_declared,
+            tree: {
+                ...initialized_declared.tree,
+                ast: {
+                    ...initialized_declared.tree.ast,
+                    context: nil.state,
+                    optional_type: request_optional.state.optional_type,
+                    statements: request_optional_tree.ast.statements,
+                    fields: request_optional_tree.ast.fields,
+                    declarations: request_optional_tree.ast.declarations,
+                    valid: request_optional_tree.ast.valid
+                },
+                extra: request_optional_tree.extra
+            }
+        },
+        name: request_name,
+        value: nil.id,
+        type_expr: request_optional.id
+    })
+
+    return {
+        ...request_declared,
+        tree: {
+            ...request_declared.tree,
+            ast: {
+                ...request_declared.tree.ast,
+            },
+            extra: request_declared.tree.extra
+        }
+    }
+}

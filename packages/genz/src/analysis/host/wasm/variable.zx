@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import { DeclarationsKind } from "../../../printer/model/declarations"
+
+import type { State, State as Output } from "./model"
+
+export type Input = {
+    state: State,
+    name: string,
+    value: u32,
+    type_expr?: u32
+}
+
+export default function (in: Input): Output {
+    const tree = in.state.tree
+    const table = tree.ast.declarations
+    const valid = table.tags.length < integers.widen(max_u32)
+
+    if (!valid) {
+        return {
+            ...in.state,
+            tree: {
+                ...tree,
+                ast: {
+                    ...tree.ast,
+                    valid: false
+                }
+            }
+        }
+    }
+
+    return {
+        ...in.state,
+        declarations: {
+            ...in.state.declarations,
+            variable_name:
+                in.state.declarations.variable_name.push(bytes.fromText(in.name))[0],
+            variable_type_expr:
+                in.state.declarations.variable_type_expr.push(in.type_expr)[0],
+            variable_value: in.state.declarations.variable_value.push(in.value)[0],
+            variable_exported: in.state.declarations.variable_exported.push(false)[0]
+        },
+        tree: {
+            ...tree,
+            ast: {
+                ...tree.ast,
+                declarations: {
+                    ...table,
+                    tags: table.tags.push(DeclarationsKind.Variable)[0],
+                    offsets:
+                        table.offsets.push(
+                            integers.narrow(
+                                in.state.declarations.variable_name.length
+                            )
+                        )[0]
+                },
+                valid: tree.ast.valid && valid
+            }
+        }
+    }
+}

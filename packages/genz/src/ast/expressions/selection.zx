@@ -1,0 +1,48 @@
+import { ExpressionsKind } from "../../printer/model/expressions"
+import header from "./header"
+
+export type Columns = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    selection_subject: u32[],
+    selection_arms_start: u32[],
+    selection_arms_len: u32[]
+}
+
+export type Input = {
+    table: Columns,
+    base: u32,
+    subject: u32,
+    first: u32,
+    count: u32
+}
+
+export type Output = {
+    table: Columns,
+    id: u32,
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    const node = header({
+        ...in.table.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: in.base,
+        kind: ExpressionsKind.Selection,
+        offset: in.table.selection_subject.length
+    })
+
+    return {
+        id: node.id,
+        valid: node.valid,
+        table: {
+            tags: node.tags,
+            offsets: node.offsets,
+            selection_subject: in.table.selection_subject.push(in.subject)[0],
+            selection_arms_start: in.table.selection_arms_start.push(in.first)[0],
+            selection_arms_len: in.table.selection_arms_len.push(in.count)[0]
+        }
+    }
+}

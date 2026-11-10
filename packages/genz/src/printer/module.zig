@@ -11,6 +11,16 @@ pub fn render(allocator: std.mem.Allocator, workspace: std.mem.Allocator, compti
         const expressions = zx.columns.view(std.meta.Child(@FieldType(Context, "expressions")), module.context.expressions);
         const forms = zx.columns.view(std.meta.Child(@FieldType(Context, "forms")), module.context.forms);
 
+        if (@hasField(Module, "expression_forms")) {
+            const additional = zx.columns.view(std.meta.Child(@FieldType(Module, "expression_forms")), module.expression_forms);
+
+            break :legacy if (@hasField(Module, "extra"))
+                .{ expressions, forms, zx.columns.view(std.meta.Child(@FieldType(Module, "extra")), module.extra), additional }
+
+            else
+                .{ expressions, forms, additional };
+        }
+
         break :legacy if (@hasField(Module, "extra"))
             .{ expressions, forms, zx.columns.view(std.meta.Child(@FieldType(Module, "extra")), module.extra) }
         else
@@ -24,7 +34,15 @@ pub fn render(allocator: std.mem.Allocator, workspace: std.mem.Allocator, compti
     const statement_columns = project(std.meta.Child(@FieldType(Source, "statements")), .{statements});
     const declaration_columns = project(std.meta.Child(@FieldType(Source, "declarations")), .{declarations});
     const field_columns = project(std.meta.Child(@FieldType(Source, "fields")), .{fields});
-    const arm_columns = project(std.meta.Child(@FieldType(Source, "arms")), .{});
+    const arm_columns = project(std.meta.Child(@FieldType(Source, "arms")), if (@hasField(Module, "arms")) .{zx.columns.view(std.meta.Child(@FieldType(Module, "arms")), module.arms)} else .{});
+    const first = if (@hasField(Module, "first")) module.first else 0;
+    const end = std.math.cast(u32, declarations.tags.len) orelse return error.OutOfMemory;
+
+    if (first > end) return error.OutOfMemory;
+
+    const count = if (@hasField(Module, "count")) module.count else end - first;
+
+    if (count > end - first) return error.OutOfMemory;
 
     const source: Source = .{
         .expressions = &expression_columns,
@@ -32,8 +50,8 @@ pub fn render(allocator: std.mem.Allocator, workspace: std.mem.Allocator, compti
         .declarations = &declaration_columns,
         .fields = &field_columns,
         .arms = &arm_columns,
-        .first = 0,
-        .count = std.math.cast(u32, declarations.tags.len) orelse return error.OutOfMemory,
+        .first = first,
+        .count = count,
     };
 
     const input: Input = .{ .source = &source, .output = &.{} };

@@ -1,0 +1,84 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import unwrap from "../../../ast/context/optional_unwrap"
+import path from "../../../ast/context/path"
+import binding from "../../../ast/statements/builder/binding"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import invoke from "../node/task/invoke"
+import { request_name, current_name, prepare_name, failure_code } from "./const"
+import failure from "./failure"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const prepare = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+            },
+            extra: in.tree.extra
+        },
+        path: [prepare_name],
+        arguments: [],
+        fallible: false
+    })
+
+    const checked = failure({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: prepare.state.ast.context
+                },
+                extra: in.tree.extra
+            }
+        },
+        value: prepare.id,
+        code: failure_code
+    })
+
+    const prepared = evaluate({
+        state: checked.state.tree.ast.statements,
+        value: checked.id,
+        discard: false
+    })
+
+    const current_request = path({
+        state: checked.state.tree.ast.context,
+        path: [request_name]
+    })
+
+    const current_unwrapped = unwrap({
+        state: current_request.state,
+        value: current_request.id
+    })
+
+    const current_address = address({
+        state: current_unwrapped.state,
+        value: current_unwrapped.id
+    })
+
+    const current_declared = binding({
+        state: prepared,
+        name: bytes.fromText(current_name),
+        value: current_address.id,
+        mutable: false
+    })
+
+    return {
+        ...checked.state,
+        tree: {
+            ...checked.state.tree,
+            ast: {
+                ...checked.state.tree.ast,
+                context: current_address.state,
+                statements: current_declared
+            },
+            extra: checked.state.tree.extra
+        }
+    }
+}

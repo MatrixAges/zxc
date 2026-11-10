@@ -1,0 +1,187 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import address from "../../../ast/context/address"
+import boolean from "../../../ast/context/boolean"
+import object from "../../../ast/context/object"
+import path from "../../../ast/context/path"
+import unary from "../../../ast/context/unary"
+import field from "../../../ast/fields/append"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import { ExpressionsUnaryOperator as U } from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import {
+    state_name,
+    arena_name,
+    state_arena,
+    initialized_name,
+    request_name,
+    request_method,
+    initialize_name
+} from "./const"
+import prepareFailure from "./prepare_failure"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const initialized_flag = path({
+        state: in.tree.ast.context,
+        path: [initialized_name]
+    })
+
+    const needs_initialize = unary({
+        state: initialized_flag.state,
+        operator: U.Not,
+        operand: initialized_flag.id
+    })
+
+    const initialize_scope_opened = open(in.tree.ast.statements)
+
+    const initialize_scope = initialize_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const state_memory = path({
+        state: needs_initialize.state,
+        path: [state_arena]
+    })
+
+    const state_address = address({
+        state: state_memory.state,
+        value: state_memory.id
+    })
+
+    const initial_state_first = integers.narrow(in.tree.ast.fields.name.length)
+
+    const initial_state_field_0 = field({
+        table: in.tree.ast.fields,
+        name: bytes.fromText(arena_name),
+        value: state_address.id,
+        comptime_parameter: false
+    })
+
+    const initial_state = object({
+        state: state_address.state,
+        type_expr: null,
+        first: initial_state_first,
+        count: 1
+    })
+
+    const state_target = path({
+        state: initial_state.state,
+        path: [state_name]
+    })
+
+    const state_assigned = assignment({
+        state: initialize_scope_opened.state,
+        target: state_target.id,
+        value: initial_state.id
+    })
+
+    const initialize = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: state_target.state,
+                statements: state_assigned,
+                fields: initial_state_field_0
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            state_name,
+            initialize_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const initialized = prepareFailure({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: initialize.state.ast.context,
+                    statements: state_assigned,
+                    fields: initial_state_field_0
+                },
+                extra: in.tree.extra
+            }
+        },
+        value: initialize.id
+    })
+
+    const initialization_checked = evaluate({
+        state: initialized.state.tree.ast.statements,
+        value: initialized.id,
+        discard: false
+    })
+
+    const yes = boolean({
+        state: initialized.state.tree.ast.context,
+        value: true
+    })
+
+    const initialization_committed = assignment({
+        state: initialization_checked,
+        target: initialized_flag.id,
+        value: yes.id
+    })
+
+    const initialization_guard = branch({
+        scope: {
+            ...initialize_scope,
+            state: initialization_committed
+        },
+        condition: needs_initialize.id
+    })
+
+    const request = invoke({
+        state: {
+            ...initialized.state.tree,
+            ast: {
+                ...initialized.state.tree.ast,
+                context: yes.state,
+                statements: initialization_guard
+            },
+            extra: initialized.state.tree.extra
+        },
+        path: [
+            state_name,
+            request_method
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const request_target = path({
+        state: request.state.ast.context,
+        path: [request_name]
+    })
+
+    const request_prepared = assignment({
+        state: initialization_guard,
+        target: request_target.id,
+        value: request.id
+    })
+
+    return {
+        ...initialized.state,
+        tree: {
+            ...initialized.state.tree,
+            ast: {
+                ...initialized.state.tree.ast,
+                context: request_target.state,
+                statements: request_prepared
+            },
+            extra: initialized.state.tree.extra
+        }
+    }
+}

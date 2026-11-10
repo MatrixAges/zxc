@@ -1,0 +1,57 @@
+import initialize from "../node/task/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        tree: initialize({
+            stateful: in.stateful
+        }),
+        expressions: {
+            optional_type: [],
+            mutable_slice: [],
+            return_value: [],
+            container_type_fields_start: [],
+            container_type_fields_len: [],
+            container_type_declarations_start: [],
+            container_type_declarations_len: [],
+            selection_subject: [],
+            selection_arms_start: [],
+            selection_arms_len: []
+        },
+        declarations: {
+            variable_name: [],
+            variable_type_expr: [],
+            variable_value: [],
+            variable_exported: [],
+            comptime_scope_start: [],
+            comptime_scope_len: []
+        },
+        loops: {
+            for_loop_iterable: [],
+            for_loop_capture: [],
+            for_loop_body_start: [],
+            for_loop_body_len: [],
+            for_loop_capture_reference: [],
+            for_loop_index_capture: []
+        },
+        scopes: {
+            scope_start: [],
+            scope_len: []
+        },
+        breaks: {
+            break_value_label: [],
+            break_value_value: []
+        },
+        arms: {
+            value: [],
+            capture: [],
+            result: []
+        },
+        first: 0,
+        request_type: 0,
+        empty_input: 0,
+        parsed_input: 0
+    }
+}

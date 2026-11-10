@@ -1,0 +1,99 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import blockScope from "../../../ast/context/block_scope"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import makeUnit from "../../../ast/context/unit"
+import breakValue from "../../../ast/statements/builder/break_value"
+import close from "../../../ast/statements/builder/close"
+import guard from "../../../ast/statements/builder/guard"
+import open from "../../../ast/statements/builder/open"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import { input_name, value_name, len_name, expected_no_input } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const length = path({
+        state: in.tree.ast.context,
+        path: [
+            input_name,
+            len_name
+        ]
+    })
+
+    const zero = integer({
+        state: length.state,
+        value: 0
+    })
+
+    const different = binary({
+        state: zero.state,
+        operator: B.NotEqual,
+        left: length.id,
+        right: zero.id
+    })
+
+    const outer_opened = open(in.tree.ast.statements)
+
+    const outer = outer_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const error = text({
+        state: different.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(expected_no_input)
+    })
+
+    const guarded = guard({
+        state: outer_opened.state,
+        condition: different.id,
+        value: error.id
+    })
+
+    const unit = makeUnit(error.state)
+
+    const exited = breakValue({
+        state: guarded,
+        columns: in.breaks,
+        label: bytes.fromText(value_name),
+        value: unit.id
+    })
+
+    const body = close(exited.state)
+
+    const value = blockScope({
+        state: unit.state,
+        label: bytes.fromText(value_name),
+        start: body.first,
+        count: body.count
+    })
+
+    return {
+        ...{
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: value.state,
+                    statements: {
+                        ...body.state,
+                        root_tags: outer.parent_tags,
+                        root_offsets: outer.parent_offsets
+                    }
+                },
+                extra: in.tree.extra
+            },
+            breaks: exited.columns
+        },
+        empty_input: value.id
+    }
+}

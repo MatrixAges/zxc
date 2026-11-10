@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import unwrap from "../../../ast/context/optional_unwrap"
+import path from "../../../ast/context/path"
+import binding from "../../../ast/statements/builder/binding"
+import invoke from "../node/task/invoke"
+import {
+    arena_name,
+    request_name,
+    current_name,
+    allocator_name,
+    allocator_method
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const current_request = path({
+        state: in.tree.ast.context,
+        path: [request_name]
+    })
+
+    const current_unwrapped = unwrap({
+        state: current_request.state,
+        value: current_request.id
+    })
+
+    const current_address = address({
+        state: current_unwrapped.state,
+        value: current_unwrapped.id
+    })
+
+    const current_declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(current_name),
+        value: current_address.id,
+        mutable: false
+    })
+
+    const allocator = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: current_address.state,
+                statements: current_declared
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            current_name,
+            arena_name,
+            allocator_method
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const allocator_bound = binding({
+        state: current_declared,
+        name: bytes.fromText(allocator_name),
+        value: allocator.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: allocator.state.ast.context,
+                statements: allocator_bound
+            },
+            extra: in.tree.extra
+        }
+    }
+}

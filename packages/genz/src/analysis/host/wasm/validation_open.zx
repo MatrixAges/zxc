@@ -1,0 +1,94 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import close from "../../../ast/statements/builder/close"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import { non_finite_error } from "../cli/const"
+import { output_name, result_module, emit_name } from "./const"
+
+import type { State as Input, Validation as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result_path = text({
+        state: in.tree.ast.context,
+        kind: K.String,
+        value: bytes.fromText(result_module)
+    })
+
+    const result_module_node = builtin({
+        state: result_path.state,
+        name: Builtin.Import,
+        arguments: [result_path.id]
+    })
+
+    const emit = field({
+        state: result_module_node.state,
+        target: result_module_node.id,
+        name: bytes.fromText(emit_name)
+    })
+
+    const failure_parent_opened = open(in.tree.ast.statements)
+
+    const failure_parent = failure_parent_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const invalid = text({
+        state: emit.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(non_finite_error)
+    })
+
+    const failed = result({
+        state: failure_parent_opened.state,
+        value: invalid.id
+    })
+
+    const failure_body = close(failed)
+
+    const validation_parent_opened = open({
+        ...failure_body.state,
+        root_tags: failure_parent.parent_tags,
+        root_offsets: failure_parent.parent_offsets
+    })
+
+    const validation_parent = validation_parent_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const output_value = path({
+        state: invalid.state,
+        path: [output_name]
+    })
+
+    return {
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: output_value.state,
+                    statements: validation_parent_opened.state
+                },
+                extra: in.tree.extra
+            }
+        },
+        enabled: emit.id,
+        parent_tags: validation_parent.parent_tags,
+        parent_offsets: validation_parent.parent_offsets,
+        failure_first: failure_body.first,
+        failure_count: failure_body.count,
+        value: output_value.id
+    }
+}

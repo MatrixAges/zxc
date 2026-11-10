@@ -1,0 +1,78 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../ast/context/builtin"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import assignment from "../../../ast/statements/builder/assignment"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import catchScope from "../node/task/catch"
+import { error_name, result_name } from "./const"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32,
+    code: u64
+}
+
+export default function (in: Input): Output {
+    const error = path({
+        state: in.state.tree.ast.context,
+        path: [error_name]
+    })
+
+    const message = builtin({
+        state: error.state,
+        name: ExpressionsBuiltinName.ErrorName,
+        arguments: [error.id]
+    })
+
+    const target = path({
+        state: message.state,
+        path: [result_name]
+    })
+
+    const code = integer({
+        state: target.state,
+        value: in.code
+    })
+
+    const scope = open(in.state.tree.ast.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: target.id,
+        value: message.id
+    })
+
+    const returned = result({
+        state: assigned,
+        value: code.id
+    })
+
+    const caught = catchScope({
+        state: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                context: code.state,
+                statements: returned
+            }
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        value: in.value,
+        capture: bytes.fromText(error_name)
+    })
+
+    return {
+        id: caught.id,
+        state: {
+            ...in.state,
+            tree: caught.state
+        }
+    }
+}

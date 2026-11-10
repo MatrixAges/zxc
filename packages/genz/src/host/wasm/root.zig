@@ -1,31 +1,27 @@
 const std = @import("std");
-const node = @import("../../node.zig");
-const Builder = @import("../../builder.zig");
-const common = @import("common.zig");
+const zx = @import("zx");
 
 pub fn render(allocator: std.mem.Allocator, stateful: bool, output: @import("../json_output.zig").Output) std.mem.Allocator.Error![]u8 {
+    if (comptime !@import("genz_options").generated_analysis) return @import("seed/root.zig").render(allocator, stateful, output);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
-    const builder = try Builder.init(arena.allocator());
-    var declarations: std.ArrayList(node.Declaration) = .empty;
-    const u32_type = try builder.expression(.{ .primitive = .u32 });
+    const entry = @import("generated_wasm_host");
+    const Input = std.meta.Child(entry.Input);
+    const table = zx.ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), output.types);
+    const input: Input = .{ .stateful = stateful, .types = &table, .output_type = @backingInt(output.id) };
+    const result = zx.columns.invoke(entry.executeValue, arena.allocator(), &input) catch |err| return failure(err);
 
-    try declarations.appendSlice(builder.allocator, try @import("storage.zig").lower(builder, stateful));
+    if (!result.valid) return error.OutOfMemory;
 
-    try declarations.appendSlice(builder.allocator, &.{
-        try @import("input.zig").lower(builder),
-        try @import("json.zig").execute(builder),
-        try common.function(builder, "zxc_result_ptr", u32_type, &.{.{ .result = try builder.builtin(.intFromPtr, &.{try builder.path(&.{ "result", "ptr" })}) }}, true),
-        try common.function(builder, "zxc_result_len", u32_type, &.{.{ .result = try builder.builtin(.intCast, &.{try builder.path(&.{ "result", "len" })}) }}, true),
-        try @import("lifecycle.zig").reset(builder),
-        try @import("lifecycle.zig").deinit(builder, stateful),
-        try @import("lifecycle.zig").prepare(builder, stateful),
-        try @import("json.zig").run(builder, stateful, output),
-    });
+    return @import("../../printer/module.zig").render(allocator, arena.allocator(), std.meta.Child(@FieldType(std.meta.Child(entry.Output), "module")), result.module);
+}
 
-    try declarations.appendSlice(builder.allocator, try @import("scalar.zig").lower(builder, stateful));
-
-    return @import("../../render.zig").render(allocator, builder.nodes, declarations.items);
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid WASM host AST"),
+    };
 }

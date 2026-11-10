@@ -1,0 +1,217 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../ast/context/binary"
+import boolean from "../../../ast/context/boolean"
+import builtin from "../../../ast/context/builtin"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import method from "../node/task/method"
+import {
+    value_name,
+    is_scalar,
+    type_parameter,
+    bits_name,
+    int_tag,
+    float_tag,
+    bool_tag,
+    void_tag,
+    narrow_bits,
+    wide_bits
+} from "./const"
+import selection from "./selection"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const parameter = path({
+        state: in.tree.ast.context,
+        path: [type_parameter]
+    })
+
+    const bits = path({
+        state: parameter.state,
+        path: [
+            value_name,
+            bits_name
+        ]
+    })
+
+    const yes = boolean({
+        state: bits.state,
+        value: true
+    })
+
+    const no = boolean({
+        state: yes.state,
+        value: false
+    })
+
+    const wide = integer({
+        state: no.state,
+        value: wide_bits
+    })
+
+    const narrow = integer({
+        state: wide.state,
+        value: narrow_bits
+    })
+
+    const int_supported = binary({
+        state: narrow.state,
+        operator: B.LessEqual,
+        left: bits.id,
+        right: wide.id
+    })
+
+    const float32 = binary({
+        state: int_supported.state,
+        operator: B.Equal,
+        left: bits.id,
+        right: narrow.id
+    })
+
+    const float64 = binary({
+        state: float32.state,
+        operator: B.Equal,
+        left: bits.id,
+        right: wide.id
+    })
+
+    const float_supported = binary({
+        state: float64.state,
+        operator: B.LogicalOr,
+        left: float32.id,
+        right: float64.id
+    })
+
+    const selected_first = integers.narrow(in.arms.value.length)
+
+    const selected_label_0 = text({
+        state: float_supported.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(void_tag)
+    })
+
+    const selected_arm_0 = {
+        value: in.arms.value.push(selected_label_0.id)[0],
+        capture: in.arms.capture.push(null)[0],
+        result: in.arms.result.push(yes.id)[0]
+    }
+
+    const selected_label_1 = text({
+        state: selected_label_0.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(bool_tag)
+    })
+
+    const selected_arm_1 = {
+        value: selected_arm_0.value.push(selected_label_1.id)[0],
+        capture: selected_arm_0.capture.push(null)[0],
+        result: selected_arm_0.result.push(yes.id)[0]
+    }
+
+    const selected_label_2 = text({
+        state: selected_label_1.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(int_tag)
+    })
+
+    const selected_arm_2 = {
+        value: selected_arm_1.value.push(selected_label_2.id)[0],
+        capture: selected_arm_1.capture.push(bytes.fromText(value_name))[0],
+        result: selected_arm_1.result.push(int_supported.id)[0]
+    }
+
+    const selected_label_3 = text({
+        state: selected_label_2.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(float_tag)
+    })
+
+    const selected_arm_3 = {
+        value: selected_arm_2.value.push(selected_label_3.id)[0],
+        capture: selected_arm_2.capture.push(bytes.fromText(value_name))[0],
+        result: selected_arm_2.result.push(float_supported.id)[0]
+    }
+
+    const selected_arm_4 = {
+        value: selected_arm_3.value.push(null)[0],
+        capture: selected_arm_3.capture.push(null)[0],
+        result: selected_arm_3.result.push(no.id)[0]
+    }
+
+    const selected_info = builtin({
+        state: selected_label_3.state,
+        name: Builtin.TypeInfo,
+        arguments: [parameter.id]
+    })
+
+    const selected = selection({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: selected_info.state
+                },
+                extra: in.tree.extra
+            },
+            arms: selected_arm_4
+        },
+        subject: selected_info.id,
+        first: selected_first,
+        count: 5
+    })
+
+    const returned = result({
+        state: selected.state.tree.ast.statements,
+        value: selected.id
+    })
+
+    const type_type = primitive({
+        state: selected.state.tree.ast.context,
+        value: P.Type
+    })
+
+    const boolean_type = primitive({
+        state: type_type.state,
+        value: P.Bool
+    })
+
+    const declared = method({
+        state: {
+            ...selected.state.tree,
+            ast: {
+                ...selected.state.tree.ast,
+                context: boolean_type.state,
+                statements: returned
+            },
+            extra: selected.state.tree.extra
+        },
+        name: is_scalar,
+        parameters: [{
+            name: type_parameter,
+            value: type_type.id,
+            comptime_parameter: true
+        }],
+        return_type: boolean_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...selected.state,
+        tree: declared
+    }
+}

@@ -1,0 +1,30 @@
+import branch from "./branch"
+import open from "./open"
+import result from "./result"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    condition: u32,
+    value?: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const scope = open(in.state)
+
+    const returned = result({
+        state: scope.state,
+        value: in.value
+    })
+
+    return branch({
+        scope: {
+            ...scope,
+            state: returned
+        },
+        condition: in.condition
+    })
+}

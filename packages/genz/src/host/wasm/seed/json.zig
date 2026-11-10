@@ -1,6 +1,6 @@
 const std = @import("std");
-const node = @import("../../node.zig");
-const Builder = @import("../../builder.zig");
+const node = @import("../../../node.zig");
+const Builder = @import("../../../builder.zig");
 const common = @import("common.zig");
 
 pub fn execute(builder: Builder) std.mem.Allocator.Error!node.Declaration {
@@ -20,7 +20,7 @@ pub fn execute(builder: Builder) std.mem.Allocator.Error!node.Declaration {
     }, true);
 }
 
-pub fn run(builder: Builder, stateful: bool, output: @import("../json_output.zig").Output) std.mem.Allocator.Error!node.Declaration {
+pub fn run(builder: Builder, stateful: bool, output: @import("../../json_output.zig").Output) std.mem.Allocator.Error!node.Declaration {
     const void_type = try builder.expression(.{ .primitive = .void });
     const input_type = try builder.path(&.{ "application", "Input" });
     const allocator = try builder.identifier("allocator");
@@ -45,7 +45,7 @@ pub fn run(builder: Builder, stateful: bool, output: @import("../json_output.zig
         .{ .constant = .{ .name = "allocator", .value = try builder.call(try builder.path(&.{ "current", "arena", "allocator" }), &.{}) } },
         .{ .constant = .{ .name = "value", .type_expr = input_type, .value = try builder.expression(.{ .conditional = .{ .condition = try builder.binary(.equal, input_type, void_type), .yes = empty, .no = try builder.expression(.{ .try_value = parse }) } }) } },
         .{ .constant = .{ .name = "output", .value = try builder.expression(.{ .try_value = try common.execute(builder, stateful) }) } },
-        .{ .branch = .{ .condition = emit, .yes = try @import("../json_output.zig").lower(builder, output), .no = .{} } },
+        .{ .branch = .{ .condition = emit, .yes = try @import("../../json_output.zig").lower(builder, output), .no = .{} } },
         try common.assign(builder, "result", try builder.expression(.{ .conditional = .{ .condition = emit, .yes = encoded, .no = try builder.string("") } })),
     }, false);
 }

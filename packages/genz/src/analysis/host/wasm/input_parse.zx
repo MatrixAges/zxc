@@ -1,0 +1,105 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../ast/context/object"
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import field from "../../../ast/fields/append"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import {
+    std_name,
+    application_name,
+    input_name,
+    allocator_name,
+    input_type,
+    json_name,
+    parse_name,
+    allocate_name,
+    alloc_always,
+    input_value
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const allocator = path({
+        state: input_type_node.state,
+        path: [allocator_name]
+    })
+
+    const input_value = path({
+        state: allocator.state,
+        path: [input_name]
+    })
+
+    const mode = text({
+        state: input_value.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(alloc_always)
+    })
+
+    const options_first = integers.narrow(in.tree.ast.fields.name.length)
+
+    const options_field_0 = field({
+        table: in.tree.ast.fields,
+        name: bytes.fromText(allocate_name),
+        value: mode.id,
+        comptime_parameter: false
+    })
+
+    const options = object({
+        state: mode.state,
+        type_expr: null,
+        first: options_first,
+        count: 1
+    })
+
+    const parsed = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: options.state,
+                fields: options_field_0
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            std_name,
+            json_name,
+            parse_name
+        ],
+        arguments: [
+            input_type_node.id,
+            allocator.id,
+            input_value.id,
+            options.id
+        ],
+        fallible: true
+    })
+
+    return {
+        ...{
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: parsed.state.ast.context,
+                    fields: options_field_0
+                },
+                extra: in.tree.extra
+            }
+        },
+        parsed_input: parsed.id
+    }
+}

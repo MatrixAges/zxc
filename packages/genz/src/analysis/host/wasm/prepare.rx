@@ -1,0 +1,15 @@
+<Module>
+    <If on={$in.source.stateful}>
+        <Call fn="prepare_state" in={$in} />
+        <Call fn="prepare_finish" in={$ctx.prepare_state} />
+
+        <Return value={$ctx.prepare_finish} />
+
+        <Else>
+            <Call fn="prepare_plain" in={$in} />
+            <Call fn="prepare_finish" in={$ctx.prepare_plain} />
+
+            <Return value={$ctx.prepare_finish} />
+        </Else>
+    </If>
+</Module>

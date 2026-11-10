@@ -16,6 +16,7 @@ import { mem_name, allocator_type, read_prefix, write_prefix } from "../codec/co
 import name from "../codec/name"
 import { type_prefix } from "../plan/const"
 
+import type { Parameter } from "../../task/model"
 import type { Selection as Input, State as Output } from "../codec/model"
 
 export default function (in: Input): Output {
@@ -110,7 +111,7 @@ export default function (in: Input): Output {
         inferred: false
     })
 
-    const parameters = match in.reading {
+    const parameters: Parameter[] = match in.reading {
         true => [
             {
                 name: allocator_name,

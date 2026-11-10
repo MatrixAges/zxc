@@ -1,0 +1,60 @@
+import builtin from "../../../ast/context/builtin"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as Builtin
+} from "../../../printer/model/expressions"
+import method from "../node/task/method"
+import { result_name, ptr_name, zxc_result_ptr } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result_type = primitive({
+        state: in.tree.ast.context,
+        value: P.U32
+    })
+
+    const value = path({
+        state: result_type.state,
+        path: [
+            result_name,
+            ptr_name
+        ]
+    })
+
+    const cast = builtin({
+        state: value.state,
+        name: Builtin.IntFromPtr,
+        arguments: [value.id]
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: cast.id
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: cast.state,
+                statements: returned
+            },
+            extra: in.tree.extra
+        },
+        name: zxc_result_ptr,
+        parameters: [],
+        return_type: result_type.id,
+        exported: false,
+        abi_export: true
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

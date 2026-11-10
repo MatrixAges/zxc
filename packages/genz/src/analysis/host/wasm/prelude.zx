@@ -1,0 +1,139 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../ast/context/builtin"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import {
+    std_name,
+    application_name,
+    state_type,
+    state_module,
+    request_type
+} from "./const"
+import constant from "./constant"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const standard_text = text({
+        state: in.tree.ast.context,
+        kind: K.String,
+        value: bytes.fromText(std_name)
+    })
+
+    const standard_import = builtin({
+        state: standard_text.state,
+        name: Builtin.Import,
+        arguments: [standard_text.id]
+    })
+
+    const standard_declared = constant({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: standard_import.state
+                },
+                extra: in.tree.extra
+            }
+        },
+        name: std_name,
+        value: standard_import.id
+    })
+
+    const application_text = text({
+        state: standard_declared.tree.ast.context,
+        kind: K.String,
+        value: bytes.fromText(application_name)
+    })
+
+    const application_import = builtin({
+        state: application_text.state,
+        name: Builtin.Import,
+        arguments: [application_text.id]
+    })
+
+    const application_declared = constant({
+        state: {
+            ...standard_declared,
+            tree: {
+                ...standard_declared.tree,
+                ast: {
+                    ...standard_declared.tree.ast,
+                    context: application_import.state
+                },
+                extra: standard_declared.tree.extra
+            }
+        },
+        name: application_name,
+        value: application_import.id
+    })
+
+    const state_path = text({
+        state: application_declared.tree.ast.context,
+        kind: K.String,
+        value: bytes.fromText(state_module)
+    })
+
+    const imported_state = builtin({
+        state: state_path.state,
+        name: Builtin.Import,
+        arguments: [state_path.id]
+    })
+
+    const void_type = primitive({
+        state: imported_state.state,
+        value: P.Void
+    })
+
+    const state_type_node = in.source.stateful ? imported_state.id : void_type.id
+
+    const state_declared = constant({
+        state: {
+            ...application_declared,
+            tree: {
+                ...application_declared.tree,
+                ast: {
+                    ...application_declared.tree.ast,
+                    context: void_type.state
+                },
+                extra: application_declared.tree.extra
+            }
+        },
+        name: state_type,
+        value: state_type_node
+    })
+
+    const request_declared = constant({
+        state: {
+            ...state_declared,
+            tree: {
+                ...state_declared.tree,
+                ast: {
+                    ...state_declared.tree.ast,
+                },
+                extra: state_declared.tree.extra
+            }
+        },
+        name: request_type,
+        value: state_declared.request_type
+    })
+
+    return {
+        ...request_declared,
+        tree: {
+            ...request_declared.tree,
+            ast: {
+                ...request_declared.tree.ast,
+            },
+            extra: request_declared.tree.extra
+        }
+    }
+}

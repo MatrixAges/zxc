@@ -1,0 +1,144 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import path from "../../../ast/context/path"
+import pointer from "../../../ast/context/pointer"
+import primitive from "../../../ast/context/primitive"
+import field from "../../../ast/fields/append"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as Builtin
+} from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    std_name,
+    request_type,
+    arena_name,
+    self_name,
+    heap_name,
+    arena_type,
+    deinit_name
+} from "./const"
+import container from "./container"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const return_type = primitive({
+        state: in.tree.ast.context,
+        value: P.Void
+    })
+
+    const this_type = builtin({
+        state: return_type.state,
+        name: Builtin.This,
+        arguments: []
+    })
+
+    const self_type_node = pointer({
+        state: this_type.state,
+        value: this_type.id
+    })
+
+    const deinitialized = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: self_type_node.state
+            },
+            extra: in.tree.extra
+        },
+        path: [
+            self_name,
+            arena_name,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deinit_called = evaluate({
+        state: in.tree.ast.statements,
+        value: deinitialized.id,
+        discard: false
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: deinitialized.state.ast.context,
+                statements: deinit_called
+            },
+            extra: in.tree.extra
+        },
+        name: deinit_name,
+        parameters: [{
+            name: self_name,
+            value: self_type_node.id
+        }],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    const prefix_count = integers.narrow(declared.ast.declarations.tags.length)
+
+    const arena_type_node = path({
+        state: declared.ast.context,
+        path: [
+            std_name,
+            heap_name,
+            arena_type
+        ]
+    })
+
+    const fields_first = integers.narrow(declared.ast.fields.name.length)
+
+    const arena_field = field({
+        table: declared.ast.fields,
+        name: bytes.fromText(arena_name),
+        value: arena_type_node.id,
+        comptime_parameter: false
+    })
+
+    const container_type = container({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: arena_type_node.state,
+                    statements: declared.ast.statements,
+                    fields: arena_field,
+                    declarations: declared.ast.declarations,
+                    valid: declared.ast.valid
+                },
+                extra: declared.extra
+            },
+            first: prefix_count
+        },
+        fields_first: fields_first,
+        fields_count: 1,
+        declarations_first: 0,
+        declarations_count: prefix_count
+    })
+
+    return {
+        ...container_type.state,
+        tree: {
+            ...container_type.state.tree,
+            ast: {
+                ...container_type.state.tree.ast,
+            },
+            extra: container_type.state.tree.extra
+        },
+        request_type: container_type.id
+    }
+}

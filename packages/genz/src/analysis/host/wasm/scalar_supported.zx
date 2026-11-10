@@ -1,0 +1,56 @@
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/path"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import { is_scalar } from "./const"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    input_id: u32,
+    output_id: u32
+}
+
+export default function (in: Input): Output {
+    const predicate = path({
+        state: in.state.tree.ast.context,
+        path: [is_scalar]
+    })
+
+    const input_supported = call({
+        state: predicate.state,
+        callee: predicate.id,
+        arguments: [in.input_id],
+        fallible: false
+    })
+
+    const output_supported = call({
+        state: input_supported.state,
+        callee: predicate.id,
+        arguments: [in.output_id],
+        fallible: false
+    })
+
+    const supported = binary({
+        state: output_supported.state,
+        operator: B.LogicalAnd,
+        left: input_supported.id,
+        right: output_supported.id
+    })
+
+    return {
+        id: supported.id,
+        state: {
+            ...in.state,
+            tree: {
+                ...in.state.tree,
+                ast: {
+                    ...in.state.tree.ast,
+                    context: supported.state
+                },
+                extra: in.state.tree.extra
+            }
+        }
+    }
+}

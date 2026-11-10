@@ -1,0 +1,233 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import builtin from "../../../ast/context/builtin"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import slice from "../../../ast/context/slice"
+import assignment from "../../../ast/statements/builder/assignment"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as Builtin
+} from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    std_name,
+    input_storage,
+    input_name,
+    ready_name,
+    heap_name,
+    wasm_allocator,
+    prepare_name,
+    length_name,
+    ptr_name,
+    alloc_name,
+    zxc_alloc,
+    null_pointer
+} from "./const"
+import failure from "./failure"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const prepare = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+            },
+            extra: in.tree.extra
+        },
+        path: [prepare_name],
+        arguments: [],
+        fallible: false
+    })
+
+    const checked_prepare = failure({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: prepare.state.ast.context
+                },
+                extra: in.tree.extra
+            }
+        },
+        value: prepare.id,
+        code: null_pointer
+    })
+
+    const prepared = evaluate({
+        state: checked_prepare.state.tree.ast.statements,
+        value: checked_prepare.id,
+        discard: false
+    })
+
+    const byte_type = primitive({
+        state: checked_prepare.state.tree.ast.context,
+        value: P.U8
+    })
+
+    const length = path({
+        state: byte_type.state,
+        path: [length_name]
+    })
+
+    const one = integer({
+        state: length.state,
+        value: 1
+    })
+
+    const amount = builtin({
+        state: one.state,
+        name: Builtin.Max,
+        arguments: [
+            length.id,
+            one.id
+        ]
+    })
+
+    const allocated = invoke({
+        state: {
+            ...checked_prepare.state.tree,
+            ast: {
+                ...checked_prepare.state.tree.ast,
+                context: amount.state,
+                statements: prepared
+            },
+            extra: checked_prepare.state.tree.extra
+        },
+        path: [
+            std_name,
+            heap_name,
+            wasm_allocator,
+            alloc_name
+        ],
+        arguments: [
+            byte_type.id,
+            amount.id
+        ],
+        fallible: false
+    })
+
+    const checked_allocation = failure({
+        state: {
+            ...checked_prepare.state,
+            tree: {
+                ...checked_prepare.state.tree,
+                ast: {
+                    ...checked_prepare.state.tree.ast,
+                    context: allocated.state.ast.context,
+                    statements: prepared
+                },
+                extra: checked_prepare.state.tree.extra
+            }
+        },
+        value: allocated.id,
+        code: null_pointer
+    })
+
+    const storage = path({
+        state: checked_allocation.state.tree.ast.context,
+        path: [input_storage]
+    })
+
+    const storage_assigned = assignment({
+        state: checked_allocation.state.tree.ast.statements,
+        target: storage.id,
+        value: checked_allocation.id
+    })
+
+    const zero = integer({
+        state: storage.state,
+        value: 0
+    })
+
+    const input_slice = slice({
+        state: zero.state,
+        target: storage.id,
+        start: zero.id,
+        end: length.id
+    })
+
+    const input_target = path({
+        state: input_slice.state,
+        path: [input_name]
+    })
+
+    const input_assigned = assignment({
+        state: storage_assigned,
+        target: input_target.id,
+        value: input_slice.id
+    })
+
+    const yes = boolean({
+        state: input_target.state,
+        value: true
+    })
+
+    const ready_target = path({
+        state: yes.state,
+        path: [ready_name]
+    })
+
+    const ready_assigned = assignment({
+        state: input_assigned,
+        target: ready_target.id,
+        value: yes.id
+    })
+
+    const input_pointer = field({
+        state: ready_target.state,
+        target: input_target.id,
+        name: bytes.fromText(ptr_name)
+    })
+
+    const returned_pointer = builtin({
+        state: input_pointer.state,
+        name: Builtin.IntFromPtr,
+        arguments: [input_pointer.id]
+    })
+
+    const returned = result({
+        state: ready_assigned,
+        value: returned_pointer.id
+    })
+
+    const result_type = primitive({
+        state: returned_pointer.state,
+        value: P.U32
+    })
+
+    const declared = method({
+        state: {
+            ...checked_allocation.state.tree,
+            ast: {
+                ...checked_allocation.state.tree.ast,
+                context: result_type.state,
+                statements: returned
+            },
+            extra: checked_allocation.state.tree.extra
+        },
+        name: zxc_alloc,
+        parameters: [{
+            name: length_name,
+            value: result_type.id
+        }],
+        return_type: result_type.id,
+        exported: false,
+        abi_export: true
+    })
+
+    return {
+        ...checked_allocation.state,
+        tree: declared
+    }
+}

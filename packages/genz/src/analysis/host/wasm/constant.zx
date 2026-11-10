@@ -1,0 +1,36 @@
+import bytes from "std:bytes"
+
+import append from "../../../ast/declarations/table/constant"
+
+import type { State, State as Output } from "./model"
+
+export type Input = {
+    state: State,
+    name: string,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const tree = in.state.tree
+
+    const declared = append({
+        state: tree.ast.declarations,
+        value: {
+            name: bytes.fromText(in.name),
+            value: in.value,
+            exported: false
+        }
+    })
+
+    return {
+        ...in.state,
+        tree: {
+            ...tree,
+            ast: {
+                ...tree.ast,
+                declarations: declared.state,
+                valid: tree.ast.valid && declared.valid
+            }
+        }
+    }
+}

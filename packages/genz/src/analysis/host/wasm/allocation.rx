@@ -1,0 +1,12 @@
+<Module>
+    <Type from="model" as="Wasm" />
+
+    <Args in={Wasm.State} out={Wasm.State} />
+
+    <Call fn="allocation_begin" in={$in} />
+    <Call fn="allocation_limits" in={$ctx.allocation_begin} />
+    <Call fn="allocation_check" in={$ctx.allocation_limits} />
+    <Call fn="allocation_memory" in={$ctx.allocation_check} />
+
+    <Return value={$ctx.allocation_memory} />
+</Module>

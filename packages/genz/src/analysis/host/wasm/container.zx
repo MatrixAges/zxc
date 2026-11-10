@@ -1,0 +1,66 @@
+import construct from "../../../ast/expressions/container"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    fields_first: u32,
+    fields_count: u32,
+    declarations_first: u32,
+    declarations_count: u32
+}
+
+export default function (in: Input): Output {
+    const context = in.state.tree.ast.context
+
+    const node = construct({
+        table: {
+            ...context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.state.expressions.pick([
+                "container_type_fields_start",
+                "container_type_fields_len",
+                "container_type_declarations_start",
+                "container_type_declarations_len"
+            ])
+        },
+        base: context.source.expression_base,
+        fields_first: in.fields_first,
+        fields_count: in.fields_count,
+        declarations_first: in.declarations_first,
+        declarations_count: in.declarations_count
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...in.state,
+            expressions: {
+                ...in.state.expressions,
+                ...node.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            },
+            tree: {
+                ...in.state.tree,
+                ast: {
+                    ...in.state.tree.ast,
+                    context: {
+                        ...context,
+                        expressions: {
+                            ...context.expressions,
+                            ...node.table.pick([
+                                "tags",
+                                "offsets"
+                            ])
+                        },
+                        valid: context.valid && node.valid
+                    }
+                }
+            }
+        }
+    }
+}

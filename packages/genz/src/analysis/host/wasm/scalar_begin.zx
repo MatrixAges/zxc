@@ -1,0 +1,110 @@
+import boolean from "../../../ast/context/boolean"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import assignment from "../../../ast/statements/builder/assignment"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import guard from "../../../ast/statements/builder/guard"
+import open from "../../../ast/statements/builder/open"
+import deferScope from "../node/task/defer_scope"
+import invoke from "../node/task/invoke"
+import { executing_name, zxc_reset, busy_code } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const running = path({
+        state: in.tree.ast.context,
+        path: [executing_name]
+    })
+
+    const busy = integer({
+        state: running.state,
+        value: busy_code
+    })
+
+    const busy_guard = guard({
+        state: in.tree.ast.statements,
+        condition: running.id,
+        value: busy.id
+    })
+
+    const reset = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: busy.state,
+                statements: busy_guard
+            },
+            extra: in.tree.extra
+        },
+        path: [zxc_reset],
+        arguments: [],
+        fallible: false
+    })
+
+    const reset_called = evaluate({
+        state: busy_guard,
+        value: reset.id,
+        discard: false
+    })
+
+    const yes = boolean({
+        state: reset.state.ast.context,
+        value: true
+    })
+
+    const entered = assignment({
+        state: reset_called,
+        target: running.id,
+        value: yes.id
+    })
+
+    const defer_scope_opened = open(entered)
+
+    const defer_scope = defer_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const no = boolean({
+        state: yes.state,
+        value: false
+    })
+
+    const exited = assignment({
+        state: defer_scope_opened.state,
+        target: running.id,
+        value: no.id
+    })
+
+    const deferred = deferScope({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: no.state,
+                statements: exited
+            },
+            extra: in.tree.extra
+        },
+        parent_tags: defer_scope.parent_tags,
+        parent_offsets: defer_scope.parent_offsets
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: deferred.ast.context,
+                statements: deferred.ast.statements,
+                fields: deferred.ast.fields,
+                declarations: deferred.ast.declarations,
+                valid: deferred.ast.valid
+            },
+            extra: deferred.extra
+        }
+    }
+}

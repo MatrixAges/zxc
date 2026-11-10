@@ -29,7 +29,7 @@ export default function (in: Input): Output {
                 "catch_scope_body_len"
             ])
         },
-        base: 0,
+        base: context.source.expression_base,
         value: in.value,
         capture: in.capture,
         start: body.first,

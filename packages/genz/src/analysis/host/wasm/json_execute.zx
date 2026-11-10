@@ -1,0 +1,237 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../ast/context/boolean"
+import integer from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import unary from "../../../ast/context/unary"
+import assignment from "../../../ast/statements/builder/assignment"
+import branch from "../../../ast/statements/builder/branch"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import guard from "../../../ast/statements/builder/guard"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsUnaryOperator as U,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import deferScope from "../node/task/defer_scope"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    result_name,
+    ready_name,
+    executing_name,
+    input_not_prepared,
+    zxc_execute,
+    run_name,
+    success_code,
+    failure_code,
+    busy_code
+} from "./const"
+import failure from "./failure"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const returned_type = primitive({
+        state: in.tree.ast.context,
+        value: P.U32
+    })
+
+    const running = path({
+        state: returned_type.state,
+        path: [executing_name]
+    })
+
+    const busy = integer({
+        state: running.state,
+        value: busy_code
+    })
+
+    const busy_guard = guard({
+        state: in.tree.ast.statements,
+        condition: running.id,
+        value: busy.id
+    })
+
+    const ready = path({
+        state: busy.state,
+        path: [ready_name]
+    })
+
+    const missing = unary({
+        state: ready.state,
+        operator: U.Not,
+        operand: ready.id
+    })
+
+    const missing_scope_opened = open(busy_guard)
+
+    const missing_scope = missing_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const message = text({
+        state: missing.state,
+        kind: K.String,
+        value: bytes.fromText(input_not_prepared)
+    })
+
+    const result_value = path({
+        state: message.state,
+        path: [result_name]
+    })
+
+    const message_assigned = assignment({
+        state: missing_scope_opened.state,
+        target: result_value.id,
+        value: message.id
+    })
+
+    const failure_code_node = integer({
+        state: result_value.state,
+        value: failure_code
+    })
+
+    const missing_return = result({
+        state: message_assigned,
+        value: failure_code_node.id
+    })
+
+    const missing_guard = branch({
+        scope: {
+            ...missing_scope,
+            state: missing_return
+        },
+        condition: missing.id
+    })
+
+    const no = boolean({
+        state: failure_code_node.state,
+        value: false
+    })
+
+    const yes = boolean({
+        state: no.state,
+        value: true
+    })
+
+    const consumed = assignment({
+        state: missing_guard,
+        target: ready.id,
+        value: no.id
+    })
+
+    const entered = assignment({
+        state: consumed,
+        target: running.id,
+        value: yes.id
+    })
+
+    const executing_scope_opened = open(entered)
+
+    const executing_scope = executing_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const left = assignment({
+        state: executing_scope_opened.state,
+        target: running.id,
+        value: no.id
+    })
+
+    const deferred = deferScope({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: yes.state,
+                statements: left
+            },
+            extra: in.tree.extra
+        },
+        parent_tags: executing_scope.parent_tags,
+        parent_offsets: executing_scope.parent_offsets
+    })
+
+    const run = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: deferred.ast.context,
+                statements: deferred.ast.statements,
+                fields: deferred.ast.fields,
+                declarations: deferred.ast.declarations,
+                valid: deferred.ast.valid
+            },
+            extra: deferred.extra
+        },
+        path: [run_name],
+        arguments: [],
+        fallible: false
+    })
+
+    const caught = failure({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: run.state.ast.context,
+                    statements: deferred.ast.statements,
+                    fields: deferred.ast.fields,
+                    declarations: deferred.ast.declarations,
+                    valid: deferred.ast.valid
+                },
+                extra: deferred.extra
+            }
+        },
+        value: run.id,
+        code: failure_code
+    })
+
+    const executed = evaluate({
+        state: caught.state.tree.ast.statements,
+        value: caught.id,
+        discard: false
+    })
+
+    const success = integer({
+        state: caught.state.tree.ast.context,
+        value: success_code
+    })
+
+    const returned = result({
+        state: executed,
+        value: success.id
+    })
+
+    const declared = method({
+        state: {
+            ...caught.state.tree,
+            ast: {
+                ...caught.state.tree.ast,
+                context: success.state,
+                statements: returned
+            },
+            extra: caught.state.tree.extra
+        },
+        name: zxc_execute,
+        parameters: [],
+        return_type: returned_type.id,
+        exported: false,
+        abi_export: true
+    })
+
+    return {
+        ...caught.state,
+        tree: declared
+    }
+}

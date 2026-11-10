@@ -1,0 +1,29 @@
+import construct from "../expressions/block"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    label: u8[],
+    start: u32,
+    count: u32
+}
+
+export default function (in: Input): Output {
+    const node = construct({
+        table: in.state.expressions,
+        base: in.state.source.expression_base,
+        label: in.label,
+        start: in.start,
+        count: in.count
+    })
+
+    return {
+        id: node.id,
+        state: {
+            ...in.state,
+            expressions: node.table,
+            valid: in.state.valid && node.valid
+        }
+    }
+}

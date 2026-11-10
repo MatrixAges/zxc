@@ -1,0 +1,38 @@
+<Module>
+    <Type from="model" as="Wasm" />
+
+    <Args in={Wasm.State} out={Wasm.State} />
+
+    <Call fn="validation_open" in={$in} />
+
+    <Call
+        fn="../json_output/check"
+        in={{
+            state: {
+                source: {
+                    bases: $ctx.validation_open.state.tree.ast.context.source,
+                    types: $in.source.types,
+                    type_id: $in.source.output_type,
+                    failure_first: $ctx.validation_open.failure_first,
+                    failure_count: $ctx.validation_open.failure_count
+                },
+                context: $ctx.validation_open.state.tree.ast.context,
+                statements: $ctx.validation_open.state.tree.ast.statements,
+                loops: $in.loops,
+                sequence: 0
+            },
+            type_id: $in.source.output_type,
+            value: $ctx.validation_open.value
+        }}
+    />
+
+    <Call
+        fn="validation_close"
+        in={{
+            prepared: $ctx.validation_open,
+            checked: $ctx.check
+        }}
+    />
+
+    <Return value={$ctx.validation_close} />
+</Module>

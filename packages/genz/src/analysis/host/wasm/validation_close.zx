@@ -1,0 +1,33 @@
+import branch from "../../../ast/statements/builder/branch"
+
+import type { State as Checked } from "../json_output/model"
+import type { Validation, State as Output } from "./model"
+
+export type Input = {
+    prepared: Validation,
+    checked: Checked
+}
+
+export default function (in: Input): Output {
+    const state = in.prepared.state
+
+    return {
+        ...state,
+        loops: in.checked.loops,
+        tree: {
+            ...state.tree,
+            ast: {
+                ...state.tree.ast,
+                context: in.checked.context,
+                statements: branch({
+                    scope: {
+                        state: in.checked.statements,
+                        parent_tags: in.prepared.parent_tags,
+                        parent_offsets: in.prepared.parent_offsets
+                    },
+                    condition: in.prepared.enabled
+                })
+            }
+        }
+    }
+}

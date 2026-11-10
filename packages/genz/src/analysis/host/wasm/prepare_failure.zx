@@ -1,0 +1,132 @@
+import bytes from "std:bytes"
+
+import path from "../../../ast/context/path"
+import text from "../../../ast/context/text"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import open from "../../../ast/statements/builder/open"
+import result from "../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../printer/model/expressions"
+import catchScope from "../node/task/catch"
+import invoke from "../node/task/invoke"
+import {
+    state_name,
+    state_arena,
+    error_name,
+    deinit_name,
+    reset_name,
+    free_all
+} from "./const"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export default function (in: Input): Output {
+    const failure_scope_opened = open(in.state.tree.ast.statements)
+
+    const failure_scope = failure_scope_opened.pick([
+        "parent_tags",
+        "parent_offsets"
+    ])
+
+    const deinit = invoke({
+        state: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                statements: failure_scope_opened.state
+            },
+            extra: in.state.tree.extra
+        },
+        path: [
+            state_name,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deinitialized = evaluate({
+        state: failure_scope_opened.state,
+        value: deinit.id,
+        discard: false
+    })
+
+    const mode = text({
+        state: deinit.state.ast.context,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(free_all)
+    })
+
+    const reset = invoke({
+        state: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                context: mode.state,
+                statements: deinitialized
+            },
+            extra: in.state.tree.extra
+        },
+        path: [
+            state_arena,
+            reset_name
+        ],
+        arguments: [mode.id],
+        fallible: false
+    })
+
+    const reset_discarded = evaluate({
+        state: deinitialized,
+        value: reset.id,
+        discard: true
+    })
+
+    const error_value = path({
+        state: reset.state.ast.context,
+        path: [error_name]
+    })
+
+    const failed = result({
+        state: reset_discarded,
+        value: error_value.id
+    })
+
+    const caught = catchScope({
+        state: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                context: error_value.state,
+                statements: failed
+            },
+            extra: in.state.tree.extra
+        },
+        parent_tags: failure_scope.parent_tags,
+        parent_offsets: failure_scope.parent_offsets,
+        value: in.value,
+        capture: bytes.fromText(error_name)
+    })
+
+    return {
+        id: caught.id,
+        state: {
+            ...in.state,
+            tree: {
+                ...in.state.tree,
+                ast: {
+                    ...in.state.tree.ast,
+                    context: caught.state.ast.context,
+                    statements: caught.state.ast.statements,
+                    fields: caught.state.ast.fields,
+                    declarations: caught.state.ast.declarations,
+                    valid: caught.state.ast.valid
+                },
+                extra: caught.state.extra
+            }
+        }
+    }
+}

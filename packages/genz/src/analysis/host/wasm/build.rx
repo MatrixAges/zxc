@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Wasm" />
+
+    <Args in={Wasm.Input} out={Wasm.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call module="storage" in={$ctx.initialize} />
+    <Call module="allocation" in={$ctx.storage} />
+
+    <Call fn="json_execute" in={$ctx.allocation} />
+    <Call fn="result_ptr" in={$ctx.json_execute} />
+    <Call fn="result_len" in={$ctx.result_ptr} />
+    <Call fn="reset" in={$ctx.result_len} />
+    <Call fn="deinit" in={$ctx.reset} />
+
+    <Call module="prepare" in={$ctx.deinit} />
+    <Call module="json" in={$ctx.prepare} />
+    <Call module="scalar" in={$ctx.json} />
+
+    <Call fn="publish" in={$ctx.scalar} />
+
+    <Return value={$ctx.publish} />
+</Module>

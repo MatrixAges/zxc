@@ -1,0 +1,52 @@
+import primitive from "../../../ast/context/primitive"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import errorUnion from "../node/task/error_union"
+import method from "../node/task/method"
+import { prepare_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const void_type = primitive({
+        state: in.tree.ast.context,
+        value: P.Void
+    })
+
+    const return_type = errorUnion({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: void_type.state
+            },
+            extra: in.tree.extra
+        },
+        payload: void_type.id,
+        inferred: true
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: return_type.state.ast.context,
+                statements: return_type.state.ast.statements,
+                fields: return_type.state.ast.fields,
+                declarations: return_type.state.ast.declarations,
+                valid: return_type.state.ast.valid
+            },
+            extra: return_type.state.extra
+        },
+        name: prepare_name,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

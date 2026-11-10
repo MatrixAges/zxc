@@ -1,0 +1,81 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Breaks } from "../../../ast/statements/builder/break_value"
+import type { Columns as Loops } from "../../../ast/statements/builder/for_loop"
+import type { Columns as Scopes } from "../../../ast/statements/builder/scope"
+import type { Declarations } from "../../../printer/model/declarations"
+import type { StatementsKind } from "../../../printer/model/statements"
+import type { Statements } from "../../../printer/model/statements"
+import type { Arms } from "../../match/model"
+import type { Input as HostInput } from "../cli/model"
+import type { State as Tree, Extra as TaskExtra } from "../node/task/model"
+
+export type Input = HostInput
+
+export type ExpressionColumns = {
+    optional_type: u32[],
+    mutable_slice: u32[],
+    return_value: u32?[],
+    container_type_fields_start: u32[],
+    container_type_fields_len: u32[],
+    container_type_declarations_start: u32[],
+    container_type_declarations_len: u32[],
+    selection_subject: u32[],
+    selection_arms_start: u32[],
+    selection_arms_len: u32[]
+}
+
+export type DeclarationColumns = {
+    variable_name: u8[][],
+    variable_type_expr: u32?[],
+    variable_value: u32[],
+    variable_exported: bool[],
+    comptime_scope_start: u32[],
+    comptime_scope_len: u32[]
+}
+
+export type State = {
+    source: Input,
+    tree: Tree,
+    expressions: ExpressionColumns,
+    declarations: DeclarationColumns,
+    loops: Loops,
+    scopes: Scopes,
+    breaks: Breaks,
+    arms: Arms,
+    first: u32,
+    request_type: u32,
+    empty_input: u32,
+    parsed_input: u32
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Module = {
+    context: Context,
+    extra: TaskExtra,
+    expression_forms: ExpressionColumns,
+    statements: Statements,
+    fields: Fields,
+    declarations: Declarations,
+    arms: Arms,
+    first: u32
+}
+
+export type Output = {
+    module: Module,
+    valid: bool
+}
+
+export type Validation = {
+    state: State,
+    enabled: u32,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[],
+    failure_first: u32,
+    failure_count: u32,
+    value: u32
+}

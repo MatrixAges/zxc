@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import conditional from "../../../ast/context/conditional"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import binding from "../../../ast/statements/builder/binding"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B
+} from "../../../printer/model/expressions"
+import { application_name, value_name, input_type } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const input_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const void = primitive({
+        state: input_type_node.state,
+        value: P.Void
+    })
+
+    const no_input = binary({
+        state: void.state,
+        operator: B.Equal,
+        left: input_type_node.id,
+        right: void.id
+    })
+
+    const selected = conditional({
+        state: no_input.state,
+        condition: no_input.id,
+        yes: in.empty_input,
+        no: in.parsed_input
+    })
+
+    const value_bound = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(value_name),
+        value: selected.id,
+        mutable: false,
+        type_expr: input_type_node.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: selected.state,
+                statements: value_bound
+            },
+            extra: in.tree.extra
+        }
+    }
+}

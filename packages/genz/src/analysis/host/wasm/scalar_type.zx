@@ -1,0 +1,194 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../ast/context/binary"
+import builtin from "../../../ast/context/builtin"
+import conditional from "../../../ast/context/conditional"
+import makeInteger from "../../../ast/context/integer"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B,
+    ExpressionsBuiltinName as Builtin,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import method from "../node/task/method"
+import {
+    value_name,
+    scalar_type,
+    type_parameter,
+    bits_name,
+    signedness_name,
+    int_tag,
+    float_tag,
+    narrow_bits,
+    wide_bits
+} from "./const"
+import selection from "./selection"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const parameter = path({
+        state: in.tree.ast.context,
+        path: [type_parameter]
+    })
+
+    const bits = path({
+        state: parameter.state,
+        path: [
+            value_name,
+            bits_name
+        ]
+    })
+
+    const signedness = path({
+        state: bits.state,
+        path: [
+            value_name,
+            signedness_name
+        ]
+    })
+
+    const narrow = makeInteger({
+        state: signedness.state,
+        value: narrow_bits
+    })
+
+    const wide = makeInteger({
+        state: narrow.state,
+        value: wide_bits
+    })
+
+    const fits = binary({
+        state: wide.state,
+        operator: B.LessEqual,
+        left: bits.id,
+        right: narrow.id
+    })
+
+    const small = builtin({
+        state: fits.state,
+        name: Builtin.Int,
+        arguments: [
+            signedness.id,
+            narrow.id
+        ]
+    })
+
+    const large = builtin({
+        state: small.state,
+        name: Builtin.Int,
+        arguments: [
+            signedness.id,
+            wide.id
+        ]
+    })
+
+    const integer = conditional({
+        state: large.state,
+        condition: fits.id,
+        yes: small.id,
+        no: large.id
+    })
+
+    const unsigned = primitive({
+        state: integer.state,
+        value: P.U32
+    })
+
+    const selected_first = integers.narrow(in.arms.value.length)
+
+    const selected_label_0 = text({
+        state: unsigned.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(int_tag)
+    })
+
+    const selected_arm_0 = {
+        value: in.arms.value.push(selected_label_0.id)[0],
+        capture: in.arms.capture.push(bytes.fromText(value_name))[0],
+        result: in.arms.result.push(integer.id)[0]
+    }
+
+    const selected_label_1 = text({
+        state: selected_label_0.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(float_tag)
+    })
+
+    const selected_arm_1 = {
+        value: selected_arm_0.value.push(selected_label_1.id)[0],
+        capture: selected_arm_0.capture.push(null)[0],
+        result: selected_arm_0.result.push(parameter.id)[0]
+    }
+
+    const selected_arm_2 = {
+        value: selected_arm_1.value.push(null)[0],
+        capture: selected_arm_1.capture.push(null)[0],
+        result: selected_arm_1.result.push(unsigned.id)[0]
+    }
+
+    const selected_info = builtin({
+        state: selected_label_1.state,
+        name: Builtin.TypeInfo,
+        arguments: [parameter.id]
+    })
+
+    const selected = selection({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: selected_info.state
+                },
+                extra: in.tree.extra
+            },
+            arms: selected_arm_2
+        },
+        subject: selected_info.id,
+        first: selected_first,
+        count: 3
+    })
+
+    const returned = result({
+        state: selected.state.tree.ast.statements,
+        value: selected.id
+    })
+
+    const type_type = primitive({
+        state: selected.state.tree.ast.context,
+        value: P.Type
+    })
+
+    const declared = method({
+        state: {
+            ...selected.state.tree,
+            ast: {
+                ...selected.state.tree.ast,
+                context: type_type.state,
+                statements: returned
+            },
+            extra: selected.state.tree.extra
+        },
+        name: scalar_type,
+        parameters: [{
+            name: type_parameter,
+            value: type_type.id,
+            comptime_parameter: true
+        }],
+        return_type: type_type.id,
+        exported: false,
+        abi_export: false
+    })
+
+    return {
+        ...selected.state,
+        tree: declared
+    }
+}

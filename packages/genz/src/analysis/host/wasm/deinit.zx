@@ -1,0 +1,188 @@
+import boolean from "../../../ast/context/boolean"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import assignment from "../../../ast/statements/builder/assignment"
+import evaluate from "../../../ast/statements/builder/evaluate"
+import guard from "../../../ast/statements/builder/guard"
+import { ExpressionsPrimitive as P } from "../../../printer/model/expressions"
+import invoke from "../node/task/invoke"
+import method from "../node/task/method"
+import {
+    std_name,
+    state_arena,
+    initialized_name,
+    executing_name,
+    heap_name,
+    arena_type,
+    wasm_allocator,
+    init_name,
+    deinit_name,
+    zxc_reset,
+    zxc_deinit
+} from "./const"
+import stateDeinit from "./state_deinit"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const return_type = primitive({
+        state: in.tree.ast.context,
+        value: P.Void
+    })
+
+    const running = path({
+        state: return_type.state,
+        path: [executing_name]
+    })
+
+    const busy_guard = guard({
+        state: in.tree.ast.statements,
+        condition: running.id,
+        value: null
+    })
+
+    const reset = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: running.state,
+                statements: busy_guard
+            },
+            extra: in.tree.extra
+        },
+        path: [zxc_reset],
+        arguments: [],
+        fallible: false
+    })
+
+    const cleared = evaluate({
+        state: busy_guard,
+        value: reset.id,
+        discard: false
+    })
+
+    const released = match in.source.stateful { true => stateDeinit({
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: reset.state.ast.context,
+                statements: cleared
+            },
+            extra: in.tree.extra
+        }
+    }), _ => {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: reset.state.ast.context,
+                statements: cleared
+            },
+            extra: in.tree.extra
+        }
+    } }
+
+    const deinit = invoke({
+        state: {
+            ...released.tree,
+            ast: {
+                ...released.tree.ast,
+            },
+            extra: released.tree.extra
+        },
+        path: [
+            state_arena,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deinitialized = evaluate({
+        state: released.tree.ast.statements,
+        value: deinit.id,
+        discard: false
+    })
+
+    const arena_allocator = path({
+        state: deinit.state.ast.context,
+        path: [
+            std_name,
+            heap_name,
+            wasm_allocator
+        ]
+    })
+
+    const arena = invoke({
+        state: {
+            ...released.tree,
+            ast: {
+                ...released.tree.ast,
+                context: arena_allocator.state,
+                statements: deinitialized
+            },
+            extra: released.tree.extra
+        },
+        path: [
+            std_name,
+            heap_name,
+            arena_type,
+            init_name
+        ],
+        arguments: [arena_allocator.id],
+        fallible: false
+    })
+
+    const target = path({
+        state: arena.state.ast.context,
+        path: [state_arena]
+    })
+
+    const arena_reset = assignment({
+        state: deinitialized,
+        target: target.id,
+        value: arena.id
+    })
+
+    const no = boolean({
+        state: target.state,
+        value: false
+    })
+
+    const initialized = path({
+        state: no.state,
+        path: [initialized_name]
+    })
+
+    const initialization_cleared = assignment({
+        state: arena_reset,
+        target: initialized.id,
+        value: no.id
+    })
+
+    const declared = method({
+        state: {
+            ...released.tree,
+            ast: {
+                ...released.tree.ast,
+                context: initialized.state,
+                statements: initialization_cleared
+            },
+            extra: released.tree.extra
+        },
+        name: zxc_deinit,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: true
+    })
+
+    return {
+        ...released,
+        tree: declared
+    }
+}

@@ -1,0 +1,135 @@
+import bytes from "std:bytes"
+
+import address from "../../../ast/context/address"
+import binary from "../../../ast/context/binary"
+import call from "../../../ast/context/call"
+import conditional from "../../../ast/context/conditional"
+import path from "../../../ast/context/path"
+import tryValue from "../../../ast/context/try_value"
+import unreachableValue from "../../../ast/context/unreachable"
+import binding from "../../../ast/statements/builder/binding"
+import { ExpressionsBinaryOperator as B } from "../../../printer/model/expressions"
+import {
+    application_name,
+    arena_name,
+    current_name,
+    value_name,
+    output_name,
+    execute_name,
+    requires_io,
+    requires_process
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const execute_value = path({
+        state: in.tree.ast.context,
+        path: [value_name]
+    })
+
+    const execute_application = path({
+        state: execute_value.state,
+        path: [
+            application_name,
+            execute_name
+        ]
+    })
+
+    const execute_current = path({
+        state: execute_application.state,
+        path: [
+            current_name,
+            execute_name
+        ]
+    })
+
+    const execute_arena = path({
+        state: execute_current.state,
+        path: [
+            current_name,
+            arena_name
+        ]
+    })
+
+    const execute_address = address({
+        state: execute_arena.state,
+        value: execute_arena.id
+    })
+
+    const execute_selected_callee =
+        match in.source.stateful {
+            true => execute_current.id,
+            _ => execute_application.id
+        }
+
+    const execute_arguments =
+        match in.source.stateful { true => [execute_value.id], _ => [
+            execute_address.id,
+            execute_value.id
+        ] }
+
+    const execute_call = call({
+        state: execute_address.state,
+        callee: execute_selected_callee,
+        arguments: execute_arguments,
+        fallible: false
+    })
+
+    const execute_io = path({
+        state: execute_call.state,
+        path: [
+            application_name,
+            requires_io
+        ]
+    })
+
+    const execute_process = path({
+        state: execute_io.state,
+        path: [
+            application_name,
+            requires_process
+        ]
+    })
+
+    const execute_capability = binary({
+        state: execute_process.state,
+        operator: B.LogicalOr,
+        left: execute_io.id,
+        right: execute_process.id
+    })
+
+    const execute_unreachable = unreachableValue(execute_capability.state)
+
+    const execute = conditional({
+        state: execute_unreachable.state,
+        condition: execute_capability.id,
+        yes: execute_unreachable.id,
+        no: execute_call.id
+    })
+
+    const output_value = tryValue({
+        state: execute.state,
+        value: execute.id
+    })
+
+    const output_bound = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(output_name),
+        value: output_value.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: output_value.state,
+                statements: output_bound
+            },
+            extra: in.tree.extra
+        }
+    }
+}

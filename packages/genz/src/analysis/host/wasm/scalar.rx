@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Wasm" />
+
+    <Args in={Wasm.State} out={Wasm.State} />
+
+    <Call fn="scalar_storage" in={$in} />
+    <Call fn="scalar_exports" in={$ctx.scalar_storage} />
+    <Call fn="is_scalar" in={$ctx.scalar_exports} />
+    <Call fn="scalar_type" in={$ctx.is_scalar} />
+    <Call fn="scalar_call" in={$ctx.scalar_type} />
+    <Call fn="scalar_call_void" in={$ctx.scalar_call} />
+    <Call fn="scalar_result" in={$ctx.scalar_call_void} />
+    <Call fn="scalar_invalid" in={$ctx.scalar_result} />
+
+    <Call module="scalar_execution" in={$ctx.scalar_invalid} />
+
+    <Return value={$ctx.scalar_execution} />
+</Module>

@@ -1,0 +1,87 @@
+import boolean from "../../../ast/context/boolean"
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/path"
+import undefinedValue from "../../../ast/context/undefined"
+import {
+    application_name,
+    scalar_ready,
+    scalar_result,
+    scalar_type,
+    output_type
+} from "./const"
+import variable from "./variable"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const output_type_node = path({
+        state: in.tree.ast.context,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const scalar_type_fn = path({
+        state: output_type_node.state,
+        path: [scalar_type]
+    })
+
+    const scalar_output = call({
+        state: scalar_type_fn.state,
+        callee: scalar_type_fn.id,
+        arguments: [output_type_node.id],
+        fallible: false
+    })
+
+    const initial = undefinedValue(scalar_output.state)
+
+    const result_declared = variable({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: initial.state
+                },
+                extra: in.tree.extra
+            }
+        },
+        name: scalar_result,
+        value: initial.id,
+        type_expr: scalar_output.id
+    })
+
+    const no = boolean({
+        state: result_declared.tree.ast.context,
+        value: false
+    })
+
+    const ready_declared = variable({
+        state: {
+            ...result_declared,
+            tree: {
+                ...result_declared.tree,
+                ast: {
+                    ...result_declared.tree.ast,
+                    context: no.state
+                },
+                extra: result_declared.tree.extra
+            }
+        },
+        name: scalar_ready,
+        value: no.id
+    })
+
+    return {
+        ...ready_declared,
+        tree: {
+            ...ready_declared.tree,
+            ast: {
+                ...ready_declared.tree.ast,
+            },
+            extra: ready_declared.tree.extra
+        }
+    }
+}

@@ -1,0 +1,71 @@
+import bytes from "std:bytes"
+
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import text from "../../../ast/context/text"
+import makeUnit from "../../../ast/context/unit"
+import result from "../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsKind as K
+} from "../../../printer/model/expressions"
+import method from "../node/task/method"
+import { scalar_call_void, scalar_execute, c_convention } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const unit = makeUnit(in.tree.ast.context)
+
+    const scalar_execute_fn = path({
+        state: unit.state,
+        path: [scalar_execute]
+    })
+
+    const execute = call({
+        state: scalar_execute_fn.state,
+        callee: scalar_execute_fn.id,
+        arguments: [unit.id],
+        fallible: false
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: execute.id
+    })
+
+    const return_type = primitive({
+        state: execute.state,
+        value: P.U32
+    })
+
+    const convention = text({
+        state: return_type.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    const declared = method({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: convention.state,
+                statements: returned
+            },
+            extra: in.tree.extra
+        },
+        name: scalar_call_void,
+        parameters: [],
+        return_type: return_type.id,
+        exported: false,
+        abi_export: false,
+        convention: convention.id
+    })
+
+    return {
+        ...in,
+        tree: declared
+    }
+}

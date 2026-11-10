@@ -1,6 +1,6 @@
 const std = @import("std");
-const node = @import("../../node.zig");
-const Builder = @import("../../builder.zig");
+const node = @import("../../../node.zig");
+const Builder = @import("../../../builder.zig");
 const common = @import("common.zig");
 const types = @import("scalar_types.zig");
 

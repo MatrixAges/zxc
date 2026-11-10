@@ -1,0 +1,27 @@
+import path from "../../../ast/context/path"
+import { state_type, request_type } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = path({
+        state: in.tree.ast.context,
+        path: [
+            state_type,
+            request_type
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: target.state
+            },
+            extra: in.tree.extra
+        },
+        request_type: target.id
+    }
+}
