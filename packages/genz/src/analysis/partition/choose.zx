@@ -38,9 +38,11 @@ export default function (in: Input): Output {
                 return: current => current.bytes
             })
 
-            const bytes = in.bytes[state.index] + added
+            const previous = in.bytes[state.index]
+            const bytes = previous + added
             const excess = bytes > in.capacity ? bytes - in.capacity : 0
-            const cost = added + excess
+            const prior_excess = previous > in.capacity ? previous - in.capacity : 0
+            const cost = added + excess - prior_excess
             const first = state.index == 0
             const cheaper = cost < state.cost
             const tied = cost == state.cost && bytes < state.bytes

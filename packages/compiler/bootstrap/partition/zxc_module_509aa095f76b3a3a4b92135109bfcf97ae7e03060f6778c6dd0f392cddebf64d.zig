@@ -10,30 +10,28 @@ pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_f
 
     var state_reference_6: (zx_abi).value_bed918aed054c9ed3f71729717ed0d2a2e3f722bbc913cecd312e92e9bf7e447 = undefined;
 
-    const value_1: (zx_abi).value_e893759507c197f46a9d38b5d1018fd18f1808dd522dcfdea1620c9bbf63b4a4 = block_18: {
-        break :block_18 (try (@import("zxc_module_3ac4a84bb2e2037608cd4cdfbec9d613703b961787dbb51ae1ff48dc84ca4be6.zig")).callValue(allocator, in));
+    const value_1: (zx_abi).value_e893759507c197f46a9d38b5d1018fd18f1808dd522dcfdea1620c9bbf63b4a4 = block_17: {
+        break :block_17 (try (@import("zxc_module_3ac4a84bb2e2037608cd4cdfbec9d613703b961787dbb51ae1ff48dc84ca4be6.zig")).callValue(allocator, in));
     };
 
-    const value_2: (zx_abi).value_e893759507c197f46a9d38b5d1018fd18f1808dd522dcfdea1620c9bbf63b4a4 = block_17: {
-        break :block_17 (try (@import("zxc_module_d3f8fecc25e1f582cd1a2c93110fb8c8d47e40368554c34b8e0b21a24d7975e3.zig")).callValue(allocator, value_1));
+    const value_2: (zx_abi).value_e893759507c197f46a9d38b5d1018fd18f1808dd522dcfdea1620c9bbf63b4a4 = block_16: {
+        break :block_16 (try (@import("zxc_module_d3f8fecc25e1f582cd1a2c93110fb8c8d47e40368554c34b8e0b21a24d7975e3.zig")).callValue(allocator, value_1));
     };
 
-    const value_3: u64 = block_16: {
-        const operand_11 = in;
-        const operand_12 = value_2;
-        const operand_13 = (operand_12).items;
+    const value_3: u64 = block_15: {
+        var qualified_14: (zx_abi).value_0b9d76788d7cd6b65c77a85d6545e2213c36fb5edbac85725bcea9ce4dfc0015 = block_13: {
+            const operand_11 = in;
+            const operand_12 = value_2;
 
-        const operand_14 = (zx_abi).value_e893759507c197f46a9d38b5d1018fd18f1808dd522dcfdea1620c9bbf63b4a4{
-            .items = operand_13,
-            .storage = .plain,
+            break :block_13 @as((zx_abi).value_0b9d76788d7cd6b65c77a85d6545e2213c36fb5edbac85725bcea9ce4dfc0015, (zx_abi).value_0b9d76788d7cd6b65c77a85d6545e2213c36fb5edbac85725bcea9ce4dfc0015{
+                .graph = operand_11,
+                .closures = operand_12,
+            });
         };
 
-        const operand_15 = (zx_abi).zx_type_88caf5f375b798af3825ffee7fccece78cb7d9d09bf019812fce5941dc54a9b5{
-            .graph = operand_11,
-            .closures = (operand_14).items,
-        };
+        ((qualified_14).closures).storage = (if ((@backingInt(((qualified_14).closures).storage) >= 2)) .shared else .plain);
 
-        break :block_16 (try (@import("zxc_module_b9b664032f72b77b2ba04e3f70d34245c07f8de18fa99aa797e100f12df1cac1.zig")).call(allocator, (&operand_15)));
+        break :block_15 (try (@import("zxc_module_b9b664032f72b77b2ba04e3f70d34245c07f8de18fa99aa797e100f12df1cac1.zig")).callValue(allocator, qualified_14));
     };
 
     const value_4: (zx_abi).value_027dedca472ddabf6de6c7e25ac327e352467be081874c3968b8f45bd04e7602 = block_10: {

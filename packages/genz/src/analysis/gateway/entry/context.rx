@@ -1,0 +1,49 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Visit} out={Entry.Output} />
+
+    <Call
+        module="../adapter/build"
+        in={{
+            bases: $in.bases,
+            declaration_base: 0,
+            slots: $in.service.slots,
+            service_index: $in.index
+        }}
+    />
+
+    <If on={$ctx.build != null}>
+        <If on={!$ctx.build.valid}>
+            <Return
+                value={{
+                    output: [],
+                    valid: false,
+                    invalid_route: false
+                }}
+            />
+        </If>
+
+        <Call fn="snapshots/adapter" in={$ctx.build} />
+
+        <Call
+            module="../../../printer/render"
+            in={{
+                source: $ctx.adapter,
+                output: $in.state.output
+            }}
+        />
+
+        <Return
+            value={{
+                output: $ctx.render,
+                valid: true,
+                invalid_route: false
+            }}
+        />
+
+        <Else>
+            <Return value={$in.state} />
+        </Else>
+    </If>
+</Module>

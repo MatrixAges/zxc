@@ -229,7 +229,7 @@ pub const zx_type_9db89ada2f4a902401ca5a414cda265108cb7b9d5bd50fe0724459f1482973
 
 pub const value_1ebf1fe3843450ac449e4fe2375bb537b210fa9f03c9825ec6719b2cc82e77dd = struct {
     items: []const u32,
-    storage: enum {
+    storage: enum(usize) {
         plain,
         owned,
         shared,
@@ -239,7 +239,7 @@ pub const value_1ebf1fe3843450ac449e4fe2375bb537b210fa9f03c9825ec6719b2cc82e77dd
 
 pub const value_b4e524448f2745cc406d7784dc5bc06bbfd18296034108aed7705d2c271c7397 = struct {
     items: []const []const u32,
-    storage: enum {
+    storage: enum(usize) {
         plain,
         owned,
         shared,
@@ -249,7 +249,7 @@ pub const value_b4e524448f2745cc406d7784dc5bc06bbfd18296034108aed7705d2c271c7397
 
 pub const value_bafd04b3069dfa6f63956592316df66b6af6e3db5b4c945d99f367975ccd475e = struct {
     items: []const u64,
-    storage: enum {
+    storage: enum(usize) {
         plain,
         owned,
         shared,
@@ -259,7 +259,7 @@ pub const value_bafd04b3069dfa6f63956592316df66b6af6e3db5b4c945d99f367975ccd475e
 
 pub const value_ef10e8daf842213dbf67d860744b8c2b0aee2449d39e98e360757ec527f0a4ed = struct {
     items: []const bool,
-    storage: enum {
+    storage: enum(usize) {
         plain,
         owned,
         shared,
@@ -269,7 +269,7 @@ pub const value_ef10e8daf842213dbf67d860744b8c2b0aee2449d39e98e360757ec527f0a4ed
 
 pub const value_32074469ff0d4a12433201ddefdc885bbd90a876af0c5338c36866d82ae9ca82 = struct {
     items: []const []const bool,
-    storage: enum {
+    storage: enum(usize) {
         plain,
         owned,
         shared,
@@ -365,7 +365,7 @@ pub const view_value_1d242fa07cc24f0ba80005ebf93581f5523cda258c690fec0b2efb92e2f
 
 pub const value_e893759507c197f46a9d38b5d1018fd18f1808dd522dcfdea1620c9bbf63b4a4 = struct {
     items: []const *const zx_type_64d6f82e564c940220772aae0ebcd0c763c8e6f3985e8e1d0c003fcdb5ea06d0,
-    storage: enum {
+    storage: enum(usize) {
         plain,
         owned,
         shared,
@@ -937,6 +937,12 @@ pub const native = struct {
             pub const Input = u64;
             pub const Output = u64;
             pub const InputValue = u64;
+            pub const OutputValue = u64;
+        };
+        pub const hash32 = struct {
+            pub const Input = u32;
+            pub const Output = u64;
+            pub const InputValue = u32;
             pub const OutputValue = u64;
         };
     };

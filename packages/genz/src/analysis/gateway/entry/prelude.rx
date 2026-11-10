@@ -1,0 +1,36 @@
+<Module>
+    <Type from="../prelude/model" as="Prelude" />
+    <Type from="model" as="Entry" />
+
+    <Args in={Prelude.Input} out={Entry.Output} />
+
+    <Call module="../prelude/build" in={$in} />
+
+    <If on={!$ctx.build.valid}>
+        <Return
+            value={{
+                output: [],
+                valid: false,
+                invalid_route: false
+            }}
+        />
+    </If>
+
+    <Call fn="snapshots/prelude" in={$ctx.build} />
+
+    <Call
+        module="../../../printer/render"
+        in={{
+            source: $ctx.prelude,
+            output: []
+        }}
+    />
+
+    <Return
+        value={{
+            output: $ctx.render,
+            valid: true,
+            invalid_route: false
+        }}
+    />
+</Module>

@@ -1,0 +1,35 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Http} out={Entry.Output} />
+
+    <Call module="../http/build" in={$in.bases} />
+
+    <If on={!$ctx.build.valid}>
+        <Return
+            value={{
+                output: [],
+                valid: false,
+                invalid_route: false
+            }}
+        />
+    </If>
+
+    <Call fn="snapshots/http" in={$ctx.build} />
+
+    <Call
+        module="../../../printer/render"
+        in={{
+            source: $ctx.http,
+            output: $in.state.output
+        }}
+    />
+
+    <Return
+        value={{
+            output: $ctx.render,
+            valid: true,
+            invalid_route: false
+        }}
+    />
+</Module>

@@ -1,0 +1,30 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Visit} out={Entry.Output} />
+
+    <Call module="context" in={$in} />
+
+    <If on={!$ctx.context.valid}>
+        <Return value={$ctx.context} />
+    </If>
+
+    <Call
+        module="invoke"
+        in={{
+            state: $ctx.context,
+            config: {
+                bases: $in.bases,
+                declaration_base: 0,
+                index: $in.index,
+                slot_count: $in.service.slots.length,
+                requires_io: $in.service.requires_io,
+                requires_process: $in.service.requires_process,
+                types: $in.service.types,
+                output_type: $in.service.output_type
+            }
+        }}
+    />
+
+    <Return value={$ctx.invoke} />
+</Module>

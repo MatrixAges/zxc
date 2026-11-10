@@ -1,0 +1,56 @@
+import type { Table } from "core/type_table/model"
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Slot } from "../adapter/model"
+import type { Input as DispatchInput, Route } from "../dispatch/model"
+import type { Input as InvokeInput } from "../invoke/model"
+
+export type Service = {
+    slots: Slot[],
+    requires_io: bool,
+    requires_process: bool,
+    types: Table,
+    output_type: u32
+}
+
+export type Input = {
+    services: Service[],
+    service_modules: string[],
+    routes: Route[],
+    listen: string,
+    max_header_bytes: u32,
+    max_body_bytes: u32
+}
+
+export type Output = {
+    output: u8[],
+    valid: bool,
+    invalid_route: bool
+}
+
+export type Dispatch = {
+    state: Output,
+    config: DispatchInput
+}
+
+export type Services = {
+    state: Output,
+    bases: Bases,
+    services: Service[]
+}
+
+export type Visit = {
+    state: Output,
+    bases: Bases,
+    service: Service,
+    index: u64
+}
+
+export type Invoke = {
+    state: Output,
+    config: InvokeInput
+}
+
+export type Http = {
+    state: Output,
+    bases: Bases
+}

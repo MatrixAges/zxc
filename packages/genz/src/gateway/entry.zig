@@ -1,64 +1,80 @@
 const std = @import("std");
+const zx = @import("zx");
 const model = @import("root.zig");
-const node = @import("../node.zig");
-const Builder = @import("../builder.zig");
-const invoke = @import("invoke.zig");
-const dispatch = @import("dispatch.zig");
-const prelude = @import("prelude.zig");
+
 pub const Options = struct { services: []const model.Service, service_modules: []const []const u8, routes: []const model.Route, listen: []const u8, max_header_bytes: u32, max_body_bytes: u32 };
 
 pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error![]u8 {
-    if (comptime @import("genz_options").generated_analysis) return renderStored(allocator, options);
+    if (comptime !@import("genz_options").generated_analysis) return @import("entry_seed.zig").render(allocator, options);
 
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
-    const builder = try Builder.init(arena.allocator());
-    var declarations: std.ArrayList(node.Declaration) = .empty;
+    const workspace = arena.allocator();
+    const entry = @import("generated_gateway_entry");
+    const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+    const indirect = @typeInfo(Parameter) == .pointer;
+    const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
 
-    try prelude.lower(builder, &declarations, options);
-    try declarations.append(builder.allocator, try dispatch.lower(builder, options.routes));
-
-    for (options.services, 0..) |service, index| {
-        if (try model.adapter.lower(builder, service, index)) |declaration| try declarations.append(builder.allocator, declaration);
-        try declarations.append(builder.allocator, try invoke.lower(builder, service, index));
-    }
-
-    try declarations.appendSlice(builder.allocator, &try @import("boundary.zig").lower(builder));
-
-    return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
-}
-
-fn renderStored(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error![]u8 {
-    var arena = std.heap.ArenaAllocator.init(allocator);
-
-    defer arena.deinit();
-
-    const builder = try Builder.init(arena.allocator());
-    var prelude_declarations: std.ArrayList(node.Declaration) = .empty;
-
-    try prelude.lower(builder, &prelude_declarations, options);
-
-    const prefix = try builder.nodes.declarations(builder.allocator, prelude_declarations.items);
-    var roots: std.ArrayList(u32) = .empty;
-
-    for (0..prefix.len) |index| try roots.append(builder.allocator, prefix.start + @as(u32, @intCast(index)));
-    try roots.append(builder.allocator, try dispatch.lowerStored(builder, options.routes));
-
-    for (options.services, 0..) |service, index| {
-        if (try model.adapter.lowerStored(builder, service, index)) |root| try roots.append(builder.allocator, root);
-        try roots.append(builder.allocator, try invoke.lowerStored(builder, service, index));
-    }
-
-    const boundary = try @import("boundary.zig").lowerStored(builder);
-
-    for (0..boundary.len) |index| try roots.append(builder.allocator, boundary.start + @as(u32, @intCast(index)));
-
-    const selected = builder.nodes.selectDeclarations(builder.allocator, roots.items) catch |err| switch (err) {
-        error.OutOfMemory => return error.OutOfMemory,
-        error.InvalidAst => @panic("invalid Gateway declaration roots"),
+    const input: Input = .{
+        .services = try services(@FieldType(Input, "services"), workspace, options.services),
+        .routes = try routes(@FieldType(Input, "routes"), workspace, options.routes),
+        .service_modules = options.service_modules,
+        .listen = options.listen,
+        .max_header_bytes = options.max_header_bytes,
+        .max_body_bytes = options.max_body_bytes,
     };
 
-    return @import("../render.zig").renderStored(allocator, builder.nodes, selected);
+    const output = entry.executeValue(workspace, if (indirect) &input else input) catch |err| return failure(err);
+
+    if (output.invalid_route) @panic("invalid Gateway method group");
+    if (!output.valid) return error.OutOfMemory;
+
+    return allocator.dupe(u8, output.output);
+}
+
+fn routes(comptime Target: type, allocator: std.mem.Allocator, values: []const model.Route) std.mem.Allocator.Error!Target {
+    if (comptime @sizeOf(usize) == @sizeOf(u64)) return zx.columns.storage.view(Target, values);
+
+    const Row = std.meta.Child(Target);
+    const headers = try allocator.alloc(Row, values.len);
+
+    for (values, headers) |value, *header| {
+        header.* = .{ .method = value.method, .path = value.path, .service = @intCast(value.service) };
+    }
+
+    return headers;
+}
+
+fn services(comptime Target: type, allocator: std.mem.Allocator, values: []const model.Service) std.mem.Allocator.Error!Target {
+    const Pointer = std.meta.Child(Target);
+    const Row = std.meta.Child(Pointer);
+    const Types = std.meta.Child(@FieldType(Row, "types"));
+    const tables = try allocator.alloc(Types, values.len);
+    const headers = try allocator.alloc(Row, values.len);
+    const pointers = try allocator.alloc(Pointer, values.len);
+
+    for (values, tables, headers, pointers) |value, *table, *header, *pointer| {
+        table.* = zx.ir.TypeTable.borrow(Types, value.output.types);
+
+        header.* = .{
+            .slots = try @import("slots.zig").borrow(@FieldType(Row, "slots"), allocator, value.slots),
+            .requires_io = value.requires_io,
+            .requires_process = value.requires_process,
+            .types = table,
+            .output_type = @backingInt(value.output.id),
+        };
+
+        pointer.* = header;
+    }
+
+    return pointers;
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid Gateway entry AST"),
+    };
 }

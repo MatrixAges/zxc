@@ -1,0 +1,35 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Invoke} out={Entry.Output} />
+
+    <Call module="../invoke/build" in={$in.config} />
+
+    <If on={!$ctx.build.valid}>
+        <Return
+            value={{
+                output: [],
+                valid: false,
+                invalid_route: false
+            }}
+        />
+    </If>
+
+    <Call fn="snapshots/invoke" in={$ctx.build} />
+
+    <Call
+        module="../../../printer/render"
+        in={{
+            source: $ctx.invoke,
+            output: $in.state.output
+        }}
+    />
+
+    <Return
+        value={{
+            output: $ctx.render,
+            valid: true,
+            invalid_route: false
+        }}
+    />
+</Module>

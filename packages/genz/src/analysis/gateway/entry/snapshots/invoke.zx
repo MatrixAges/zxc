@@ -1,0 +1,31 @@
+import emptyDeclarations from "../../../../ast/snapshot/empty_declarations"
+import emptyStatements from "../../../../ast/snapshot/empty_statements"
+import expressions from "../../../../ast/snapshot/expressions"
+
+import type { Source as Output } from "../../../../printer/model"
+import type { Output as Input } from "../../invoke/model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: {
+            ...expressions(in.context),
+            ...in.extra
+        },
+        statements: {
+            ...emptyStatements({}),
+            ...in.statements
+        },
+        fields: in.fields,
+        declarations: {
+            ...emptyDeclarations({}),
+            ...in.declarations
+        },
+        arms: {
+            value: [],
+            capture: [],
+            result: []
+        },
+        first: in.root,
+        count: 1
+    }
+}

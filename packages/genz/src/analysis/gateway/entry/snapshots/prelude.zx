@@ -1,0 +1,51 @@
+import integers from "std:integer"
+
+import constant from "../../../../ast/declarations/table/constant"
+import create from "../../../../ast/declarations/table/create"
+import emptyFields from "../../../../ast/fields/empty"
+import emptyDeclarations from "../../../../ast/snapshot/empty_declarations"
+import emptyExpressions from "../../../../ast/snapshot/empty_expressions"
+import emptyStatements from "../../../../ast/snapshot/empty_statements"
+
+import type { Source as Output } from "../../../../printer/model"
+import type { Output as Input } from "../../prelude/model"
+
+export default function (in: Input): Output {
+    const declarations = loop({
+        table: create({}),
+        index: 0
+    }, {
+        while: current => current.index < in.declarations.length,
+        next: current => {
+            const result = constant({
+                state: current.table,
+                value: in.declarations[current.index]
+            })
+
+            current.table = result.state
+            current.index += 1
+        },
+        return: current => current.table
+    })
+
+    return {
+        expressions: {
+            ...emptyExpressions({}),
+            ...in.expressions,
+            ...in.forms
+        },
+        statements: emptyStatements({}),
+        fields: emptyFields({}),
+        declarations: {
+            ...emptyDeclarations({}),
+            ...declarations
+        },
+        arms: {
+            value: [],
+            capture: [],
+            result: []
+        },
+        first: 0,
+        count: integers.narrow(in.declarations.length)
+    }
+}

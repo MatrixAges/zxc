@@ -1,0 +1,62 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Input} out={Entry.Output} />
+
+    <Call fn="bases" in={{}} />
+
+    <Call
+        module="prelude"
+        in={{
+            bases: $ctx.bases,
+            declaration_base: 0,
+            service_modules: $in.service_modules,
+            listen: $in.listen,
+            max_header_bytes: $in.max_header_bytes,
+            max_body_bytes: $in.max_body_bytes
+        }}
+    />
+
+    <If on={!$ctx.prelude.valid}>
+        <Return value={$ctx.prelude} />
+    </If>
+
+    <Call
+        module="dispatch"
+        in={{
+            state: $ctx.prelude,
+            config: {
+                bases: $ctx.bases,
+                declaration_base: 0,
+                routes: $in.routes
+            }
+        }}
+    />
+
+    <If on={!$ctx.dispatch.valid || $ctx.dispatch.invalid_route}>
+        <Return value={$ctx.dispatch} />
+    </If>
+
+    <Call
+        fn="services"
+        in={{
+            state: $ctx.dispatch,
+            bases: $ctx.bases,
+            services: $in.services
+        }}
+    />
+
+    <If on={!$ctx.services.valid}>
+        <Return value={$ctx.services} />
+    </If>
+
+    <Call
+        module="http"
+        in={{
+            state: $ctx.services,
+            bases: $ctx.bases
+        }}
+    />
+
+    <Return value={$ctx.http} />
+</Module>

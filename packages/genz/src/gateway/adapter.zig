@@ -27,7 +27,7 @@ pub fn lowerStored(builder: Builder, service: Service, index: usize) std.mem.All
     const Slots = @FieldType(Input, "slots");
     const framed = @typeInfo(Slots) == .@"struct";
     const Slice = if (framed) @FieldType(Slots, "items") else Slots;
-    const slots = zx.columns.storage.view(Slice, service.slots);
+    const slots = try @import("slots.zig").borrow(Slice, builder.allocator, service.slots);
 
     const bases: Bases = .{
         .capture = null,

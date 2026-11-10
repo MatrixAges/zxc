@@ -1,0 +1,35 @@
+<Module>
+    <Type from="model" as="Entry" />
+
+    <Args in={Entry.Dispatch} out={Entry.Output} />
+
+    <Call module="../dispatch/build" in={$in.config} />
+
+    <If on={!$ctx.build.valid || $ctx.build.invalid_route}>
+        <Return
+            value={{
+                output: [],
+                valid: $ctx.build.valid,
+                invalid_route: $ctx.build.invalid_route
+            }}
+        />
+    </If>
+
+    <Call fn="snapshots/dispatch" in={$ctx.build} />
+
+    <Call
+        module="../../../printer/render"
+        in={{
+            source: $ctx.dispatch,
+            output: $in.state.output
+        }}
+    />
+
+    <Return
+        value={{
+            output: $ctx.render,
+            valid: true,
+            invalid_route: false
+        }}
+    />
+</Module>
