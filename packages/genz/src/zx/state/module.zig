@@ -23,11 +23,7 @@ pub fn render(allocator: std.mem.Allocator, objects: []const state.Object, requi
             .process = requirements.process,
         };
 
-        var scratch = std.heap.ArenaAllocator.init(allocator);
-
-        defer scratch.deinit();
-
-        const output = entry.executeValue(scratch.allocator(), if (indirect) &input else input) catch |err| return failure(err);
+        const output = entry.executeValue(builder.allocator, if (indirect) &input else input) catch |err| return failure(err);
 
         if (!output.valid) return error.OutOfMemory;
 
@@ -37,7 +33,7 @@ pub fn render(allocator: std.mem.Allocator, objects: []const state.Object, requi
         const Parts = payload(@FieldType(Output, "parts"));
 
         inline for (@typeInfo(Parts).@"struct".field_names) |name| {
-            @import("../../node/import_module.zig").append(builder.allocator, builder.nodes, payload(@FieldType(Parts, name)), @field(values, name)) catch |err| return failure(err);
+            @import("../../node/import_module.zig").appendBorrowed(builder.allocator, builder.nodes, payload(@FieldType(Parts, name)), @field(values, name)) catch |err| return failure(err);
         }
 
         const roots = zx.columns.view(struct { roots: @FieldType(Output, "roots") }, output).roots;
