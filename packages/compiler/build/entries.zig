@@ -464,12 +464,36 @@ pub fn of(set: Set) []const Entry {
     };
 }
 
-pub fn ParserModules() type {
-    comptime var names: []const []const u8 = &.{ "type_views", "nominal_data" };
+pub const ModuleEntry = struct {
+    set: Set,
+    entry: Entry,
+    file: []const u8,
+    import_name: []const u8,
+};
 
-    for (main ++ ordered ++ collections ++ growth) |entry| {
-        if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) names = names ++ .{entry.name};
+pub const module_entries = block: {
+    @setEvalBranchQuota(10_000);
+
+    const sets = .{ Set.main, Set.ordered, Set.collections, Set.growth };
+    var count: usize = 0;
+
+    for (sets) |set| {
+        for (of(set)) |entry| {
+            if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) count += 1;
+        }
     }
 
-    return @Struct(.auto, null, names, &@splat(*std.Build.Module), &@splat(.{}));
-}
+    var result: [count]ModuleEntry = undefined;
+    var index: usize = 0;
+
+    for (sets) |set| {
+        for (of(set)) |entry| {
+            if (entry.owner != .frontend and entry.owner != .compiler and entry.owner != .genz) continue;
+
+            result[index] = .{ .set = set, .entry = entry, .file = entry.name ++ ".zig", .import_name = entry.importName() };
+            index += 1;
+        }
+    }
+
+    break :block result;
+};

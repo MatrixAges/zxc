@@ -384,29 +384,44 @@ fn cachedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sour
 }
 
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, natives: Shared, strip: ?bool) @import("compiler.zig").ParserModules {
-    var result: @import("compiler.zig").ParserModules = undefined;
-    result.type_views = @import("compiler.zig").typeViews(b, target, optimize);
-    result.nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
+    const type_views = @import("compiler.zig").typeViews(b, target, optimize);
+    const nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
+    const bindings = b.allocator.alloc(@import("compiler.zig").ModuleBinding, entries.module_entries.len) catch @panic("out of memory");
 
-    inline for (.{ entries.Set.main, entries.Set.ordered, entries.Set.collections, entries.Set.growth }) |set| {
-        inline for (comptime entries.of(set)) |entry| {
-            if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) {
-                const directory = @field(source, @tagName(set));
+    for (entries.module_entries, bindings) |metadata, *binding| {
+        const directory = switch (metadata.set) {
+            .main => source.main,
+            .ordered => source.ordered,
+            .collections => source.collections,
+            .growth => source.growth,
+            else => unreachable,
+        };
 
-                const module = b.createModule(.{
-                    .root_source_file = directory.path(b, entry.name ++ ".zig"),
-                    .target = target,
-                    .optimize = optimize,
-                    .strip = strip,
-                });
+        const generated = switch (metadata.set) {
+            .main => natives.generated,
+            .ordered => natives.ordered,
+            .collections => natives.collections,
+            .growth => natives.growth,
+            else => unreachable,
+        };
 
-                module.addImport("generated", if (set == .main) natives.generated else @field(natives, @tagName(set)));
-                @field(result, entry.name) = module;
-            }
-        }
+        const module = b.createModule(.{
+            .root_source_file = directory.path(b, metadata.file),
+            .target = target,
+            .optimize = optimize,
+            .strip = strip,
+        });
+
+        module.addImport("generated", generated);
+
+        binding.* = .{ .metadata = metadata, .module = module };
     }
 
-    return result;
+    return .{
+        .type_views = type_views,
+        .nominal_data = nominal_data,
+        .bindings = bindings,
+    };
 }
 
 /// Individual checkers only test builds import; they hang off one module's import table so tests can merge them.

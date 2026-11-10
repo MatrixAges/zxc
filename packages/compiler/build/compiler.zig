@@ -1,6 +1,20 @@
 const std = @import("std");
 const entries = @import("entries.zig");
-pub const ParserModules = entries.ParserModules();
+pub const ModuleBinding = struct { metadata: entries.ModuleEntry, module: *std.Build.Module };
+
+pub const ParserModules = struct {
+    type_views: *std.Build.Module,
+    nominal_data: *std.Build.Module,
+    bindings: []const ModuleBinding,
+    pub fn get(self: @This(), name: []const u8) *std.Build.Module {
+        for (self.bindings) |binding| {
+            if (std.mem.eql(u8, binding.metadata.entry.name, name)) return binding.module;
+        }
+
+        unreachable;
+    }
+};
+
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules, lint: *std.Build.Module) Modules {
@@ -35,8 +49,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     }));
 
     if (parser) |generated| {
-        inline for (entries.main ++ entries.ordered ++ entries.collections ++ entries.growth) |entry| {
-            if (entry.owner == .frontend) frontend.addImport(entry.importName(), @field(generated, entry.name));
+        for (generated.bindings) |binding| {
+            if (binding.metadata.entry.owner == .frontend) frontend.addImport(binding.metadata.import_name, binding.module);
         }
     } else {
         frontend.addImport("generated_resource_scan", b.createModule(.{
@@ -83,7 +97,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         },
     });
 
-    genz.addImport("generated_partition_groups", if (parser) |generated| generated.partition_groups else bootstrapModule(b, target, optimize, "partition", "partition_groups"));
+    genz.addImport("generated_partition_groups", if (parser) |generated| generated.get("partition_groups") else bootstrapModule(b, target, optimize, "partition", "partition_groups"));
 
     const module = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
@@ -99,9 +113,9 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     if (parser) |generated| {
-        inline for (entries.main ++ entries.ordered ++ entries.collections ++ entries.growth) |entry| {
-            if (entry.owner == .compiler) module.addImport(entry.importName(), @field(generated, entry.name));
-            if (entry.owner == .genz and !native_genz) genz.addImport(entry.importName(), @field(generated, entry.name));
+        for (generated.bindings) |binding| {
+            if (binding.metadata.entry.owner == .compiler) module.addImport(binding.metadata.import_name, binding.module);
+            if (binding.metadata.entry.owner == .genz and !native_genz) genz.addImport(binding.metadata.import_name, binding.module);
         }
     } else {
         const query_types = b.createModule(.{ .root_source_file = b.path("bootstrap/query/types.zig"), .target = target, .optimize = optimize });
