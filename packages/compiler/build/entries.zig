@@ -275,6 +275,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/host/library/build.rx", .name = "library_build", .owner = .genz },
     .{ .path = "genz/analysis/host/cli/build.rx", .name = "cli_host", .owner = .genz },
     .{ .path = "genz/analysis/host/node/context/build.rx", .name = "node_context", .owner = .genz },
+    .{ .path = "genz/analysis/host/node/task/build.rx", .name = "node_task", .owner = .genz },
     .{ .path = "genz/analysis/gateway/entry/build.rx", .name = "gateway_entry", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },

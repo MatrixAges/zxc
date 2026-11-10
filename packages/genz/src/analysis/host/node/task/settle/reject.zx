@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import boolean from "../../../../../ast/context/boolean"
+import path from "../../../../../ast/context/path"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import binding from "../../../../../ast/statements/builder/binding"
+import { self_name, env_name } from "../../context/const"
+import check from "../check"
+import { reference_name, reject_name, pending_name, exception_pending } from "../const"
+import exception from "./exception"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const reference = path({
+        state: in.ast.context,
+        path: [reference_name]
+    })
+
+    const reject = path({
+        state: reference.state,
+        path: [
+            self_name,
+            reject_name
+        ]
+    })
+
+    const assigned = assignment({
+        state: in.ast.statements,
+        target: reference.id,
+        value: reject.id
+    })
+
+    const no = boolean({
+        state: reject.state,
+        value: false
+    })
+
+    const declared = binding({
+        state: assigned,
+        name: bytes.fromText(pending_name),
+        value: no.id,
+        mutable: true
+    })
+
+    const pending = path({
+        state: no.state,
+        path: [pending_name]
+    })
+
+    const pointer = address({
+        state: pending.state,
+        value: pending.id
+    })
+
+    const env = path({
+        state: pointer.state,
+        path: [env_name]
+    })
+
+    const checked = check({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: env.state,
+                statements: declared
+            }
+        },
+        name: exception_pending,
+        arguments: [
+            env.id,
+            pointer.id
+        ]
+    })
+
+    return exception(checked)
+}

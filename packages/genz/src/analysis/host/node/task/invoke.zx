@@ -1,0 +1,30 @@
+import invoke from "../../cli/invoke"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    path: string[],
+    arguments: u32[],
+    fallible: bool
+}
+
+export default function (in: Input): Output {
+    const result = invoke({
+        state: in.state.ast.context,
+        path: in.path,
+        arguments: in.arguments,
+        fallible: in.fallible
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: result.state
+            }
+        }
+    }
+}

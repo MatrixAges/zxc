@@ -1,0 +1,77 @@
+import address from "../../../../../ast/context/address"
+import path from "../../../../../ast/context/path"
+import close from "../../../../../ast/statements/builder/close"
+import elseBranch from "../../../../../ast/statements/builder/else_branch"
+import open from "../../../../../ast/statements/builder/open"
+import { env_name } from "../../context/const"
+import check from "../check"
+import { pending_name, value_name, clear_exception } from "../const"
+import createError from "./create_error"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const pending = path({
+        state: in.ast.context,
+        path: [pending_name]
+    })
+
+    const env = path({
+        state: pending.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const pointer = address({
+        state: value.state,
+        value: value.id
+    })
+
+    const scope = open(in.ast.statements)
+
+    const cleared = check({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: pointer.state,
+                statements: scope.state
+            }
+        },
+        name: clear_exception,
+        arguments: [
+            env.id,
+            pointer.id
+        ]
+    })
+
+    const yes = close(cleared.ast.statements)
+
+    const failed = createError({
+        ...cleared,
+        ast: {
+            ...cleared.ast,
+            statements: yes.state
+        }
+    })
+
+    return {
+        ...failed,
+        ast: {
+            ...failed.ast,
+            statements: elseBranch({
+                scope: {
+                    ...scope,
+                    state: failed.ast.statements
+                },
+                condition: pending.id,
+                yes_first: yes.first,
+                yes_count: yes.count
+            })
+        }
+    }
+}

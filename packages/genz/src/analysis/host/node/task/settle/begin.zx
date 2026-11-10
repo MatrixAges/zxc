@@ -1,0 +1,140 @@
+import bytes from "std:bytes"
+
+import conditional from "../../../../../ast/context/conditional"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import branch from "../../../../../ast/statements/builder/branch"
+import open from "../../../../../ast/statements/builder/open"
+import result from "../../../../../ast/statements/builder/result"
+import invoke from "../../../cli/invoke"
+import { self_name, closing_name, env_name, api_name } from "../../context/const"
+import {
+    context_name,
+    output_name,
+    napi_name,
+    write_name,
+    value_name,
+    value_type,
+    result_name,
+    reference_name,
+    resolve_name
+} from "../const"
+import { error_capture } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const closing = path({
+        state: in.ast.context,
+        path: [
+            self_name,
+            context_name,
+            closing_name
+        ]
+    })
+
+    const scope = open(in.ast.statements)
+
+    const guarded = branch({
+        scope: {
+            ...scope,
+            state: result({
+                state: scope.state
+            })
+        },
+        condition: closing.id
+    })
+
+    const source = path({
+        state: closing.state,
+        path: [
+            self_name,
+            output_name
+        ]
+    })
+
+    const env = path({
+        state: source.state,
+        path: [env_name]
+    })
+
+    const output = path({
+        state: env.state,
+        path: [output_name]
+    })
+
+    const written = invoke({
+        state: output.state,
+        path: [
+            napi_name,
+            write_name
+        ],
+        arguments: [
+            env.id,
+            output.id
+        ],
+        fallible: false
+    })
+
+    const error = path({
+        state: written.state,
+        path: [error_capture]
+    })
+
+    const selected = conditional({
+        state: error.state,
+        condition: source.id,
+        yes: written.id,
+        no: error.id,
+        capture: bytes.fromText(output_name),
+        error_capture: bytes.fromText(error_capture)
+    })
+
+    const declared = binding({
+        state: guarded,
+        name: bytes.fromText(result_name),
+        value: selected.id,
+        mutable: false
+    })
+
+    const value = path({
+        state: selected.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(value.state)
+
+    const stored = binding({
+        state: declared,
+        name: bytes.fromText(value_name),
+        type_expr: value.id,
+        value: nil.id,
+        mutable: true
+    })
+
+    const reference = path({
+        state: nil.state,
+        path: [
+            self_name,
+            resolve_name
+        ]
+    })
+
+    return {
+        ...in,
+        ast: {
+            ...in.ast,
+            context: reference.state,
+            statements: binding({
+                state: stored,
+                name: bytes.fromText(reference_name),
+                value: reference.id,
+                mutable: true
+            })
+        }
+    }
+}

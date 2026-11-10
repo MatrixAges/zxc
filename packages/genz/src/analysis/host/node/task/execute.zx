@@ -1,0 +1,153 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import calledMethod from "../../../../ast/context/method"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import text from "../../../../ast/context/text"
+import assignment from "../../../../ast/statements/builder/assignment"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import invoke from "../../cli/invoke"
+import {
+    self_name,
+    data_name,
+    arena_name,
+    api_name,
+    env_type,
+    c_convention
+} from "../context/const"
+import {
+    input_name,
+    output_name,
+    request_name,
+    execute_name,
+    application_name,
+    blank_name
+} from "./const"
+import prepare from "./execute_request"
+import method from "./method"
+import selfBinding from "./self_binding"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const binding = selfBinding(in)
+    const state = prepare(binding.state)
+
+    const input = path({
+        state: state.ast.context,
+        path: [
+            self_name,
+            input_name
+        ]
+    })
+
+    const arena = path({
+        state: input.state,
+        path: [
+            self_name,
+            arena_name
+        ]
+    })
+
+    const target = path({
+        state: arena.state,
+        path: [
+            self_name,
+            request_name
+        ]
+    })
+
+    const request = unwrap({
+        state: target.state,
+        value: target.id
+    })
+
+    const pointer = address({
+        state: request.state,
+        value: arena.id
+    })
+
+    const output = match {
+        state.ast.stateful => calledMethod({
+            state: pointer.state,
+            target: request.id,
+            path: [execute_name],
+            arguments: [input.id]
+        }),
+        _ => invoke({
+            state: pointer.state,
+            path: [
+                application_name,
+                execute_name
+            ],
+            arguments: [
+                pointer.id,
+                input.id
+            ],
+            fallible: false
+        })
+    }
+
+    const destination = path({
+        state: output.state,
+        path: [
+            self_name,
+            output_name
+        ]
+    })
+
+    const body = assignment({
+        state: state.ast.statements,
+        target: destination.id,
+        value: output.id
+    })
+
+    const env = path({
+        state: destination.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const payload = primitive({
+        state: env.state,
+        value: P.Void
+    })
+
+    const convention = text({
+        state: payload.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    return method({
+        state: {
+            ...state,
+            ast: {
+                ...state.ast,
+                context: convention.state,
+                statements: body
+            }
+        },
+        name: execute_name,
+        parameters: [
+            {
+                name: blank_name,
+                value: env.id
+            },
+            {
+                name: data_name,
+                value: binding.data_type
+            }
+        ],
+        return_type: payload.id,
+        exported: true,
+        convention: convention.id
+    })
+}

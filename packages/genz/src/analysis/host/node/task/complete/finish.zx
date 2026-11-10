@@ -1,0 +1,105 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../../../ast/context/boolean"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import text from "../../../../../ast/context/text"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsKind as K
+} from "../../../../../printer/model/expressions"
+import {
+    api_name,
+    env_type,
+    env_name,
+    data_name,
+    c_convention,
+    running_name
+} from "../../context/const"
+import { context_name, complete_name, status_name, status_type } from "../const"
+import method from "../method"
+
+import type { State, State as Output } from "../model"
+
+export type Input = {
+    state: State,
+    data_type: u32
+}
+
+export default function (in: Input): Output {
+    const running = path({
+        state: in.state.ast.context,
+        path: [
+            context_name,
+            running_name
+        ]
+    })
+
+    const no = boolean({
+        state: running.state,
+        value: false
+    })
+
+    const finished = assignment({
+        state: in.state.ast.statements,
+        target: running.id,
+        value: no.id
+    })
+
+    const env = path({
+        state: no.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const status = path({
+        state: env.state,
+        path: [
+            api_name,
+            status_type
+        ]
+    })
+
+    const payload = primitive({
+        state: status.state,
+        value: P.Void
+    })
+
+    const convention = text({
+        state: payload.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    return method({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: convention.state,
+                statements: finished
+            }
+        },
+        name: complete_name,
+        parameters: [
+            {
+                name: env_name,
+                value: env.id
+            },
+            {
+                name: status_name,
+                value: status.id
+            },
+            {
+                name: data_name,
+                value: in.data_type
+            }
+        ],
+        return_type: payload.id,
+        exported: true,
+        convention: convention.id
+    })
+}

@@ -1,0 +1,146 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../ast/context/builtin"
+import importPath from "../../../../ast/context/import_path"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import constant from "../../../../ast/declarations/table/constant"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as B
+} from "../../../../printer/model/expressions"
+import {
+    std_name,
+    api_name,
+    napi_module,
+    self_type,
+    state_module
+} from "../context/const"
+import {
+    application_name,
+    napi_name,
+    context_type,
+    context_module,
+    request_type
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        std_name,
+        application_name,
+        napi_name,
+        context_type
+    ]
+
+    const modules = [
+        std_name,
+        application_name,
+        napi_module,
+        context_module
+    ]
+
+    const imported = loop({
+        ast: in.ast,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const value = importPath({
+                state: current.ast.context,
+                module: modules[current.index],
+                path: []
+            })
+
+            const declared = constant({
+                state: current.ast.declarations,
+                value: {
+                    name: bytes.fromText(names[current.index]),
+                    value: value.id,
+                    exported: false
+                }
+            })
+
+            current.ast = {
+                ...current.ast,
+                context: value.state,
+                declarations: declared.state,
+                valid: current.ast.valid && declared.valid
+            }
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    const api = path({
+        state: imported.context,
+        path: [
+            napi_name,
+            api_name
+        ]
+    })
+
+    const request = match {
+        in.ast.stateful => importPath({
+            state: api.state,
+            module: state_module,
+            path: [request_type]
+        }),
+        _ => primitive({
+            state: api.state,
+            value: P.Void
+        })
+    }
+
+    const self = builtin({
+        state: request.state,
+        name: B.This,
+        arguments: []
+    })
+
+    const extra_names = [
+        api_name,
+        request_type,
+        self_type
+    ]
+
+    const values = [
+        api.id,
+        request.id,
+        self.id
+    ]
+
+    const ast = loop({
+        ast: {
+            ...imported,
+            context: self.state
+        },
+        index: 0
+    }, {
+        while: current => current.index < extra_names.length,
+        next: current => {
+            const declared = constant({
+                state: current.ast.declarations,
+                value: {
+                    name: bytes.fromText(extra_names[current.index]),
+                    value: values[current.index],
+                    exported: false
+                }
+            })
+
+            current.ast = {
+                ...current.ast,
+                declarations: declared.state,
+                valid: current.ast.valid && declared.valid
+            }
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    return {
+        ...in,
+        ast
+    }
+}

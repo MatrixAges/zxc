@@ -1,0 +1,57 @@
+import type { StatementsKind } from "../../../../printer/model/statements"
+import type { State as Ast } from "../context/model"
+import type { Published } from "../context/model"
+
+export enum Target {
+    Current,
+    Next
+}
+
+export type Input = {
+    stateful: bool
+}
+
+export type Extra = {
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    catch_scope_value: u32[],
+    catch_scope_capture: u8[]?[],
+    catch_scope_body_start: u32[],
+    catch_scope_body_len: u32[],
+    defer_expression: u32[],
+    defer_scope_start: u32[],
+    defer_scope_len: u32[]
+}
+
+export type State = {
+    ast: Ast,
+    extra: Extra
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Parameter = {
+    name: string,
+    value: u32
+}
+
+export type Method = {
+    state: State,
+    name: string,
+    parameters: Parameter[],
+    return_type: u32,
+    exported: bool,
+    convention?: u32
+}
+
+export type Saved = {
+    state: State,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[]
+}
+
+export type Output = Published

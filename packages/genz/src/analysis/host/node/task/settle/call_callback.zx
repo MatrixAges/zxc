@@ -1,0 +1,68 @@
+import address from "../../../../../ast/context/address"
+import integer from "../../../../../ast/context/integer"
+import path from "../../../../../ast/context/path"
+import tuple from "../../../../../ast/context/tuple"
+import check from "../check"
+import { value_name, ignored_name, call_function } from "../const"
+
+import type { State as Ast } from "../../context/model"
+import type { State as Output, Extra } from "../model"
+
+export type Input = {
+    ast: Ast,
+    extra: Extra,
+    callback: u32,
+    receiver: u32,
+    env: u32
+}
+
+export default function (in: Input): Output {
+    const value = path({
+        state: in.ast.context,
+        path: [value_name]
+    })
+
+    const values = tuple({
+        state: value.state,
+        values: [value.id]
+    })
+
+    const arguments = address({
+        state: values.state,
+        value: values.id
+    })
+
+    const ignored = path({
+        state: arguments.state,
+        path: [ignored_name]
+    })
+
+    const result = address({
+        state: ignored.state,
+        value: ignored.id
+    })
+
+    const count = integer({
+        state: result.state,
+        value: 1
+    })
+
+    return check({
+        state: {
+            ast: {
+                ...in.ast,
+                context: count.state
+            },
+            extra: in.extra
+        },
+        name: call_function,
+        arguments: [
+            in.env,
+            in.receiver,
+            in.callback,
+            count.id,
+            arguments.id,
+            result.id
+        ]
+    })
+}

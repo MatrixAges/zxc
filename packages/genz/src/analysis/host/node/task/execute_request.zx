@@ -1,0 +1,121 @@
+import bytes from "std:bytes"
+
+import field from "../../../../ast/context/field"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import {
+    self_name,
+    state_field,
+    arena_name,
+    std_name,
+    heap_name,
+    page_allocator_name,
+    arena_type
+} from "../context/const"
+import { request_name, context_name, init_name } from "./const"
+import invoke from "./invoke"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.ast.stateful) {
+        return in
+    }
+
+    const request = path({
+        state: in.ast.context,
+        path: [
+            self_name,
+            request_name
+        ]
+    })
+
+    const created = invoke({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: request.state
+            }
+        },
+        path: [
+            self_name,
+            context_name,
+            state_field,
+            request_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const assigned = assignment({
+        state: in.ast.statements,
+        target: request.id,
+        value: created.id
+    })
+
+    const unwrapped = unwrap({
+        state: created.state.ast.context,
+        value: request.id
+    })
+
+    const destination = field({
+        state: unwrapped.state,
+        target: unwrapped.id,
+        name: bytes.fromText(arena_name)
+    })
+
+    const arena = path({
+        state: destination.state,
+        path: [
+            self_name,
+            arena_name
+        ]
+    })
+
+    const moved = assignment({
+        state: assigned,
+        target: destination.id,
+        value: arena.id
+    })
+
+    const allocator = path({
+        state: arena.state,
+        path: [
+            std_name,
+            heap_name,
+            page_allocator_name
+        ]
+    })
+
+    const replaced = invoke({
+        state: {
+            ...created.state,
+            ast: {
+                ...created.state.ast,
+                context: allocator.state
+            }
+        },
+        path: [
+            std_name,
+            heap_name,
+            arena_type,
+            init_name
+        ],
+        arguments: [allocator.id],
+        fallible: false
+    })
+
+    return {
+        ...replaced.state,
+        ast: {
+            ...replaced.state.ast,
+            statements: assignment({
+                state: moved,
+                target: arena.id,
+                value: replaced.id
+            })
+        }
+    }
+}

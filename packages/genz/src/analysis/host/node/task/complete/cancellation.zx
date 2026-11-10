@@ -1,0 +1,73 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../../ast/context/binary"
+import path from "../../../../../ast/context/path"
+import text from "../../../../../ast/context/text"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import branch from "../../../../../ast/statements/builder/branch"
+import open from "../../../../../ast/statements/builder/open"
+import {
+    ExpressionsKind as K,
+    ExpressionsBinaryOperator as B
+} from "../../../../../printer/model/expressions"
+import { self_name } from "../../context/const"
+import { status_name, ok_tag, output_name, cancelled_error } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const status = path({
+        state: in.ast.context,
+        path: [status_name]
+    })
+
+    const ok = text({
+        state: status.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(ok_tag)
+    })
+
+    const condition = binary({
+        state: ok.state,
+        operator: B.NotEqual,
+        left: status.id,
+        right: ok.id
+    })
+
+    const output = path({
+        state: condition.state,
+        path: [
+            self_name,
+            output_name
+        ]
+    })
+
+    const error = text({
+        state: output.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(cancelled_error)
+    })
+
+    const scope = open(in.ast.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: output.id,
+        value: error.id
+    })
+
+    return {
+        ...in,
+        ast: {
+            ...in.ast,
+            context: error.state,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: assigned
+                },
+                condition: condition.id
+            })
+        }
+    }
+}

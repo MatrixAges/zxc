@@ -9,6 +9,7 @@ export type Input = {
     scope: Scope,
     condition: u32,
     capture?: u8[],
+    error_capture?: u8[],
     yes_first: u32,
     yes_count: u32
 }
@@ -41,6 +42,6 @@ export default function (in: Input): Output {
         branch_no_len: state.branch_no_len.push(count)[0],
         branch_capture: state.branch_capture.push(in.capture)[0],
         branch_capture_reference: state.branch_capture_reference.push(false)[0],
-        branch_error_capture: state.branch_error_capture.push(null)[0]
+        branch_error_capture: state.branch_error_capture.push(in.error_capture)[0]
     }
 }

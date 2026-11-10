@@ -1,0 +1,12 @@
+<Module>
+    <Type from="../model" as="Task" />
+
+    <Args in={Task.State} out={Task.State} />
+
+    <Call fn="begin" in={$in} />
+    <Call fn="result" in={$ctx.begin} />
+    <Call fn="callbacks" in={$ctx.result} />
+    <Call fn="finish" in={$ctx.callbacks} />
+
+    <Return value={$ctx.finish} />
+</Module>

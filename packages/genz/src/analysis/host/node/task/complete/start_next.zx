@@ -1,0 +1,86 @@
+import bytes from "std:bytes"
+
+import path from "../../../../../ast/context/path"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import continued from "../../../../../ast/statements/builder/continue_loop"
+import open from "../../../../../ast/statements/builder/open"
+import result from "../../../../../ast/statements/builder/result"
+import caught from "../catch"
+import { next_capture, start_name, output_name, error_capture } from "../const"
+import evaluate from "../evaluate"
+import invoke from "../invoke"
+import { Target } from "../model"
+import releaseCompleted from "./release_completed"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const started = invoke({
+        state: in,
+        path: [
+            next_capture,
+            start_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const error = path({
+        state: started.state.ast.context,
+        path: [error_capture]
+    })
+
+    const output = path({
+        state: error.state,
+        path: [
+            next_capture,
+            output_name
+        ]
+    })
+
+    const scope = open(in.ast.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: output.id,
+        value: error.id
+    })
+
+    const released = releaseCompleted({
+        state: {
+            ...started.state,
+            ast: {
+                ...started.state.ast,
+                context: output.state,
+                statements: assigned
+            }
+        },
+        target: Target.Next
+    })
+
+    const continued_state = {
+        ...released,
+        ast: {
+            ...released.ast,
+            statements: continued(released.ast.statements)
+        }
+    }
+
+    const recovered = evaluate(caught({
+        state: continued_state,
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        value: started.id,
+        capture: bytes.fromText(error_capture)
+    }))
+
+    return {
+        ...recovered,
+        ast: {
+            ...recovered.ast,
+            statements: result({
+                state: recovered.ast.statements
+            })
+        }
+    }
+}

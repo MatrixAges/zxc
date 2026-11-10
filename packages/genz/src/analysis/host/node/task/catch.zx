@@ -1,0 +1,71 @@
+import construct from "../../../../ast/expressions/catch_scope"
+import close from "../../../../ast/statements/builder/close"
+
+import type { StatementsKind } from "../../../../printer/model/statements"
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[],
+    value: u32,
+    capture?: u8[]
+}
+
+export default function (in: Input): Output {
+    const body = close(in.state.ast.statements)
+    const context = in.state.ast.context
+
+    const result = construct({
+        table: {
+            ...context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.state.extra.pick([
+                "catch_scope_value",
+                "catch_scope_capture",
+                "catch_scope_body_start",
+                "catch_scope_body_len"
+            ])
+        },
+        base: 0,
+        value: in.value,
+        capture: in.capture,
+        start: body.first,
+        count: body.count
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: {
+                    ...context,
+                    expressions: {
+                        ...context.expressions,
+                        ...result.table.pick([
+                            "tags",
+                            "offsets"
+                        ])
+                    }
+                },
+                statements: {
+                    ...body.state,
+                    root_tags: in.parent_tags,
+                    root_offsets: in.parent_offsets
+                },
+                valid: in.state.ast.valid && result.valid
+            },
+            extra: {
+                ...in.state.extra,
+                ...result.table.omit([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        }
+    }
+}

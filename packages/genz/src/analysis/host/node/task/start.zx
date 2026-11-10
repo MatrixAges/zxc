@@ -1,0 +1,75 @@
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import { ExpressionsPrimitive as P } from "../../../../printer/model/expressions"
+import { self_name, env_name } from "../context/const"
+import parameter from "../context/self_parameter"
+import check from "./check"
+import { context_name, work_name, start_name, add_async } from "./const"
+import errorUnion from "./error_union"
+import method from "./method"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = parameter(in.ast)
+
+    const env = path({
+        state: self.state.context,
+        path: [
+            self_name,
+            context_name,
+            env_name
+        ]
+    })
+
+    const work = path({
+        state: env.state,
+        path: [
+            self_name,
+            work_name
+        ]
+    })
+
+    const checked = check({
+        state: {
+            ...in,
+            ast: {
+                ...self.state,
+                context: work.state
+            }
+        },
+        name: add_async,
+        arguments: [
+            env.id,
+            work.id
+        ]
+    })
+
+    const payload = primitive({
+        state: checked.ast.context,
+        value: P.Void
+    })
+
+    const returned = errorUnion({
+        state: {
+            ...checked,
+            ast: {
+                ...checked.ast,
+                context: payload.state
+            }
+        },
+        payload: payload.id,
+        inferred: true
+    })
+
+    return method({
+        state: returned.state,
+        name: start_name,
+        parameters: [{
+            name: self_name,
+            value: self.id
+        }],
+        return_type: returned.id,
+        exported: true
+    })
+}

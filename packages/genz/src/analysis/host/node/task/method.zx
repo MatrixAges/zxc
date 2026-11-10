@@ -1,0 +1,71 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import defineFunction from "../../../../ast/declarations/function"
+import declaration from "../../../../ast/declarations/table/function"
+import field from "../../../../ast/fields/append"
+import close from "../../../../ast/statements/builder/close"
+
+import type { Method as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = in.state
+
+    const fields = loop({
+        fields: state.ast.fields,
+        index: 0
+    }, {
+        while: current => current.index < in.parameters.length,
+        next: current => {
+            const parameter = in.parameters[current.index]
+
+            current.fields = field({
+                table: current.fields,
+                name: bytes.fromText(parameter.name),
+                value: parameter.value,
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current.fields
+    })
+
+    const body = close(state.ast.statements)
+
+    const definition = defineFunction({
+        base: integers.narrow(state.ast.declarations.tags.length),
+        name: bytes.fromText(in.name),
+        parameters_start: integers.narrow(state.ast.fields.name.length),
+        parameters_count: integers.narrow(in.parameters.length),
+        return_type: in.return_type,
+        body_start: body.first,
+        body_count: body.count,
+        exported: in.exported,
+        abi_export: false,
+        inlined: false,
+        calling_convention: in.convention
+    })
+
+    const declared = declaration({
+        state: state.ast.declarations,
+        value: definition.table,
+        parameter_base: 0
+    })
+
+    const valid = (
+        - state.ast.valid
+        - and definition.valid
+        - and declared.valid
+    )
+
+    return {
+        ...state,
+        ast: {
+            ...state.ast,
+            fields,
+            declarations: declared.state,
+            statements: body.state,
+            valid
+        }
+    }
+}

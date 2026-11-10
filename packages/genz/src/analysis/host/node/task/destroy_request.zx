@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+
+import path from "../../../../ast/context/path"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import { self_name, deinit_name } from "../context/const"
+import invoke from "../context/invoke"
+import { request_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.ast.stateful) {
+        return in
+    }
+
+    const request = path({
+        state: in.ast.context,
+        path: [
+            self_name,
+            request_name
+        ]
+    })
+
+    const scope = open(in.ast.statements)
+
+    const invoked = invoke({
+        state: {
+            ...in.ast,
+            context: request.state,
+            statements: scope.state
+        },
+        path: [
+            request_name,
+            deinit_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    return {
+        ...in,
+        ast: {
+            ...invoked,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: invoked.statements
+                },
+                condition: request.id,
+                capture: bytes.fromText(request_name),
+                capture_reference: true
+            })
+        }
+    }
+}

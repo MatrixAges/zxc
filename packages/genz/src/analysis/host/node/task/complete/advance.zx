@@ -1,0 +1,75 @@
+import binary from "../../../../../ast/context/binary"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import branch from "../../../../../ast/statements/builder/branch"
+import open from "../../../../../ast/statements/builder/open"
+import { ExpressionsBinaryOperator as B } from "../../../../../printer/model/expressions"
+import { head_name, tail_name, next_name } from "../../context/const"
+import { context_name, next_capture } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const head = path({
+        state: in.ast.context,
+        path: [
+            context_name,
+            head_name
+        ]
+    })
+
+    const next = path({
+        state: head.state,
+        path: [
+            next_capture,
+            next_name
+        ]
+    })
+
+    const advanced = assignment({
+        state: in.ast.statements,
+        target: head.id,
+        value: next.id
+    })
+
+    const nil = nullValue(next.state)
+
+    const empty = binary({
+        state: nil.state,
+        operator: B.Equal,
+        left: head.id,
+        right: nil.id
+    })
+
+    const tail = path({
+        state: empty.state,
+        path: [
+            context_name,
+            tail_name
+        ]
+    })
+
+    const scope = open(advanced)
+
+    const cleared = assignment({
+        state: scope.state,
+        target: tail.id,
+        value: nil.id
+    })
+
+    return {
+        ...in,
+        ast: {
+            ...in.ast,
+            context: tail.state,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: cleared
+                },
+                condition: empty.id
+            })
+        }
+    }
+}

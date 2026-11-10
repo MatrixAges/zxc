@@ -1,0 +1,217 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import pointer from "../../../../ast/context/pointer"
+import text from "../../../../ast/context/text"
+import undefinedValue from "../../../../ast/context/undefined"
+import append from "../../../../ast/fields/append"
+import { DeclarationsKind as D } from "../../../../printer/model/declarations"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+import {
+    std_name,
+    heap_name,
+    arena_type,
+    api_name,
+    self_type,
+    arena_name,
+    next_name
+} from "../context/const"
+import optional from "../context/optional"
+import {
+    context_type,
+    application_name,
+    input_type,
+    output_type,
+    request_type,
+    work_type,
+    ref_type,
+    work_not_executed,
+    context_name,
+    input_name,
+    output_name,
+    request_name,
+    work_name,
+    resolve_name,
+    reject_name
+} from "./const"
+import errorUnion from "./error_union"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const context = path({
+        state: in.ast.context,
+        path: [context_type]
+    })
+
+    const pointed = pointer({
+        state: context.state,
+        value: context.id
+    })
+
+    const arena = path({
+        state: pointed.state,
+        path: [
+            std_name,
+            heap_name,
+            arena_type
+        ]
+    })
+
+    const input = path({
+        state: arena.state,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const output = path({
+        state: input.state,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const returned = errorUnion({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: output.state
+            }
+        },
+        payload: output.id,
+        inferred: false
+    })
+
+    const request = path({
+        state: returned.state.ast.context,
+        path: [request_type]
+    })
+
+    const nullable = optional({
+        state: {
+            ...returned.state.ast,
+            context: request.state
+        },
+        value: request.id
+    })
+
+    const work = path({
+        state: nullable.state.context,
+        path: [
+            api_name,
+            work_type
+        ]
+    })
+
+    const reference = path({
+        state: work.state,
+        path: [
+            api_name,
+            ref_type
+        ]
+    })
+
+    const self = path({
+        state: reference.state,
+        path: [self_type]
+    })
+
+    const next_pointer = pointer({
+        state: self.state,
+        value: self.id
+    })
+
+    const next = optional({
+        state: {
+            ...nullable.state,
+            context: next_pointer.state
+        },
+        value: next_pointer.id
+    })
+
+    const missing = undefinedValue(next.state.context)
+
+    const unexecuted = text({
+        state: missing.state,
+        kind: K.ErrorValue,
+        value: bytes.fromText(work_not_executed)
+    })
+
+    const nil = nullValue(unexecuted.state)
+
+    const names = [
+        context_name,
+        arena_name,
+        input_name,
+        output_name,
+        request_name,
+        work_name,
+        resolve_name,
+        reject_name,
+        next_name
+    ]
+
+    const types = [
+        pointed.id,
+        arena.id,
+        input.id,
+        returned.id,
+        nullable.id,
+        work.id,
+        reference.id,
+        reference.id,
+        next.id
+    ]
+
+    const defaults: u32?[] = [
+        null,
+        null,
+        missing.id,
+        unexecuted.id,
+        nil.id,
+        nil.id,
+        nil.id,
+        nil.id,
+        nil.id
+    ]
+
+    const ast = loop({
+        ast: {
+            ...next.state,
+            context: nil.state
+        },
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            current.ast.members = append({
+                table: current.ast.members,
+                name: bytes.fromText(names[current.index]),
+                value: types[current.index],
+                default_value: defaults[current.index],
+                comptime_parameter: false
+            })
+            current.ast.declarations.tags =
+                current.ast.declarations.tags.push(D.Field)[0]
+            current.ast.declarations.offsets =
+                current.ast.declarations.offsets.push(
+                    integers.narrow(
+                        current.index
+                    )
+                )[0]
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    return {
+        ...returned.state,
+        ast
+    }
+}

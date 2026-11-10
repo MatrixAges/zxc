@@ -1,0 +1,56 @@
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import { ExpressionsPrimitive as P } from "../../../../../printer/model/expressions"
+import { self_name, env_name, api_name, env_type } from "../../context/const"
+import parameter from "../../context/self_parameter"
+import { settle_name } from "../const"
+import errorUnion from "../error_union"
+import method from "../method"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const self = parameter(in.ast)
+
+    const env = path({
+        state: self.state.context,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const payload = primitive({
+        state: env.state,
+        value: P.Void
+    })
+
+    const returned = errorUnion({
+        state: {
+            ...in,
+            ast: {
+                ...self.state,
+                context: payload.state
+            }
+        },
+        payload: payload.id,
+        inferred: true
+    })
+
+    return method({
+        state: returned.state,
+        name: settle_name,
+        parameters: [
+            {
+                name: self_name,
+                value: self.id
+            },
+            {
+                name: env_name,
+                value: env.id
+            }
+        ],
+        return_type: returned.id,
+        exported: false
+    })
+}

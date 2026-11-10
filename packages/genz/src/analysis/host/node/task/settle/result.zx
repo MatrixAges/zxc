@@ -1,0 +1,65 @@
+import bytes from "std:bytes"
+
+import path from "../../../../../ast/context/path"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import close from "../../../../../ast/statements/builder/close"
+import elseBranch from "../../../../../ast/statements/builder/else_branch"
+import open from "../../../../../ast/statements/builder/open"
+import { result_name, value_name, output_name, error_capture } from "../const"
+import reject from "./reject"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const result = path({
+        state: in.ast.context,
+        path: [result_name]
+    })
+
+    const value = path({
+        state: result.state,
+        path: [value_name]
+    })
+
+    const output = path({
+        state: value.state,
+        path: [output_name]
+    })
+
+    const scope = open(in.ast.statements)
+
+    const assigned = assignment({
+        state: scope.state,
+        target: value.id,
+        value: output.id
+    })
+
+    const yes = close(assigned)
+
+    const failed = reject({
+        ...in,
+        ast: {
+            ...in.ast,
+            context: output.state,
+            statements: yes.state
+        }
+    })
+
+    return {
+        ...failed,
+        ast: {
+            ...failed.ast,
+            statements: elseBranch({
+                scope: {
+                    ...scope,
+                    state: failed.ast.statements
+                },
+                condition: result.id,
+                capture: bytes.fromText(output_name),
+                error_capture: bytes.fromText(error_capture),
+                yes_first: yes.first,
+                yes_count: yes.count
+            })
+        }
+    }
+}

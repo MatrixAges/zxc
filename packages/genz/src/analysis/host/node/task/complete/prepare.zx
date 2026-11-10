@@ -1,0 +1,117 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../../../ast/context/boolean"
+import path from "../../../../../ast/context/path"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import binding from "../../../../../ast/statements/builder/binding"
+import header from "../../../../../ast/statements/builder/header"
+import open from "../../../../../ast/statements/builder/open"
+import { StatementsKind as S } from "../../../../../printer/model/statements"
+import {
+    self_name, retain_name, release_name, busy_name
+} from "../../context/const"
+import { context_name } from "../const"
+import deferScope from "../defer_scope"
+import evaluate from "../evaluate"
+import invoke from "../invoke"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const context = path({
+        state: in.ast.context,
+        path: [
+            self_name,
+            context_name
+        ]
+    })
+
+    const bound = binding({
+        state: in.ast.statements,
+        name: bytes.fromText(context_name),
+        value: context.id,
+        mutable: false
+    })
+
+    const retained = evaluate(invoke({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: context.state,
+                statements: bound
+            }
+        },
+        path: [
+            context_name,
+            retain_name
+        ],
+        arguments: [],
+        fallible: false
+    }))
+
+    const release = invoke({
+        state: retained,
+        path: [
+            context_name,
+            release_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    const deferred = header({
+        state: release.state.ast.statements,
+        kind: S.DeferExpression,
+        offset: in.extra.defer_expression.length
+    })
+
+    const busy = path({
+        state: release.state.ast.context,
+        path: [
+            context_name,
+            busy_name
+        ]
+    })
+
+    const yes = boolean({
+        state: busy.state,
+        value: true
+    })
+
+    const marked = assignment({
+        state: deferred,
+        target: busy.id,
+        value: yes.id
+    })
+
+    const no = boolean({
+        state: yes.state,
+        value: false
+    })
+
+    const scope = open(marked)
+
+    const cleared = assignment({
+        state: scope.state,
+        target: busy.id,
+        value: no.id
+    })
+
+    return deferScope({
+        state: {
+            ...release.state,
+            ast: {
+                ...release.state.ast,
+                context: no.state,
+                statements: cleared
+            },
+            extra: {
+                ...release.state.extra,
+                defer_expression: in.extra.defer_expression.push(release.id)[0]
+            }
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets
+    })
+}

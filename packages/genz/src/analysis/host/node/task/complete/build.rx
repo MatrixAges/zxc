@@ -1,0 +1,43 @@
+<Module>
+    <Type from="../model" as="Task" />
+
+    <Args in={Task.State} out={Task.State} />
+
+    <Call fn="../self_binding" in={$in} />
+    <Call fn="prepare" in={$ctx.self_binding.state} />
+    <Call fn="cancellation" in={$ctx.prepare} />
+
+    <Call
+        fn="release_completed"
+        in={{
+            state: $ctx.cancellation,
+            target: Task.Target.Current
+        }}
+    />
+
+    <If on={$in.ast.stateful}>
+        <Call fn="queue" in={$ctx.release_completed} />
+
+        <Call
+            fn="finish"
+            in={{
+                state: $ctx.queue,
+                data_type: $ctx.self_binding.data_type
+            }}
+        />
+
+        <Return value={$ctx.finish} />
+
+        <Else>
+            <Call
+                fn="finish"
+                in={{
+                    state: $ctx.release_completed,
+                    data_type: $ctx.self_binding.data_type
+                }}
+            />
+
+            <Return value={$ctx.finish} />
+        </Else>
+    </If>
+</Module>

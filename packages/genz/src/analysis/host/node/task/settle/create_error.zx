@@ -1,0 +1,137 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import builtin from "../../../../../ast/context/builtin"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import { ExpressionsBuiltinName as B } from "../../../../../printer/model/expressions"
+import { env_name, api_name } from "../../context/const"
+import check from "../check"
+import {
+    value_name,
+    message_name,
+    name_name,
+    error_capture,
+    value_type,
+    create_string,
+    create_error,
+    ptr_name,
+    len_name
+} from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const value_type_node = path({
+        state: in.ast.context,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(value_type_node.state)
+
+    const message = binding({
+        state: in.ast.statements,
+        name: bytes.fromText(message_name),
+        type_expr: value_type_node.id,
+        value: nil.id,
+        mutable: true
+    })
+
+    const error = path({
+        state: nil.state,
+        path: [error_capture]
+    })
+
+    const name = builtin({
+        state: error.state,
+        name: B.ErrorName,
+        arguments: [error.id]
+    })
+
+    const named = binding({
+        state: message,
+        name: bytes.fromText(name_name),
+        value: name.id,
+        mutable: false
+    })
+
+    const env = path({
+        state: name.state,
+        path: [env_name]
+    })
+
+    const ptr = path({
+        state: env.state,
+        path: [
+            name_name,
+            ptr_name
+        ]
+    })
+
+    const len = path({
+        state: ptr.state,
+        path: [
+            name_name,
+            len_name
+        ]
+    })
+
+    const destination = path({
+        state: len.state,
+        path: [message_name]
+    })
+
+    const pointer = address({
+        state: destination.state,
+        value: destination.id
+    })
+
+    const created = check({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: pointer.state,
+                statements: named
+            }
+        },
+        name: create_string,
+        arguments: [
+            env.id,
+            ptr.id,
+            len.id,
+            pointer.id
+        ]
+    })
+
+    const value = path({
+        state: created.ast.context,
+        path: [value_name]
+    })
+
+    const out = address({
+        state: value.state,
+        value: value.id
+    })
+
+    return check({
+        state: {
+            ...created,
+            ast: {
+                ...created.ast,
+                context: out.state
+            }
+        },
+        name: create_error,
+        arguments: [
+            env.id,
+            nil.id,
+            destination.id,
+            out.id
+        ]
+    })
+}

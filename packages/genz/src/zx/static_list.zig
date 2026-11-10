@@ -22,7 +22,6 @@ fn candidate(self: *const Lower, type_id: ir.TypeId, items: []const ir.ExprId) b
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);
 
     const input: Input = .{
-        .scalar = self.entry_flags.scalar,
         .types = &types,
         .kinds = zx.columns.slice(@FieldType(Input, "kinds"), self.program.expressions.kinds),
         .type_id = @backingInt(type_id),

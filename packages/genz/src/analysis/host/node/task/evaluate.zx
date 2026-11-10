@@ -1,0 +1,17 @@
+import evaluate from "../../../../ast/statements/builder/evaluate"
+
+import type { Node as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.state,
+        ast: {
+            ...in.state.ast,
+            statements: evaluate({
+                state: in.state.ast.statements,
+                value: in.id,
+                discard: false
+            })
+        }
+    }
+}

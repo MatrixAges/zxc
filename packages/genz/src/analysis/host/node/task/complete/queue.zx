@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import path from "../../../../../ast/context/path"
+import open from "../../../../../ast/statements/builder/open"
+import whileLoop from "../../../../../ast/statements/builder/while_loop"
+import { head_name } from "../../context/const"
+import { context_name, next_capture } from "../const"
+import advance from "./advance"
+import start from "./start_next"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const head = path({
+        state: in.ast.context,
+        path: [
+            context_name,
+            head_name
+        ]
+    })
+
+    const scope = open(in.ast.statements)
+
+    const advanced = advance({
+        ...in,
+        ast: {
+            ...in.ast,
+            context: head.state,
+            statements: scope.state
+        }
+    })
+
+    const started = start(advanced)
+
+    const loop = whileLoop({
+        scope: {
+            ...scope,
+            state: started.ast.statements
+        },
+        columns: in.ast.loops,
+        condition: head.id,
+        capture: bytes.fromText(next_capture)
+    })
+
+    return {
+        ...started,
+        ast: {
+            ...started.ast,
+            statements: loop.state,
+            loops: loop.columns
+        }
+    }
+}

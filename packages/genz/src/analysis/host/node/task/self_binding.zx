@@ -1,0 +1,84 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../ast/context/builtin"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import path from "../../../../ast/context/path"
+import pointer from "../../../../ast/context/pointer"
+import primitive from "../../../../ast/context/primitive"
+import binding from "../../../../ast/statements/builder/binding"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as B
+} from "../../../../printer/model/expressions"
+import { data_name, self_name } from "../context/const"
+import optional from "../context/optional"
+import selfParameter from "../context/self_parameter"
+
+import type { State as Input, State } from "./model"
+
+export type Output = {
+    state: State,
+    data_type: u32
+}
+
+export default function (in: Input): Output {
+    const self = selfParameter(in.ast)
+
+    const opaque = primitive({
+        state: self.state.context,
+        value: P.Anyopaque
+    })
+
+    const pointed = pointer({
+        state: opaque.state,
+        value: opaque.id
+    })
+
+    const nullable = optional({
+        state: {
+            ...self.state,
+            context: pointed.state
+        },
+        value: pointed.id
+    })
+
+    const data = path({
+        state: nullable.state.context,
+        path: [data_name]
+    })
+
+    const unwrapped = unwrap({
+        state: data.state,
+        value: data.id
+    })
+
+    const aligned = builtin({
+        state: unwrapped.state,
+        name: B.AlignCast,
+        arguments: [unwrapped.id]
+    })
+
+    const cast = builtin({
+        state: aligned.state,
+        name: B.PtrCast,
+        arguments: [aligned.id]
+    })
+
+    return {
+        data_type: nullable.id,
+        state: {
+            ...in,
+            ast: {
+                ...nullable.state,
+                context: cast.state,
+                statements: binding({
+                    state: in.ast.statements,
+                    name: bytes.fromText(self_name),
+                    type_expr: self.id,
+                    value: cast.id,
+                    mutable: false
+                })
+            }
+        }
+    }
+}

@@ -1,0 +1,80 @@
+import path from "../../../../../ast/context/path"
+import open from "../../../../../ast/statements/builder/open"
+import { env_name, close_name, destroy_name, self_name } from "../../context/const"
+import caught from "../catch"
+import { context_name, settle_name, next_capture } from "../const"
+import evaluate from "../evaluate"
+import invoke from "../invoke"
+import { Target } from "../model"
+
+import type { State, State as Output } from "../model"
+
+export type Input = {
+    state: State,
+    target: Target
+}
+
+export default function (in: Input): Output {
+    const target_name = in.target == Target.Current ? self_name : next_capture
+
+    const target = path({
+        state: in.state.ast.context,
+        path: [target_name]
+    })
+
+    const env = path({
+        state: target.state,
+        path: [env_name]
+    })
+
+    const settled = invoke({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: env.state
+            }
+        },
+        path: [settle_name],
+        arguments: [
+            target.id,
+            env.id
+        ],
+        fallible: false
+    })
+
+    const scope = open(settled.state.ast.statements)
+
+    const closed = evaluate(invoke({
+        state: {
+            ...settled.state,
+            ast: {
+                ...settled.state.ast,
+                statements: scope.state
+            }
+        },
+        path: [
+            context_name,
+            close_name
+        ],
+        arguments: [],
+        fallible: false
+    }))
+
+    const recovered = evaluate(caught({
+        state: closed,
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        value: settled.id
+    }))
+
+    return evaluate(invoke({
+        state: recovered,
+        path: [
+            target_name,
+            destroy_name
+        ],
+        arguments: [],
+        fallible: false
+    }))
+}

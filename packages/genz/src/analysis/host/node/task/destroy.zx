@@ -1,0 +1,216 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import binding from "../../../../ast/statements/builder/binding"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B
+} from "../../../../printer/model/expressions"
+import {
+    self_name,
+    env_name,
+    api_name,
+    arena_name,
+    deinit_name,
+    destroy_name,
+    std_name,
+    heap_name,
+    page_allocator_name,
+    release_name
+} from "../context/const"
+import invokeStatement from "../context/invoke"
+import parameter from "../context/self_parameter"
+import {
+    context_name,
+    work_name,
+    resolve_name,
+    reject_name,
+    request_name,
+    delete_async,
+    delete_ref
+} from "./const"
+import destroyRequest from "./destroy_request"
+import method from "./method"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = parameter(in.ast)
+
+    const context = path({
+        state: self.state.context,
+        path: [
+            self_name,
+            context_name
+        ]
+    })
+
+    const bound = binding({
+        state: in.ast.statements,
+        name: bytes.fromText(context_name),
+        value: context.id,
+        mutable: false
+    })
+
+    const env = path({
+        state: context.state,
+        path: [
+            context_name,
+            env_name
+        ]
+    })
+
+    const environment = path({
+        state: env.state,
+        path: [env_name]
+    })
+
+    const names = [
+        work_name,
+        resolve_name,
+        reject_name
+    ]
+
+    const releases = [
+        delete_async,
+        delete_ref,
+        delete_ref
+    ]
+
+    const released = loop({
+        ast: {
+            ...self.state,
+            context: environment.state,
+            statements: binding({
+                state: bound,
+                name: bytes.fromText(env_name),
+                value: env.id,
+                mutable: false
+            })
+        },
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const field = path({
+                state: current.ast.context,
+                path: [
+                    self_name,
+                    names[current.index]
+                ]
+            })
+
+            const nil = nullValue(field.state)
+            const condition = binary({
+                state: nil.state,
+                operator: B.NotEqual,
+                left: field.id,
+                right: nil.id
+            })
+
+            const scope = open(current.ast.statements)
+            const invoked = invokeStatement({
+                state: {
+                    ...current.ast,
+                    context: condition.state,
+                    statements: scope.state
+                },
+                path: [
+                    api_name,
+                    releases[current.index]
+                ],
+                arguments: [
+                    environment.id,
+                    field.id
+                ],
+                discard: true
+            })
+
+            current.ast = {
+                ...invoked,
+                statements: branch({
+                    scope: {
+                        ...scope,
+                        state: invoked.statements
+                    },
+                    condition: condition.id
+                })
+            }
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    const requested = destroyRequest({
+        ...in,
+        ast: released
+    })
+
+    const freed = invokeStatement({
+        state: requested.ast,
+        path: [
+            self_name,
+            arena_name,
+            deinit_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const receiver = path({
+        state: freed.context,
+        path: [self_name]
+    })
+
+    const destroyed = invokeStatement({
+        state: {
+            ...freed,
+            context: receiver.state
+        },
+        path: [
+            std_name,
+            heap_name,
+            page_allocator_name,
+            destroy_name
+        ],
+        arguments: [receiver.id],
+        discard: false
+    })
+
+    const retained = invokeStatement({
+        state: destroyed,
+        path: [
+            context_name,
+            release_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const payload = primitive({
+        state: retained.context,
+        value: P.Void
+    })
+
+    return method({
+        state: {
+            ...requested,
+            ast: {
+                ...retained,
+                context: payload.state
+            }
+        },
+        name: destroy_name,
+        parameters: [{
+            name: self_name,
+            value: self.id
+        }],
+        return_type: payload.id,
+        exported: true
+    })
+}

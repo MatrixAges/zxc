@@ -1,0 +1,126 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import { env_name, api_name } from "../../context/const"
+import check from "../check"
+import {
+    value_type,
+    callback_name,
+    receiver_name,
+    ignored_name,
+    reference_name,
+    value_name,
+    get_reference,
+    get_undefined
+} from "../const"
+import callCallback from "./call_callback"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const value_type_node = path({
+        state: in.ast.context,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(value_type_node.state)
+
+    const names = [
+        callback_name,
+        receiver_name,
+        ignored_name
+    ]
+
+    const bindings = loop({
+        statements: in.ast.statements,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            current.statements = binding({
+                state: current.statements,
+                name: bytes.fromText(names[current.index]),
+                type_expr: value_type_node.id,
+                value: nil.id,
+                mutable: true
+            })
+            current.index += 1
+        },
+        return: current => current.statements
+    })
+
+    const env = path({
+        state: nil.state,
+        path: [env_name]
+    })
+
+    const reference = path({
+        state: env.state,
+        path: [reference_name]
+    })
+
+    const callback = path({
+        state: reference.state,
+        path: [callback_name]
+    })
+
+    const callback_pointer = address({
+        state: callback.state,
+        value: callback.id
+    })
+
+    const resolved = check({
+        state: {
+            ...in,
+            ast: {
+                ...in.ast,
+                context: callback_pointer.state,
+                statements: bindings
+            }
+        },
+        name: get_reference,
+        arguments: [
+            env.id,
+            reference.id,
+            callback_pointer.id
+        ]
+    })
+
+    const receiver = path({
+        state: resolved.ast.context,
+        path: [receiver_name]
+    })
+
+    const receiver_pointer = address({
+        state: receiver.state,
+        value: receiver.id
+    })
+
+    const received = check({
+        state: {
+            ...resolved,
+            ast: {
+                ...resolved.ast,
+                context: receiver_pointer.state
+            }
+        },
+        name: get_undefined,
+        arguments: [
+            env.id,
+            receiver_pointer.id
+        ]
+    })
+
+    return callCallback({
+        ...received,
+        callback: callback.id,
+        receiver: receiver.id,
+        env: env.id
+    })
+}
