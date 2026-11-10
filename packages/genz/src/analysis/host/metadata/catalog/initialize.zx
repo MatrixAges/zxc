@@ -1,0 +1,30 @@
+import slice from "../../../../ast/context/const_slice"
+import primitive from "../../../../ast/context/primitive"
+import { ExpressionsPrimitive as P } from "../../../../printer/model/expressions"
+import initialize from "../initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const ast = initialize({})
+
+    const byte_type = primitive({
+        state: ast.context,
+        value: P.U8
+    })
+
+    const string_type = slice({
+        state: byte_type.state,
+        value: byte_type.id
+    })
+
+    return {
+        source: in,
+        ast: {
+            ...ast,
+            context: string_type.state
+        },
+        string_type: string_type.id,
+        values: []
+    }
+}

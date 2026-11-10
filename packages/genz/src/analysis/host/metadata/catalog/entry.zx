@@ -1,0 +1,112 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../../ast/context/builtin"
+import object from "../../../../ast/context/object"
+import text from "../../../../ast/context/text"
+import append from "../../../../ast/fields/append"
+import {
+    ExpressionsBuiltinName as B,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import { specifier_name, path_name, source_field, module_name } from "./const"
+import { namespace_name, implementation_path_name } from "./const"
+import { namespace_index, source_index } from "./const"
+import namespace from "./namespace"
+
+import type { State, Module } from "./model"
+
+export type Input = {
+    state: State,
+    value: Module
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const field_names = [
+        specifier_name,
+        path_name,
+        source_field,
+        module_name,
+        namespace_name,
+        implementation_path_name
+    ]
+
+    const names = namespace({
+        state: in.state.ast.context,
+        values: in.value.namespace
+    })
+
+    const values = [
+        in.value.specifier,
+        in.value.path,
+        in.value.text ?? in.value.source,
+        in.value.module,
+        "",
+        in.value.implementation_path
+    ]
+
+    const fields = loop({
+        context: names.state,
+        table: in.state.ast.fields,
+        index: 0
+    }, {
+        while: current => current.index < field_names.length,
+        next: current => {
+            const node = match {
+                current.index == namespace_index => {
+                    state: current.context,
+                    id: names.id
+                },
+                _ => text({
+                    state: current.context,
+                    kind: K.String,
+                    value: bytes.fromText(values[current.index])
+                })
+            }
+
+            const source_file = (
+                - current.index == source_index
+                - and in.value.text == null
+            )
+
+            const value = match {
+                source_file => builtin({
+                    state: node.state,
+                    name: B.EmbedFile,
+                    arguments: [node.id]
+                }),
+                _ => node
+            }
+
+            current.context = value.state
+            current.table = append({
+                table: current.table,
+                name: bytes.fromText(field_names[current.index]),
+                value: value.id,
+                default_value: null,
+                comptime_parameter: false
+            })
+            current.index += 1
+        },
+        return: current => current
+    })
+
+    const value = object({
+        state: fields.context,
+        type_expr: null,
+        first: integers.narrow(in.state.ast.fields.name.length),
+        count: integers.narrow(field_names.length)
+    })
+
+    return {
+        ...in.state,
+        ast: {
+            ...in.state.ast,
+            context: value.state,
+            fields: fields.table
+        },
+        values: in.state.values.push(value.id)[0]
+    }
+}

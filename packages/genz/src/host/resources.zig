@@ -1,6 +1,5 @@
 const std = @import("std");
-const node = @import("../node.zig");
-const Builder = @import("../builder.zig");
+const zx = @import("zx");
 
 pub const Options = struct {
     digest: []const u8,
@@ -13,26 +12,21 @@ pub const Options = struct {
 };
 
 pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error![]u8 {
+    if (comptime !@import("genz_options").generated_analysis) return @import("resources_seed.zig").render(allocator, options);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
-    const builder = try Builder.init(arena.allocator());
-    var declarations: std.ArrayList(node.Declaration) = .empty;
+    const entry = @import("generated_host_resources");
+    const input = zx.columns.view(std.meta.Child(entry.Input), options);
 
-    for ([_]struct { name: []const u8, file: []const u8 }{
-        .{ .name = "archive", .file = "resources.tar.gz" },
-        .{ .name = "zig_archive", .file = "zig.archive" },
-        .{ .name = "index", .file = "index.json" },
-    }) |entry| {
-        try declarations.append(builder.allocator, .{ .constant = .{ .name = entry.name, .value = try builder.builtin(.embedFile, &.{try builder.string(entry.file)}), .exported = true } });
-    }
+    const output = zx.columns.invoke(entry.executeValue, arena.allocator(), &input) catch |err| return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid host metadata AST"),
+    };
 
-    inline for (.{ "digest", "resources_digest", "zig_digest", "zig_version", "zig_host", "zig_directory" }) |name| {
-        try declarations.append(builder.allocator, .{ .constant = .{ .name = name, .value = try builder.string(@field(options, name)), .exported = true } });
-    }
+    if (!output.valid) return error.OutOfMemory;
 
-    try declarations.append(builder.allocator, .{ .constant = .{ .name = "zig_format", .value = try builder.expression(.{ .enum_literal = @tagName(options.zig_format) }), .exported = true } });
-
-    return @import("../render.zig").render(allocator, builder.nodes, declarations.items);
+    return @import("../printer/module.zig").render(allocator, arena.allocator(), std.meta.Child(entry.Output), output);
 }

@@ -15,7 +15,7 @@ pub const Entry = struct {
     }
 };
 
-pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered, collections, growth };
+pub const Set = enum { main, checks, constant_seed, snapshot_seed, partition_seed, ordered, collections, growth, host };
 const constant_fold = Entry{ .path = "zx/analysis/constants/evaluate.rx", .name = "constant_fold" };
 const input_snapshot = Entry{ .path = "inputs/snapshot/reuse.rx", .name = "input_snapshot", .owner = .compiler };
 const partition_groups = Entry{ .path = "genz/analysis/partition/plan.rx", .name = "partition_groups", .owner = .genz };
@@ -445,6 +445,12 @@ pub const ordered = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/replay/ordered/planned.rx", .name = "uniqueness_replay_planned", .owner = .genz },
 };
 
+pub const host = [_]Entry{
+    .{ .path = "genz/analysis/host/metadata/catalog/build.rx", .name = "host_catalog", .owner = .genz },
+    .{ .path = "genz/analysis/host/metadata/resources/build.rx", .name = "host_resources", .owner = .genz },
+    .{ .path = "genz/printer/render.rx", .name = "printer", .owner = .genz },
+};
+
 /// Individual checkers that zxc reaches through the unified IR validation instead; only test builds import them.
 pub const checks = [_]Entry{
     .{ .path = "zx/analysis/semantic/lookup.rx", .name = "type_lookup" },
@@ -470,6 +476,7 @@ pub fn of(set: Set) []const Entry {
         .ordered => &ordered,
         .collections => &collections,
         .growth => &growth,
+        .host => &host,
         .constant_seed => &.{constant_fold},
         .snapshot_seed => &.{input_snapshot},
         .partition_seed => &.{partition_groups},

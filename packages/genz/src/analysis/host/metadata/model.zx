@@ -1,0 +1,32 @@
+import type { State as Context } from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Declarations as Published } from "../../../printer/model/declarations"
+import type { Statements } from "../../../printer/model/statements"
+
+export type Forms = {
+    struct_type_start: u32[],
+    struct_type_len: u32[]
+}
+
+export type State = {
+    context: Context,
+    fields: Fields,
+    declarations: Declarations,
+    forms: Forms,
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}
+
+export type Output = {
+    context: Context,
+    fields: Fields,
+    declarations: Published,
+    expression_forms: Forms,
+    statements: Statements,
+    valid: bool
+}

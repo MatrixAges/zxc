@@ -1,0 +1,21 @@
+import type { State as Ast } from "../model"
+
+export enum Format {
+    zip,
+    xz
+}
+
+export type Input = {
+    digest: string,
+    resources_digest: string,
+    zig_digest: string,
+    zig_version: string,
+    zig_host: string,
+    zig_directory: string,
+    zig_format: Format
+}
+
+export type State = {
+    source: Input,
+    ast: Ast
+}

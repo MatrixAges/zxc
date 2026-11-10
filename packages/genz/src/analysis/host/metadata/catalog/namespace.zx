@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import text from "../../../../ast/context/text"
+import tuple from "../../../../ast/context/tuple"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+
+import type { State, Node as Output } from "../../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    values: string[]
+}
+
+export default function (in: Input): Output {
+    const empty_values: u32[] = []
+
+    const parts = loop({
+        state: in.state,
+        values: empty_values,
+        index: 0
+    }, {
+        while: current => current.index < in.values.length,
+        next: current => {
+            const value = text({
+                state: current.state,
+                kind: K.String,
+                value: bytes.fromText(in.values[current.index])
+            })
+
+            current.state = value.state
+            current.values = current.values.push(value.id)[0]
+            current.index += 1
+        },
+        return: current => current
+    })
+
+    const value = tuple({
+        state: parts.state,
+        values: parts.values
+    })
+
+    return address({
+        state: value.state,
+        value: value.id
+    })
+}

@@ -3,11 +3,11 @@ const model = @import("toolchain/manifest.zig");
 /// The generated bundle module, and the official Zig archive it embeds.
 pub const Bundle = struct { module: *std.Build.Module, zig_archive: std.Build.LazyPath };
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.Cache.Path) Bundle {
-    return generate(b, target, index, standard_source) catch |err| std.debug.panic("unable to prepare bundled Zig: {s}", .{@errorName(err)});
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.Cache.Path, metadata_tool: std.Build.LazyPath) Bundle {
+    return generate(b, target, index, standard_source, metadata_tool) catch |err| std.debug.panic("unable to prepare bundled Zig: {s}", .{@errorName(err)});
 }
 
-fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.Cache.Path) !Bundle {
+fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.Cache.Path, metadata_tool: std.Build.LazyPath) !Bundle {
     const archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host; otherwise downloaded at build time");
     var files: std.ArrayList(model.File) = .empty;
 
@@ -40,6 +40,16 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.La
     for (files.items) |file| run.addFileInput(.{ .cwd_relative = file.source });
 
     const output = run.addOutputDirectoryArg("bundle");
+    const metadata = b.addRunFile(metadata_tool);
 
-    return .{ .module = b.createModule(.{ .root_source_file = output.path(b, "resources.zig") }), .zig_archive = output.path(b, "zig.archive") };
+    metadata.addArg("--resources");
+    metadata.addFileArg(output.path(b, "resources.json"));
+
+    const module = b.createModule(.{ .root_source_file = metadata.addOutputFileArg("resources.zig") });
+
+    inline for (.{ "resources.tar.gz", "zig.archive", "index.json" }) |name| {
+        module.addAnonymousImport(name, .{ .root_source_file = output.path(b, name) });
+    }
+
+    return .{ .module = module, .zig_archive = output.path(b, "zig.archive") };
 }

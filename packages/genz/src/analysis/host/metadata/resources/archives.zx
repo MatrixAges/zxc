@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../ast/context/builtin"
+import text from "../../../../ast/context/text"
+import {
+    ExpressionsBuiltinName as B,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import constant from "../constant"
+import { archive_name, zig_archive_name, index_name } from "./const"
+import { archive_path, zig_archive_path, index_path } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const archive_names = [
+        archive_name,
+        zig_archive_name,
+        index_name
+    ]
+
+    const archive_paths = [
+        archive_path,
+        zig_archive_path,
+        index_path
+    ]
+
+    const ast = loop({
+        ast: in.ast,
+        index: 0
+    }, {
+        while: current => current.index < archive_names.length,
+        next: current => {
+            const path = text({
+                state: current.ast.context,
+                kind: K.String,
+                value: bytes.fromText(archive_paths[current.index])
+            })
+
+            const value = builtin({
+                state: path.state,
+                name: B.EmbedFile,
+                arguments: [path.id]
+            })
+
+            current.ast = constant({
+                state: {
+                    ...current.ast,
+                    context: value.state
+                },
+                name: archive_names[current.index],
+                type_expr: null,
+                value: value.id
+            })
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    return {
+        ...in,
+        ast
+    }
+}

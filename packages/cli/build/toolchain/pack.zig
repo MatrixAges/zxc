@@ -60,7 +60,7 @@ pub fn main(init: std.process.Init) !void {
 
     try write(init.io, allocator, output_directory, "index.json", index);
 
-    const resources = try @import("genz").host.resources.render(allocator, .{
+    const resources: @import("genz").host.resources.Options = .{
         .digest = &digest,
         .resources_digest = &resources_digest,
         .zig_digest = release.archive_sha256,
@@ -68,9 +68,9 @@ pub fn main(init: std.process.Init) !void {
         .zig_host = release.host,
         .zig_directory = directory,
         .zig_format = if (is_zip) .zip else .xz,
-    });
+    };
 
-    try write(init.io, allocator, output_directory, "resources.zig", resources);
+    try write(init.io, allocator, output_directory, "resources.json", try std.json.Stringify.valueAlloc(allocator, resources, .{}));
 }
 
 fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, name: []const u8, bytes: []const u8) !void {

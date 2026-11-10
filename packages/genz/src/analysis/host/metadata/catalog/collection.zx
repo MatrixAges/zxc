@@ -1,0 +1,43 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import slice from "../../../../ast/context/const_slice"
+import identifier from "../../../../ast/context/identifier"
+import tuple from "../../../../ast/context/tuple"
+import constant from "../constant"
+import { source_name, modules_name } from "./const"
+
+import type { State as Output } from "../model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const source_type = identifier({
+        state: in.ast.context,
+        name: bytes.fromText(source_name)
+    })
+
+    const list_type = slice({
+        state: source_type.state,
+        value: source_type.id
+    })
+
+    const values = tuple({
+        state: list_type.state,
+        values: in.values
+    })
+
+    const value = address({
+        state: values.state,
+        value: values.id
+    })
+
+    return constant({
+        state: {
+            ...in.ast,
+            context: value.state
+        },
+        name: modules_name,
+        type_expr: list_type.id,
+        value: value.id
+    })
+}

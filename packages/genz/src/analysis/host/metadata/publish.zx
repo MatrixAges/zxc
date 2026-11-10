@@ -1,0 +1,18 @@
+import declarations from "../../../ast/snapshot/empty_declarations"
+import statements from "../../../ast/snapshot/empty_statements"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        context: in.context,
+        fields: in.fields,
+        expression_forms: in.forms,
+        declarations: {
+            ...declarations({}),
+            ...in.declarations
+        },
+        statements: statements({}),
+        valid: in.valid && in.context.valid
+    }
+}

@@ -1,0 +1,26 @@
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+
+import type { State as Output } from "./model"
+
+export type Input = {}
+
+export default function (in: Input): Output {
+    return {
+        context: context({
+            capture: null,
+            expression_base: 0,
+            statement_base: 0,
+            field_base: 0,
+            serial: 0
+        }),
+        declarations: declarations({}),
+        fields: fields({}),
+        forms: {
+            struct_type_start: [],
+            struct_type_len: []
+        },
+        valid: true
+    }
+}

@@ -1,0 +1,33 @@
+import bytes from "std:bytes"
+
+import text from "../../../../ast/context/text"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+import constant from "../constant"
+import { format_name, zip_name, xz_name } from "./const"
+import { Format } from "./model"
+
+import type { State as Output } from "../model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const name = match in.source.zig_format {
+        Format.zip => zip_name,
+        _ => xz_name
+    }
+
+    const value = text({
+        state: in.ast.context,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(name)
+    })
+
+    return constant({
+        state: {
+            ...in.ast,
+            context: value.state
+        },
+        name: format_name,
+        type_expr: null,
+        value: value.id
+    })
+}

@@ -1,0 +1,14 @@
+<Module>
+    <Type from="model" as="Catalog" />
+    <Type from="../model" as="Ast" />
+
+    <Args in={Catalog.Input} out={Ast.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="schema" in={$ctx.initialize} />
+    <Call fn="entries" in={$ctx.schema} />
+    <Call fn="collection" in={$ctx.entries} />
+    <Call fn="../publish" in={$ctx.collection} />
+
+    <Return value={$ctx.publish} />
+</Module>

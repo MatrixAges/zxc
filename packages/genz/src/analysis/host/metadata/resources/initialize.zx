@@ -1,0 +1,10 @@
+import initialize from "../initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        source: in,
+        ast: initialize({})
+    }
+}

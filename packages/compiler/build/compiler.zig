@@ -3,6 +3,7 @@ const entries = @import("entries.zig");
 pub const ModuleBinding = struct { metadata: entries.ModuleEntry, module: *std.Build.Module };
 
 pub const ParserModules = struct {
+    host_metadata: *std.Build.Step.Compile,
     type_views: *std.Build.Module,
     nominal_data: *std.Build.Module,
     bindings: []const ModuleBinding,
@@ -31,7 +32,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             .{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") },
             .{ .name = "dsl", .module = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl") },
             .{ .name = "lint", .module = lint },
-            .{ .name = "standard_interfaces", .module = @import("standard.zig").create(b) },
+            .{ .name = "standard_interfaces", .module = @import("standard.zig").create(b, if (parser) |generated| generated.host_metadata else null) },
         },
     });
 

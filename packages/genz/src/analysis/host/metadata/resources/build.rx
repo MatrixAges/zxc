@@ -1,0 +1,14 @@
+<Module>
+    <Type from="model" as="Resources" />
+    <Type from="../model" as="Ast" />
+
+    <Args in={Resources.Input} out={Ast.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="archives" in={$ctx.initialize} />
+    <Call fn="options" in={$ctx.archives} />
+    <Call fn="format" in={$ctx.options} />
+    <Call fn="../publish" in={$ctx.format} />
+
+    <Return value={$ctx.publish} />
+</Module>

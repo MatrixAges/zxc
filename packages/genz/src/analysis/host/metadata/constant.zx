@@ -1,0 +1,32 @@
+import bytes from "std:bytes"
+
+import append from "../../../ast/declarations/table/constant"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: string,
+    type_expr?: u32,
+    value: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = append({
+        state: in.state.declarations,
+        value: {
+            name: bytes.fromText(in.name),
+            type_expr: in.type_expr,
+            value: in.value,
+            exported: true
+        }
+    })
+
+    return {
+        ...in.state,
+        declarations: result.state,
+        valid: in.state.valid && result.valid
+    }
+}

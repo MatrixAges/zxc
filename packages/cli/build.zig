@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
     host.addImport("cache_identity", identity);
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
-    const bundle = @import("build/toolchain.zig").create(b, target, pkgs_index, b.dependency("zxc_std", .{}).builder.root.join(b.allocator, "src") catch @panic("OOM"));
+    const bundle = @import("build/toolchain.zig").create(b, target, pkgs_index, b.dependency("zxc_std", .{}).builder.root.join(b.allocator, "src") catch @panic("OOM"), compiler.namedLazyPath("host_metadata_tool"));
     // Only release packages embed the official Zig archive. Other builds read it from this build cache, or take
     // the Zig executable named by ZXC_ZIG, so linking zxc does not copy the archive into the binary.
     const zig_archive = b.addOptions();

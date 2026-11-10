@@ -1,0 +1,20 @@
+import type { State as Ast } from "../model"
+
+export type Module = {
+    specifier: string,
+    path: string,
+    source: string,
+    text?: string,
+    module: string,
+    namespace: string[],
+    implementation_path: string
+}
+
+export type Input = Module[]
+
+export type State = {
+    source: Input,
+    ast: Ast,
+    string_type: u32,
+    values: u32[]
+}

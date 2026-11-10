@@ -1,11 +1,11 @@
 const std = @import("std");
 const Module = struct { specifier: []const u8, path: []const u8, fragments: []const []const u8 = &.{}, module: []const u8, namespace: []const []const u8, implementation_path: []const u8 };
 
-pub fn create(b: *std.Build) *std.Build.Module {
-    return generate(b) catch @panic("unable to package standard module declarations");
+pub fn create(b: *std.Build, generator: ?*std.Build.Step.Compile) *std.Build.Module {
+    return generate(b, generator) catch @panic("unable to package standard module declarations");
 }
 
-fn generate(b: *std.Build) !*std.Build.Module {
+fn generate(b: *std.Build, generator: ?*std.Build.Step.Compile) !*std.Build.Module {
     const standard = b.dependency("zxc_std", .{});
 
     b.dependOnFileContents(standard.path("modules.json"));
@@ -33,7 +33,7 @@ fn generate(b: *std.Build) !*std.Build.Module {
         });
     }
 
-    const tool = b.addExecutable(.{ .name = "standard-catalog", .root_module = b.createModule(.{
+    const tool = generator orelse b.addExecutable(.{ .name = "standard-catalog", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_catalog.zig"),
         .target = b.graph.host,
         .optimize = .fast,
@@ -42,6 +42,8 @@ fn generate(b: *std.Build) !*std.Build.Module {
 
     const inputs = b.addWriteFiles();
     const run = b.addRunArtifact(tool);
+
+    if (generator != null) run.addArg("--catalog");
 
     run.addFileArg(inputs.add("catalog.json", try std.json.Stringify.valueAlloc(b.allocator, entries.items, .{})));
 

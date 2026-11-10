@@ -35,7 +35,11 @@ pub fn build(b: *std.Build) void {
         }
     }
 
-    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, natives, generated_strip), lint);
+    const parser_modules = parser.modules(b, target, optimize, parser_source, natives, generated_strip);
+    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser_modules, lint);
+
+    b.addNamedLazyPath("host_metadata_tool", parser_modules.host_metadata.getEmittedBin());
+
     const frontend = modules.frontend;
     const module = modules.compiler;
 

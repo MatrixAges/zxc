@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+
+import text from "../../../../ast/context/text"
+import { ExpressionsKind as K } from "../../../../printer/model/expressions"
+import constant from "../constant"
+import { digest_name, resources_digest_name, zig_digest_name } from "./const"
+import { zig_version_name, zig_host_name, zig_directory_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const option_names = [
+        digest_name,
+        resources_digest_name,
+        zig_digest_name,
+        zig_version_name,
+        zig_host_name,
+        zig_directory_name
+    ]
+
+    const values = [
+        in.source.digest,
+        in.source.resources_digest,
+        in.source.zig_digest,
+        in.source.zig_version,
+        in.source.zig_host,
+        in.source.zig_directory
+    ]
+
+    const ast = loop({
+        ast: in.ast,
+        index: 0
+    }, {
+        while: current => current.index < option_names.length,
+        next: current => {
+            const value = text({
+                state: current.ast.context,
+                kind: K.String,
+                value: bytes.fromText(values[current.index])
+            })
+
+            current.ast = constant({
+                state: {
+                    ...current.ast,
+                    context: value.state
+                },
+                name: option_names[current.index],
+                type_expr: null,
+                value: value.id
+            })
+            current.index += 1
+        },
+        return: current => current.ast
+    })
+
+    return {
+        ...in,
+        ast
+    }
+}

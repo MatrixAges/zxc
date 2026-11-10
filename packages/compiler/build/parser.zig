@@ -1,7 +1,7 @@
 const std = @import("std");
 const entries = @import("entries.zig");
 
-pub const Sources = struct { standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath, ordered: std.Build.LazyPath, collections: std.Build.LazyPath, growth: std.Build.LazyPath };
+pub const Sources = struct { standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath, ordered: std.Build.LazyPath, collections: std.Build.LazyPath, growth: std.Build.LazyPath, host: std.Build.LazyPath };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8, partitions: u32, executable: *std.Build.Step.Compile) Sources {
     const target = b.graph.host;
@@ -39,7 +39,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
     };
 
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
-    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.snapshot_seed, entries.Set.partition_seed, entries.Set.ordered, entries.Set.collections, entries.Set.growth }) |set| {
+    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.snapshot_seed, entries.Set.partition_seed, entries.Set.ordered, entries.Set.collections, entries.Set.growth, entries.Set.host }) |set| {
         const run = generatorRun(b, executable, stage0);
 
         const project = manifest.Project{
@@ -421,6 +421,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .type_views = type_views,
         .nominal_data = nominal_data,
         .bindings = bindings,
+        .host_metadata = @import("host_metadata.zig").create(b, source.host),
     };
 }
 
