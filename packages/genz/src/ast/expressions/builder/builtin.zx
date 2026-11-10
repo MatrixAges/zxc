@@ -1,0 +1,45 @@
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import header from "../header"
+
+import type { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    name: ExpressionsBuiltinName,
+    arguments: u32[]
+}
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.state.pick([
+            "tags",
+            "offsets",
+            "base"
+        ]),
+        kind: ExpressionsKind.Builtin,
+        offset: in.state.builtin_name.length
+    })
+
+    if (!result.valid) {
+        return {
+            state: {
+                ...in.state,
+                valid: false
+            },
+            id: result.id
+        }
+    }
+
+    return {
+        state: {
+            ...in.state,
+            tags: result.tags,
+            offsets: result.offsets,
+            builtin_name: in.state.builtin_name.push(in.name)[0],
+            builtin_arguments: in.state.builtin_arguments.push(in.arguments)[0],
+            valid: in.state.valid
+        },
+        id: result.id
+    }
+}

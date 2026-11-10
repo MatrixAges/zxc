@@ -1,0 +1,36 @@
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/builder/publish"
+
+import type { Output } from "../root/model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const initial = context({
+        capture: null,
+        expression_base: 0,
+        statement_base: 0,
+        field_base: 0,
+        serial: 0
+    })
+
+    return {
+        context: {
+            ...initial,
+            expressions: {
+                ...initial.expressions,
+                ...in.expressions.omit([
+                    "base",
+                    "string",
+                    "valid"
+                ])
+            },
+            forms: {
+                ...initial.forms,
+                string: in.expressions.string
+            }
+        },
+        statements: initial.statements,
+        declarations: declarations(in.declarations),
+        valid: in.expressions.valid && in.declarations.valid
+    }
+}

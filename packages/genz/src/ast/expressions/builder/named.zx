@@ -1,0 +1,44 @@
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import named from "../named"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    text: bool
+}
+
+export default function (in: Input): Output {
+    const result = named({
+        ...in.state.pick([
+            "tags",
+            "offsets",
+            "base"
+        ]),
+        values: in.text ? in.state.string : in.state.identifier,
+        kind: in.text ? ExpressionsKind.String : ExpressionsKind.Identifier,
+        name: in.name
+    })
+
+    const state = {
+        ...in.state,
+        tags: result.tags,
+        offsets: result.offsets,
+        valid: in.state.valid && result.valid
+    }
+
+    return {
+        state: match {
+            in.text => {
+                ...state,
+                string: result.values
+            },
+            _ => {
+                ...state,
+                identifier: result.values
+            }
+        },
+        id: result.id
+    }
+}

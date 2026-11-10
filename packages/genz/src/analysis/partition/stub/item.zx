@@ -1,0 +1,52 @@
+import bytes from "std:bytes"
+
+import constant from "../../../ast/declarations/builder/constant"
+import call from "../../../ast/expressions/builder/call"
+import field from "../../../ast/expressions/builder/field"
+import named from "../../../ast/expressions/builder/named"
+import { symbol_separator } from "./const"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const { function_name } = in.state.source
+
+    const variant = in.state.source.variants[in.index]
+
+    const target = field({
+        state: in.state.expressions,
+        target: in.state.target,
+        name: bytes.fromText(variant)
+    })
+
+    const symbol = `${function_name}${symbol_separator}${variant}`
+
+    const text = named({
+        state: target.state,
+        name: bytes.fromText(symbol),
+        text: true
+    })
+
+    const value = call({
+        state: text.state,
+        callee: in.state.importer,
+        arguments: [
+            target.id,
+            text.id
+        ]
+    })
+
+    const declarations = constant({
+        state: in.state.declarations,
+        name: bytes.fromText(variant),
+        value: value.id,
+        type_expr: null,
+        exported: true
+    })
+
+    return {
+        ...in.state,
+        expressions: value.state,
+        declarations
+    }
+}

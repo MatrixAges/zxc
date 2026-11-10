@@ -1,0 +1,42 @@
+import constant from "../../../ast/declarations/builder/constant"
+import builtin from "../../../ast/expressions/builder/builtin"
+import named from "../../../ast/expressions/builder/named"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    name: u8[],
+    file: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const file = named({
+        state: in.state.expressions,
+        name: in.file,
+        text: true
+    })
+
+    const imported = builtin({
+        state: file.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [file.id]
+    })
+
+    const declarations = constant({
+        state: in.state.declarations,
+        name: in.name,
+        value: imported.id,
+        type_expr: null,
+        exported: false
+    })
+
+    return {
+        ...in.state,
+        expressions: imported.state,
+        declarations
+    }
+}

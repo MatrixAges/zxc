@@ -1,0 +1,70 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/expressions/builder/field"
+import named from "../../../ast/expressions/builder/named"
+import {
+    bridge_name,
+    signatures_name,
+    bridge_module,
+    signatures_module,
+    comptime_module,
+    import_name,
+    import_comptime
+} from "./const"
+import imported from "./import"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const bridge = named({
+        state: in.expressions,
+        name: bytes.fromText(bridge_name),
+        text: false
+    })
+
+    const signatures = named({
+        state: bridge.state,
+        name: bytes.fromText(signatures_name),
+        text: false
+    })
+
+    const with_bridge = imported({
+        state: {
+            ...in,
+            expressions: signatures.state,
+            bridge: bridge.id,
+            signatures: signatures.id
+        },
+        name: bytes.fromText(bridge_name),
+        file: bytes.fromText(bridge_module)
+    })
+
+    const source = in.source.comptime_entry ? comptime_module : signatures_module
+
+    const with_signatures = imported({
+        state: with_bridge,
+        name: bytes.fromText(signatures_name),
+        file: bytes.fromText(source)
+    })
+
+    const method = in.source.comptime_entry ? import_comptime : import_name
+
+    const importer = field({
+        state: with_signatures.expressions,
+        target: bridge.id,
+        name: bytes.fromText(method)
+    })
+
+    const target = field({
+        state: importer.state,
+        target: signatures.id,
+        name: bytes.fromText(in.source.function_name)
+    })
+
+    return {
+        ...with_signatures,
+        expressions: target.state,
+        importer: importer.id,
+        target: target.id
+    }
+}

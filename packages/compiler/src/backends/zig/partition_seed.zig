@@ -19,3 +19,31 @@ pub fn root(allocator: std.mem.Allocator, modules: []const Module, panic_handler
 
     return genz.render(allocator, builder.nodes, declarations.items);
 }
+
+pub fn stub(allocator: std.mem.Allocator, file: []const u8, variants: []const []const u8, comptime_entry: bool) ![]const u8 {
+    const builder = try genz.Builder.init(allocator);
+    var declarations: std.ArrayList(node.Declaration) = .empty;
+    const bridge = try builder.identifier("bridge");
+    const signatures = try builder.identifier("signatures");
+    const function_name = std.fs.path.stem(file);
+
+    try declarations.appendSlice(allocator, &.{
+        .{ .constant = .{ .name = "bridge", .value = try builder.builtin(.import, &.{try builder.string("zxc_bridge")}) } },
+        .{ .constant = .{ .name = "signatures", .value = try builder.builtin(.import, &.{try builder.string(if (comptime_entry) "zxc_comptime" else "zxc_signatures")}) } },
+    });
+
+    for (variants) |variant| try declarations.append(allocator, .{ .constant = .{
+        .name = variant,
+        .exported = true,
+        .value = try builder.call(try builder.field(bridge, if (comptime_entry) "importComptime" else "import"), &.{
+            try builder.field(try builder.field(signatures, function_name), variant),
+            try builder.string(try symbol(allocator, file, variant)),
+        }),
+    } });
+
+    return genz.render(allocator, builder.nodes, declarations.items);
+}
+
+fn symbol(allocator: std.mem.Allocator, file: []const u8, variant: []const u8) ![]const u8 {
+    return std.fmt.allocPrint(allocator, "{s}_{s}", .{ std.fs.path.stem(file), variant });
+}

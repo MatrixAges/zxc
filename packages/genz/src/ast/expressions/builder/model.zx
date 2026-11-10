@@ -1,0 +1,24 @@
+import type {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+
+export type State = {
+    base: u32,
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    string: u8[][],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][],
+    field_target: u32[],
+    field_name: u8[][],
+    call_callee: u32[],
+    call_arguments: u32[][],
+    valid: bool
+}
+
+export type Node = {
+    state: State,
+    id: u32
+}

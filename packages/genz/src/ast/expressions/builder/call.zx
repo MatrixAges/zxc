@@ -1,0 +1,44 @@
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import header from "../header"
+
+import type { State, Node as Output } from "./model"
+
+export type Input = {
+    state: State,
+    callee: u32,
+    arguments: u32[]
+}
+
+export default function (in: Input): Output {
+    const result = header({
+        ...in.state.pick([
+            "tags",
+            "offsets",
+            "base"
+        ]),
+        kind: ExpressionsKind.Call,
+        offset: in.state.call_callee.length
+    })
+
+    if (!result.valid) {
+        return {
+            state: {
+                ...in.state,
+                valid: false
+            },
+            id: result.id
+        }
+    }
+
+    return {
+        state: {
+            ...in.state,
+            tags: result.tags,
+            offsets: result.offsets,
+            call_callee: in.state.call_callee.push(in.callee)[0],
+            call_arguments: in.state.call_arguments.push(in.arguments)[0],
+            valid: in.state.valid
+        },
+        id: result.id
+    }
+}
