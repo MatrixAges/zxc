@@ -1,0 +1,30 @@
+import path from "../../../../ast/context/path"
+import pointer from "../../../../ast/context/pointer"
+import { self_type } from "./const"
+
+import type { State as Input, State } from "./model"
+
+export type Output = {
+    state: State,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const target = path({
+        state: in.context,
+        path: [self_type]
+    })
+
+    const result = pointer({
+        state: target.state,
+        value: target.id
+    })
+
+    return {
+        state: {
+            ...in,
+            context: result.state
+        },
+        id: result.id
+    }
+}

@@ -1,0 +1,187 @@
+import binary from "../../../../ast/context/binary"
+import integer from "../../../../ast/context/integer"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import branch from "../../../../ast/statements/builder/branch"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import {
+    self_name,
+    references_name,
+    release_name,
+    api_name,
+    remove_hook_name,
+    cleanup_name,
+    env_name,
+    hooked_name,
+    state_field,
+    deinit_name,
+    std_name,
+    heap_name,
+    page_allocator_name,
+    destroy_name,
+    arena_name
+} from "./const"
+import invoke from "./invoke"
+import method from "./method"
+import parameter from "./self_parameter"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = parameter(in)
+
+    const references = path({
+        state: self.state.context,
+        path: [
+            self_name,
+            references_name
+        ]
+    })
+
+    const one = integer({
+        state: references.state,
+        value: 1
+    })
+
+    const subtracted = binary({
+        state: one.state,
+        operator: B.Subtract,
+        left: references.id,
+        right: one.id
+    })
+
+    const decremented = assignment({
+        state: in.statements,
+        target: references.id,
+        value: subtracted.id
+    })
+
+    const zero = integer({
+        state: subtracted.state,
+        value: 0
+    })
+
+    const retained = binary({
+        state: zero.state,
+        operator: B.NotEqual,
+        left: references.id,
+        right: zero.id
+    })
+
+    const scope = open(decremented)
+
+    const returned = result({
+        state: scope.state
+    })
+
+    const guarded = branch({
+        scope: {
+            ...scope,
+            state: returned
+        },
+        condition: retained.id
+    })
+
+    const hooked = path({
+        state: retained.state,
+        path: [
+            self_name,
+            hooked_name
+        ]
+    })
+
+    const env = path({
+        state: hooked.state,
+        path: [
+            self_name,
+            env_name
+        ]
+    })
+
+    const cleanup = path({
+        state: env.state,
+        path: [cleanup_name]
+    })
+
+    const receiver = path({
+        state: cleanup.state,
+        path: [self_name]
+    })
+
+    const hook = open(guarded)
+
+    const removed = invoke({
+        state: {
+            ...self.state,
+            context: receiver.state,
+            statements: hook.state
+        },
+        path: [
+            api_name,
+            remove_hook_name
+        ],
+        arguments: [
+            env.id,
+            cleanup.id,
+            receiver.id
+        ],
+        discard: true
+    })
+
+    const unhooked = {
+        ...removed,
+        statements: branch({
+            scope: {
+                ...hook,
+                state: removed.statements
+            },
+            condition: hooked.id
+        })
+    }
+
+    const destroyed = match {
+        in.stateful => invoke({
+            state: unhooked,
+            path: [
+                self_name,
+                state_field,
+                deinit_name
+            ],
+            arguments: [],
+            discard: false
+        }),
+        _ => unhooked
+    }
+
+    const released = invoke({
+        state: destroyed,
+        path: [
+            self_name,
+            arena_name,
+            deinit_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const freed = invoke({
+        state: released,
+        path: [
+            std_name,
+            heap_name,
+            page_allocator_name,
+            destroy_name
+        ],
+        arguments: [receiver.id],
+        discard: false
+    })
+
+    return method({
+        state: freed,
+        name: release_name,
+        parameter_type: self.id,
+        parameter_name: self_name
+    })
+}

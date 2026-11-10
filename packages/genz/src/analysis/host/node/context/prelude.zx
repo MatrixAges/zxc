@@ -1,0 +1,87 @@
+import bytes from "std:bytes"
+
+import builtin from "../../../../ast/context/builtin"
+import imported from "../../../../ast/context/import_path"
+import primitive from "../../../../ast/context/primitive"
+import constant from "../../../../ast/declarations/table/constant"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as B
+} from "../../../../printer/model/expressions"
+import {
+    std_name,
+    api_name,
+    napi_module,
+    state_name,
+    state_module,
+    task_name,
+    task_module,
+    self_type,
+    state_import_index,
+    api_import_index
+} from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        std_name,
+        api_name,
+        state_name,
+        task_name,
+        self_type
+    ]
+
+    const modules = [
+        std_name,
+        napi_module,
+        state_module,
+        task_module
+    ]
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const value = match {
+                current.index == names.length - 1 => builtin({
+                    state: current.state.context,
+                    name: B.This,
+                    arguments: []
+                }),
+                current.index == state_import_index && !in.stateful => primitive({
+                    state: current.state.context,
+                    value: P.Void
+                }),
+                _ => imported({
+                    state: current.state.context,
+                    module: modules[current.index],
+                    path: match current.index {
+                        api_import_index => [api_name],
+                        _ => []
+                    }
+                })
+            }
+
+            const declared = constant({
+                state: current.state.declarations,
+                value: {
+                    name: bytes.fromText(names[current.index]),
+                    value: value.id,
+                    exported: false
+                }
+            })
+
+            current.state = {
+                ...current.state,
+                context: value.state,
+                declarations: declared.state,
+                valid: current.state.valid && declared.valid
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

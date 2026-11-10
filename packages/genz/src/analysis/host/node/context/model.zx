@@ -1,0 +1,44 @@
+import type { State as Context } from "../../../../ast/context/model"
+import type { Table as Declarations } from "../../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../../ast/fields/model"
+import type { State as Statements } from "../../../../ast/statements/builder/model"
+import type { Columns as Loops } from "../../../../ast/statements/builder/while_loop"
+import type {
+    Declarations as PublishedDeclarations
+} from "../../../../printer/model/declarations"
+import type { Expressions } from "../../../../printer/model/expressions"
+import type {
+    Statements as PublishedStatements
+} from "../../../../printer/model/statements"
+
+export type Input = {
+    stateful: bool
+}
+
+export type State = {
+    stateful: bool,
+    context: Context,
+    declarations: Declarations,
+    fields: Fields,
+    members: Fields,
+    statements: Statements,
+    loops: Loops,
+    optional_type: u32[],
+    valid: bool
+}
+
+export type Method = {
+    state: State,
+    name: string,
+    parameter_type: u32,
+    parameter_name: string,
+    convention?: u32
+}
+
+export type Published = {
+    expressions: Expressions,
+    statements: PublishedStatements,
+    fields: Fields,
+    declarations: PublishedDeclarations,
+    valid: bool
+}

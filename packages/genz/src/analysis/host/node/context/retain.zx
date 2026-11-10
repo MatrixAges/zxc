@@ -1,0 +1,49 @@
+import binary from "../../../../ast/context/binary"
+import integer from "../../../../ast/context/integer"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import { ExpressionsBinaryOperator as B } from "../../../../printer/model/expressions"
+import { self_name, references_name, retain_name } from "./const"
+import method from "./method"
+import parameter from "./self_parameter"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = parameter(in)
+
+    const references = path({
+        state: self.state.context,
+        path: [
+            self_name,
+            references_name
+        ]
+    })
+
+    const one = integer({
+        state: references.state,
+        value: 1
+    })
+
+    const added = binary({
+        state: one.state,
+        operator: B.Add,
+        left: references.id,
+        right: one.id
+    })
+
+    return method({
+        state: {
+            ...self.state,
+            context: added.state,
+            statements: assignment({
+                state: in.statements,
+                target: references.id,
+                value: added.id
+            })
+        },
+        name: retain_name,
+        parameter_type: self.id,
+        parameter_name: self_name
+    })
+}

@@ -1,0 +1,38 @@
+import call from "../../../../ast/context/call"
+import path from "../../../../ast/context/path"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    path: string[],
+    arguments: u32[],
+    discard: bool
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const callee = path({
+        state: in.state.context,
+        path: in.path
+    })
+
+    const result = call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: in.arguments,
+        fallible: false
+    })
+
+    return {
+        ...in.state,
+        context: result.state,
+        statements: evaluate({
+            state: in.state.statements,
+            value: result.id,
+            discard: in.discard
+        })
+    }
+}

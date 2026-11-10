@@ -1,0 +1,16 @@
+<Module>
+    <Type from="model" as="Context" />
+
+    <Args in={Context.Input} out={Context.Published} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prelude" in={$ctx.initialize} />
+    <Call fn="fields" in={$ctx.prelude} />
+    <Call fn="retain" in={$ctx.fields} />
+    <Call fn="release" in={$ctx.retain} />
+    <Call fn="close" in={$ctx.release} />
+    <Call fn="cleanup" in={$ctx.close} />
+    <Call fn="publish" in={$ctx.cleanup} />
+
+    <Return value={$ctx.publish} />
+</Module>

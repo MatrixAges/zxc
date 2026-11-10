@@ -1,0 +1,31 @@
+import context from "../../../../ast/context/initialize"
+import declarations from "../../../../ast/declarations/table/create"
+import fields from "../../../../ast/fields/empty"
+import statements from "../../../../ast/statements/builder/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        stateful: in.stateful,
+        context: context({
+            capture: null,
+            expression_base: 0,
+            statement_base: 0,
+            field_base: 0,
+            serial: 0
+        }),
+        declarations: declarations({}),
+        fields: fields({}),
+        members: fields({}),
+        statements: statements(0),
+        loops: {
+            while_loop_condition: [],
+            while_loop_body_start: [],
+            while_loop_body_len: [],
+            while_loop_capture: []
+        },
+        optional_type: [],
+        valid: true
+    }
+}

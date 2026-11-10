@@ -1,0 +1,175 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import boolean from "../../../../ast/context/boolean"
+import integer from "../../../../ast/context/integer"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import pointer from "../../../../ast/context/pointer"
+import primitive from "../../../../ast/context/primitive"
+import undefinedValue from "../../../../ast/context/undefined"
+import append from "../../../../ast/fields/append"
+import { DeclarationsKind as D } from "../../../../printer/model/declarations"
+import { ExpressionsPrimitive as P } from "../../../../printer/model/expressions"
+import {
+    std_name,
+    heap_name,
+    arena_type,
+    api_name,
+    env_type,
+    state_name,
+    task_name,
+    arena_name,
+    state_field,
+    env_name,
+    references_name,
+    hooked_name,
+    busy_name,
+    running_name,
+    closing_name,
+    head_name,
+    tail_name
+} from "./const"
+import optional from "./optional"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const arena = path({
+        state: in.context,
+        path: [
+            std_name,
+            heap_name,
+            arena_type
+        ]
+    })
+
+    const state = path({
+        state: arena.state,
+        path: [state_name]
+    })
+
+    const env = path({
+        state: state.state,
+        path: [
+            api_name,
+            env_type
+        ]
+    })
+
+    const count = primitive({
+        state: env.state,
+        value: P.Usize
+    })
+
+    const flag = primitive({
+        state: count.state,
+        value: P.Bool
+    })
+
+    const task = path({
+        state: flag.state,
+        path: [task_name]
+    })
+
+    const pointed = pointer({
+        state: task.state,
+        value: task.id
+    })
+
+    const nullable = optional({
+        state: {
+            ...in,
+            context: pointed.state
+        },
+        value: pointed.id
+    })
+
+    const missing = undefinedValue(nullable.state.context)
+
+    const one = integer({
+        state: missing.state,
+        value: 1
+    })
+
+    const no = boolean({
+        state: one.state,
+        value: false
+    })
+
+    const nil = nullValue(no.state)
+
+    const names = [
+        arena_name,
+        state_field,
+        env_name,
+        references_name,
+        hooked_name,
+        busy_name,
+        running_name,
+        closing_name,
+        head_name,
+        tail_name
+    ]
+
+    const types = [
+        arena.id,
+        state.id,
+        env.id,
+        count.id,
+        flag.id,
+        flag.id,
+        flag.id,
+        flag.id,
+        nullable.id,
+        nullable.id
+    ]
+
+    const defaults: u32?[] = [
+        null,
+        missing.id,
+        null,
+        one.id,
+        no.id,
+        no.id,
+        no.id,
+        no.id,
+        nil.id,
+        nil.id
+    ]
+
+    return loop({
+        state: {
+            ...nullable.state,
+            context: nil.state
+        },
+        index: 0
+    }, {
+        while: current => current.index < names.length,
+        next: current => {
+            const members = append({
+                table: current.state.members,
+                name: bytes.fromText(names[current.index]),
+                value: types[current.index],
+                default_value: defaults[current.index],
+                comptime_parameter: false
+            })
+
+            current.state = {
+                ...current.state,
+                members,
+                declarations: {
+                    ...current.state.declarations,
+                    tags: current.state.declarations.tags.push(D.Field)[0],
+                    offsets: current.state.declarations.offsets.push(
+                        integers.narrow(
+                            current.index
+                        )
+                    )[0]
+                }
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

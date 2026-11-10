@@ -1,0 +1,122 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../../ast/context/boolean"
+import nullValue from "../../../../ast/context/null_value"
+import path from "../../../../ast/context/path"
+import assignment from "../../../../ast/statements/builder/assignment"
+import open from "../../../../ast/statements/builder/open"
+import whileLoop from "../../../../ast/statements/builder/while_loop"
+import {
+    self_name,
+    closing_name,
+    head_name,
+    tail_name,
+    close_name,
+    next_name,
+    destroy_name
+} from "./const"
+import { task_capture } from "./const"
+import invoke from "./invoke"
+import method from "./method"
+import parameter from "./self_parameter"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = parameter(in)
+
+    const closing = path({
+        state: self.state.context,
+        path: [
+            self_name,
+            closing_name
+        ]
+    })
+
+    const yes = boolean({
+        state: closing.state,
+        value: true
+    })
+
+    const marked = assignment({
+        state: in.statements,
+        target: closing.id,
+        value: yes.id
+    })
+
+    const head = path({
+        state: yes.state,
+        path: [
+            self_name,
+            head_name
+        ]
+    })
+
+    const next = path({
+        state: head.state,
+        path: [
+            task_capture,
+            next_name
+        ]
+    })
+
+    const scope = open(marked)
+
+    const advanced = assignment({
+        state: scope.state,
+        target: head.id,
+        value: next.id
+    })
+
+    const destroyed = invoke({
+        state: {
+            ...self.state,
+            context: next.state,
+            statements: advanced
+        },
+        path: [
+            task_capture,
+            destroy_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const looped = whileLoop({
+        scope: {
+            ...scope,
+            state: destroyed.statements
+        },
+        columns: in.loops,
+        condition: head.id,
+        capture: bytes.fromText(task_capture)
+    })
+
+    const tail = path({
+        state: destroyed.context,
+        path: [
+            self_name,
+            tail_name
+        ]
+    })
+
+    const nil = nullValue(tail.state)
+
+    const cleared = assignment({
+        state: looped.state,
+        target: tail.id,
+        value: nil.id
+    })
+
+    return method({
+        state: {
+            ...destroyed,
+            context: nil.state,
+            statements: cleared,
+            loops: looped.columns
+        },
+        name: close_name,
+        parameter_type: self.id,
+        parameter_name: self_name
+    })
+}

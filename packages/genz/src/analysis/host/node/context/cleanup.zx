@@ -1,0 +1,154 @@
+import bytes from "std:bytes"
+
+import boolean from "../../../../ast/context/boolean"
+import builtin from "../../../../ast/context/builtin"
+import unwrap from "../../../../ast/context/optional_unwrap"
+import path from "../../../../ast/context/path"
+import pointer from "../../../../ast/context/pointer"
+import primitive from "../../../../ast/context/primitive"
+import text from "../../../../ast/context/text"
+import assignment from "../../../../ast/statements/builder/assignment"
+import binding from "../../../../ast/statements/builder/binding"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBuiltinName as B,
+    ExpressionsKind as K
+} from "../../../../printer/model/expressions"
+import {
+    data_name,
+    self_name,
+    hooked_name,
+    cleanup_name,
+    retain_name,
+    close_name,
+    release_name,
+    c_convention
+} from "./const"
+import invoke from "./invoke"
+import method from "./method"
+import optional from "./optional"
+import parameter from "./self_parameter"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const self = parameter(in)
+
+    const opaque = primitive({
+        state: self.state.context,
+        value: P.Anyopaque
+    })
+
+    const pointed = pointer({
+        state: opaque.state,
+        value: opaque.id
+    })
+
+    const nullable = optional({
+        state: {
+            ...self.state,
+            context: pointed.state
+        },
+        value: pointed.id
+    })
+
+    const data = path({
+        state: nullable.state.context,
+        path: [data_name]
+    })
+
+    const unwrapped = unwrap({
+        state: data.state,
+        value: data.id
+    })
+
+    const aligned = builtin({
+        state: unwrapped.state,
+        name: B.AlignCast,
+        arguments: [unwrapped.id]
+    })
+
+    const cast = builtin({
+        state: aligned.state,
+        name: B.PtrCast,
+        arguments: [aligned.id]
+    })
+
+    const bound = binding({
+        state: in.statements,
+        name: bytes.fromText(self_name),
+        type_expr: self.id,
+        value: cast.id,
+        mutable: false
+    })
+
+    const hooked = path({
+        state: cast.state,
+        path: [
+            self_name,
+            hooked_name
+        ]
+    })
+
+    const no = boolean({
+        state: hooked.state,
+        value: false
+    })
+
+    const cleared = assignment({
+        state: bound,
+        target: hooked.id,
+        value: no.id
+    })
+
+    const retained = invoke({
+        state: {
+            ...nullable.state,
+            context: no.state,
+            statements: cleared
+        },
+        path: [
+            self_name,
+            retain_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const closed = invoke({
+        state: retained,
+        path: [
+            self_name,
+            close_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const released = invoke({
+        state: closed,
+        path: [
+            self_name,
+            release_name
+        ],
+        arguments: [],
+        discard: false
+    })
+
+    const convention = text({
+        state: released.context,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(c_convention)
+    })
+
+    return method({
+        state: {
+            ...released,
+            context: convention.state
+        },
+        name: cleanup_name,
+        parameter_type: nullable.id,
+        parameter_name: data_name,
+        convention: convention.id
+    })
+}

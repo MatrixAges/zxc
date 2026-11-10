@@ -1,0 +1,46 @@
+import optional from "../../../../ast/expressions/optional_type"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export type Output = {
+    state: State,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const result = optional({
+        table: {
+            ...in.state.context.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            optional_type: in.state.optional_type
+        },
+        base: 0,
+        value: in.value
+    })
+
+    return {
+        id: result.id,
+        state: {
+            ...in.state,
+            context: {
+                ...in.state.context,
+                expressions: {
+                    ...in.state.context.expressions,
+                    ...result.table.pick([
+                        "tags",
+                        "offsets"
+                    ])
+                }
+            },
+            optional_type: result.table.optional_type,
+            valid: in.state.valid && result.valid
+        }
+    }
+}
