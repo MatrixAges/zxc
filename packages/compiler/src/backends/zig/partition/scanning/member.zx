@@ -1,0 +1,21 @@
+import { close_paren } from "./const"
+
+export type Input = {
+    source: u8[],
+    start: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        position: in.start
+    }, {
+        while: current => current.position < in.source.length &&
+            in.source[current.position] == close_paren,
+        next: current => {
+            current.position += 1
+        },
+        return: current => current.position
+    })
+}

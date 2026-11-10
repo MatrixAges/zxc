@@ -10,11 +10,11 @@ const Copies = std.AutoArrayHashMapUnmanaged(u32, void);
 /// Groups public entry closures into compilation units. Source builds retain ordinary calls throughout
 /// each closure; only the top-level module crosses the static ABI. The initial seed keeps its hashed layout.
 pub fn plan(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
-    var indices: @import("compiler").bytes.Map(u32) = .empty;
+    const paths = try allocator.alloc([]const u8, functions.len);
 
-    try indices.ensureTotalCapacity(allocator, @intCast(functions.len));
-    for (functions, 0..) |function, index| indices.putAssumeCapacity(function.path, @intCast(index));
+    for (functions, paths) |function, *path| path.* = function.path;
 
+    const scanner = try generation.Scanning.init(allocator, paths);
     const partitions = try allocator.alloc(u32, functions.len);
 
     for (functions, partitions) |function, *owner| owner.* = partition(function.path, count);
@@ -23,7 +23,7 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocat
 
     defer arenas.deinit();
 
-    const scanning = try Scanning.run(allocator, arenas, functions, &indices);
+    const scanning = try Scanning.run(allocator, arenas, functions, &scanner);
 
     var scopes = Scopes{
         .allocator = allocator,
@@ -41,7 +41,7 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocat
         for (partitions, scanning.references) |owner, references| try scopes.demand(owner, references);
     }
 
-    for (top) |file| try scopes.demand(count, try Scanning.scan(allocator, file.source, &indices));
+    for (top) |file| try scopes.demand(count, try scanner.references(allocator, file.source));
 
     var exports = scopes.exports;
     var files: std.ArrayList(File) = .empty;
@@ -53,11 +53,7 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocat
         const sizes = try allocator.alloc(u64, functions.len);
 
         for (scanning.references, functions, callees, sizes) |references, function, *row, *size| {
-            const ids = try allocator.alloc(u32, references.len);
-
-            for (references, ids) |reference, *id| id.* = reference.callee;
-
-            row.* = ids;
+            row.* = references.callees;
             size.* = @intCast(function.source.len);
         }
 
@@ -144,27 +140,27 @@ fn directory(allocator: std.mem.Allocator, scope: u32, count: u32, name: []const
 const Scopes = struct {
     allocator: std.mem.Allocator,
     partitions: []const u32,
-    references: []const []const Scanning.Reference,
+    references: []const Scanning.References,
     inline_names: []const []const []const u8,
     stubs: []Demands,
     copies: []Copies,
     exports: Demands = .empty,
     /// Records every call from `scope` into a function owned by another scope.
-    fn demand(self: *Scopes, scope: u32, calls: []const Scanning.Reference) !void {
-        for (calls) |call| {
-            if (self.partitions[call.callee] == scope) continue;
+    fn demand(self: *Scopes, scope: u32, calls: Scanning.References) !void {
+        for (calls.callees, calls.variants) |callee, variant| {
+            if (self.partitions[callee] == scope) continue;
 
-            const seed_import = !generation.groups.available and self.references[call.callee].len <= 1;
+            const seed_import = !generation.groups.available and self.references[callee].callees.len <= 1;
 
-            if (seed_import or inlined(self.inline_names[call.callee], call.variant)) {
-                if ((try self.copies[scope].getOrPut(self.allocator, call.callee)).found_existing) continue;
-                try self.demand(scope, self.references[call.callee]);
+            if (seed_import or inlined(self.inline_names[callee], variant)) {
+                if ((try self.copies[scope].getOrPut(self.allocator, callee)).found_existing) continue;
+                try self.demand(scope, self.references[callee]);
 
                 continue;
             }
 
-            try add(self.allocator, &self.stubs[scope], call.callee, call.variant);
-            try add(self.allocator, &self.exports, call.callee, call.variant);
+            try add(self.allocator, &self.stubs[scope], callee, variant);
+            try add(self.allocator, &self.exports, callee, variant);
         }
     }
 };

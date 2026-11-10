@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+
+import { inline_marker, newline, open_paren } from "./const"
+
+export type Input = string
+
+export type Output = u8[][]
+
+export default function (in: Input): Output {
+    const names: u8[][] = []
+    const source = bytes.fromText(in)
+
+    return loop({
+        names,
+        cursor: 0,
+        done: false
+    }, {
+        while: current => !current.done,
+        next: current => {
+            const at = bytes.indexOfText(source, current.cursor, inline_marker)
+
+            if (at == null) {
+                current.done = true
+            } else {
+                current.cursor = at + inline_marker.length
+
+                if (at == 0 || source[at - 1] == newline) {
+                    const end = bytes.indexOfScalar(source, current.cursor, open_paren)
+
+                    if (end == null) {
+                        current.done = true
+                    } else {
+                        current.names = current.names.push(
+                            bytes.fromText(
+                                encoding.sliceBytes(
+                                    in,
+                                    current.cursor,
+                                    end
+                                )
+                            )
+                        )[0]
+                    }
+                }
+            }
+        },
+        return: current => current.names
+    })
+}

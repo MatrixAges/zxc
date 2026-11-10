@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Scan" />
+
+    <Args in={Scan.Input} out={Scan.Output} />
+
+    <Call fn="references" in={$in} />
+
+    <If on={$ctx.references.status != Scan.Status.Valid}>
+        <Return
+            value={{
+                references: $ctx.references,
+                inline_names: []
+            }}
+        />
+    </If>
+
+    <Call fn="inline_names" in={$in.source} />
+
+    <Return
+        value={{
+            references: $ctx.references,
+            inline_names: $ctx.inline_names
+        }}
+    />
+</Module>

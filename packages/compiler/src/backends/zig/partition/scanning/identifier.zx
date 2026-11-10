@@ -1,0 +1,27 @@
+import {
+    ascii_digit_first,
+    ascii_digit_last,
+    ascii_lower_first,
+    ascii_lower_last,
+    ascii_upper_first,
+    ascii_upper_last,
+    ascii_underscore
+} from "core/const"
+
+export type Input = u8
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const digit = in >= ascii_digit_first && in <= ascii_digit_last
+    const lower = in >= ascii_lower_first && in <= ascii_lower_last
+    const upper = in >= ascii_upper_first && in <= ascii_upper_last
+    const underscore = in == ascii_underscore
+
+    return (
+        - digit
+        - or lower
+        - or upper
+        - or underscore
+    )
+}

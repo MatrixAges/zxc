@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+
+import { import_prefix } from "./const"
+import locate from "./locate"
+import { Status } from "./model"
+
+import type { Input, References as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result: Output = {
+        status: Status.Valid,
+        callees: [],
+        variants: []
+    }
+
+    return loop({
+        result,
+        cursor: 0,
+        done: false
+    }, {
+        while: current => !current.done && current.result.status == Status.Valid,
+        next: current => {
+            const at = bytes.indexOfText(
+                bytes.fromText(in.source),
+                current.cursor,
+                import_prefix
+            )
+
+            if (at == null) {
+                current.done = true
+            } else {
+                const found = locate({
+                    source: in,
+                    at
+                })
+
+                current.cursor = found.cursor
+                current.result.status = found.status
+
+                if (found.status == Status.Valid) {
+                    current.result.callees =
+                        current.result.callees.push(found.callee)[0]
+                    current.result.variants =
+                        current.result.variants.push(found.variant)[0]
+                }
+            }
+        },
+        return: current => current.result
+    })
+}

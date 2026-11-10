@@ -1,0 +1,57 @@
+import integers from "std:integer"
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "core/bytes/index/const"
+import grow from "core/bytes/index/grow"
+import put from "core/bytes/index/put"
+
+import type { Index as Output } from "core/bytes/index/model"
+
+export type Input = u8[][]
+
+export default function (in: Input): Output {
+    const index: Output = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    if (in.length == 0) {
+        return index
+    }
+
+    const capacity = loop({
+        capacity: initial_capacity
+    }, {
+        while: current =>
+            current.capacity * load_numerator / load_denominator < in.length,
+        next: current => {
+            current.capacity *= capacity_growth
+        },
+        return: current => current.capacity
+    })
+
+    const prepared = grow({
+        index,
+        capacity
+    })
+
+    return loop({
+        index: prepared,
+        position: 0
+    }, {
+        while: current => current.position < in.length,
+        next: current => {
+            current.index = put({
+                index: current.index,
+                key: in[current.position],
+                value: integers.narrow(current.position)
+            })
+            current.position += 1
+        },
+        return: current => current.index
+    })
+}

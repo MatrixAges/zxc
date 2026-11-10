@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import get from "core/bytes/index/get"
+
+import { import_open, quote, dot } from "./const"
+import member from "./member"
+import { Status } from "./model"
+import variant from "./variant"
+
+import type { Located as Input, Match as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = bytes.fromText(in.source.source)
+    const start = in.at + import_open.length
+    const close = bytes.indexOfScalar(source, start, quote)
+    const empty: u8[] = []
+
+    const initial: Output = {
+        status: Status.UnterminatedImport,
+        cursor: in.at,
+        callee: 0,
+        variant: empty
+    }
+
+    if (close == null) {
+        return initial
+    }
+
+    const target = member({
+        source,
+        start: close + 1
+    })
+
+    if (target >= source.length || source[target] != dot) {
+        return {
+            ...initial,
+            status: Status.UnsupportedFunctionReference
+        }
+    }
+
+    const first = target + 1
+
+    const end = variant({
+        source,
+        start: first
+    })
+
+    const key = bytes.fromText(encoding.sliceBytes(in.source.source, start, close))
+
+    const callee = get({
+        index: in.source.index,
+        key
+    })
+
+    if (callee == null) {
+        return {
+            ...initial,
+            status: Status.MissingFunctionFile,
+            cursor: end
+        }
+    }
+
+    return {
+        status: Status.Valid,
+        cursor: end,
+        callee,
+        variant: bytes.fromText(encoding.sliceBytes(in.source.source, first, end))
+    }
+}

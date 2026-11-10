@@ -1,0 +1,16 @@
+import identifier from "./identifier"
+
+import type { Input, Output } from "./member"
+
+export default function (in: Input): Output {
+    return loop({
+        position: in.start
+    }, {
+        while: current => current.position < in.source.length &&
+            identifier(in.source[current.position]),
+        next: current => {
+            current.position += 1
+        },
+        return: current => current.position
+    })
+}

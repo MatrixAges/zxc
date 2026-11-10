@@ -1,0 +1,36 @@
+import type { Index } from "core/bytes/index/model"
+
+export enum Status {
+    Valid,
+    UnterminatedImport,
+    UnsupportedFunctionReference,
+    MissingFunctionFile
+}
+
+export type Input = {
+    source: string,
+    index: Index
+}
+
+export type Match = {
+    status: Status,
+    cursor: u64,
+    callee: u32,
+    variant: u8[]
+}
+
+export type Located = {
+    source: Input,
+    at: u64
+}
+
+export type References = {
+    status: Status,
+    callees: u32[],
+    variants: u8[][]
+}
+
+export type Output = {
+    references: References,
+    inline_names: u8[][]
+}
