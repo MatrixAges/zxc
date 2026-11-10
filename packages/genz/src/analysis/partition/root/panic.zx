@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import builtin from "../../../ast/context/builtin"
+import call from "../../../ast/context/call"
+import evaluate from "../../../ast/context/expression_statement"
+import field from "../../../ast/context/field"
+import text from "../../../ast/context/text"
+import scope from "../../../ast/declarations/builder/comptime_scope"
+import {
+    ExpressionsBuiltinName,
+    ExpressionsKind
+} from "../../../printer/model/expressions"
+import { bridge_module, export_panic } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const file = text({
+        state: in.context,
+        kind: ExpressionsKind.String,
+        value: bytes.fromText(bridge_module)
+    })
+
+    const imported = builtin({
+        state: file.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [file.id]
+    })
+
+    const method = field({
+        state: imported.state,
+        target: imported.id,
+        name: bytes.fromText(export_panic)
+    })
+
+    const invoked = call({
+        state: method.state,
+        callee: method.id,
+        arguments: [],
+        fallible: false
+    })
+
+    const context = evaluate({
+        state: invoked.state,
+        value: invoked.id
+    })
+
+    const declarations = scope({
+        state: in.declarations,
+        start: integers.narrow(in.context.statements.tags.length),
+        count: 1
+    })
+
+    return {
+        ...in,
+        context,
+        declarations
+    }
+}

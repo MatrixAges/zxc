@@ -12,6 +12,8 @@ export type State = {
     field_value: u32[],
     field_default_value: u32?[],
     field_comptime_parameter: bool[],
+    comptime_scope_start: u32[],
+    comptime_scope_len: u32[],
     valid: bool
 }
 
@@ -25,5 +27,7 @@ export type Columns = {
     field_name: u8[][],
     field_value: u32[],
     field_default_value: u32?[],
-    field_comptime_parameter: bool[]
+    field_comptime_parameter: bool[],
+    comptime_scope_start: u32[],
+    comptime_scope_len: u32[]
 }

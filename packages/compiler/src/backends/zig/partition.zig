@@ -3,23 +3,50 @@ const genz = @import("genz");
 const node = genz.node;
 pub const groups = genz.zx.partition;
 pub const Export = struct { file: []const u8, variant: []const u8 };
-pub const Module = struct { name: []const u8, file: []const u8 };
+
+pub const Module = struct {
+    file: []const u8,
+    name: []const u8,
+    pub fn jsonStringify(self: @This(), writer: anytype) !void {
+        try writer.write(.{ .name = self.name, .file = self.file });
+    }
+};
 
 pub fn root(allocator: std.mem.Allocator, modules: []const Module, panic_handler: bool) ![]const u8 {
-    const builder = try genz.Builder.init(allocator);
-    var declarations: std.ArrayList(node.Declaration) = .empty;
+    if (comptime !@import("parser_options").generated_parser) return @import("partition_seed.zig").root(allocator, modules, panic_handler);
 
-    for (modules) |module| try declarations.append(allocator, .{ .constant = .{
-        .name = module.name,
-        .exported = true,
-        .value = try builder.builtin(.import, &.{try builder.string(module.file)}),
-    } });
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-    if (panic_handler) try declarations.append(allocator, .{ .comptime_scope = try builder.statements(&.{.{
-        .expression = try builder.call(try builder.field(try builder.builtin(.import, &.{try builder.string("zxc_bridge")}), "exportPanic"), &.{}),
-    }}) });
+    defer arena.deinit();
 
-    return genz.render(allocator, builder.nodes, declarations.items);
+    const builder = try genz.Builder.init(arena.allocator());
+    const entry = @import("generated_partition_root");
+    const zx = @import("zx");
+    const Input = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
+
+    const input: Input = .{
+        .modules = zx.columns.slice(@FieldType(Input, "modules"), modules),
+        .panic_handler = panic_handler,
+    };
+
+    const output = entry.executeValue(builder.allocator, input) catch |err| return failure(err);
+
+    if (!output.valid) return error.OutOfMemory;
+
+    genz.import_module.appendBorrowed(builder.allocator, builder.nodes, std.meta.Child(entry.Output), output) catch |err| return failure(err);
+
+    const declarations = try builder.allocator.alloc(node.Declaration, builder.nodes.declaration_rows.tags.items.len);
+
+    for (declarations, 0..) |*declaration, index| declaration.* = try builder.nodes.materializeDeclaration(builder.allocator, @intCast(index));
+
+    return genz.render(allocator, builder.nodes, declarations);
+}
+
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => @panic("invalid partition root AST"),
+    };
 }
 
 pub fn exports(allocator: std.mem.Allocator, entries: []const Export) ![]const u8 {

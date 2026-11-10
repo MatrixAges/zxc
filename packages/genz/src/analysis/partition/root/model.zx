@@ -1,0 +1,48 @@
+import type { State as Context } from "../../../ast/context/model"
+import type {
+    State as Declarations,
+    Columns
+} from "../../../ast/declarations/builder/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../printer/model/expressions"
+
+export type Module = {
+    file: u8[],
+    name: u8[]
+}
+
+export type Input = {
+    modules: Module[],
+    panic_handler: bool
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][]
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    declarations: Declarations,
+    expressions: Expressions,
+    strings: u8[][],
+    valid: bool
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}
+
+export type Output = {
+    context: Context,
+    statements: Statements,
+    declarations: Columns,
+    valid: bool
+}

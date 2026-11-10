@@ -1,0 +1,63 @@
+import constant from "../../../ast/declarations/builder/constant"
+import header from "../../../ast/expressions/header"
+import named from "../../../ast/expressions/named"
+import {
+    ExpressionsBuiltinName,
+    ExpressionsKind
+} from "../../../printer/model/expressions"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const module = in.state.source.modules[in.index]
+
+    const file = named({
+        ...in.state.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        values: in.state.strings,
+        base: 0,
+        kind: ExpressionsKind.String,
+        name: module.file
+    })
+
+    const imported = header({
+        tags: file.tags,
+        offsets: file.offsets,
+        base: 0,
+        kind: ExpressionsKind.Builtin,
+        offset: in.state.expressions.builtin_name.length
+    })
+
+    const declarations = constant({
+        state: in.state.declarations,
+        name: module.name,
+        value: imported.id,
+        type_expr: null,
+        exported: true
+    })
+
+    const condition = (
+        - in.state.valid
+        - and file.valid
+        - and imported.valid
+    )
+
+    return {
+        ...in.state,
+        declarations,
+        strings: file.values,
+        expressions: {
+            tags: imported.tags,
+            offsets: imported.offsets,
+            builtin_name: in.state.expressions.builtin_name.push(
+                ExpressionsBuiltinName.Import
+            )[0],
+            builtin_arguments: in.state.expressions.builtin_arguments.push(
+                [file.id]
+            )[0]
+        },
+        valid: condition
+    }
+}

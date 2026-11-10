@@ -1,0 +1,30 @@
+import { DeclarationsKind } from "../../../printer/model/declarations"
+import header from "./header"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    start: u32,
+    count: u32
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const state = header({
+        state: in.state,
+        kind: DeclarationsKind.ComptimeScope,
+        offset: in.state.comptime_scope_start.length
+    })
+
+    if (!state.valid) {
+        return state
+    }
+
+    return {
+        ...state,
+        comptime_scope_start: state.comptime_scope_start.push(in.start)[0],
+        comptime_scope_len: state.comptime_scope_len.push(in.count)[0]
+    }
+}
