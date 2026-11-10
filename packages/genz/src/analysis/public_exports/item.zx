@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import constant from "../../ast/declarations/builder/constant"
+import builtin from "../../ast/expressions/builder/builtin"
+import field from "../../ast/expressions/builder/field"
+import named from "../../ast/expressions/builder/named"
+import { ExpressionsBuiltinName } from "../../printer/model/expressions"
+import { call_name } from "./const"
+
+import type { Item as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const function_id = integers.widen(in.state.source.functions[in.index])
+
+    const file = named({
+        state: in.state.expressions,
+        name: in.state.source.paths[function_id],
+        text: true
+    })
+
+    const imported = builtin({
+        state: file.state,
+        name: ExpressionsBuiltinName.Import,
+        arguments: [file.id]
+    })
+
+    const value = field({
+        state: imported.state,
+        target: imported.id,
+        name: bytes.fromText(call_name)
+    })
+
+    const declarations = constant({
+        state: in.state.declarations,
+        name: in.state.source.names[in.index],
+        value: value.id,
+        type_expr: null,
+        exported: true
+    })
+
+    return {
+        ...in.state,
+        expressions: value.state,
+        declarations
+    }
+}

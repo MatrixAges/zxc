@@ -106,20 +106,8 @@ pub fn publicEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, pro
 
     const temporary = arena.allocator();
     var lower = try initialize(temporary, backing, program, names, facts);
-    var declarations: std.ArrayList(node.Declaration) = .empty;
     const prefix = try lower.declarations();
-
-    for (members) |member| {
-        const module = try lower.builder.builtin(.import, &.{try lower.builder.string(names.functions[@backingInt(member.function)])});
-
-        try declarations.append(temporary, .{ .constant = .{
-            .exported = true,
-            .name = member.name,
-            .value = try lower.builder.field(module, "call"),
-        } });
-    }
-
-    const suffix = try lower.builder.nodes.declarations(temporary, declarations.items);
+    const suffix = try @import("public_exports.zig").append(&lower, names, members);
 
     std.debug.assert(prefix.start + prefix.len == suffix.start);
 

@@ -22,3 +22,16 @@ export type Node = {
     state: State,
     id: u32
 }
+
+export type Columns = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    string: u8[][],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][],
+    field_target: u32[],
+    field_name: u8[][],
+    call_callee: u32[],
+    call_arguments: u32[][],
+}

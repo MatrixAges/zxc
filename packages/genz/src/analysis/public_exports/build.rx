@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Exports" />
+
+    <Args in={Exports.Input} out={Exports.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="members" in={$ctx.initialize} />
+    <Call fn="publish" in={$ctx.members} />
+
+    <Return value={$ctx.publish} />
+</Module>

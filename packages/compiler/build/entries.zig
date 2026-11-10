@@ -86,6 +86,7 @@ pub const main = [_]Entry{
     .{ .path = "backends/zig/bundle_abi/view.rx", .name = "bundle_abi_view", .owner = .compiler },
     .{ .path = "backends/zig/gateway/bindings/build.rx", .name = "gateway_bindings", .owner = .compiler },
     .{ .path = "backends/zig/library_entry/build.rx", .name = "library_entry", .owner = .compiler },
+    .{ .path = "genz/analysis/public_exports/build.rx", .name = "public_exports", .owner = .genz },
     .{ .path = "genz/analysis/partition/exports/build.rx", .name = "partition_exports", .owner = .compiler },
     .{ .path = "genz/analysis/partition/stub/build.rx", .name = "partition_stub", .owner = .compiler },
     .{ .path = "genz/analysis/partition/root/build.rx", .name = "partition_root", .owner = .compiler },

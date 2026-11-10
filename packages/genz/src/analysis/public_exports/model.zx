@@ -1,0 +1,31 @@
+import type {
+    State as Declarations,
+    Columns
+} from "../../ast/declarations/builder/model"
+import type { State as Expressions } from "../../ast/expressions/builder/model"
+import type { Columns as ExpressionColumns } from "../../ast/expressions/builder/model"
+
+export type Input = {
+    names: u8[][],
+    functions: u32[],
+    paths: u8[][],
+    expression_base: u32,
+    declaration_base: u32
+}
+
+export type State = {
+    source: Input,
+    expressions: Expressions,
+    declarations: Declarations
+}
+
+export type Item = {
+    state: State,
+    index: u64
+}
+
+export type Output = {
+    expressions: ExpressionColumns,
+    declarations: Columns,
+    valid: bool
+}
