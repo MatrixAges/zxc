@@ -90,7 +90,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
 
     const emitted = std.Io.Timestamp.now(io, .awake);
 
-    if (output) |path| try @import("shared_output.zig").write(io, allocator, path, bundle, partitions);
+    if (output) |path| try @import("shared_output.zig").write(io, allocator, resident.gpa, path, bundle, partitions);
 
     const written = std.Io.Timestamp.now(io, .awake);
 

@@ -13,9 +13,13 @@ pub const Module = struct {
 };
 
 pub fn root(allocator: std.mem.Allocator, modules: []const Module, panic_handler: bool) ![]const u8 {
+    return rootBacked(allocator, allocator, modules, panic_handler);
+}
+
+pub fn rootBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, modules: []const Module, panic_handler: bool) ![]const u8 {
     if (comptime !@import("parser_options").generated_parser) return @import("partition_seed.zig").root(allocator, modules, panic_handler);
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena = std.heap.ArenaAllocator.init(workspace);
 
     defer arena.deinit();
 
@@ -50,9 +54,13 @@ fn failure(err: anyerror) std.mem.Allocator.Error {
 }
 
 pub fn exports(allocator: std.mem.Allocator, entries: []const Export) ![]const u8 {
+    return exportsBacked(allocator, allocator, entries);
+}
+
+pub fn exportsBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, entries: []const Export) ![]const u8 {
     if (comptime !@import("parser_options").generated_parser) return @import("partition_seed.zig").exports(allocator, entries);
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena = std.heap.ArenaAllocator.init(workspace);
 
     defer arena.deinit();
 
@@ -82,9 +90,13 @@ pub fn exports(allocator: std.mem.Allocator, entries: []const Export) ![]const u
 }
 
 pub fn stub(allocator: std.mem.Allocator, file: []const u8, variants: []const []const u8, comptime_entry: bool) ![]const u8 {
+    return stubBacked(allocator, allocator, file, variants, comptime_entry);
+}
+
+pub fn stubBacked(allocator: std.mem.Allocator, workspace: std.mem.Allocator, file: []const u8, variants: []const []const u8, comptime_entry: bool) ![]const u8 {
     if (comptime !@import("parser_options").generated_parser) return @import("partition_seed.zig").stub(allocator, file, variants, comptime_entry);
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena = std.heap.ArenaAllocator.init(workspace);
 
     defer arena.deinit();
 

@@ -9,7 +9,7 @@ const Copies = std.AutoArrayHashMapUnmanaged(u32, void);
 
 /// Groups public entry closures into compilation units. Source builds retain ordinary calls throughout
 /// each closure; only the top-level module crosses the static ABI. The initial seed keeps its hashed layout.
-pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
+pub fn plan(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
     var indices: @import("compiler").bytes.Map(u32) = .empty;
 
     try indices.ensureTotalCapacity(allocator, @intCast(functions.len));
@@ -87,12 +87,12 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, t
 
             try files.append(allocator, .{
                 .path = try directory(allocator, @intCast(index), count, function.path),
-                .source = try generation.stub(allocator, function.path, variants.items, index == count),
+                .source = try generation.stubBacked(allocator, workspace, function.path, variants.items, index == count),
             });
         }
     }
 
-    const roots = Roots{ .functions = functions, .partitions = partitions, .exports = &exports, .sources = try allocator.alloc([]const u8, count), .modules = try allocator.alloc([]const u8, count) };
+    const roots = Roots{ .workspace = workspace, .functions = functions, .partitions = partitions, .exports = &exports, .sources = try allocator.alloc([]const u8, count), .modules = try allocator.alloc([]const u8, count) };
 
     try parallel.each(arenas, count, &roots);
 
@@ -106,6 +106,7 @@ pub fn plan(io: std.Io, allocator: std.mem.Allocator, functions: []const File, t
 
 /// The root of each partition, exporting its functions called from outside it in name order.
 const Roots = struct {
+    workspace: std.mem.Allocator,
     functions: []const File,
     partitions: []const u32,
     exports: *const Demands,
@@ -124,8 +125,8 @@ const Roots = struct {
             for (variants.items) |variant| try entries.append(allocator, .{ .file = name, .variant = variant });
         }
 
-        self.sources[index] = try generation.exports(allocator, entries.items);
-        self.modules[index] = try generation.root(allocator, modules.items, false);
+        self.sources[index] = try generation.exportsBacked(allocator, self.workspace, entries.items);
+        self.modules[index] = try generation.rootBacked(allocator, self.workspace, modules.items, false);
     }
 };
 

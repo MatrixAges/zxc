@@ -6,7 +6,7 @@ const parallel = @import("parallel.zig");
 /// Writes the generated tree. With `partitions` set, function files are spread over that many separately
 /// compiled partitions. Only changed files are rewritten and files no longer generated are removed, so an
 /// output directory reused across runs keeps unchanged files byte- and timestamp-stable for Zig's cache.
-pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundle: compiler.zig.LibraryBundle, partitions: u32) !void {
+pub fn write(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocator, output: []const u8, bundle: compiler.zig.LibraryBundle, partitions: u32) !void {
     var files: std.ArrayList(layout.File) = .empty;
     var functions: std.ArrayList(layout.File) = .empty;
     var top: std.ArrayList(layout.File) = .empty;
@@ -51,11 +51,11 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
             try files.append(allocator, .{ .path = try std.fs.path.join(allocator, &.{ "original", function.path }), .source = function.source });
         }
 
-        try files.append(allocator, .{ .path = "original/root.zig", .source = try compiler.zig.partition.root(allocator, originals, false) });
+        try files.append(allocator, .{ .path = "original/root.zig", .source = try compiler.zig.partition.rootBacked(allocator, workspace, originals, false) });
     }
 
-    try files.append(allocator, .{ .path = "root.zig", .source = try compiler.zig.partition.root(allocator, modules.items, partitions != 0) });
-    if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(io, allocator, functions.items, top.items, partitions));
+    try files.append(allocator, .{ .path = "root.zig", .source = try compiler.zig.partition.rootBacked(allocator, workspace, modules.items, partitions != 0) });
+    if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(io, allocator, workspace, functions.items, top.items, partitions));
     try mirror(io, allocator, output, files.items);
 }
 
