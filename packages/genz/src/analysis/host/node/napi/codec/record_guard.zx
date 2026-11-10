@@ -1,0 +1,73 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../../ast/context/binary"
+import integer from "../../../../../ast/context/integer"
+import text from "../../../../../ast/context/text"
+import {
+    ExpressionsKind as K,
+    ExpressionsBinaryOperator as B
+} from "../../../../../printer/model/expressions"
+import invoke from "../../task/invoke"
+import {
+    length_name,
+    kind_name,
+    object_tag,
+    invalid_tuple,
+    expected_object
+} from "./const"
+import guard from "./tree_guard"
+
+import type { State as Tree } from "../../task/model"
+
+export type Input = {
+    state: Tree,
+    tuple: bool,
+    count: u64,
+    env: u32,
+    value: u32
+}
+
+export type Output = Tree
+
+export default function (in: Input): Output {
+    const called = invoke({
+        state: in.state,
+        path: [in.tuple ? length_name : kind_name],
+        arguments: [
+            in.env,
+            in.value
+        ],
+        fallible: true
+    })
+
+    const expected = match in.tuple {
+        true => integer({
+            state: called.state.ast.context,
+            value: in.count
+        }),
+        _ => text({
+            state: called.state.ast.context,
+            kind: K.EnumLiteral,
+            value: bytes.fromText(object_tag)
+        })
+    }
+
+    const condition = binary({
+        state: expected.state,
+        operator: B.NotEqual,
+        left: called.id,
+        right: expected.id
+    })
+
+    return guard({
+        state: {
+            ...called.state,
+            ast: {
+                ...called.state.ast,
+                context: condition.state
+            }
+        },
+        condition: condition.id,
+        error: in.tuple ? invalid_tuple : expected_object
+    })
+}

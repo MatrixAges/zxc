@@ -1,0 +1,99 @@
+import bytes from "std:bytes"
+
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import { env_name } from "../../context/const"
+import { value_name, allocator_name, name_name } from "../../task/const"
+import deferValue from "../../task/defer_value"
+import invoke from "../../task/invoke"
+import { string_name, free_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = path({
+        state: in.tree.ast.context,
+        path: [allocator_name]
+    })
+
+    const env = path({
+        state: allocator.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const name = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state
+            }
+        },
+        path: [string_name],
+        arguments: [
+            allocator.id,
+            env.id,
+            value.id
+        ],
+        fallible: true
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(name_name),
+        value: name.id,
+        mutable: false
+    })
+
+    const name_value = path({
+        state: name.state.ast.context,
+        path: [name_name]
+    })
+
+    const free = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: name_value.state,
+                statements: declared
+            }
+        },
+        path: [
+            allocator_name,
+            free_name
+        ],
+        arguments: [name_value.id],
+        fallible: false
+    })
+
+    const deferred = deferValue({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: free.state.ast.context,
+                statements: declared
+            }
+        },
+        id: free.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: deferred.ast.context,
+                statements: deferred.ast.statements
+            },
+            extra: deferred.extra
+        }
+    }
+}

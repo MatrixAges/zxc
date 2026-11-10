@@ -1,0 +1,55 @@
+<Module>
+    <Type from="model" as="Codec" />
+
+    <Switch on={$in.kind}>
+        <Case value={Codec.Kind.Scalar}>
+            <Call fn="write_scalar" in={$in} />
+
+            <Return value={$ctx.write_scalar} />
+        </Case>
+
+        <Case value={Codec.Kind.Enumeration}>
+            <Call fn="write_named" in={$in} />
+
+            <Return value={$ctx.write_named} />
+        </Case>
+
+        <Case value={Codec.Kind.ErrorSet}>
+            <Call fn="write_named" in={$in} />
+
+            <Return value={$ctx.write_named} />
+        </Case>
+
+        <Case value={Codec.Kind.Optional}>
+            <Call fn="write_optional" in={$in} />
+
+            <Return value={$ctx.write_optional} />
+        </Case>
+
+        <Case value={Codec.Kind.List}>
+            <Call module="write_list" in={$in} />
+
+            <Return value={$ctx.write_list} />
+        </Case>
+
+        <Case value={Codec.Kind.Object}>
+            <Call fn="write_record" in={$in} />
+            <Call fn="fields" in={$ctx.write_record} />
+
+            <Return value={$ctx.fields} />
+        </Case>
+
+        <Case value={Codec.Kind.Tuple}>
+            <Call fn="write_record" in={$in} />
+            <Call fn="fields" in={$ctx.write_record} />
+
+            <Return value={$ctx.fields} />
+        </Case>
+
+        <Default>
+            <Call fn="unsupported" in={$in} />
+
+            <Return value={$ctx.unsupported} />
+        </Default>
+    </Switch>
+</Module>

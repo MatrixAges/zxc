@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="list_allocate" in={$in} />
+    <Call fn="list_loop" in={$ctx.list_allocate} />
+    <Call fn="read_result" in={$ctx.list_loop} />
+
+    <Return value={$ctx.read_result} />
+</Module>

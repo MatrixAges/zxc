@@ -1,0 +1,81 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import undefinedValue from "../../../../../ast/context/undefined"
+import binding from "../../../../../ast/statements/builder/binding"
+import { ExpressionsPrimitive as P } from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import { value_name, result_name } from "../../task/const"
+import check from "../value/check_call"
+import { get_double } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = primitive({
+        state: in.tree.ast.context,
+        value: P.F64
+    })
+
+    const missing = undefinedValue(target.state)
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(result_name),
+        value: missing.id,
+        mutable: true,
+        type_expr: target.id
+    })
+
+    const env = path({
+        state: missing.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const result_value = path({
+        state: value.state,
+        path: [result_name]
+    })
+
+    const pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const checked = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: get_double,
+        arguments: [
+            env.id,
+            value.id,
+            pointer.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: checked.ast.context,
+                statements: checked.ast.statements
+            },
+            extra: checked.extra
+        }
+    }
+}

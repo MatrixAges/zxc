@@ -1,0 +1,59 @@
+import path from "../../../../../ast/context/path"
+import result from "../../../../../ast/statements/builder/result"
+import { env_name } from "../../context/const"
+import { value_name, allocator_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import { string_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = path({
+        state: in.tree.ast.context,
+        path: [allocator_name]
+    })
+
+    const env = path({
+        state: allocator.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const called = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state
+            }
+        },
+        path: [string_name],
+        arguments: [
+            allocator.id,
+            env.id,
+            value.id
+        ],
+        fallible: false
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: called.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: called.state.ast.context,
+                statements: returned
+            }
+        }
+    }
+}

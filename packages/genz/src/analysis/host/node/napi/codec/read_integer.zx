@@ -1,0 +1,184 @@
+import binary from "../../../../../ast/context/binary"
+import builtin from "../../../../../ast/context/builtin"
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import unary from "../../../../../ast/context/unary"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsUnaryOperator as U,
+    ExpressionsBuiltinName as Builtin
+} from "../../../../../printer/model/expressions"
+import { std_name } from "../../context/const"
+import { result_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import {
+    type_prefix,
+    math_name,
+    integer_out_of_range,
+    finite_name,
+    min_int_name,
+    max_int_name
+} from "./const"
+import guard from "./guard"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = identifier({
+        state: in.tree.ast.context,
+        name: typeName({
+            prefix: type_prefix,
+            id: in.source.id
+        })
+    })
+
+    const value = path({
+        state: target.state,
+        path: [result_name]
+    })
+
+    const finite = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state
+            }
+        },
+        path: [
+            std_name,
+            math_name,
+            finite_name
+        ],
+        arguments: [value.id],
+        fallible: false
+    })
+
+    const not_finite = unary({
+        state: finite.state.ast.context,
+        operator: U.Not,
+        operand: finite.id
+    })
+
+    const truncated = builtin({
+        state: not_finite.state,
+        name: Builtin.Trunc,
+        arguments: [value.id]
+    })
+
+    const not_integral = binary({
+        state: truncated.state,
+        operator: B.NotEqual,
+        left: truncated.id,
+        right: value.id
+    })
+
+    const minimum = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: not_integral.state
+            }
+        },
+        path: [
+            std_name,
+            math_name,
+            min_int_name
+        ],
+        arguments: [target.id],
+        fallible: false
+    })
+
+    const low = binary({
+        state: minimum.state.ast.context,
+        operator: B.Less,
+        left: value.id,
+        right: minimum.id
+    })
+
+    const maximum = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: low.state
+            }
+        },
+        path: [
+            std_name,
+            math_name,
+            max_int_name
+        ],
+        arguments: [target.id],
+        fallible: false
+    })
+
+    const high = binary({
+        state: maximum.state.ast.context,
+        operator: B.Greater,
+        left: value.id,
+        right: maximum.id
+    })
+
+    const first = binary({
+        state: high.state,
+        operator: B.LogicalOr,
+        left: not_finite.id,
+        right: not_integral.id
+    })
+
+    const second = binary({
+        state: first.state,
+        operator: B.LogicalOr,
+        left: first.id,
+        right: low.id
+    })
+
+    const bad = binary({
+        state: second.state,
+        operator: B.LogicalOr,
+        left: second.id,
+        right: high.id
+    })
+
+    const guarded = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: bad.state
+                }
+            }
+        },
+        condition: bad.id,
+        error: integer_out_of_range
+    })
+
+    const cast = builtin({
+        state: guarded.tree.ast.context,
+        name: Builtin.IntFromFloat,
+        arguments: [value.id]
+    })
+
+    const returned = result({
+        state: guarded.tree.ast.statements,
+        value: cast.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: cast.state,
+                statements: returned
+            }
+        }
+    }
+}

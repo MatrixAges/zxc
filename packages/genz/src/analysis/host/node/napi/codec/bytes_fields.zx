@@ -1,0 +1,128 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../../../ast/context/identifier"
+import integer from "../../../../../ast/context/integer"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import binding from "../../../../../ast/statements/builder/binding"
+import { ExpressionsPrimitive as P } from "../../../../../printer/model/expressions"
+import { api_name } from "../../context/const"
+import optional from "../../context/optional"
+import { value_type } from "../../task/const"
+import {
+    array_kind_name,
+    byte_count_name,
+    bytes_name,
+    buffer_name,
+    offset_name,
+    c_int_type
+} from "./const"
+import manyType from "./many_type"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const zero = integer({
+        state: in.tree.ast.context,
+        value: 0
+    })
+
+    const kind_type = identifier({
+        state: zero.state,
+        name: bytes.fromText(c_int_type)
+    })
+
+    const kind_field = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(array_kind_name),
+        value: zero.id,
+        mutable: true,
+        type_expr: kind_type.id
+    })
+
+    const size_type = primitive({
+        state: kind_type.state,
+        value: P.Usize
+    })
+
+    const count_field = binding({
+        state: kind_field,
+        name: bytes.fromText(byte_count_name),
+        value: zero.id,
+        mutable: true,
+        type_expr: size_type.id
+    })
+
+    const byte_type = primitive({
+        state: size_type.state,
+        value: P.U8
+    })
+
+    const many = manyType({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: byte_type.state,
+                    statements: count_field
+                }
+            }
+        },
+        value: byte_type.id
+    })
+
+    const optional_type = optional({
+        state: many.state.tree.ast,
+        value: many.id
+    })
+
+    const nil = nullValue(optional_type.state.context)
+
+    const bytes_field = binding({
+        state: count_field,
+        name: bytes.fromText(bytes_name),
+        value: nil.id,
+        mutable: true,
+        type_expr: optional_type.id
+    })
+
+    const api_type = path({
+        state: nil.state,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const buffer_field = binding({
+        state: bytes_field,
+        name: bytes.fromText(buffer_name),
+        value: nil.id,
+        mutable: true,
+        type_expr: api_type.id
+    })
+
+    const offset_field = binding({
+        state: buffer_field,
+        name: bytes.fromText(offset_name),
+        value: zero.id,
+        mutable: true,
+        type_expr: size_type.id
+    })
+
+    return {
+        ...in,
+        many_pointer: many.state.many_pointer,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...optional_type.state,
+                context: api_type.state,
+                statements: offset_field
+            }
+        }
+    }
+}

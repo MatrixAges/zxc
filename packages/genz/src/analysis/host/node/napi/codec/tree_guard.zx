@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+
+import text from "../../../../../ast/context/text"
+import branch from "../../../../../ast/statements/builder/branch"
+import open from "../../../../../ast/statements/builder/open"
+import result from "../../../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../../../printer/model/expressions"
+
+import type { State, State as Output } from "../../task/model"
+
+export type Input = {
+    state: State,
+    condition: u32,
+    error: string
+}
+
+export default function (in: Input): Output {
+    const value = text({
+        state: in.state.ast.context,
+        kind: K.ErrorValue,
+        value: bytes.fromText(in.error)
+    })
+
+    const scope = open(in.state.ast.statements)
+
+    const returned = result({
+        state: scope.state,
+        value: value.id
+    })
+
+    return {
+        ...in.state,
+        ast: {
+            ...in.state.ast,
+            context: value.state,
+            statements: branch({
+                scope: {
+                    ...scope,
+                    state: returned
+                },
+                condition: in.condition
+            })
+        }
+    }
+}

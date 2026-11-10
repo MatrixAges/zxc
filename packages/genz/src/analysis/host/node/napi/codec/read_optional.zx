@@ -1,0 +1,160 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../../ast/context/binary"
+import call from "../../../../../ast/context/call"
+import identifier from "../../../../../ast/context/identifier"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import text from "../../../../../ast/context/text"
+import binding from "../../../../../ast/statements/builder/binding"
+import branch from "../../../../../ast/statements/builder/branch"
+import open from "../../../../../ast/statements/builder/open"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import { value_name, allocator_name, read_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import {
+    read_prefix,
+    kind_name,
+    value_kind_name,
+    null_tag,
+    undefined_tag
+} from "./const"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const kind = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state
+            }
+        },
+        path: [kind_name],
+        arguments: [
+            env.id,
+            value.id
+        ],
+        fallible: true
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(value_kind_name),
+        value: kind.id,
+        mutable: false
+    })
+
+    const value_kind = path({
+        state: kind.state.ast.context,
+        path: [value_kind_name]
+    })
+
+    const null_kind = text({
+        state: value_kind.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(null_tag)
+    })
+
+    const undefined_kind = text({
+        state: null_kind.state,
+        kind: K.EnumLiteral,
+        value: bytes.fromText(undefined_tag)
+    })
+
+    const is_null = binary({
+        state: undefined_kind.state,
+        operator: B.Equal,
+        left: value_kind.id,
+        right: null_kind.id
+    })
+
+    const is_undefined = binary({
+        state: is_null.state,
+        operator: B.Equal,
+        left: value_kind.id,
+        right: undefined_kind.id
+    })
+
+    const empty = binary({
+        state: is_undefined.state,
+        operator: B.LogicalOr,
+        left: is_null.id,
+        right: is_undefined.id
+    })
+
+    const scope = open(declared)
+
+    const nil = nullValue(empty.state)
+
+    const empty_result = result({
+        state: scope.state,
+        value: nil.id
+    })
+
+    const branched = branch({
+        scope: {
+            ...scope,
+            state: empty_result
+        },
+        condition: empty.id
+    })
+
+    const allocator = path({
+        state: nil.state,
+        path: [allocator_name]
+    })
+
+    const read_name = identifier({
+        state: allocator.state,
+        name: typeName({
+            prefix: read_prefix,
+            id: in.child
+        })
+    })
+
+    const read = call({
+        state: read_name.state,
+        callee: read_name.id,
+        arguments: [
+            allocator.id,
+            env.id,
+            value.id
+        ],
+        fallible: true
+    })
+
+    const returned = result({
+        state: branched,
+        value: read.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: read.state,
+                statements: returned
+            }
+        }
+    }
+}

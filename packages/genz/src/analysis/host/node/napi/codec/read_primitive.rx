@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Codec" />
+
+    <Switch on={$in.scalar_route}>
+        <Case value={Codec.ScalarRoute.Void}>
+            <Call fn="read_void" in={$in} /><Return value={$ctx.read_void} />
+        </Case>
+
+        <Case value={Codec.ScalarRoute.Boolean}>
+            <Call fn="read_bool" in={$in} /><Return value={$ctx.read_bool} />
+        </Case>
+
+        <Case value={Codec.ScalarRoute.BigInteger}>
+            <Call fn="read_bigint" in={$in} /><Return value={$ctx.read_bigint} />
+        </Case>
+
+        <Default>
+            <Call fn="read_double" in={$in} />
+
+            <If on={$in.scalar_route == Codec.ScalarRoute.Float}>
+                <Call fn="read_float" in={$ctx.read_double} /><Return
+                    value={$ctx.read_float}
+                />
+
+                <Else><Call fn="read_integer" in={$ctx.read_double} /><Return
+                        value={$ctx.read_integer}
+                    /></Else>
+            </If>
+        </Default>
+    </Switch>
+</Module>

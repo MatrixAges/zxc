@@ -1,0 +1,26 @@
+<Module>
+    <Type from="model" as="Codec" />
+
+    <Args in={Codec.Input} out={Codec.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <If on={$in.reading}>
+        <Call module="read" in={$ctx.initialize} />
+        <Call module="finalize" in={$ctx.read} />
+
+        <Return value={$ctx.finalize} />
+
+        <Else>
+            <Call fn="write_result" in={$ctx.initialize} />
+
+            <Call module="write" in={$ctx.write_result} />
+
+            <Call fn="return_result" in={$ctx.write} />
+
+            <Call module="finalize" in={$ctx.return_result} />
+
+            <Return value={$ctx.finalize} />
+        </Else>
+    </If>
+</Module>

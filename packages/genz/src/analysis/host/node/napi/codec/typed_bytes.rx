@@ -1,0 +1,16 @@
+<Module>
+    <Call fn="typed_scope" in={$in} />
+    <Call fn="bytes_fields" in={$ctx.typed_scope.state} />
+    <Call fn="bytes_info" in={$ctx.bytes_fields} />
+    <Call fn="bytes_return" in={$ctx.bytes_info} />
+
+    <Call
+        fn="typed_close"
+        in={{
+            ...$ctx.typed_scope,
+            state: $ctx.bytes_return
+        }}
+    />
+
+    <Return value={$ctx.typed_close} />
+</Module>

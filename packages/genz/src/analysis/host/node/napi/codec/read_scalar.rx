@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Codec" />
+
+    <Switch on={$in.scalar_route}>
+        <Case value={Codec.ScalarRoute.String}>
+            <Call fn="read_string" in={$in} />
+
+            <Return value={$ctx.read_string} />
+        </Case>
+
+        <Default>
+            <Call fn="discard_allocator" in={$in} />
+
+            <Call module="read_primitive" in={$ctx.discard_allocator} />
+
+            <Return value={$ctx.read_primitive} />
+        </Default>
+    </Switch>
+</Module>

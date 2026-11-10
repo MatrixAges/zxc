@@ -22,8 +22,8 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&dsl_example.step);
     dsl_step.dependOn(&run_dsl_example.step);
 
-    const default_partitions: u32 = if (optimize == .debug) 64 else if (target.query.isNative() and (optimize == .safe or optimize == .small)) 3 else 0;
-    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 64 in Debug, 3 in native Safe/Small, otherwise 0 = one unit)") orelse default_partitions;
+    const default_partitions: u32 = if (optimize == .debug) 64 else if (target.query.isNative() and (optimize == .safe or optimize == .small)) 4 else 0;
+    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 64 in Debug, 4 in native Safe/Small, otherwise 0 = one unit)") orelse default_partitions;
     const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
 
     const rx_tests_options: std.Build.Module.CreateOptions = .{

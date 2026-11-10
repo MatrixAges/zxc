@@ -1,0 +1,41 @@
+import bytes from "std:bytes"
+
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import { api_name } from "../../context/const"
+import { value_type, result_name } from "../../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = path({
+        state: in.tree.ast.context,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(target.state)
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(result_name),
+        value: nil.id,
+        mutable: true,
+        type_expr: target.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: nil.state,
+                statements: declared
+            }
+        }
+    }
+}

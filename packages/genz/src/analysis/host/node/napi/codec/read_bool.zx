@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import boolean from "../../../../../ast/context/boolean"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import result from "../../../../../ast/statements/builder/result"
+import { env_name } from "../../context/const"
+import { value_name, result_name } from "../../task/const"
+import check from "../value/check_call"
+import { get_bool } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const no = boolean({
+        state: in.tree.ast.context,
+        value: false
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(result_name),
+        value: no.id,
+        mutable: true
+    })
+
+    const env = path({
+        state: no.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const result_value = path({
+        state: value.state,
+        path: [result_name]
+    })
+
+    const pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const checked = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: get_bool,
+        arguments: [
+            env.id,
+            value.id,
+            pointer.id
+        ]
+    })
+
+    const returned = result({
+        state: checked.ast.statements,
+        value: result_value.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: checked.ast.context,
+                statements: returned
+            },
+            extra: checked.extra
+        }
+    }
+}

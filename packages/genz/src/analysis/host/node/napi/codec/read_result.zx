@@ -1,0 +1,29 @@
+import path from "../../../../../ast/context/path"
+import result from "../../../../../ast/statements/builder/result"
+import { result_name } from "../../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = path({
+        state: in.tree.ast.context,
+        path: [result_name]
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: value.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state,
+                statements: returned
+            }
+        }
+    }
+}

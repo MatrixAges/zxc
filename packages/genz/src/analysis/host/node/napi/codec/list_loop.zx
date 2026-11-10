@@ -1,0 +1,59 @@
+import bytes from "std:bytes"
+
+import path from "../../../../../ast/context/path"
+import forLoop from "../../../../../ast/statements/builder/for_loop"
+import open from "../../../../../ast/statements/builder/open"
+import result from "../../../../../ast/statements/builder/result"
+import { result_name, value_name } from "../../task/const"
+import { item_name, index_name } from "./const"
+import read from "./list_read_item"
+import write from "./list_write_item"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const iterable = path({
+        state: in.tree.ast.context,
+        path: [in.source.reading ? result_name : value_name]
+    })
+
+    const scope = open(in.tree.ast.statements)
+
+    const state = {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: iterable.state,
+                statements: scope.state
+            }
+        }
+    }
+
+    const changed = match in.source.reading { true => read(state), _ => write(state) }
+
+    const loop = forLoop({
+        scope: {
+            ...scope,
+            state: changed.tree.ast.statements
+        },
+        columns: changed.loops,
+        iterable: iterable.id,
+        capture: bytes.fromText(item_name),
+        capture_reference: in.source.reading,
+        index: bytes.fromText(index_name)
+    })
+
+    return {
+        ...changed,
+        tree: {
+            ...changed.tree,
+            ast: {
+                ...changed.tree.ast,
+                statements: loop.state
+            }
+        },
+        loops: loop.columns
+    }
+}

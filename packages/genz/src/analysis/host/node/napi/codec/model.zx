@@ -1,0 +1,63 @@
+import type { Kind as TypeKind, Table } from "core/type_table/model"
+import type { State as Context } from "../../../../../ast/context/model"
+import type { Input as Bases } from "../../../../../ast/context/model"
+import type { Table as Declarations } from "../../../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../../../ast/fields/model"
+import type { Columns as Loops } from "../../../../../ast/statements/builder/for_loop"
+import type { Columns as Scopes } from "../../../../../ast/statements/builder/scope"
+import type { Statements } from "../../../../../printer/model/statements"
+import type { State as Tree } from "../../task/model"
+
+export type Kind = TypeKind
+
+export enum ScalarRoute { Void, Boolean, String, BigInteger, Float, Integer }
+
+export type Input = {
+    types: Table,
+    id: u32,
+    reading: bool,
+    bases: Bases
+}
+
+export type State = {
+    source: Input,
+    tree: Tree,
+    loops: Loops,
+    scopes: Scopes,
+    many_pointer: u32[],
+    kind: TypeKind,
+    scalar: u32,
+    scalar_route: ScalarRoute,
+    byte_child: bool,
+    child: u32,
+    supported: bool
+}
+
+export type Module = {
+    context: Context,
+    extra: {
+        error_union_payload: u32[],
+        error_union_errors: u8[][]?[],
+        error_union_inferred: bool[],
+        catch_scope_value: u32[],
+        catch_scope_capture: u8[]?[],
+        catch_scope_body_start: u32[],
+        catch_scope_body_len: u32[],
+        optional_type: u32[],
+        many_pointer: u32[]
+    },
+    statements: Statements,
+    fields: Fields,
+    declarations: Declarations
+}
+
+export type Output = {
+    module: Module,
+    supported: bool,
+    valid: bool
+}
+
+export type Member = {
+    state: State,
+    position: u64
+}

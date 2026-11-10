@@ -280,6 +280,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/host/node/runner/build.rx", .name = "node_runner", .owner = .genz },
     .{ .path = "genz/analysis/host/node/napi/value/build.rx", .name = "node_napi_value", .owner = .genz },
     .{ .path = "genz/analysis/host/node/napi/plan/build.rx", .name = "node_napi_plan", .owner = .genz },
+    .{ .path = "genz/analysis/host/node/napi/codec/build.rx", .name = "node_napi_codec", .owner = .genz },
     .{ .path = "genz/analysis/gateway/entry/build.rx", .name = "gateway_entry", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },

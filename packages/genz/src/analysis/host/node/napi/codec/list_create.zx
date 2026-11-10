@@ -1,0 +1,62 @@
+import address from "../../../../../ast/context/address"
+import path from "../../../../../ast/context/path"
+import { env_name } from "../../context/const"
+import { value_name, result_name, len_name } from "../../task/const"
+import check from "../value/check_call"
+import { create_array } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const length = path({
+        state: env.state,
+        path: [
+            value_name,
+            len_name
+        ]
+    })
+
+    const result_value = path({
+        state: length.state,
+        path: [result_name]
+    })
+
+    const pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const created = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state
+            }
+        },
+        name: create_array,
+        arguments: [
+            env.id,
+            length.id,
+            pointer.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: created.ast.context,
+                statements: created.ast.statements
+            },
+            extra: created.extra
+        }
+    }
+}

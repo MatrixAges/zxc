@@ -1,0 +1,58 @@
+<Module>
+    <Type from="model" as="Codec" />
+
+    <Switch on={$in.kind}>
+        <Case value={Codec.Kind.Scalar}>
+            <Call module="read_scalar" in={$in} />
+
+            <Return value={$ctx.read_scalar} />
+        </Case>
+
+        <Case value={Codec.Kind.Enumeration}>
+            <Call fn="read_enum" in={$in} />
+
+            <Return value={$ctx.read_enum} />
+        </Case>
+
+        <Case value={Codec.Kind.ErrorSet}>
+            <Call fn="error_name" in={$in} />
+            <Call fn="error_members" in={$ctx.error_name} />
+
+            <Return value={$ctx.error_members} />
+        </Case>
+
+        <Case value={Codec.Kind.Optional}>
+            <Call fn="read_optional" in={$in} />
+
+            <Return value={$ctx.read_optional} />
+        </Case>
+
+        <Case value={Codec.Kind.List}>
+            <Call module="read_list" in={$in} />
+
+            <Return value={$ctx.read_list} />
+        </Case>
+
+        <Case value={Codec.Kind.Object}>
+            <Call fn="read_record" in={$in} />
+            <Call fn="fields" in={$ctx.read_record} />
+            <Call fn="read_result" in={$ctx.fields} />
+
+            <Return value={$ctx.read_result} />
+        </Case>
+
+        <Case value={Codec.Kind.Tuple}>
+            <Call fn="read_record" in={$in} />
+            <Call fn="fields" in={$ctx.read_record} />
+            <Call fn="read_result" in={$ctx.fields} />
+
+            <Return value={$ctx.read_result} />
+        </Case>
+
+        <Default>
+            <Call fn="unsupported" in={$in} />
+
+            <Return value={$ctx.unsupported} />
+        </Default>
+    </Switch>
+</Module>

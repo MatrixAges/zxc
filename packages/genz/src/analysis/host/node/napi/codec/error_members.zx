@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import text from "../../../../../ast/context/text"
+import result from "../../../../../ast/statements/builder/result"
+import { ExpressionsKind as K } from "../../../../../printer/model/expressions"
+import { invalid_error } from "./const"
+import memberBranch from "./error_member"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first =
+        integers.widen(in.source.types.first[integers.widen(in.source.id)])
+
+    const count =
+        integers.widen(in.source.types.second[integers.widen(in.source.id)])
+
+    const changed = loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            current.state = memberBranch({
+                state: current.state,
+                member_name: in.source.types.names[first + current.index]
+            })
+            current.index += 1
+        },
+        return: current => current.state
+    })
+
+    const invalid = text({
+        state: changed.tree.ast.context,
+        kind: K.ErrorValue,
+        value: bytes.fromText(invalid_error)
+    })
+
+    const returned = result({
+        state: changed.tree.ast.statements,
+        value: invalid.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: invalid.state,
+                statements: returned
+            }
+        }
+    }
+}

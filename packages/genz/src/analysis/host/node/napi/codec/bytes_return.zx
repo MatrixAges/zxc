@@ -1,0 +1,114 @@
+import address from "../../../../../ast/context/address"
+import binary from "../../../../../ast/context/binary"
+import conditional from "../../../../../ast/context/conditional"
+import integer from "../../../../../ast/context/integer"
+import unwrap from "../../../../../ast/context/optional_unwrap"
+import path from "../../../../../ast/context/path"
+import primitive from "../../../../../ast/context/primitive"
+import slice from "../../../../../ast/context/slice"
+import tuple from "../../../../../ast/context/tuple"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsPrimitive as P,
+    ExpressionsBinaryOperator as B
+} from "../../../../../printer/model/expressions"
+import { allocator_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import { dupe_name } from "./const"
+import { byte_count_name, bytes_name } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = path({
+        state: in.tree.ast.context,
+        path: [byte_count_name]
+    })
+
+    const zero = integer({
+        state: count.state,
+        value: 0
+    })
+
+    const empty = binary({
+        state: zero.state,
+        operator: B.Equal,
+        left: count.id,
+        right: zero.id
+    })
+
+    const tuple = tuple({
+        state: empty.state,
+        values: []
+    })
+
+    const nil = address({
+        state: tuple.state,
+        value: tuple.id
+    })
+
+    const bytes = path({
+        state: nil.state,
+        path: [bytes_name]
+    })
+
+    const unwrapped = unwrap({
+        state: bytes.state,
+        value: bytes.id
+    })
+
+    const slice = slice({
+        state: unwrapped.state,
+        target: unwrapped.id,
+        start: zero.id,
+        end: count.id
+    })
+
+    const byte = primitive({
+        state: slice.state,
+        value: P.U8
+    })
+
+    const copied = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: byte.state
+            }
+        },
+        path: [
+            allocator_name,
+            dupe_name
+        ],
+        arguments: [
+            byte.id,
+            slice.id
+        ],
+        fallible: false
+    })
+
+    const value_result = conditional({
+        state: copied.state.ast.context,
+        condition: empty.id,
+        yes: nil.id,
+        no: copied.id
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: value_result.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value_result.state,
+                statements: returned
+            }
+        }
+    }
+}

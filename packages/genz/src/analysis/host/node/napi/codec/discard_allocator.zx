@@ -1,0 +1,30 @@
+import path from "../../../../../ast/context/path"
+import evaluate from "../../../../../ast/statements/builder/evaluate"
+import { allocator_name } from "../../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = path({
+        state: in.tree.ast.context,
+        path: [allocator_name]
+    })
+
+    const discarded = evaluate({
+        state: in.tree.ast.statements,
+        value: allocator.id,
+        discard: true
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: allocator.state,
+                statements: discarded
+            }
+        }
+    }
+}

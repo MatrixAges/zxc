@@ -1,0 +1,51 @@
+import path from "../../../../../ast/context/path"
+import unit from "../../../../../ast/context/unit"
+import evaluate from "../../../../../ast/statements/builder/evaluate"
+import result from "../../../../../ast/statements/builder/result"
+import { env_name } from "../../context/const"
+import { value_name } from "../../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const env_discard = evaluate({
+        state: in.tree.ast.statements,
+        value: env.id,
+        discard: true
+    })
+
+    const value_discard = evaluate({
+        state: env_discard,
+        value: value.id,
+        discard: true
+    })
+
+    const unit_value = unit(value.state)
+
+    const returned = result({
+        state: value_discard,
+        value: unit_value.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: unit_value.state,
+                statements: returned
+            }
+        }
+    }
+}

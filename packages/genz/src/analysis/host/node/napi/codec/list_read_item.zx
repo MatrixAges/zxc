@@ -1,0 +1,143 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import builtin from "../../../../../ast/context/builtin"
+import call from "../../../../../ast/context/call"
+import dereference from "../../../../../ast/context/dereference"
+import identifier from "../../../../../ast/context/identifier"
+import nullValue from "../../../../../ast/context/null_value"
+import path from "../../../../../ast/context/path"
+import assignment from "../../../../../ast/statements/builder/assignment"
+import binding from "../../../../../ast/statements/builder/binding"
+import {
+    ExpressionsBuiltinName as Builtin
+} from "../../../../../printer/model/expressions"
+import { api_name, env_name } from "../../context/const"
+import { value_name, value_type, allocator_name, read_name } from "../../task/const"
+import check from "../value/check_call"
+import { read_prefix, item_name, index_name, input_name, get_element } from "./const"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = path({
+        state: in.tree.ast.context,
+        path: [
+            api_name,
+            value_type
+        ]
+    })
+
+    const nil = nullValue(target.state)
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(input_name),
+        value: nil.id,
+        mutable: true,
+        type_expr: target.id
+    })
+
+    const env = path({
+        state: nil.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const index = path({
+        state: value.state,
+        path: [index_name]
+    })
+
+    const index_cast = builtin({
+        state: index.state,
+        name: Builtin.IntCast,
+        arguments: [index.id]
+    })
+
+    const input = path({
+        state: index_cast.state,
+        path: [input_name]
+    })
+
+    const pointer = address({
+        state: input.state,
+        value: input.id
+    })
+
+    const fetched = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: get_element,
+        arguments: [
+            env.id,
+            value.id,
+            index_cast.id,
+            pointer.id
+        ]
+    })
+
+    const allocator = path({
+        state: fetched.ast.context,
+        path: [allocator_name]
+    })
+
+    const read_name = identifier({
+        state: allocator.state,
+        name: typeName({
+            prefix: read_prefix,
+            id: in.child
+        })
+    })
+
+    const read = call({
+        state: read_name.state,
+        callee: read_name.id,
+        arguments: [
+            allocator.id,
+            env.id,
+            input.id
+        ],
+        fallible: true
+    })
+
+    const item = path({
+        state: read.state,
+        path: [item_name]
+    })
+
+    const target_value = dereference({
+        state: item.state,
+        value: item.id
+    })
+
+    const assigned = assignment({
+        state: fetched.ast.statements,
+        target: target_value.id,
+        value: read.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: target_value.state,
+                statements: assigned
+            },
+            extra: fetched.extra
+        }
+    }
+}

@@ -1,0 +1,12 @@
+<Module>
+    <If on={$in.byte_child}>
+        <Call fn="write_buffer" in={$in} /><Return value={$ctx.write_buffer} />
+
+        <Else>
+            <Call fn="list_create" in={$in} />
+            <Call fn="list_loop" in={$ctx.list_create} />
+
+            <Return value={$ctx.list_loop} />
+        </Else>
+    </If>
+</Module>

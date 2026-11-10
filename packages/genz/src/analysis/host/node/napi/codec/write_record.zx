@@ -1,0 +1,82 @@
+import integers from "std:integer"
+import { Kind } from "core/type_table/model"
+
+import address from "../../../../../ast/context/address"
+import integer from "../../../../../ast/context/integer"
+import path from "../../../../../ast/context/path"
+import evaluate from "../../../../../ast/statements/builder/evaluate"
+import { env_name } from "../../context/const"
+import { value_name, result_name } from "../../task/const"
+import check from "../value/check_call"
+import { create_array, create_object } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count =
+        integers.widen(in.source.types.second[integers.widen(in.source.id)])
+
+    const value = path({
+        state: in.tree.ast.context,
+        path: [value_name]
+    })
+
+    const statements = match count { 0 => evaluate({
+        state: in.tree.ast.statements,
+        value: value.id,
+        discard: true
+    }), _ => in.tree.ast.statements }
+
+    const env = path({
+        state: value.state,
+        path: [env_name]
+    })
+
+    const result_value = path({
+        state: env.state,
+        path: [result_name]
+    })
+
+    const pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const length = integer({
+        state: pointer.state,
+        value: count
+    })
+
+    const created = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: length.state,
+                statements: statements
+            }
+        },
+        name: in.kind == Kind.Tuple ? create_array : create_object,
+        arguments: match in.kind { Kind.Tuple => [
+            env.id,
+            length.id,
+            pointer.id
+        ], _ => [
+            env.id,
+            pointer.id
+        ] }
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: created.ast.context,
+                statements: created.ast.statements
+            },
+            extra: created.extra
+        }
+    }
+}

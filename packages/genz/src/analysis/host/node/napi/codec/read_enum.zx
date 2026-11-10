@@ -1,0 +1,116 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../../ast/context/binary"
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import text from "../../../../../ast/context/text"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K
+} from "../../../../../printer/model/expressions"
+import { std_name, env_name } from "../../context/const"
+import { value_name, allocator_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import {
+    type_prefix,
+    meta_name,
+    string_name,
+    string_to_enum,
+    invalid_enum
+} from "./const"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = path({
+        state: in.tree.ast.context,
+        path: [allocator_name]
+    })
+
+    const env = path({
+        state: allocator.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const name = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state
+            }
+        },
+        path: [string_name],
+        arguments: [
+            allocator.id,
+            env.id,
+            value.id
+        ],
+        fallible: true
+    })
+
+    const target = identifier({
+        state: name.state.ast.context,
+        name: typeName({
+            prefix: type_prefix,
+            id: in.source.id
+        })
+    })
+
+    const lookup = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: target.state
+            }
+        },
+        path: [
+            std_name,
+            meta_name,
+            string_to_enum
+        ],
+        arguments: [
+            target.id,
+            name.id
+        ],
+        fallible: false
+    })
+
+    const invalid = text({
+        state: lookup.state.ast.context,
+        kind: K.ErrorValue,
+        value: bytes.fromText(invalid_enum)
+    })
+
+    const value_result = binary({
+        state: invalid.state,
+        operator: B.Coalesce,
+        left: lookup.id,
+        right: invalid.id
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: value_result.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value_result.state,
+                statements: returned
+            }
+        }
+    }
+}

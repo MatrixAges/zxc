@@ -1,0 +1,90 @@
+import builtin from "../../../../../ast/context/builtin"
+import call from "../../../../../ast/context/call"
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import {
+    ExpressionsBuiltinName as Builtin
+} from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import { result_name } from "../../task/const"
+import check from "../value/check_call"
+import { write_prefix, item_name, index_name, set_element } from "./const"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const result_value = path({
+        state: env.state,
+        path: [result_name]
+    })
+
+    const index = path({
+        state: result_value.state,
+        path: [index_name]
+    })
+
+    const index_cast = builtin({
+        state: index.state,
+        name: Builtin.IntCast,
+        arguments: [index.id]
+    })
+
+    const item = path({
+        state: index_cast.state,
+        path: [item_name]
+    })
+
+    const written_name = identifier({
+        state: item.state,
+        name: typeName({
+            prefix: write_prefix,
+            id: in.child
+        })
+    })
+
+    const written = call({
+        state: written_name.state,
+        callee: written_name.id,
+        arguments: [
+            env.id,
+            item.id
+        ],
+        fallible: true
+    })
+
+    const assigned = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: written.state
+            }
+        },
+        name: set_element,
+        arguments: [
+            env.id,
+            result_value.id,
+            index_cast.id,
+            written.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: assigned.ast.context,
+                statements: assigned.ast.statements
+            },
+            extra: assigned.extra
+        }
+    }
+}

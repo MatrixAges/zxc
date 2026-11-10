@@ -1,0 +1,23 @@
+import branch from "../../../../../ast/statements/builder/branch"
+
+import type { State as Output } from "./model"
+import type { Output as Input } from "./typed_scope"
+
+export default function (in: Input): Output {
+    return {
+        ...in.state,
+        tree: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                statements: branch({
+                    scope: {
+                        ...in.scope,
+                        state: in.state.tree.ast.statements
+                    },
+                    condition: in.condition
+                })
+            }
+        }
+    }
+}

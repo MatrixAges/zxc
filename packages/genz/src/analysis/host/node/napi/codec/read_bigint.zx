@@ -1,0 +1,147 @@
+import bytes from "std:bytes"
+import { scalar_i64 } from "core/type_table/const"
+
+import address from "../../../../../ast/context/address"
+import boolean from "../../../../../ast/context/boolean"
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import unary from "../../../../../ast/context/unary"
+import undefinedValue from "../../../../../ast/context/undefined"
+import binding from "../../../../../ast/statements/builder/binding"
+import result from "../../../../../ast/statements/builder/result"
+import { ExpressionsUnaryOperator as U } from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import { value_name, result_name } from "../../task/const"
+import check from "../value/check_call"
+import {
+    type_prefix,
+    lossless_name,
+    integer_out_of_range,
+    get_bigint_i64,
+    get_bigint_u64
+} from "./const"
+import guard from "./guard"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const target = identifier({
+        state: in.tree.ast.context,
+        name: typeName({
+            prefix: type_prefix,
+            id: in.source.id
+        })
+    })
+
+    const missing = undefinedValue(target.state)
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(result_name),
+        value: missing.id,
+        mutable: true,
+        type_expr: target.id
+    })
+
+    const no = boolean({
+        state: missing.state,
+        value: false
+    })
+
+    const lossless = binding({
+        state: declared,
+        name: bytes.fromText(lossless_name),
+        value: no.id,
+        mutable: true
+    })
+
+    const env = path({
+        state: no.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const result_value = path({
+        state: value.state,
+        path: [result_name]
+    })
+
+    const pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const lossless_value = path({
+        state: pointer.state,
+        path: [lossless_name]
+    })
+
+    const lossless_pointer = address({
+        state: lossless_value.state,
+        value: lossless_value.id
+    })
+
+    const checked = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: lossless_pointer.state,
+                statements: lossless
+            }
+        },
+        name: in.scalar == scalar_i64 ? get_bigint_i64 : get_bigint_u64,
+        arguments: [
+            env.id,
+            value.id,
+            pointer.id,
+            lossless_pointer.id
+        ]
+    })
+
+    const bad = unary({
+        state: checked.ast.context,
+        operator: U.Not,
+        operand: lossless_value.id
+    })
+
+    const guarded = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: bad.state,
+                    statements: checked.ast.statements
+                },
+                extra: checked.extra
+            }
+        },
+        condition: bad.id,
+        error: integer_out_of_range
+    })
+
+    const returned = result({
+        state: guarded.tree.ast.statements,
+        value: result_value.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: guarded.tree.ast.context,
+                statements: returned
+            },
+            extra: checked.extra
+        }
+    }
+}

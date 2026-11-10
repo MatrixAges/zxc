@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { Kind } from "core/type_table/model"
+
+import integer from "../../../../../printer/text/integer"
+import { nul_byte } from "./const"
+
+import type { Member as Input } from "./model"
+
+export type Output = {
+    name: u8[],
+    key: u8[],
+    child: u32
+}
+
+export default function (in: Input): Output {
+    const types = in.state.source.types
+    const index = integers.widen(in.state.source.id)
+    const first = integers.widen(types.first[index])
+    const position = first + in.position
+
+    if (in.state.kind == Kind.Tuple) {
+        const name = integer({
+            output: [],
+            value: in.position
+        })
+
+        return {
+            name,
+            key: name,
+            child: types.children[position]
+        }
+    }
+
+    const name = bytes.fromText(types.field_names[position])
+
+    return {
+        name,
+        key: name.push(nul_byte)[0],
+        child: types.field_types[position]
+    }
+}

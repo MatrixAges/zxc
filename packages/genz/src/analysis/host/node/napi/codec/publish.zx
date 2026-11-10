@@ -1,0 +1,45 @@
+import emptyStatements from "../../../../../ast/snapshot/empty_statements"
+import statements from "../../../../../ast/statements/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = statements(in.tree.ast.statements)
+
+    const valid = (
+        - in.tree.ast.valid
+        - and in.tree.ast.context.valid
+        - and body.valid
+    )
+
+    return {
+        module: {
+            context: in.tree.ast.context,
+            extra: {
+                ...in.tree.extra.omit([
+                    "defer_expression",
+                    "defer_scope_start",
+                    "defer_scope_len"
+                ]),
+                optional_type: in.tree.ast.optional_type,
+                many_pointer: in.many_pointer
+            },
+            statements: {
+                ...emptyStatements({}),
+                ...body.statements,
+                ...body.variables,
+                ...in.loops,
+                ...in.scopes,
+                ...in.tree.extra.pick([
+                    "defer_expression",
+                    "defer_scope_start",
+                    "defer_scope_len"
+                ])
+            },
+            fields: in.tree.ast.fields,
+            declarations: in.tree.ast.declarations
+        },
+        supported: in.supported,
+        valid
+    }
+}

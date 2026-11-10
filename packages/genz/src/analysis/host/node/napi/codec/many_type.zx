@@ -1,0 +1,51 @@
+import header from "../../../../../ast/expressions/header"
+import { ExpressionsKind as K } from "../../../../../printer/model/expressions"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    value: u32
+}
+
+export type Output = {
+    state: State,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const context = in.state.tree.ast.context
+
+    const value = header({
+        ...context.expressions.pick([
+            "tags",
+            "offsets"
+        ]),
+        base: context.source.expression_base,
+        kind: K.ManyPointer,
+        offset: in.state.many_pointer.length
+    })
+
+    return {
+        id: value.id,
+        state: {
+            ...in.state,
+            tree: {
+                ...in.state.tree,
+                ast: {
+                    ...in.state.tree.ast,
+                    context: {
+                        ...context,
+                        expressions: {
+                            ...context.expressions,
+                            tags: value.tags,
+                            offsets: value.offsets
+                        }
+                    },
+                    valid: in.state.tree.ast.valid && value.valid
+                }
+            },
+            many_pointer: in.state.many_pointer.push(in.value)[0]
+        }
+    }
+}

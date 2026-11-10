@@ -1,0 +1,104 @@
+import bytes from "std:bytes"
+import { Kind } from "core/type_table/model"
+
+import call from "../../../../../ast/context/call"
+import field from "../../../../../ast/context/field"
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import open from "../../../../../ast/statements/builder/open"
+import closeScope from "../../../../../ast/statements/builder/scope"
+import { env_name } from "../../context/const"
+import { value_name } from "../../task/const"
+import { write_prefix, item_name } from "./const"
+import member from "./member"
+import typeName from "./name"
+import writeProperty from "./write_property"
+
+import type { Member as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const info = member(in)
+
+    const scope = open(in.state.tree.ast.statements)
+
+    const env = path({
+        state: in.state.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const value_field = field({
+        state: value.state,
+        target: value.id,
+        name: info.name
+    })
+
+    const converted_name = identifier({
+        state: value_field.state,
+        name: typeName({
+            prefix: write_prefix,
+            id: info.child
+        })
+    })
+
+    const converted = call({
+        state: converted_name.state,
+        callee: converted_name.id,
+        arguments: [
+            env.id,
+            value_field.id
+        ],
+        fallible: true
+    })
+
+    const declared = binding({
+        state: scope.state,
+        name: bytes.fromText(item_name),
+        value: converted.id,
+        mutable: false
+    })
+
+    const updated = writeProperty({
+        state: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                context: converted.state,
+                statements: declared
+            }
+        },
+        tuple: in.state.kind == Kind.Tuple,
+        position: in.position,
+        key: info.key
+    })
+
+    const closed = closeScope({
+        scope: {
+            ...scope,
+            state: updated.ast.statements
+        },
+        columns: in.state.scopes
+    })
+
+    const result_state = {
+        ...in.state,
+        tree: {
+            ...in.state.tree,
+            ast: {
+                ...in.state.tree.ast,
+                context: updated.ast.context,
+                statements: closed.state,
+                fields: updated.ast.fields
+            },
+            extra: updated.extra
+        },
+        scopes: closed.columns
+    }
+
+    return result_state
+}

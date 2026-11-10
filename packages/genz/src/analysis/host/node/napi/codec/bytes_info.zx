@@ -1,0 +1,165 @@
+import address from "../../../../../ast/context/address"
+import binary from "../../../../../ast/context/binary"
+import integer from "../../../../../ast/context/integer"
+import path from "../../../../../ast/context/path"
+import { ExpressionsBinaryOperator as B } from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import { value_name } from "../../task/const"
+import check from "../value/check_call"
+import {
+    array_kind_name,
+    byte_count_name,
+    bytes_name,
+    buffer_name,
+    offset_name,
+    expected_byte_array,
+    get_typed,
+    uint8_array_kind,
+    uint8_clamped_kind
+} from "./const"
+import guard from "./guard"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const kind = path({
+        state: value.state,
+        path: [array_kind_name]
+    })
+
+    const kind_pointer = address({
+        state: kind.state,
+        value: kind.id
+    })
+
+    const count = path({
+        state: kind_pointer.state,
+        path: [byte_count_name]
+    })
+
+    const count_pointer = address({
+        state: count.state,
+        value: count.id
+    })
+
+    const bytes = path({
+        state: count_pointer.state,
+        path: [bytes_name]
+    })
+
+    const bytes_pointer = address({
+        state: bytes.state,
+        value: bytes.id
+    })
+
+    const buffer = path({
+        state: bytes_pointer.state,
+        path: [buffer_name]
+    })
+
+    const buffer_pointer = address({
+        state: buffer.state,
+        value: buffer.id
+    })
+
+    const offset = path({
+        state: buffer_pointer.state,
+        path: [offset_name]
+    })
+
+    const offset_pointer = address({
+        state: offset.state,
+        value: offset.id
+    })
+
+    const queried = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: offset_pointer.state
+            }
+        },
+        name: get_typed,
+        arguments: [
+            env.id,
+            value.id,
+            kind_pointer.id,
+            count_pointer.id,
+            bytes_pointer.id,
+            buffer_pointer.id,
+            offset_pointer.id
+        ]
+    })
+
+    const first = integer({
+        state: queried.ast.context,
+        value: uint8_array_kind
+    })
+
+    const second = integer({
+        state: first.state,
+        value: uint8_clamped_kind
+    })
+
+    const bad_first = binary({
+        state: second.state,
+        operator: B.NotEqual,
+        left: kind.id,
+        right: first.id
+    })
+
+    const bad_second = binary({
+        state: bad_first.state,
+        operator: B.NotEqual,
+        left: kind.id,
+        right: second.id
+    })
+
+    const bad = binary({
+        state: bad_second.state,
+        operator: B.LogicalAnd,
+        left: bad_first.id,
+        right: bad_second.id
+    })
+
+    const guarded = guard({
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: bad.state,
+                    statements: queried.ast.statements
+                },
+                extra: queried.extra
+            }
+        },
+        condition: bad.id,
+        error: expected_byte_array
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: guarded.tree.ast.context,
+                statements: guarded.tree.ast.statements
+            },
+            extra: queried.extra
+        }
+    }
+}

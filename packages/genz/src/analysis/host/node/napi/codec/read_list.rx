@@ -1,0 +1,12 @@
+<Module>
+    <If on={$in.byte_child}>
+        <Call fn="typed_guard" in={$in} />
+
+        <Call module="typed_bytes" in={$ctx.typed_guard} />
+        <Call module="list" in={$ctx.typed_bytes} />
+
+        <Return value={$ctx.list} />
+
+        <Else><Call module="list" in={$in} /><Return value={$ctx.list} /></Else>
+    </If>
+</Module>

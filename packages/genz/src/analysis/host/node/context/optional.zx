@@ -21,7 +21,7 @@ export default function (in: Input): Output {
             ]),
             optional_type: in.state.optional_type
         },
-        base: 0,
+        base: in.state.context.source.expression_base,
         value: in.value
     })
 

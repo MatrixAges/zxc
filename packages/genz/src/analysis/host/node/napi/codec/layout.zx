@@ -1,0 +1,23 @@
+import identifier from "../../../../../ast/context/identifier"
+import child from "../plan/child"
+import { type_prefix } from "./const"
+import name from "./name"
+
+import type { Projection as Output } from "../plan/model"
+import type { State as Input } from "./model"
+
+export default function (in: Input): Output {
+    const parent = identifier({
+        state: in.tree.ast.context,
+        name: name({
+            prefix: type_prefix,
+            id: in.source.id
+        })
+    })
+
+    return child({
+        context: parent.state,
+        parent: parent.id,
+        optional: false
+    })
+}

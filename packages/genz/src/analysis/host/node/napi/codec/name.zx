@@ -1,0 +1,18 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import integer from "../../../../../printer/text/integer"
+
+export type Input = {
+    prefix: string,
+    id: u32
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    return integer({
+        output: bytes.fromText(in.prefix),
+        value: integers.widen(in.id)
+    })
+}

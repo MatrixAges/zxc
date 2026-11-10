@@ -1,0 +1,76 @@
+import bytes from "std:bytes"
+
+import address from "../../../../../ast/context/address"
+import boolean from "../../../../../ast/context/boolean"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import { env_name } from "../../context/const"
+import { value_name } from "../../task/const"
+import check from "../value/check_call"
+import { is_typed_name, is_typed } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const no = boolean({
+        state: in.tree.ast.context,
+        value: false
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(is_typed_name),
+        value: no.id,
+        mutable: true
+    })
+
+    const env = path({
+        state: no.state,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const typed = path({
+        state: value.state,
+        path: [is_typed_name]
+    })
+
+    const pointer = address({
+        state: typed.state,
+        value: typed.id
+    })
+
+    const queried = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state,
+                statements: declared
+            }
+        },
+        name: is_typed,
+        arguments: [
+            env.id,
+            value.id,
+            pointer.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: queried.ast.context,
+                statements: queried.ast.statements
+            },
+            extra: queried.extra
+        }
+    }
+}

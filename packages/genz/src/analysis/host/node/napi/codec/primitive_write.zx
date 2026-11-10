@@ -1,0 +1,130 @@
+import bytes from "std:bytes"
+import {
+    scalar_void,
+    scalar_bool,
+    scalar_string,
+    scalar_u64,
+    scalar_i64,
+    scalar_f32,
+    scalar_f64
+} from "core/type_table/const"
+
+import builtin from "../../../../../ast/context/builtin"
+import field from "../../../../../ast/context/field"
+import evaluate from "../../../../../ast/statements/builder/evaluate"
+import { ExpressionsBuiltinName as B } from "../../../../../printer/model/expressions"
+import { get_undefined, create_string, ptr_name, len_name } from "../../task/const"
+import check from "../value/check_call"
+import {
+    create_bool,
+    create_double,
+    create_bigint_i64,
+    create_bigint_u64
+} from "./const"
+
+import type { State, State as Output } from "../../task/model"
+
+export type Input = {
+    state: State,
+    scalar: u32,
+    env: u32,
+    value: u32,
+    address: u32
+}
+
+export default function (in: Input): Output {
+    if (in.scalar == scalar_void) {
+        return check({
+            state: {
+                ...in.state,
+                ast: {
+                    ...in.state.ast,
+                    statements: evaluate({
+                        state: in.state.ast.statements,
+                        value: in.value,
+                        discard: true
+                    })
+                }
+            },
+            name: get_undefined,
+            arguments: [
+                in.env,
+                in.address
+            ]
+        })
+    }
+
+    if (in.scalar == scalar_string) {
+        const pointer = field({
+            state: in.state.ast.context,
+            target: in.value,
+            name: bytes.fromText(ptr_name)
+        })
+
+        const length = field({
+            state: pointer.state,
+            target: in.value,
+            name: bytes.fromText(len_name)
+        })
+
+        return check({
+            state: {
+                ...in.state,
+                ast: {
+                    ...in.state.ast,
+                    context: length.state
+                }
+            },
+            name: create_string,
+            arguments: [
+                in.env,
+                pointer.id,
+                length.id,
+                in.address
+            ]
+        })
+    }
+
+    const direct = (
+        - in.scalar == scalar_bool
+        - or in.scalar == scalar_u64
+        - or in.scalar == scalar_i64
+        - or in.scalar == scalar_f32
+        - or in.scalar == scalar_f64
+    )
+
+    const value = match direct {
+        true => {
+            state: in.state.ast.context,
+            id: in.value
+        },
+        _ => builtin({
+            state: in.state.ast.context,
+            name: B.FloatFromInt,
+            arguments: [in.value]
+        })
+    }
+
+    const name = match in.scalar {
+        scalar_bool => create_bool,
+        scalar_i64 => create_bigint_i64,
+        scalar_u64 => create_bigint_u64,
+        _ => create_double
+    }
+
+    return check({
+        state: {
+            ...in.state,
+            ast: {
+                ...in.state.ast,
+                context: value.state
+            }
+        },
+        name,
+        arguments: [
+            in.env,
+            value.id,
+            in.address
+        ]
+    })
+}

@@ -1,0 +1,100 @@
+import bytes from "std:bytes"
+
+import identifier from "../../../../../ast/context/identifier"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import { env_name } from "../../context/const"
+import { value_name, result_name, allocator_name } from "../../task/const"
+import invoke from "../../task/invoke"
+import { count_name } from "./const"
+import { type_prefix, length_name, alloc_name } from "./const"
+import typeName from "./name"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const length = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: value.state
+            }
+        },
+        path: [length_name],
+        arguments: [
+            env.id,
+            value.id
+        ],
+        fallible: true
+    })
+
+    const counted = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(count_name),
+        value: length.id,
+        mutable: false
+    })
+
+    const count = path({
+        state: length.state.ast.context,
+        path: [count_name]
+    })
+
+    const child_type = identifier({
+        state: count.state,
+        name: typeName({
+            prefix: type_prefix,
+            id: in.child
+        })
+    })
+
+    const allocated = invoke({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: child_type.state,
+                statements: counted
+            }
+        },
+        path: [
+            allocator_name,
+            alloc_name
+        ],
+        arguments: [
+            child_type.id,
+            count.id
+        ],
+        fallible: true
+    })
+
+    const declared = binding({
+        state: counted,
+        name: bytes.fromText(result_name),
+        value: allocated.id,
+        mutable: false
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: allocated.state.ast.context,
+                statements: declared
+            }
+        }
+    }
+}

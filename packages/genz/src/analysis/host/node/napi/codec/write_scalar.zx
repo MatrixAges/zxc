@@ -1,0 +1,48 @@
+import address from "../../../../../ast/context/address"
+import path from "../../../../../ast/context/path"
+import { env_name } from "../../context/const"
+import { value_name, result_name } from "../../task/const"
+import primitiveWrite from "./primitive_write"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const env = path({
+        state: in.tree.ast.context,
+        path: [env_name]
+    })
+
+    const value = path({
+        state: env.state,
+        path: [value_name]
+    })
+
+    const result_value = path({
+        state: value.state,
+        path: [result_name]
+    })
+
+    const pointer = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const tree = primitiveWrite({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: pointer.state
+            }
+        },
+        scalar: in.scalar,
+        env: env.id,
+        value: value.id,
+        address: pointer.id
+    })
+
+    return {
+        ...in,
+        tree
+    }
+}

@@ -1,0 +1,32 @@
+import integers from "std:integer"
+
+import read from "./read_field"
+import write from "./write_field"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count =
+        integers.widen(in.source.types.second[integers.widen(in.source.id)])
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            current.state = match in.source.reading {
+                true => read({
+                    state: current.state,
+                    position: current.index
+                }),
+                _ => write({
+                    state: current.state,
+                    position: current.index
+                })
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

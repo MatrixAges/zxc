@@ -1,0 +1,39 @@
+import builtin from "../../../../../ast/context/builtin"
+import path from "../../../../../ast/context/path"
+import result from "../../../../../ast/statements/builder/result"
+import {
+    ExpressionsBuiltinName as Builtin
+} from "../../../../../printer/model/expressions"
+import { result_name } from "../../task/const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = path({
+        state: in.tree.ast.context,
+        path: [result_name]
+    })
+
+    const cast = builtin({
+        state: value.state,
+        name: Builtin.FloatCast,
+        arguments: [value.id]
+    })
+
+    const returned = result({
+        state: in.tree.ast.statements,
+        value: cast.id
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: cast.state,
+                statements: returned
+            }
+        }
+    }
+}

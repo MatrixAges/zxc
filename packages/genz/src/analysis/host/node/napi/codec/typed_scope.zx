@@ -1,0 +1,39 @@
+import path from "../../../../../ast/context/path"
+import open from "../../../../../ast/statements/builder/open"
+import { is_typed_name } from "./const"
+
+import type { Scope } from "../../../../../ast/statements/builder/model"
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = {
+    state: State,
+    scope: Scope,
+    condition: u32
+}
+
+export default function (in: Input): Output {
+    const value = path({
+        state: in.tree.ast.context,
+        path: [is_typed_name]
+    })
+
+    const scope = open(in.tree.ast.statements)
+
+    return {
+        state: {
+            ...in,
+            tree: {
+                ...in.tree,
+                ast: {
+                    ...in.tree.ast,
+                    context: value.state,
+                    statements: scope.state
+                }
+            }
+        },
+        scope,
+        condition: value.id
+    }
+}

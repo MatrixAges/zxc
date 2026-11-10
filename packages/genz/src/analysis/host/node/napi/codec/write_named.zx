@@ -1,0 +1,104 @@
+import bytes from "std:bytes"
+import { Kind } from "core/type_table/model"
+
+import address from "../../../../../ast/context/address"
+import builtin from "../../../../../ast/context/builtin"
+import path from "../../../../../ast/context/path"
+import binding from "../../../../../ast/statements/builder/binding"
+import {
+    ExpressionsBuiltinName as Builtin
+} from "../../../../../printer/model/expressions"
+import { env_name } from "../../context/const"
+import {
+    value_name,
+    result_name,
+    name_name,
+    ptr_name,
+    len_name,
+    create_string
+} from "../../task/const"
+import check from "../value/check_call"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const value = path({
+        state: in.tree.ast.context,
+        path: [value_name]
+    })
+
+    const name = builtin({
+        state: value.state,
+        name: in.kind == Kind.Enumeration ? Builtin.TagName : Builtin.ErrorName,
+        arguments: [value.id]
+    })
+
+    const declared = binding({
+        state: in.tree.ast.statements,
+        name: bytes.fromText(name_name),
+        value: name.id,
+        mutable: false
+    })
+
+    const env = path({
+        state: name.state,
+        path: [env_name]
+    })
+
+    const pointer = path({
+        state: env.state,
+        path: [
+            name_name,
+            ptr_name
+        ]
+    })
+
+    const length = path({
+        state: pointer.state,
+        path: [
+            name_name,
+            len_name
+        ]
+    })
+
+    const result_value = path({
+        state: length.state,
+        path: [result_name]
+    })
+
+    const address = address({
+        state: result_value.state,
+        value: result_value.id
+    })
+
+    const written = check({
+        state: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: address.state,
+                statements: declared
+            }
+        },
+        name: create_string,
+        arguments: [
+            env.id,
+            pointer.id,
+            length.id,
+            address.id
+        ]
+    })
+
+    return {
+        ...in,
+        tree: {
+            ...in.tree,
+            ast: {
+                ...in.tree.ast,
+                context: written.ast.context,
+                statements: written.ast.statements
+            },
+            extra: written.extra
+        }
+    }
+}
