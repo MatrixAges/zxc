@@ -1,0 +1,17 @@
+import branch from "../../../../ast/statements/builder/branch"
+
+import type { Gated as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    return {
+        ...in.state,
+        statements: branch({
+            scope: {
+                parent_tags: in.parent_tags,
+                parent_offsets: in.parent_offsets,
+                state: in.state.statements
+            },
+            condition: in.enabled
+        })
+    }
+}

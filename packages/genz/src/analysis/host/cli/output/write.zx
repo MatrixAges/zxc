@@ -1,0 +1,141 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import binary from "../../../../ast/context/binary"
+import empty from "../../../../ast/context/empty_object"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import text from "../../../../ast/context/text"
+import close from "../../../../ast/statements/builder/close"
+import elseBranch from "../../../../ast/statements/builder/else_branch"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import open from "../../../../ast/statements/builder/open"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind as K,
+    ExpressionsPrimitive as P
+} from "../../../../printer/model/expressions"
+import {
+    null_text,
+    file_name,
+    interface_name,
+    write_all_name,
+    output_name,
+    standard_name,
+    json_name,
+    stringify_name,
+    value_name,
+    application_name,
+    output_type
+} from "../const"
+import invoke from "../invoke"
+
+import type { Gated as Input, Gated as Output } from "../model"
+
+export default function (in: Input): Output {
+    const literal = text({
+        state: in.state.context,
+        kind: K.String,
+        value: bytes.fromText(null_text)
+    })
+
+    const write_null = invoke({
+        state: literal.state,
+        path: [
+            file_name,
+            interface_name,
+            write_all_name
+        ],
+        arguments: [literal.id],
+        fallible: true
+    })
+
+    const value = path({
+        state: write_null.state,
+        path: [output_name]
+    })
+
+    const options = empty(value.state)
+
+    const writer = path({
+        state: options.state,
+        path: [
+            file_name,
+            interface_name
+        ]
+    })
+
+    const pointer = address({
+        state: writer.state,
+        value: writer.id
+    })
+
+    const write_json = invoke({
+        state: pointer.state,
+        path: [
+            standard_name,
+            json_name,
+            stringify_name,
+            value_name
+        ],
+        arguments: [
+            value.id,
+            options.id,
+            pointer.id
+        ],
+        fallible: true
+    })
+
+    const target = path({
+        state: write_json.state,
+        path: [
+            application_name,
+            output_type
+        ]
+    })
+
+    const unit = primitive({
+        state: target.state,
+        value: P.Void
+    })
+
+    const condition = binary({
+        state: unit.state,
+        operator: B.Equal,
+        left: target.id,
+        right: unit.id
+    })
+
+    const yes = open(in.state.statements)
+
+    const yes_body = close(evaluate({
+        state: yes.state,
+        value: write_null.id,
+        discard: false
+    }))
+
+    const no_body = evaluate({
+        state: yes_body.state,
+        value: write_json.id,
+        discard: false
+    })
+
+    const statements = elseBranch({
+        scope: {
+            ...yes,
+            state: no_body
+        },
+        condition: condition.id,
+        yes_first: yes_body.first,
+        yes_count: yes_body.count
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: condition.state,
+            statements
+        }
+    }
+}

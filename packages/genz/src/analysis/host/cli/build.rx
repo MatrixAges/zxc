@@ -1,0 +1,29 @@
+<Module>
+    <Type from="model" as="Cli" />
+
+    <Args in={Cli.Input} out={Cli.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="prelude" in={$ctx.initialize} />
+
+    <Call module="lifecycle" in={$ctx.prelude} />
+
+    <Call fn="input/empty" in={$ctx.lifecycle} />
+    <Call fn="input/json" in={$ctx.empty} />
+    <Call fn="input/select" in={$ctx.json} />
+    <Call fn="execution/execute" in={$ctx.select} />
+
+    <Call
+        module="output/build"
+        in={{
+            state: $ctx.execute,
+            types: $in.types,
+            output_type: $in.output_type
+        }}
+    />
+
+    <Call fn="finish" in={$ctx.build} />
+    <Call fn="publish" in={$ctx.finish} />
+
+    <Return value={$ctx.publish} />
+</Module>

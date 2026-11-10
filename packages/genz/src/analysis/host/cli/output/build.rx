@@ -1,0 +1,44 @@
+<Module>
+    <Type from="../model" as="Cli" />
+
+    <Args in={Cli.OutputInput} out={Cli.State} />
+
+    <Call fn="open" in={$in.state} />
+    <Call fn="validation" in={$ctx.open} />
+
+    <Call
+        fn="../../json_output/check"
+        in={{
+            state: {
+                source: {
+                    bases: $ctx.validation.output.state.context.source,
+                    types: $in.types,
+                    type_id: $in.output_type,
+                    failure_first: $ctx.validation.failure_first,
+                    failure_count: $ctx.validation.failure_count
+                },
+                context: $ctx.validation.output.state.context,
+                statements: $ctx.validation.output.state.statements,
+                loops: $ctx.validation.output.state.loops,
+                sequence: 0
+            },
+            type_id: $in.output_type,
+            value: $ctx.validation.value
+        }}
+    />
+
+    <Call
+        fn="validated"
+        in={{
+            prepared: $ctx.validation,
+            checked: $ctx.check
+        }}
+    />
+
+    <Call fn="writer" in={$ctx.validated} />
+    <Call fn="write" in={$ctx.writer} />
+    <Call fn="flush" in={$ctx.write} />
+    <Call fn="finish" in={$ctx.flush} />
+
+    <Return value={$ctx.finish} />
+</Module>

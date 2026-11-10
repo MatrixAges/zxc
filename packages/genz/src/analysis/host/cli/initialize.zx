@@ -1,0 +1,47 @@
+import context from "../../../ast/context/initialize"
+import declarations from "../../../ast/declarations/table/create"
+import fields from "../../../ast/fields/empty"
+import statements from "../../../ast/statements/builder/initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        stateful: in.stateful,
+        context: context({
+            capture: null,
+            expression_base: 0,
+            statement_base: 0,
+            field_base: 0,
+            serial: 0
+        }),
+        declarations: declarations({}),
+        fields: fields({}),
+        statements: statements(0),
+        scopes: {
+            scope_start: [],
+            scope_len: []
+        },
+        breaks: {
+            break_value_label: [],
+            break_value_value: []
+        },
+        loops: {
+            for_loop_iterable: [],
+            for_loop_capture: [],
+            for_loop_body_start: [],
+            for_loop_body_len: [],
+            for_loop_capture_reference: [],
+            for_loop_index_capture: []
+        },
+        extra: {
+            error_union_payload: [],
+            error_union_errors: [],
+            error_union_inferred: [],
+            defer_expression: []
+        },
+        empty_input: 0,
+        parsed_input: 0,
+        valid: true
+    }
+}

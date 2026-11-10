@@ -1,0 +1,85 @@
+import type { Table } from "core/type_table/model"
+import type { State as Context } from "../../../ast/context/model"
+import type { Table as Declarations } from "../../../ast/declarations/table/model"
+import type { Columns as Fields } from "../../../ast/fields/model"
+import type { Columns as Breaks } from "../../../ast/statements/builder/break_value"
+import type { Columns as Loops } from "../../../ast/statements/builder/for_loop"
+import type { State as Statements } from "../../../ast/statements/builder/model"
+import type { Columns as Scopes } from "../../../ast/statements/builder/scope"
+import type {
+    Declarations as PublishedDeclarations
+} from "../../../printer/model/declarations"
+import type { Expressions } from "../../../printer/model/expressions"
+import type {
+    StatementsKind,
+    Statements as PublishedStatements
+} from "../../../printer/model/statements"
+import type { State as JsonState } from "../json_output/model"
+
+export enum Owner {
+    State,
+    Request
+}
+
+export type Input = {
+    stateful: bool,
+    types: Table,
+    output_type: u32
+}
+
+export type Extra = {
+    error_union_payload: u32[],
+    error_union_errors: u8[][]?[],
+    error_union_inferred: bool[],
+    defer_expression: u32[]
+}
+
+export type State = {
+    stateful: bool,
+    context: Context,
+    statements: Statements,
+    fields: Fields,
+    declarations: Declarations,
+    breaks: Breaks,
+    loops: Loops,
+    scopes: Scopes,
+    extra: Extra,
+    empty_input: u32,
+    parsed_input: u32,
+    valid: bool
+}
+
+export type OutputInput = {
+    state: State,
+    types: Table,
+    output_type: u32
+}
+
+export type Gated = {
+    state: State,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[],
+    enabled: u32
+}
+
+export type Prepared = {
+    output: Gated,
+    parent_tags: StatementsKind[],
+    parent_offsets: u32[],
+    failure_first: u32,
+    failure_count: u32,
+    value: u32
+}
+
+export type Validated = {
+    prepared: Prepared,
+    checked: JsonState
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: PublishedStatements,
+    fields: Fields,
+    declarations: PublishedDeclarations,
+    valid: bool
+}

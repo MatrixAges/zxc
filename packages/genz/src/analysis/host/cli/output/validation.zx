@@ -1,0 +1,53 @@
+import bytes from "std:bytes"
+
+import path from "../../../../ast/context/path"
+import text from "../../../../ast/context/text"
+import close from "../../../../ast/statements/builder/close"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { non_finite_error, output_name } from "../const"
+
+import type { Gated as Input, Prepared as Output } from "../model"
+
+export default function (in: Input): Output {
+    const failure = text({
+        state: in.state.context,
+        kind: ExpressionsKind.ErrorValue,
+        value: bytes.fromText(non_finite_error)
+    })
+
+    const outer = open(in.state.statements)
+
+    const body = close(result({
+        state: outer.state,
+        value: failure.id
+    }))
+
+    const scope = open({
+        ...body.state,
+        root_tags: outer.parent_tags,
+        root_offsets: outer.parent_offsets
+    })
+
+    const value = path({
+        state: failure.state,
+        path: [output_name]
+    })
+
+    return {
+        output: {
+            ...in,
+            state: {
+                ...in.state,
+                context: value.state,
+                statements: scope.state
+            }
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        failure_first: body.first,
+        failure_count: body.count,
+        value: value.id
+    }
+}

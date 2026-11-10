@@ -1,0 +1,106 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import path from "../../../ast/context/path"
+import primitive from "../../../ast/context/primitive"
+import defineFunction from "../../../ast/declarations/function"
+import declaration from "../../../ast/declarations/table/function"
+import errorUnion from "../../../ast/expressions/error_union"
+import append from "../../../ast/fields/append"
+import close from "../../../ast/statements/builder/close"
+import { ExpressionsPrimitive } from "../../../printer/model/expressions"
+import { main_name, init_name, standard_name, process_name, init_type } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const parameter = path({
+        state: in.context,
+        path: [
+            standard_name,
+            process_name,
+            init_type
+        ]
+    })
+
+    const fields = append({
+        table: in.fields,
+        name: bytes.fromText(init_name),
+        value: parameter.id,
+        comptime_parameter: false
+    })
+
+    const payload = primitive({
+        state: parameter.state,
+        value: ExpressionsPrimitive.Void
+    })
+
+    const returned = errorUnion({
+        table: {
+            ...payload.state.expressions.pick([
+                "tags",
+                "offsets"
+            ]),
+            ...in.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        base: 0,
+        payload: payload.id,
+        inferred: true
+    })
+
+    const body = close(in.statements)
+
+    const definition = defineFunction({
+        base: integers.narrow(in.declarations.tags.length),
+        name: bytes.fromText(main_name),
+        parameters_start: integers.narrow(in.fields.name.length),
+        parameters_count: 1,
+        return_type: returned.id,
+        body_start: body.first,
+        body_count: body.count,
+        exported: true,
+        abi_export: false,
+        inlined: false
+    })
+
+    const declared = declaration({
+        state: in.declarations,
+        value: definition.table,
+        parameter_base: 0
+    })
+
+    const valid = (
+        - in.valid && returned.valid
+        - and definition.valid
+        - and declared.valid
+    )
+
+    return {
+        ...in,
+        context: {
+            ...payload.state,
+            expressions: {
+                ...payload.state.expressions,
+                ...returned.table.pick([
+                    "tags",
+                    "offsets"
+                ])
+            }
+        },
+        statements: body.state,
+        fields,
+        declarations: declared.state,
+        extra: {
+            ...in.extra,
+            ...returned.table.omit([
+                "tags",
+                "offsets"
+            ])
+        },
+        valid
+    }
+}

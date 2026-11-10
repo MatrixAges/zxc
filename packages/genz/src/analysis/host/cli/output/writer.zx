@@ -1,0 +1,121 @@
+import bytes from "std:bytes"
+
+import address from "../../../../ast/context/address"
+import call from "../../../../ast/context/call"
+import fixedArray from "../../../../ast/context/fixed_array"
+import integer from "../../../../ast/context/integer"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import text from "../../../../ast/context/text"
+import undefinedValue from "../../../../ast/context/undefined"
+import binding from "../../../../ast/statements/builder/binding"
+import {
+    ExpressionsKind,
+    ExpressionsPrimitive
+} from "../../../../printer/model/expressions"
+import {
+    standard_name,
+    io_type,
+    file_type,
+    writer_type,
+    streaming_name,
+    buffer_size,
+    stdout_name,
+    init_name,
+    io_name,
+    buffer_name,
+    file_name
+} from "../const"
+import invoke from "../invoke"
+
+import type { Gated as Input, Gated as Output } from "../model"
+
+export default function (in: Input): Output {
+    const length = integer({
+        state: in.state.context,
+        value: buffer_size
+    })
+
+    const element = primitive({
+        state: length.state,
+        value: ExpressionsPrimitive.U8
+    })
+
+    const target = fixedArray({
+        state: element.state,
+        length: length.id,
+        element: element.id
+    })
+
+    const uninitialized = undefinedValue(target.state)
+
+    const statements = binding({
+        state: in.state.statements,
+        name: bytes.fromText(buffer_name),
+        type_expr: target.id,
+        value: uninitialized.id,
+        mutable: true
+    })
+
+    const stdout = text({
+        state: uninitialized.state,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(stdout_name)
+    })
+
+    const handle = call({
+        state: stdout.state,
+        callee: stdout.id,
+        arguments: [],
+        fallible: false
+    })
+
+    const io = path({
+        state: handle.state,
+        path: [
+            init_name,
+            io_name
+        ]
+    })
+
+    const buffer = path({
+        state: io.state,
+        path: [buffer_name]
+    })
+
+    const pointer = address({
+        state: buffer.state,
+        value: buffer.id
+    })
+
+    const writer = invoke({
+        state: pointer.state,
+        path: [
+            standard_name,
+            io_type,
+            file_type,
+            writer_type,
+            streaming_name
+        ],
+        arguments: [
+            handle.id,
+            io.id,
+            pointer.id
+        ],
+        fallible: false
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: writer.state,
+            statements: binding({
+                state: statements,
+                name: bytes.fromText(file_name),
+                value: writer.id,
+                mutable: true
+            })
+        }
+    }
+}

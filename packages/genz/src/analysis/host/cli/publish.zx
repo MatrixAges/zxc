@@ -1,0 +1,36 @@
+import emptyDeclarations from "../../../ast/snapshot/empty_declarations"
+import emptyStatements from "../../../ast/snapshot/empty_statements"
+import expressions from "../../../ast/snapshot/expressions"
+import statements from "../../../ast/statements/builder/publish"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const body = statements(in.statements)
+
+    return {
+        expressions: {
+            ...expressions(in.context),
+            ...in.extra.pick([
+                "error_union_payload",
+                "error_union_errors",
+                "error_union_inferred"
+            ])
+        },
+        statements: {
+            ...emptyStatements({}),
+            ...body.statements,
+            ...body.variables,
+            ...in.scopes,
+            ...in.loops,
+            ...in.breaks,
+            defer_expression: in.extra.defer_expression
+        },
+        fields: in.fields,
+        declarations: {
+            ...emptyDeclarations({}),
+            ...in.declarations
+        },
+        valid: in.valid && in.context.valid && body.valid
+    }
+}

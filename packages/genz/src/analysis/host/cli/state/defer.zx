@@ -1,0 +1,40 @@
+import header from "../../../../ast/statements/builder/header"
+import { StatementsKind } from "../../../../printer/model/statements"
+import { deinit_name, state_name, request_name } from "../const"
+import invoke from "../invoke"
+import { Owner } from "../model"
+
+import type { State, State as Output } from "../model"
+
+export type Input = {
+    state: State,
+    owner: Owner
+}
+
+export default function (in: Input): Output {
+    const owner = in.owner == Owner.State ? state_name : request_name
+
+    const value = invoke({
+        state: in.state.context,
+        path: [
+            owner,
+            deinit_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    return {
+        ...in.state,
+        context: value.state,
+        statements: header({
+            state: in.state.statements,
+            kind: StatementsKind.DeferExpression,
+            offset: in.state.extra.defer_expression.length
+        }),
+        extra: {
+            ...in.state.extra,
+            defer_expression: in.state.extra.defer_expression.push(value.id)[0]
+        }
+    }
+}

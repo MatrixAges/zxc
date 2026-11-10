@@ -1,0 +1,27 @@
+import scope from "../../../../ast/statements/builder/scope"
+
+import type { Validated as Input, Gated as Output } from "../model"
+
+export default function (in: Input): Output {
+    const output = in.prepared.output
+
+    const body = scope({
+        scope: {
+            parent_tags: in.prepared.parent_tags,
+            parent_offsets: in.prepared.parent_offsets,
+            state: in.checked.statements
+        },
+        columns: output.state.scopes
+    })
+
+    return {
+        ...output,
+        state: {
+            ...output.state,
+            context: in.checked.context,
+            statements: body.state,
+            scopes: body.columns,
+            loops: in.checked.loops
+        }
+    }
+}

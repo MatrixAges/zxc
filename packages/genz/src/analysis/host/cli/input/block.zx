@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+
+import text from "../../../../ast/context/text"
+import block from "../../../../ast/expressions/block"
+import branch from "../../../../ast/statements/builder/branch"
+import breakValue from "../../../../ast/statements/builder/break_value"
+import close from "../../../../ast/statements/builder/close"
+import open from "../../../../ast/statements/builder/open"
+import result from "../../../../ast/statements/builder/result"
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+import { input_name } from "../const"
+
+import type { State } from "../model"
+
+export type Input = {
+    state: State,
+    condition: u32,
+    value: u32,
+    error: string
+}
+
+export type Output = {
+    state: State,
+    id: u32
+}
+
+export default function (in: Input): Output {
+    const failure = text({
+        state: in.state.context,
+        kind: ExpressionsKind.ErrorValue,
+        value: bytes.fromText(in.error)
+    })
+
+    const outer = open(in.state.statements)
+    const inner = open(outer.state)
+
+    const checked = branch({
+        scope: {
+            ...inner,
+            state: result({
+                state: inner.state,
+                value: failure.id
+            })
+        },
+        condition: in.condition
+    })
+
+    const exited = breakValue({
+        state: checked,
+        columns: in.state.breaks,
+        label: bytes.fromText(input_name),
+        value: in.value
+    })
+
+    const body = close(exited.state)
+
+    const value = block({
+        table: failure.state.expressions,
+        base: 0,
+        label: bytes.fromText(input_name),
+        start: body.first,
+        count: body.count
+    })
+
+    return {
+        id: value.id,
+        state: {
+            ...in.state,
+            context: {
+                ...failure.state,
+                expressions: value.table,
+                valid: failure.state.valid && value.valid
+            },
+            statements: {
+                ...body.state,
+                root_tags: outer.parent_tags,
+                root_offsets: outer.parent_offsets
+            },
+            breaks: exited.columns
+        }
+    }
+}

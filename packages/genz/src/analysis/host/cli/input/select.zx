@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import binary from "../../../../ast/context/binary"
+import conditional from "../../../../ast/context/conditional"
+import path from "../../../../ast/context/path"
+import primitive from "../../../../ast/context/primitive"
+import binding from "../../../../ast/statements/builder/binding"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsPrimitive as P
+} from "../../../../printer/model/expressions"
+import { application_name, input_name, input_type } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const target = path({
+        state: in.context,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const unit = primitive({
+        state: target.state,
+        value: P.Void
+    })
+
+    const condition = binary({
+        state: unit.state,
+        operator: B.Equal,
+        left: target.id,
+        right: unit.id
+    })
+
+    const value = conditional({
+        state: condition.state,
+        condition: condition.id,
+        yes: in.empty_input,
+        no: in.parsed_input
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: binding({
+            state: in.statements,
+            name: bytes.fromText(input_name),
+            type_expr: target.id,
+            value: value.id,
+            mutable: false
+        })
+    }
+}

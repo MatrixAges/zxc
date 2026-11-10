@@ -1,0 +1,80 @@
+import binary from "../../../../ast/context/binary"
+import integer from "../../../../ast/context/integer"
+import path from "../../../../ast/context/path"
+import unary from "../../../../ast/context/unary"
+import unit from "../../../../ast/context/unit"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsUnaryOperator as U
+} from "../../../../printer/model/expressions"
+import {
+    application_name,
+    requires_process_name,
+    args_name,
+    length_name,
+    no_input_argc,
+    no_arguments_error
+} from "../const"
+import block from "./block"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const process = path({
+        state: in.context,
+        path: [
+            application_name,
+            requires_process_name
+        ]
+    })
+
+    const disabled = unary({
+        state: process.state,
+        operator: U.Not,
+        operand: process.id
+    })
+
+    const length = path({
+        state: disabled.state,
+        path: [
+            args_name,
+            length_name
+        ]
+    })
+
+    const expected = integer({
+        state: length.state,
+        value: no_input_argc
+    })
+
+    const different = binary({
+        state: expected.state,
+        operator: B.NotEqual,
+        left: length.id,
+        right: expected.id
+    })
+
+    const condition = binary({
+        state: different.state,
+        operator: B.LogicalAnd,
+        left: disabled.id,
+        right: different.id
+    })
+
+    const value = unit(condition.state)
+
+    const body = block({
+        state: {
+            ...in,
+            context: value.state
+        },
+        condition: condition.id,
+        value: value.id,
+        error: no_arguments_error
+    })
+
+    return {
+        ...body.state,
+        empty_input: body.id
+    }
+}

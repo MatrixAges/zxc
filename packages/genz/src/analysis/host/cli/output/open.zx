@@ -1,0 +1,26 @@
+import imported from "../../../../ast/context/import_path"
+import open from "../../../../ast/statements/builder/open"
+import { result_module, emit_name } from "../const"
+
+import type { State as Input, Gated as Output } from "../model"
+
+export default function (in: Input): Output {
+    const enabled = imported({
+        state: in.context,
+        module: result_module,
+        path: [emit_name]
+    })
+
+    const scope = open(in.statements)
+
+    return {
+        state: {
+            ...in,
+            context: enabled.state,
+            statements: scope.state
+        },
+        parent_tags: scope.parent_tags,
+        parent_offsets: scope.parent_offsets,
+        enabled: enabled.id
+    }
+}

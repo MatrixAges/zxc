@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import object from "../../../../ast/context/object"
+import path from "../../../../ast/context/path"
+import field from "../../../../ast/fields/append"
+import binding from "../../../../ast/statements/builder/binding"
+import { init_name, arena_name, state_type, state_name } from "../const"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const target = path({
+        state: in.context,
+        path: [state_type]
+    })
+
+    const arena = path({
+        state: target.state,
+        path: [
+            init_name,
+            arena_name
+        ]
+    })
+
+    const fields = field({
+        table: in.fields,
+        name: bytes.fromText(arena_name),
+        value: arena.id,
+        comptime_parameter: false
+    })
+
+    const value = object({
+        state: arena.state,
+        type_expr: target.id,
+        first: integers.narrow(in.fields.name.length),
+        count: 1
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        fields,
+        statements: binding({
+            state: in.statements,
+            name: bytes.fromText(state_name),
+            value: value.id,
+            mutable: true
+        })
+    }
+}

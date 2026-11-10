@@ -1,0 +1,30 @@
+import bytes from "std:bytes"
+
+import binding from "../../../../ast/statements/builder/binding"
+import { state_name, request_name } from "../const"
+import invoke from "../invoke"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const value = invoke({
+        state: in.context,
+        path: [
+            state_name,
+            request_name
+        ],
+        arguments: [],
+        fallible: false
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: binding({
+            state: in.statements,
+            name: bytes.fromText(request_name),
+            value: value.id,
+            mutable: true
+        })
+    }
+}

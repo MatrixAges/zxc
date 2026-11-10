@@ -1,0 +1,55 @@
+import bytes from "std:bytes"
+
+import imported from "../../../ast/context/import_path"
+import constant from "../../../ast/declarations/table/constant"
+import { standard_name, application_name, state_type, state_module } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const names = [
+        standard_name,
+        application_name,
+        state_type
+    ]
+
+    const modules = [
+        standard_name,
+        application_name,
+        state_module
+    ]
+
+    const count = in.stateful ? names.length : names.length - 1
+
+    return loop({
+        state: in,
+        index: 0
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            const value = imported({
+                state: current.state.context,
+                module: modules[current.index],
+                path: []
+            })
+
+            const declaration = constant({
+                state: current.state.declarations,
+                value: {
+                    name: bytes.fromText(names[current.index]),
+                    value: value.id,
+                    exported: false
+                }
+            })
+
+            current.state = {
+                ...current.state,
+                context: value.state,
+                declarations: declaration.state,
+                valid: current.state.valid && declaration.valid
+            }
+            current.index += 1
+        },
+        return: current => current.state
+    })
+}

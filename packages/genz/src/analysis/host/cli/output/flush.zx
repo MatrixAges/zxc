@@ -1,0 +1,60 @@
+import integer from "../../../../ast/context/integer"
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import {
+    file_name,
+    interface_name,
+    write_byte_name,
+    newline,
+    flush_name
+} from "../const"
+import invoke from "../invoke"
+
+import type { Gated as Input, Gated as Output } from "../model"
+
+export default function (in: Input): Output {
+    const line = integer({
+        state: in.state.context,
+        value: newline
+    })
+
+    const written = invoke({
+        state: line.state,
+        path: [
+            file_name,
+            interface_name,
+            write_byte_name
+        ],
+        arguments: [line.id],
+        fallible: true
+    })
+
+    const flushed = invoke({
+        state: written.state,
+        path: [
+            file_name,
+            interface_name,
+            flush_name
+        ],
+        arguments: [],
+        fallible: true
+    })
+
+    const statements = evaluate({
+        state: in.state.statements,
+        value: written.id,
+        discard: false
+    })
+
+    return {
+        ...in,
+        state: {
+            ...in.state,
+            context: flushed.state,
+            statements: evaluate({
+                state: statements,
+                value: flushed.id,
+                discard: false
+            })
+        }
+    }
+}

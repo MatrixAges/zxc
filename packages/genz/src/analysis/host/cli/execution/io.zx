@@ -1,0 +1,43 @@
+import conditional from "../../../../ast/context/conditional"
+import path from "../../../../ast/context/path"
+import { application_name, requires_io_name } from "../const"
+import execute from "./call"
+
+import type { State, Node as Output } from "../../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    stateful: bool,
+    process: bool
+}
+
+export default function (in: Input): Output {
+    const condition = path({
+        state: in.state,
+        path: [
+            application_name,
+            requires_io_name
+        ]
+    })
+
+    const yes = execute({
+        state: condition.state,
+        stateful: in.stateful,
+        process: in.process,
+        io: true
+    })
+
+    const no = execute({
+        state: yes.state,
+        stateful: in.stateful,
+        process: in.process,
+        io: false
+    })
+
+    return conditional({
+        state: no.state,
+        condition: condition.id,
+        yes: yes.id,
+        no: no.id
+    })
+}

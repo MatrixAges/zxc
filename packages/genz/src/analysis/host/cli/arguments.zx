@@ -1,0 +1,57 @@
+import bytes from "std:bytes"
+
+import path from "../../../ast/context/path"
+import binding from "../../../ast/statements/builder/binding"
+import {
+    init_name,
+    minimal_name,
+    args_name,
+    to_slice_name,
+    allocator_name,
+    arena_name
+} from "./const"
+import invoke from "./invoke"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const allocator = match {
+        in.stateful => invoke({
+            state: in.context,
+            path: [
+                init_name,
+                arena_name,
+                allocator_name
+            ],
+            arguments: [],
+            fallible: false
+        }),
+        _ => path({
+            state: in.context,
+            path: [allocator_name]
+        })
+    }
+
+    const value = invoke({
+        state: allocator.state,
+        path: [
+            init_name,
+            minimal_name,
+            args_name,
+            to_slice_name
+        ],
+        arguments: [allocator.id],
+        fallible: true
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: binding({
+            state: in.statements,
+            name: bytes.fromText(args_name),
+            value: value.id,
+            mutable: false
+        })
+    }
+}

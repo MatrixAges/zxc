@@ -1,0 +1,25 @@
+import call from "../../../ast/context/call"
+import path from "../../../ast/context/path"
+
+import type { State, Node as Output } from "../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    path: string[],
+    arguments: u32[],
+    fallible: bool
+}
+
+export default function (in: Input): Output {
+    const callee = path({
+        state: in.state,
+        path: in.path
+    })
+
+    return call({
+        state: callee.state,
+        callee: callee.id,
+        arguments: in.arguments,
+        fallible: in.fallible
+    })
+}

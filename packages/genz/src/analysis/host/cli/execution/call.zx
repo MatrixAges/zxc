@@ -1,0 +1,81 @@
+import path from "../../../../ast/context/path"
+import {
+    init_name,
+    arena_name,
+    application_name,
+    request_name,
+    execute_name,
+    input_name,
+    io_name,
+    minimal_name
+} from "../const"
+import invoke from "../invoke"
+
+import type { State, Node as Output } from "../../../../ast/context/model"
+
+export type Input = {
+    state: State,
+    stateful: bool,
+    io: bool,
+    process: bool
+}
+
+export default function (in: Input): Output {
+    const paths = [
+        [
+            init_name,
+            arena_name
+        ],
+        [input_name],
+        [
+            init_name,
+            io_name
+        ],
+        [
+            init_name,
+            minimal_name
+        ]
+    ]
+
+    const enabled = [
+        !in.stateful,
+        true,
+        in.io,
+        in.process
+    ]
+
+    const arguments: u32[] = []
+
+    const values = loop({
+        state: in.state,
+        arguments,
+        index: 0
+    }, {
+        while: current => current.index < paths.length,
+        next: current => {
+            if (enabled[current.index]) {
+                const value = path({
+                    state: current.state,
+                    path: paths[current.index]
+                })
+
+                current.state = value.state
+                current.arguments = current.arguments.push(value.id)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    const owner = in.stateful ? request_name : application_name
+
+    return invoke({
+        state: values.state,
+        path: [
+            owner,
+            execute_name
+        ],
+        arguments: values.arguments,
+        fallible: true
+    })
+}

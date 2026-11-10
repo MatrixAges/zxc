@@ -1,0 +1,44 @@
+<Module>
+    <Type from="model" as="Cli" />
+
+    <Args in={Cli.State} out={Cli.State} />
+
+    <If on={$in.stateful}>
+        <Call fn="arguments" in={$in} />
+
+        <Task name="state" out={$ctx.initialize}>
+            <Call fn="state/create" in={$ctx.arguments} />
+
+            <Call
+                fn="state/defer"
+                in={{
+                    state: $ctx.create,
+                    owner: Cli.Owner.State
+                }}
+            />
+
+            <Call fn="state/initialize" in={$ctx.defer} />
+        </Task>
+
+        <Call fn="state/request" in={$ctx.task.state} />
+
+        <Call
+            fn="state/defer"
+            in={{
+                state: $ctx.request,
+                owner: Cli.Owner.Request
+            }}
+        />
+
+        <Call fn="allocator" in={$ctx.defer} />
+
+        <Return value={$ctx.allocator} />
+
+        <Else>
+            <Call fn="allocator" in={$in} />
+            <Call fn="arguments" in={$ctx.allocator} />
+
+            <Return value={$ctx.arguments} />
+        </Else>
+    </If>
+</Module>

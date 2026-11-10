@@ -273,6 +273,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/gateway/storage/build.rx", .name = "gateway_storage", .owner = .genz },
     .{ .path = "genz/analysis/gateway/host/build.rx", .name = "gateway_host", .owner = .genz },
     .{ .path = "genz/analysis/host/library/build.rx", .name = "library_build", .owner = .genz },
+    .{ .path = "genz/analysis/host/cli/build.rx", .name = "cli_host", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/label.zx", .name = "parallel_label", .owner = .genz },
     .{ .path = "genz/analysis/parallel/emit/allocator_alias.zx", .name = "parallel_allocator_alias", .owner = .genz },
     .{ .path = "genz/analysis/tasks/worker/reserve.zx", .name = "task_worker_reserve", .owner = .genz },

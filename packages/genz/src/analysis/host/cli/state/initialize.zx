@@ -1,0 +1,27 @@
+import evaluate from "../../../../ast/statements/builder/evaluate"
+import { state_name, initialize_name } from "../const"
+import invoke from "../invoke"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const value = invoke({
+        state: in.context,
+        path: [
+            state_name,
+            initialize_name
+        ],
+        arguments: [],
+        fallible: true
+    })
+
+    return {
+        ...in,
+        context: value.state,
+        statements: evaluate({
+            state: in.statements,
+            value: value.id,
+            discard: false
+        })
+    }
+}

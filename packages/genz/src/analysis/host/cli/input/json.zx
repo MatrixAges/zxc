@@ -1,0 +1,135 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../../ast/context/binary"
+import index from "../../../../ast/context/index"
+import integer from "../../../../ast/context/integer"
+import object from "../../../../ast/context/object"
+import path from "../../../../ast/context/path"
+import text from "../../../../ast/context/text"
+import field from "../../../../ast/fields/append"
+import {
+    ExpressionsBinaryOperator as B,
+    ExpressionsKind
+} from "../../../../printer/model/expressions"
+import {
+    standard_name,
+    json_name,
+    parse_name,
+    application_name,
+    input_type,
+    allocator_name,
+    args_name,
+    input_argument,
+    always_name,
+    allocate_name,
+    length_name,
+    json_input_argc,
+    json_input_error
+} from "../const"
+import invoke from "../invoke"
+import block from "./block"
+
+import type { State as Input, State as Output } from "../model"
+
+export default function (in: Input): Output {
+    const allocate = text({
+        state: in.context,
+        kind: ExpressionsKind.EnumLiteral,
+        value: bytes.fromText(always_name)
+    })
+
+    const fields = field({
+        table: in.fields,
+        name: bytes.fromText(allocate_name),
+        value: allocate.id,
+        comptime_parameter: false
+    })
+
+    const options = object({
+        state: allocate.state,
+        first: integers.narrow(in.fields.name.length),
+        count: 1
+    })
+
+    const target = path({
+        state: options.state,
+        path: [
+            application_name,
+            input_type
+        ]
+    })
+
+    const allocator = path({
+        state: target.state,
+        path: [allocator_name]
+    })
+
+    const args = path({
+        state: allocator.state,
+        path: [args_name]
+    })
+
+    const position = integer({
+        state: args.state,
+        value: input_argument
+    })
+
+    const source = index({
+        state: position.state,
+        target: args.id,
+        index: position.id
+    })
+
+    const parsed = invoke({
+        state: source.state,
+        path: [
+            standard_name,
+            json_name,
+            parse_name
+        ],
+        arguments: [
+            target.id,
+            allocator.id,
+            source.id,
+            options.id
+        ],
+        fallible: true
+    })
+
+    const length = path({
+        state: parsed.state,
+        path: [
+            args_name,
+            length_name
+        ]
+    })
+
+    const expected = integer({
+        state: length.state,
+        value: json_input_argc
+    })
+
+    const condition = binary({
+        state: expected.state,
+        operator: B.NotEqual,
+        left: length.id,
+        right: expected.id
+    })
+
+    const body = block({
+        state: {
+            ...in,
+            context: condition.state,
+            fields
+        },
+        condition: condition.id,
+        value: parsed.id,
+        error: json_input_error
+    })
+
+    return {
+        ...body.state,
+        parsed_input: body.id
+    }
+}
