@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import get from "core/bytes/index/get"
+
+import index from "./index"
+
+import type { Input, Selected as Output } from "./model"
+
+export default function (in: Input): Output {
+    const changed: u32[] = []
+    const keys: u8[][] = []
+    const values: u32[] = []
+    const buckets: u32?[] = []
+
+    return loop({
+        position: 0,
+        aligned: in.present && in.previous_paths.length == in.paths.length,
+        indexed: false,
+        keys,
+        values,
+        buckets,
+        changed
+    }, {
+        while: current => current.position < in.paths.length,
+        next: current => {
+            const position = current.position
+            const path = in.paths[position]
+            const hash = in.hashes[position]
+
+            if (!in.present) {
+                current.changed = current.changed.push(integers.narrow(position))[0]
+            } else {
+                const same = position < in.previous_paths.length &&
+                    bytes.equals(in.previous_paths[position], path)
+
+                if (same) {
+                    if (in.previous_hashes[position] != hash) {
+                        current.changed = current.changed.push(
+                            integers.narrow(position)
+                        )[0]
+                    }
+                } else {
+                    current.aligned = false
+
+                    if (!current.indexed) {
+                        const prepared = index(in.previous_paths)
+
+                        current.keys = prepared.keys
+                        current.values = prepared.values
+                        current.buckets = prepared.buckets
+                        current.indexed = true
+                    }
+
+                    const previous = get({
+                        index: current.pick([
+                            "keys",
+                            "values",
+                            "buckets"
+                        ]),
+                        key: path
+                    })
+                    const different = match {
+                        previous == null => true,
+                        _ => in.previous_hashes[integers.widen(previous)] != hash
+                    }
+
+                    if (different) {
+                        current.changed = current.changed.push(
+                            integers.narrow(position)
+                        )[0]
+                    }
+                }
+            }
+
+            current.position += 1
+        },
+        return: current => current.pick([
+            "changed",
+            "aligned"
+        ])
+    })
+}

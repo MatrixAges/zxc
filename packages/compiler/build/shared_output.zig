@@ -56,7 +56,7 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Alloca
 
     try files.append(allocator, .{ .path = "root.zig", .source = try compiler.zig.partition.rootBacked(allocator, workspace, modules.items, partitions != 0) });
     if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(io, allocator, workspace, functions.items, top.items, partitions));
-    try mirror(io, allocator, output, files.items);
+    try mirror(io, allocator, workspace, output, files.items);
 }
 
 pub const fingerprint_name = ".zxc-inputs";
@@ -66,7 +66,7 @@ const manifest_name = file_manifest.name;
 /// Records the content hash of every written file in a manifest, so a later run compares hashes instead of
 /// reading files back, and removes exactly the files the previous run wrote and this one does not. Without a
 /// manifest the directory is walked once and every file not generated now is removed.
-fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: []const layout.File) !void {
+fn mirror(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocator, output: []const u8, files: []const layout.File) !void {
     const cwd = std.Io.Dir.cwd();
 
     try cwd.createDirPath(io, output);
@@ -78,10 +78,6 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
     const previous = try recorded(io, allocator, directory);
     var manifest: std.Io.Writer.Allocating = .init(allocator);
     var parents: compiler.bytes.Map(void) = .empty;
-    // Runs list the same files in the same order, so the previous hash is usually found at the same position;
-    // paths are looked up only when the lists differ.
-    var aligned = if (previous) |known| known.paths.len == files.len else false;
-    var by_path: ?compiler.bytes.Map(u64) = null;
 
     try remove(io, directory, manifest_name);
 
@@ -94,49 +90,54 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
     try parallel.each(arenas, files.len, &hashing);
     try manifest.writer.ensureUnusedCapacity(files.len * 64);
 
-    var changed: std.ArrayList(u32) = try .initCapacity(allocator, files.len);
+    const paths = try allocator.alloc([]const u8, files.len);
+
+    for (files, paths) |file, *path| path.* = file.path;
+
+    var selected = try compiler.zig.file_ledger.changes(workspace, .{
+        .paths = paths,
+        .hashes = hashing.hashes,
+        .previous_paths = if (previous) |known| known.paths else &.{},
+        .previous_hashes = if (previous) |known| known.hashes else &.{},
+        .present = previous != null,
+    });
+
+    defer selected.deinit();
+
+    const changed = selected.value.changed;
+    var cursor: usize = 0;
 
     for (files, hashing.hashes, 0..) |file, hash, index| {
         try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
+        if (cursor == changed.len or changed[cursor] != index) continue;
 
-        if (previous) |known| {
-            const before = if (index < known.paths.len and compiler.bytes.equal(known.paths[index], file.path)) known.hashes[index] else found: {
-                aligned = false;
-
-                if (by_path == null) by_path = try byPath(allocator, known);
-
-                break :found by_path.?.get(file.path);
-            };
-
-            if (before == hash) continue;
-        }
+        cursor += 1;
 
         if (std.fs.path.dirname(file.path)) |parent| {
             if (!(try parents.getOrPut(allocator, parent)).found_existing) try directory.createDirPath(io, parent);
         }
-
-        changed.appendAssumeCapacity(@intCast(index));
     }
 
-    try parallel.each(arenas, changed.items.len, &Writing{ .io = io, .directory = directory, .files = files, .changed = changed.items });
+    try parallel.each(arenas, changed.len, &Writing{ .io = io, .directory = directory, .files = files, .changed = changed });
 
     var stale: std.ArrayList([]const u8) = .empty;
 
-    if (previous) |known| {
-        if (!aligned) {
-            const wanted = try generated(allocator, files);
+    if (!selected.value.aligned) {
+        var wanted = try compiler.zig.file_ledger.wanted(workspace, paths);
 
-            for (known.paths) |path| if (!wanted.contains(path)) try stale.append(allocator, path);
-        }
-    } else {
-        const wanted = try generated(allocator, files);
-        var walker = try directory.walk(allocator);
+        defer wanted.deinit();
 
-        defer walker.deinit();
+        if (previous) |known| {
+            for (known.paths) |path| if (wanted.shouldRemove(path, fingerprint_name, false)) try stale.append(allocator, path);
+        } else {
+            var walker = try directory.walk(allocator);
 
-        while (try walker.next(io)) |entry| {
-            if (entry.kind != .file or std.mem.eql(u8, entry.path, fingerprint_name) or wanted.contains(entry.path)) continue;
-            try stale.append(allocator, try allocator.dupe(u8, entry.path));
+            defer walker.deinit();
+
+            while (try walker.next(io)) |entry| {
+                if (entry.kind != .file or !wanted.shouldRemove(entry.path, fingerprint_name, true)) continue;
+                try stale.append(allocator, try allocator.dupe(u8, entry.path));
+            }
         }
     }
 
@@ -173,24 +174,6 @@ fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?f
     };
 
     return try file_manifest.list(allocator, text);
-}
-
-fn byPath(allocator: std.mem.Allocator, listed: file_manifest.Listed) !compiler.bytes.Map(u64) {
-    var result: compiler.bytes.Map(u64) = .empty;
-
-    try result.ensureTotalCapacity(allocator, @intCast(listed.paths.len));
-    for (listed.paths, listed.hashes) |path, hash| result.putAssumeCapacity(path, hash);
-
-    return result;
-}
-
-fn generated(allocator: std.mem.Allocator, files: []const layout.File) !compiler.bytes.Map(void) {
-    var result: compiler.bytes.Map(void) = .empty;
-
-    try result.ensureTotalCapacity(allocator, @intCast(files.len));
-    for (files) |file| result.putAssumeCapacity(file.path, {});
-
-    return result;
 }
 
 fn remove(io: std.Io, directory: std.Io.Dir, path: []const u8) !void {

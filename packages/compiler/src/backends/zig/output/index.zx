@@ -1,0 +1,31 @@
+import integers from "std:integer"
+import initialize from "core/bytes/index/initialize"
+import put from "core/bytes/index/put"
+
+import type { Index as Output } from "core/bytes/index/model"
+
+export type Input = u8[][]
+
+export default function (in: Input): Output {
+    const initial = initialize(in.length)
+
+    return loop({
+        ...initial,
+        position: 0
+    }, {
+        while: current => current.position < in.length,
+        next: current => {
+            const index = put({
+                index: current.omit(["position"]),
+                key: in[current.position],
+                value: integers.narrow(current.position)
+            })
+
+            current.keys = index.keys
+            current.values = index.values
+            current.buckets = index.buckets
+            current.position += 1
+        },
+        return: current => current.omit(["position"])
+    })
+}

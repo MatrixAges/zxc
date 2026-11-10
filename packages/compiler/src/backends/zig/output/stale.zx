@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+import get from "core/bytes/index/get"
+
+import type { Index } from "core/bytes/index/model"
+
+export type Input = {
+    index: Index,
+    path: u8[],
+    fingerprint: u8[],
+    preserve_fingerprint: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.preserve_fingerprint && bytes.equals(in.path, in.fingerprint)) {
+        return false
+    }
+
+    return get({
+        index: in.index,
+        key: in.path
+    }) == null
+}
