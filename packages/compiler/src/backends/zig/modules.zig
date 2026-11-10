@@ -112,12 +112,19 @@ pub fn functionUnits(owned: std.mem.Allocator, needed: []const bool) std.mem.All
 
 /// The files of function `units` from their generated `sources`, once the `roots` that call them are known.
 pub fn functionFilesFrom(owned: std.mem.Allocator, batch: *const Batch, units: []generating.Unit, sources: [][]const u8, roots: []const []const u8) Error![]const File {
+    if (comptime !@import("parser_options").generated_parser) return @import("function_files_seed.zig").create(owned, batch, units, sources, roots);
+
     const program = batch.program;
     const identities = batch.names;
     var files: std.ArrayList(File) = .empty;
-    var seen: @import("zx").bytes.Map(usize) = .empty;
 
     try @import("regular_calls.zig").complete(owned, batch, roots, units, sources);
+
+    var scratch = std.heap.ArenaAllocator.init(batch.backing);
+
+    defer scratch.deinit();
+
+    var registry = try @import("function_files.zig").create(scratch.allocator());
 
     for (units, sources) |unit, source| {
         const index = @backingInt(switch (unit) {
@@ -133,16 +140,7 @@ pub fn functionFilesFrom(owned: std.mem.Allocator, batch: *const Batch, units: [
             .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules.at(@backingInt(external.module)).import_name)}) else try references.imports(owned, batch.backing, function.expressions, function.contracts, identities.functions, &.{}),
         };
 
-        const entry = try seen.getOrPut(owned, file.name);
-
-        if (entry.found_existing) {
-            if (!std.mem.eql(u8, files.items[entry.value_ptr.*].source, source)) return error.ConflictingFunction;
-
-            continue;
-        }
-
-        entry.value_ptr.* = files.items.len;
-
+        if (!try registry.register(files.items, &file)) continue;
         try files.append(owned, file);
     }
 

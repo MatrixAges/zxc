@@ -1,0 +1,27 @@
+import type { Index } from "core/bytes/index/model"
+import type { Module } from "../state/model"
+
+export enum Status {
+    Append,
+    Reuse,
+    Conflict
+}
+
+export type Registry = {
+    index: Index,
+    status: Status
+}
+
+export type Empty = {}
+
+export type Input = {
+    registry: Registry,
+    files: Module[],
+    candidate: Module
+}
+
+export type Comparison = {
+    files: Module[],
+    candidate: Module,
+    position: u32
+}

@@ -1,0 +1,44 @@
+<Module>
+    <Type from="model" as="Registry" />
+
+    <Args in={Registry.Input} out={Registry.Registry} />
+
+    <Call
+        module="core/bytes/index/get"
+        in={{
+            index: $in.registry.index,
+            key: $in.candidate.name
+        }}
+    />
+
+    <If on={$ctx.get != null}>
+        <Call
+            fn="same"
+            in={{
+                files: $in.files,
+                candidate: $in.candidate,
+                position: $ctx.get
+            }}
+        />
+
+        <If on={$ctx.same}>
+            <Return
+                value={{
+                    ...$in.registry,
+                    status: Registry.Status.Reuse
+                }}
+            />
+        </If>
+
+        <Return
+            value={{
+                ...$in.registry,
+                status: Registry.Status.Conflict
+            }}
+        />
+    </If>
+
+    <Call fn="insert" in={$in} />
+
+    <Return value={$ctx.insert} />
+</Module>

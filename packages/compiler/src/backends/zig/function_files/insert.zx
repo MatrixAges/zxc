@@ -1,0 +1,17 @@
+import integers from "std:integer"
+import insert from "core/bytes/index/insert"
+
+import { Status } from "./model"
+
+import type { Input, Registry as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        index: insert({
+            index: in.registry.index,
+            key: in.candidate.name,
+            value: integers.narrow(in.files.length)
+        }),
+        status: Status.Append
+    }
+}
