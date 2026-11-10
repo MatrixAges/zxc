@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+
+import conditional from "../../../ast/context/conditional"
+import object from "../../../ast/context/object"
+import { Storage } from "../../state/list/const"
+import tag from "../../state/list/tag"
+import { items_field, storage_field, list_field_count } from "../../types/state/const"
+import header from "./header"
+
+import type { Field } from "../../types/definitions/model"
+import type { Written as Input, Written as Output } from "./model"
+
+export default function (in: Input): Output {
+    const has_header = header(in)
+
+    const exclusive = tag({
+        state: has_header.state,
+        storage: Storage.Exclusive
+    })
+
+    const owned = tag({
+        state: exclusive.state,
+        storage: Storage.Owned
+    })
+
+    const storage = conditional({
+        state: owned.state,
+        condition: has_header.id,
+        yes: exclusive.id,
+        no: owned.id
+    })
+
+    const fields: Field[] = [
+        {
+            name: bytes.fromText(items_field),
+            value: in.root,
+            default_value: null,
+            comptime_parameter: false
+        },
+        {
+            name: bytes.fromText(storage_field),
+            value: storage.id,
+            default_value: null,
+            comptime_parameter: false
+        }
+    ]
+
+    const result = object({
+        state: storage.state,
+        type_expr: in.source.layout,
+        first: in.source.bases.field_base,
+        count: list_field_count
+    })
+
+    return {
+        ...in,
+        context: result.state,
+        root: result.id,
+        fields
+    }
+}

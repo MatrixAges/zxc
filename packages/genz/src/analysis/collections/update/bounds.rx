@@ -1,0 +1,11 @@
+<Module>
+    <Type from="model" as="Update" />
+    <Type from="../../intrinsics/guard/model" as="Guard" />
+
+    <Args in={Update.Bounds} out={Guard.Output} />
+
+    <Call fn="check" in={$in} />
+    <Call fn="../../intrinsics/guard/publish" in={$ctx.check} />
+
+    <Return value={$ctx.publish} />
+</Module>

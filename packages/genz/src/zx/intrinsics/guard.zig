@@ -26,6 +26,10 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), condition: node
         else => unreachable,
     };
 
+    try publish(self, body, output);
+}
+
+pub fn publish(self: *Lower, body: *std.ArrayList(node.Statement), output: anytype) Lower.Error!void {
     if (!output.valid) return error.OutOfMemory;
 
     const expressions = @import("../../node/view.zig").join(output.expressions.*, output.forms.*);

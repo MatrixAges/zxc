@@ -1,0 +1,77 @@
+<Module>
+    <Type from="model" as="Update" />
+
+    <Args in={Update.State} out={Update.Candidate} />
+
+    <If on={$in.source.deferred}>
+        <Call
+            fn="grow"
+            in={{
+                ...$in,
+                mode: Update.Mode.Copy
+            }}
+        />
+
+        <Call
+            fn="select"
+            in={{
+                source: $in.source,
+                first: $ctx.grow,
+                plain: null
+            }}
+        />
+
+        <Return value={$ctx.select} />
+    </If>
+
+    <If on={$in.source.in_place}>
+        <Call fn="reuse" in={$in} />
+
+        <Return value={$ctx.reuse} />
+    </If>
+
+    <If on={$in.source.selected}>
+        <Call
+            fn="grow"
+            in={{
+                ...$in,
+                mode: Update.Mode.Reserve
+            }}
+        />
+
+        <Call
+            fn="duplicate"
+            in={{
+                source: $in.source,
+                context: $ctx.grow.context
+            }}
+        />
+
+        <Call
+            fn="select"
+            in={{
+                source: $in.source,
+                first: $ctx.grow,
+                plain: $ctx.duplicate
+            }}
+        />
+
+        <Return value={$ctx.select} />
+    </If>
+
+    <If on={$in.source.grow}>
+        <Call
+            fn="grow"
+            in={{
+                ...$in,
+                mode: Update.Mode.Reserve
+            }}
+        />
+
+        <Return value={$ctx.grow} />
+    </If>
+
+    <Call fn="duplicate" in={$in} />
+
+    <Return value={$ctx.duplicate} />
+</Module>

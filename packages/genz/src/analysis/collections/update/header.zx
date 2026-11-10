@@ -1,0 +1,40 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+import { Operation, Storage } from "../../state/list/const"
+import permission from "../../state/list/permission"
+import tag from "../../state/list/tag"
+import { storage_field } from "../../types/state/const"
+
+import type { Node as Output } from "../../../ast/context/model"
+import type { Written as Input } from "./model"
+
+export default function (in: Input): Output {
+    if (in.source.grow || in.source.deferred) {
+        const storage = field({
+            state: in.context,
+            target: in.source.target,
+            name: bytes.fromText(storage_field)
+        })
+
+        const plain = tag({
+            state: storage.state,
+            storage: Storage.Owned
+        })
+
+        return binary({
+            state: plain.state,
+            operator: ExpressionsBinaryOperator.NotEqual,
+            left: storage.id,
+            right: plain.id
+        })
+    }
+
+    return permission({
+        state: in.context,
+        value: in.source.target,
+        operation: Operation.Headered
+    })
+}

@@ -3,76 +3,120 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
-const intrinsics = @import("intrinsics.zig");
+const lists = @import("state_value/list.zig");
+const elements = @import("state_value/elements.zig");
 
-/// Writes one element: in place when the plan proves the target unique, into a copy otherwise, which keeps the header of
-/// a headered target.
 pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
+    if (comptime !@import("genz_options").generated_analysis) return @import("list_update_seed.zig").lower(self, id);
+
     const update = self.program.expression(id).value.list_update;
-    var body: std.ArrayList(node.Statement) = .empty;
     const type_id = self.program.expression(update.target).type_id;
-    const selected = @import("state_value/list.zig").selected(self, type_id);
-    const evaluated_source = try self.expr(update.target);
-    const qualified_source = if (selected) try @import("state_value/ownership.zig").clip(self, &body, update.target, evaluated_source) else evaluated_source;
-    const source_value = try aggregate.bind(self, &body, qualified_source);
-    const source = try @import("state_value/list.zig").items(self, type_id, source_value);
+    const selected = lists.selected(self, type_id);
+    var body: std.ArrayList(node.Statement) = .empty;
+    const evaluated = try self.expr(update.target);
+    const qualified = if (selected) try @import("state_value/ownership.zig").clip(self, &body, update.target, evaluated) else evaluated;
+    const target = try aggregate.bind(self, &body, qualified);
+    const items = try lists.items(self, type_id, target);
     const index = try aggregate.bind(self, &body, try self.expr(update.index));
 
-    try intrinsics.failIf(self, &body, try intrinsics.binary(self, .greater_equal, index, try self.field(source, "len")), "IndexOutOfBounds");
+    try bounds(self, &body, items, index);
 
-    const evaluated = try aggregate.bind(self, &body, try self.expr(update.value));
-    const value = try @import("state_value/elements.zig").write(self, &body, type_id, evaluated);
-    const element = try @import("state_value/elements.zig").typeExpr(self, type_id);
+    const value = try elements.write(self, &body, type_id, try aggregate.bind(self, &body, try self.expr(update.value)));
+    const element = try elements.typeExpr(self, type_id);
+    const layout = if (selected) try @import("types.zig").get(self, self.state_types, type_id) else @as(node.ExpressionId, @fromBackingInt(0));
     const flags = self.plan.get(id);
-    const deferred = selected and self.deferred_lists;
+    const entry = @import("generated_list_update");
+    const Input = std.meta.Child(entry.Input);
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
+    var capture: Capture(Bases) = undefined;
+    const bases = context(self, Bases, &capture);
 
-    const buffer = if (deferred) guarded: {
-        var copied: std.ArrayList(node.Statement) = .empty;
-        const private = try @import("growth.zig").copy(self, &copied, element, source, !self.may_grow);
+    const input: Input = .{
+        .bases = &bases,
+        .items = @backingInt(items),
+        .target = @backingInt(target),
+        .index = @backingInt(index),
+        .value = @backingInt(value),
+        .element = @backingInt(element),
+        .layout = @backingInt(layout),
+        .selected = selected,
+        .deferred = selected and self.deferred_lists,
+        .in_place = flags.in_place,
+        .grow = flags.grow,
+        .exact = !self.may_grow,
+        .shared = self.shared_types,
+    };
 
-        break :guarded try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
-            .condition = try @import("state_value/list.zig").writable(self, source_value),
-            .yes = try self.builtin(.constCast, &.{source}),
-            .no = try aggregate.finish(self, &copied, private),
-        } }));
-    } else if (flags.in_place)
-        try aggregate.bind(self, &body, try self.builtin(.constCast, &.{source}))
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
 
-    else if (selected) chosen: {
-        var copied: std.ArrayList(node.Statement) = .empty;
-        var plain: std.ArrayList(node.Statement) = .empty;
-        const grown = try @import("growth.zig").reserve(self, &copied, element, source, try self.field(source, "len"), false);
-        const duplicated = try aggregate.bind(self, &plain, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
-        const headered = if (flags.grow) try self.builder.expression(.{ .boolean = true }) else try @import("state_value/list.zig").headered(self, source_value);
-        const writable = try @import("state_value/list.zig").writable(self, source_value);
+    defer scratch.deinit();
 
-        break :chosen try aggregate.bind(self, &body, try self.builder.expression(.{ .conditional = .{
-            .condition = writable,
-            .yes = try self.builtin(.constCast, &.{source}),
-            .no = try self.builder.expression(.{ .conditional = .{
-                .condition = headered,
-                .yes = try aggregate.finish(self, &copied, grown),
-                .no = try aggregate.finish(self, &plain, duplicated),
-            } }),
-        } }));
-    } else if (flags.grow)
-        try @import("growth.zig").reserve(self, &body, element, source, try self.field(source, "len"), false)
-    else
-        try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
 
-    const slot = try self.builder.expression(.{ .index = .{ .target = buffer, .index = try self.builtin(.intCast, &.{index}) } });
+    if (!result.valid) return error.OutOfMemory;
+    try @import("construction/apply.zig").expressions(self, result);
+    @import("../node/import_selected.zig").append(self.allocator, &self.builder.nodes.statements, result.statements) catch |err| return failure(err);
 
-    try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });
+    var roots = result.statements.*;
+    roots.tags = result.body.tags;
+    roots.offsets = result.body.offsets;
+    @import("../node/import_statements.zig").appendSelected(self.allocator, &body, &roots) catch |err| return failure(err);
+    try self.builder.nodes.field_columns.reserve(self.allocator, result.fields.len);
 
-    const result = if (selected) result: {
-        const lists = @import("state_value/list.zig");
+    for (result.fields) |field| self.builder.nodes.field_columns.append(.{
+        .name = try self.allocator.dupe(u8, field.name),
+        .value = @fromBackingInt(field.value),
+        .default_value = if (field.default_value) |item| @fromBackingInt(item) else null,
+        .comptime_parameter = field.comptime_parameter,
+    });
 
-        const headered = if (flags.grow or deferred)
-            try intrinsics.binary(self, .not_equal, try self.field(source_value, "storage"), try lists.tag(self, .owned))
-        else try lists.headered(self, source_value);
+    self.serial = @intCast(result.serial);
+    self.uses_allocator = self.uses_allocator or result.uses_allocator;
 
-        break :result try lists.owned(self, type_id, buffer, headered);
-    } else buffer;
+    return aggregate.finish(self, &body, @fromBackingInt(result.root));
+}
 
-    return aggregate.finish(self, &body, result);
+fn bounds(self: *Lower, body: *std.ArrayList(node.Statement), items: node.ExpressionId, index: node.ExpressionId) Lower.Error!void {
+    const entry = @import("generated_list_update_bounds");
+    const Input = std.meta.Child(entry.Input);
+    const Bases = std.meta.Child(@FieldType(Input, "bases"));
+    var capture: Capture(Bases) = undefined;
+    const bases = context(self, Bases, &capture);
+    const input: Input = .{ .bases = &bases, .items = @backingInt(items), .index = @backingInt(index) };
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
+
+    defer scratch.deinit();
+
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
+
+    try @import("intrinsics/guard.zig").publish(self, body, result);
+}
+
+fn Capture(comptime Bases: type) type {
+    return std.meta.Child(@typeInfo(@FieldType(Bases, "capture")).optional.child);
+}
+
+fn context(self: *const Lower, comptime Bases: type, capture: *Capture(Bases)) Bases {
+    return .{
+        .capture = if (self.capture) |boundary| captured: {
+            capture.* = .{ .name = boundary.name, .label = boundary.label, .failure = @backingInt(boundary.failure) };
+
+            break :captured capture;
+        } else null,
+        .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(self.builder.nodes.field_columns.count()),
+        .serial = self.serial,
+    };
+}
+
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => unreachable,
+    };
 }

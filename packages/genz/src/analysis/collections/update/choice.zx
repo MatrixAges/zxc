@@ -1,0 +1,88 @@
+import block from "../../../ast/body/block"
+import boolean from "../../../ast/context/boolean"
+import builtin from "../../../ast/context/builtin"
+import conditional from "../../../ast/context/conditional"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+import { Operation } from "../../state/list/const"
+import permission from "../../state/list/permission"
+
+import type { Node as Output } from "../../../ast/context/model"
+import type { Candidate, Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    first: Candidate,
+    plain?: Candidate
+}
+
+export default function (in: Input): Output {
+    const plain = in.plain
+    const context = plain == null ? in.first.context : plain.context
+
+    const header = match {
+        plain == null => {
+            state: context,
+            id: 0
+        },
+        in.source.grow => boolean({
+            state: context,
+            value: true
+        }),
+        _ => permission({
+            state: context,
+            value: in.source.target,
+            operation: Operation.Headered
+        })
+    }
+
+    const allowed = permission({
+        state: header.state,
+        value: in.source.target,
+        operation: Operation.Writable
+    })
+
+    const existing = builtin({
+        state: allowed.state,
+        name: ExpressionsBuiltinName.ConstCast,
+        arguments: [in.source.items]
+    })
+
+    const first = block({
+        state: {
+            context: existing.state,
+            body: in.first.body
+        },
+        value: in.first.id
+    })
+
+    if (plain == null) {
+        return conditional({
+            state: first.state,
+            condition: allowed.id,
+            yes: existing.id,
+            no: first.id
+        })
+    }
+
+    const second = block({
+        state: {
+            context: first.state,
+            body: plain.body
+        },
+        value: plain.id
+    })
+
+    const allocated = conditional({
+        state: second.state,
+        condition: header.id,
+        yes: first.id,
+        no: second.id
+    })
+
+    return conditional({
+        state: allocated.state,
+        condition: allowed.id,
+        yes: existing.id,
+        no: allocated.id
+    })
+}

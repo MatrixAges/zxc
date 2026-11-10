@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Update" />
+
+    <Args in={Update.Input} out={Update.Output} />
+
+    <Call fn="initialize" in={$in} />
+
+    <Call module="buffer" in={$ctx.initialize} />
+
+    <Call
+        fn="write"
+        in={{
+            source: $in,
+            buffer: $ctx.buffer
+        }}
+    />
+
+    <If on={$in.selected}>
+        <Call fn="owned" in={$ctx.write} />
+        <Call fn="publish" in={$ctx.owned} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
+    <Call fn="publish" in={$ctx.write} />
+
+    <Return value={$ctx.publish} />
+</Module>

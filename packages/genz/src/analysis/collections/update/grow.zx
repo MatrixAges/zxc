@@ -1,0 +1,67 @@
+import bytes from "std:bytes"
+
+import field from "../../../ast/context/field"
+import empty from "../../../ast/statements/empty"
+import arguments from "../../growth/arguments"
+import { Operation } from "../../growth/const"
+import invoke from "../../growth/invoke"
+import target from "../../growth/target"
+import { length_member } from "../../intrinsics/index/const"
+import candidate from "./candidate"
+import { Mode } from "./model"
+
+import type { Allocation as Input, Candidate as Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = match in.mode {
+        Mode.Reserve => field({
+            state: in.context,
+            target: in.source.items,
+            name: bytes.fromText(length_member)
+        }),
+        _ => {
+            state: in.context,
+            id: 0
+        }
+    }
+
+    const operation = in.mode == Mode.Copy ? Operation.Copy : Operation.Reserve
+
+    const prepared = arguments({
+        source: {
+            operation,
+            element: in.source.element,
+            value: in.source.items,
+            count: count.id,
+            minimum: 0,
+            flag: in.mode == Mode.Copy && in.source.exact,
+            shared: in.source.shared,
+            capture: in.source.bases.capture,
+            expression_base: in.source.bases.expression_base,
+            statement_base: in.source.bases.statement_base,
+            serial: count.state.serial
+        },
+        context: count.state,
+        body: empty({}),
+        arguments: [],
+        callee: 0,
+        root: 0
+    })
+
+    const callee = target({
+        context: prepared.context,
+        operation,
+        shared: in.source.shared
+    })
+
+    const called = invoke({
+        ...prepared,
+        context: callee.state,
+        callee: callee.id
+    })
+
+    return candidate({
+        state: called.context,
+        id: called.root
+    })
+}

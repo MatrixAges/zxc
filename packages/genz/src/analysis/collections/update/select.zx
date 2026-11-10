@@ -1,0 +1,11 @@
+import candidate from "./candidate"
+import choice from "./choice"
+
+import type { Input as Choice } from "./choice"
+import type { Candidate as Output } from "./model"
+
+export type Input = Choice
+
+export default function (in: Input): Output {
+    return candidate(choice(in))
+}

@@ -420,6 +420,8 @@ pub const growth = [_]Entry{
     .{ .path = "genz/analysis/state/ownership/projection/plan/build.rx", .name = "ownership_projection_plan", .owner = .genz },
     .{ .path = "genz/analysis/state/ownership/projection/build.rx", .name = "ownership_projection", .owner = .genz },
     .{ .path = "genz/analysis/growth/value/build.rx", .name = "growth_value", .owner = .genz },
+    .{ .path = "genz/analysis/collections/update/bounds.rx", .name = "list_update_bounds", .owner = .genz },
+    .{ .path = "genz/analysis/collections/update/build.rx", .name = "list_update", .owner = .genz },
 };
 
 pub const collections = [_]Entry{

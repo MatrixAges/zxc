@@ -1,0 +1,41 @@
+import assignment from "../../../ast/body/assignment"
+import builtin from "../../../ast/context/builtin"
+import index from "../../../ast/context/index"
+import { ExpressionsBuiltinName } from "../../../printer/model/expressions"
+
+import type { Candidate, Input as Source, Written as Output } from "./model"
+
+export type Input = {
+    source: Source,
+    buffer: Candidate
+}
+
+export default function (in: Input): Output {
+    const offset = builtin({
+        state: in.buffer.context,
+        name: ExpressionsBuiltinName.IntCast,
+        arguments: [in.source.index]
+    })
+
+    const slot = index({
+        state: offset.state,
+        target: in.buffer.id,
+        index: offset.id
+    })
+
+    const written = assignment({
+        state: {
+            context: slot.state,
+            body: in.buffer.body
+        },
+        target: slot.id,
+        value: in.source.value
+    })
+
+    return {
+        source: in.source,
+        ...written,
+        root: in.buffer.id,
+        fields: []
+    }
+}

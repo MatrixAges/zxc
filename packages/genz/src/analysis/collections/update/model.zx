@@ -1,0 +1,67 @@
+import type { Body } from "../../../ast/body/model"
+import type { Input as Bases, State as Context } from "../../../ast/context/model"
+import type { Columns as Forms } from "../../../ast/expressions/forms/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+import type { Field } from "../../types/definitions/model"
+
+export enum Mode { Copy, Reserve }
+
+export type Bounds = {
+    bases: Bases,
+    items: u32,
+    index: u32
+}
+
+export type Input = {
+    bases: Bases,
+    items: u32,
+    target: u32,
+    index: u32,
+    value: u32,
+    element: u32,
+    layout: u32,
+    selected: bool,
+    deferred: bool,
+    in_place: bool,
+    grow: bool,
+    exact: bool,
+    shared: bool
+}
+
+export type State = {
+    source: Input,
+    context: Context
+}
+
+export type Candidate = {
+    context: Context,
+    body: Body,
+    id: u32
+}
+
+export type Written = {
+    source: Input,
+    context: Context,
+    body: Body,
+    root: u32,
+    fields: Field[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    forms: Forms,
+    statements: Statements,
+    body: Body,
+    fields: Field[],
+    root: u32,
+    serial: u64,
+    uses_allocator: bool,
+    valid: bool
+}
+
+export type Allocation = {
+    source: Input,
+    context: Context,
+    mode: Mode
+}

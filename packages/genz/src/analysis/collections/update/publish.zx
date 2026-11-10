@@ -1,0 +1,15 @@
+import type { Written as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        expressions: in.context.expressions,
+        forms: in.context.forms,
+        statements: in.context.statements,
+        body: in.body,
+        fields: in.fields,
+        root: in.root,
+        serial: in.context.serial,
+        uses_allocator: in.source.deferred || !in.source.in_place,
+        valid: in.context.valid
+    }
+}

@@ -1,0 +1,34 @@
+import bytes from "std:bytes"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import initialize from "../../../ast/context/initialize"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+import failure from "../../intrinsics/guard/failure"
+import { bounds_error, length_member } from "../../intrinsics/index/const"
+
+import type { Input as Output } from "../../intrinsics/guard/publish"
+import type { Bounds as Input } from "./model"
+
+export default function (in: Input): Output {
+    const length = field({
+        state: initialize(in.bases),
+        target: in.items,
+        name: bytes.fromText(length_member)
+    })
+
+    const condition = binary({
+        state: length.state,
+        operator: ExpressionsBinaryOperator.GreaterEqual,
+        left: in.index,
+        right: length.id
+    })
+
+    return {
+        condition: condition.id,
+        failure: failure({
+            context: condition.state,
+            name: bytes.fromText(bounds_error)
+        })
+    }
+}

@@ -1,0 +1,22 @@
+import bind from "../../../ast/body/bind"
+
+import type { Node as Input } from "../../../ast/context/model"
+import type { Candidate as Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = bind({
+        state: {
+            context: in.state,
+            body: {
+                tags: [],
+                offsets: []
+            }
+        },
+        value: in.id
+    })
+
+    return {
+        ...result.state,
+        id: result.id
+    }
+}
