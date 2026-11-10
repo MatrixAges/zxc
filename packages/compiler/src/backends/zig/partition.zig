@@ -2,6 +2,7 @@ const std = @import("std");
 const genz = @import("genz");
 const node = genz.node;
 pub const groups = genz.zx.partition;
+pub const layout = @import("partition/layout.zig");
 pub const demand = @import("partition/demand.zig");
 pub const Scanning = @import("partition/scanning.zig");
 pub const Export = struct { file: []const u8, variant: []const u8 };

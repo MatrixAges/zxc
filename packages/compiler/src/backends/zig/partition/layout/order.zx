@@ -1,0 +1,34 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { sort_less, sort_greater, sort_equal } from "./const"
+
+import type { Demands } from "../demand/model"
+import type { Ordered as Output } from "./model"
+
+export type Input = {
+    paths: u8[][],
+    exports: Demands
+}
+
+export default function (in: Input): Output {
+    const positions = in.exports.callees.map((callee, position) => position)[0]
+
+    const ordered = positions.sort(
+        (left, right) => match {
+            left == right => sort_equal,
+            bytes.lessThan(
+                in.paths[integers.widen(
+                    in.exports.callees[left]
+                )],
+                in.paths[integers.widen(in.exports.callees[right])]
+            ) => sort_less,
+            _ => sort_greater
+        }
+    )[0]
+
+    return {
+        positions: ordered,
+        callees: ordered.map(position => in.exports.callees[position])[0]
+    }
+}

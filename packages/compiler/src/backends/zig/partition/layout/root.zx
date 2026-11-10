@@ -1,0 +1,56 @@
+import type { Demands } from "../demand/model"
+import type { Root as Output } from "./model"
+
+export type Input = {
+    grouped: u64[],
+    exports: Demands,
+    positions: u64[],
+    scope: u64
+}
+
+export default function (in: Input): Output {
+    const ids: u32[] = []
+    const names: u8[][] = []
+
+    return loop({
+        callees: ids,
+        entries: ids,
+        variants: names,
+        position: 0
+    }, {
+        while: current => current.position < in.positions.length,
+        next: current => {
+            const index = in.positions[current.position]
+            const callee = in.exports.callees[index]
+
+            if (in.grouped[current.position] == in.scope) {
+                current.callees = current.callees.push(callee)[0]
+
+                const selected = loop({
+                    entries: current.entries,
+                    variants: current.variants,
+                    position: 0
+                }, {
+                    while: item => item.position < in.exports.variants[index].length,
+                    next: item => {
+                        const variant = in.exports.variants[index][item.position]
+
+                        item.entries = item.entries.push(callee)[0]
+                        item.variants = item.variants.push(variant)[0]
+                        item.position += 1
+                    },
+                    return: item => item.pick([
+                        "entries",
+                        "variants"
+                    ])
+                })
+
+                current.entries = selected.entries
+                current.variants = selected.variants
+            }
+
+            current.position += 1
+        },
+        return: current => current.omit(["position"])
+    })
+}

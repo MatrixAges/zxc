@@ -1,0 +1,65 @@
+<Module>
+    <Type from="model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Output} />
+
+    <Call
+        fn="owners"
+        in={$in.pick([
+            "paths",
+            "count"
+        ])}
+    />
+
+    <Call
+        module="../demand/plan"
+        in={{
+            ...$in.pick([
+                "callees",
+                "variants",
+                "inline_names",
+                "top_callees",
+                "top_variants",
+                "count"
+            ]),
+            owners: $ctx.owners,
+            seed: false
+        }}
+    />
+
+    <Call
+        fn="order"
+        in={{
+            paths: $in.paths,
+            exports: $ctx.plan.exports
+        }}
+    />
+
+    <Call
+        module="genz/partition_groups"
+        in={{
+            callees: $in.callees,
+            sizes: $in.sizes,
+            roots: $ctx.order.callees,
+            partitions: $in.count
+        }}
+    />
+
+    <Call
+        fn="roots"
+        in={{
+            grouped: $ctx.partition_groups.owners,
+            exports: $ctx.plan.exports,
+            ordered: $ctx.order,
+            count: $in.count
+        }}
+    />
+
+    <Return
+        value={{
+            members: $ctx.partition_groups.members,
+            scopes: $ctx.plan.scopes,
+            roots: $ctx.roots
+        }}
+    />
+</Module>

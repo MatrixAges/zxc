@@ -1,0 +1,17 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+export type Input = {
+    paths: u8[][],
+    count: u32
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return in.paths.map(
+        path => integers.narrow(
+            bytes.hash(path) % integers.widen(in.count)
+        )
+    )[0]
+}

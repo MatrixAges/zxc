@@ -1,0 +1,36 @@
+import type { Scope, Demands } from "../demand/model"
+
+export type Input = {
+    paths: u8[][],
+    sizes: u64[],
+    callees: u32[][],
+    variants: u8[][][],
+    inline_names: u8[][][],
+    top_callees: u32[][],
+    top_variants: u8[][][],
+    count: u32
+}
+
+export type Ordered = {
+    positions: u64[],
+    callees: u32[]
+}
+
+export type Root = {
+    callees: u32[],
+    entries: u32[],
+    variants: u8[][]
+}
+
+export type Roots = {
+    grouped: u64[],
+    exports: Demands,
+    ordered: Ordered,
+    count: u32
+}
+
+export type Output = {
+    members: u32[][],
+    scopes: Scope[],
+    roots: Root[]
+}

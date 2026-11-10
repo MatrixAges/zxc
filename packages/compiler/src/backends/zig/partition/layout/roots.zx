@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import root from "./root"
+
+import type { Roots as Input, Root } from "./model"
+
+export type Output = Root[]
+
+export default function (in: Input): Output {
+    const initial: Root[] = []
+
+    return loop({
+        values: initial,
+        scope: 0
+    }, {
+        while: current => current.scope < integers.widen(in.count),
+        next: current => {
+            const selected = root({
+                grouped: in.grouped,
+                exports: in.exports,
+                positions: in.ordered.positions,
+                scope: current.scope
+            })
+
+            current.values = current.values.push(selected)[0]
+            current.scope += 1
+        },
+        return: current => current.values
+    })
+}
