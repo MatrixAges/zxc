@@ -71,16 +71,13 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 
     for (initializers.items) |initial| {
         var program = initial.program;
+        const validation = @import("store_initializers/validation.zig");
 
-        if (program.type_only or program.functions.count() != 0 or program.stores.count() != 0 or program.contracts.count() != 0) return error.InvalidInitializer;
-        if (try frontend.validateIr(allocator, program) != null) return error.InvalidInitializer;
-        if (program.types.at(@backingInt(program.input_type)) != .scalar or program.types.at(@backingInt(program.input_type)).scalar != .void) return error.InvalidInitializer;
-        if (program.types.at(@backingInt(program.output_type)) != .object) return error.InvalidInitializer;
+        if (!try validation.validate(bundle.arena.child_allocator, program)) return error.InvalidInitializer;
 
         const own = try names.create(allocator, bundle.arena.child_allocator, program, options.analysis.nominal_types);
 
-        if (own.types.len != shared.types.len) return error.InvalidInitializer;
-        for (own.types, shared.types) |left, right| if (!std.mem.eql(u8, left, right)) return error.InvalidInitializer;
+        if (!validation.compatible(own.types, shared.types)) return error.InvalidInitializer;
 
         const identity = try allocator.dupe(u8, initial.identity);
 

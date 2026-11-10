@@ -20,6 +20,7 @@ pub const expressions = @import("analysis/expression.zig");
 pub const analyze = @import("analysis/analyze.zig").analyze;
 pub const AnalysisResult = @import("analysis/analyze.zig").Result;
 pub const NominalType = @import("modules/nominal_origins.zig").Item;
+pub const ir_validation_input = @import("ir/canonical/validation/input.zig");
 pub const validateIr = @import("ir/validate.zig").validate;
 pub const validateIrExtending = @import("ir/validate.zig").validateExtending;
 pub const checks_internal_ir = @import("ir/validate.zig").internal;

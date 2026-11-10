@@ -1,0 +1,15 @@
+<Module>
+    <Type from="../../../../zx/ir/canonical/validation/model" as="IR" />
+
+    <Args in={IR.Program} out={bool} />
+
+    <Call module="../../../../zx/ir/canonical/validation/validate" in={$in} />
+
+    <If on={!$ctx.validate}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="ports" in={$in} />
+
+    <Return value={$ctx.ports} />
+</Module>
