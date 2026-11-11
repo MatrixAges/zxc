@@ -1,0 +1,42 @@
+export enum Mode { Reference, Value, Discard, Consume }
+
+export enum Action {
+    CheckPure,
+    CheckLocal,
+    CheckForwarding,
+    CheckBuffers,
+    CheckDeep,
+    CheckAbi,
+    CheckShallow,
+    CheckProjection,
+    CheckInitial,
+    Dereference,
+    Reject,
+    Plain,
+    Stack,
+    State,
+    Deep,
+    Buffered
+}
+
+export type Input = {
+    mode: Mode,
+    state_active: bool,
+    consumer: bool,
+    projected_output: bool,
+    flat: bool,
+    represented: bool,
+    aggregate: bool,
+    state_represented: bool,
+    buffer_candidate: bool,
+    scalar_result: bool,
+    pure?: bool,
+    local?: bool,
+    forwarded?: bool,
+    buffered?: bool,
+    deep?: bool,
+    abi?: bool,
+    shallow?: bool,
+    projection?: bool,
+    initial?: bool
+}

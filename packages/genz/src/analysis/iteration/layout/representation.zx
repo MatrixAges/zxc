@@ -1,0 +1,44 @@
+import { Action } from "./model"
+
+import type { Input } from "./model"
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    if (in.buffered == true) {
+        return Action.Buffered
+    }
+
+    if (in.deep == true) {
+        return Action.Deep
+    }
+
+    const local = in.pure == true || in.local == true
+    const state_allowed = in.state_active || in.forwarded == true || local
+
+    const state = (
+        - in.abi != true
+        - and in.state_represented
+        - and state_allowed
+    )
+
+    if (state) {
+        return Action.State
+    }
+
+    if (in.forwarded == true) {
+        return Action.Stack
+    }
+
+    if (!local && in.shallow == null) {
+        return Action.CheckShallow
+    }
+
+    const shallow = local || in.shallow == true
+
+    if (shallow && in.aggregate) {
+        return Action.Stack
+    }
+
+    return Action.Plain
+}

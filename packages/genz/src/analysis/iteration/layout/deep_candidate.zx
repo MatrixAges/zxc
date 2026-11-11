@@ -1,0 +1,17 @@
+import { Mode } from "./model"
+
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const projected = in.projected_output || in.mode == Mode.Discard
+
+    return (
+        - !in.state_active
+        - and projected
+        - and in.pure == true
+        - and !in.flat
+        - and in.represented
+    )
+}

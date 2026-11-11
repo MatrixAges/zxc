@@ -1,0 +1,74 @@
+<Module>
+    <Type from="model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Action} />
+
+    <If on={$in.pure == null}>
+        <Return value={Layout.Action.CheckPure} />
+    </If>
+
+    <If on={$in.pure == false && $in.local == null}>
+        <Return value={Layout.Action.CheckLocal} />
+    </If>
+
+    <If on={$in.forwarded == null}>
+        <Return value={Layout.Action.CheckForwarding} />
+    </If>
+
+    <Call fn="deep_candidate" in={$in} />
+
+    <If on={$ctx.deep_candidate}>
+        <If on={$in.buffer_candidate && $in.buffered == null}>
+            <Return value={Layout.Action.CheckBuffers} />
+        </If>
+
+        <If on={$in.buffered != true && $in.deep == null}>
+            <Return value={Layout.Action.CheckDeep} />
+        </If>
+    </If>
+
+    <If on={!$in.state_active && $in.scalar_result && $in.abi == null}>
+        <Return value={Layout.Action.CheckAbi} />
+    </If>
+
+    <Call fn="representation" in={$in} />
+
+    <If on={$ctx.representation == Layout.Action.CheckShallow}>
+        <Return value={Layout.Action.CheckShallow} />
+    </If>
+
+    <If on={$in.mode == Layout.Mode.Value}>
+        <If
+            on={$ctx.representation != Layout.Action.State &&
+                $ctx.representation != Layout.Action.Stack}
+        >
+            <Return value={Layout.Action.Dereference} />
+        </If>
+    </If>
+
+    <If on={$in.mode == Layout.Mode.Consume}>
+        <If on={$ctx.representation == Layout.Action.Plain || $in.forwarded == true}>
+            <Return value={Layout.Action.Reject} />
+        </If>
+    </If>
+
+    <If
+        on={$in.consumer &&
+            $ctx.representation != Layout.Action.Deep &&
+            $ctx.representation != Layout.Action.Buffered}
+    >
+        <If on={$in.projection == null}>
+            <Return value={Layout.Action.CheckProjection} />
+        </If>
+
+        <If on={$in.projection == false}>
+            <Return value={Layout.Action.Reject} />
+        </If>
+    </If>
+
+    <If on={$ctx.representation == Layout.Action.Deep && $in.initial == null}>
+        <Return value={Layout.Action.CheckInitial} />
+    </If>
+
+    <Return value={$ctx.representation} />
+</Module>

@@ -35,27 +35,24 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     var loop: std.ArrayList(node.Statement) = .empty;
     const name = try self.fresh("state");
     const state = try self.builder.identifier(name);
-    const layout_analysis = @import("iteration_layout.zig");
-    const pure = try layout_analysis.eligible(self.allocator, self.program, iteration, self.pure_functions);
-    const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
-    const selected_call = try layout_analysis.forwarded(self, iteration);
+    const selection = try @import("iteration_layout/select.zig").choose(self, id, iteration, mode, consumer, projected_output);
+
+    switch (selection.representation) {
+        .dereference => return try self.builder.expression(.{ .dereference = try lower(self, id, iteration) }),
+        .reject => return null,
+        else => {},
+    }
+
+    const selected_call = selection.forwarded;
     const type_id = self.program.expression(id).type_id;
-    const deep_candidate = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self, type_id) and layout_analysis.represented(self, type_id);
-    const buffered = deep_candidate and self.plan.get(id).buffered and try layout_analysis.buffers(self.allocator, self.program, iteration, self.identity_free_functions, self.plan.flags);
-    const deep = buffered or (deep_candidate and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions));
-    const scalar_result = if (consumer) |selected| @import("types/scalar.zig").check(self.program.types, self.program.expression(selected.result).type_id) else false;
-    const abi_state = !self.state_active and scalar_result and try layout_analysis.abi(self, iteration, type_id);
-    const selected_state = !deep and !abi_state and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
-    const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self, type_id)));
+    const buffered = selection.representation == .buffered;
+    const deep = buffered or selection.representation == .deep;
+    const selected_state = selection.representation == .state;
+    const layout = selected_state or selection.representation == .stack;
     const by_value = mode != .reference and layout;
-
-    if (mode == .value and !layout) return try self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
-    if (mode == .consume and ((!layout and !deep) or selected_call != null)) return null;
-    if (consumer) |selected| if (!deep and !@import("iteration_consumer.zig").projection(self.program, selected.result, selected.symbol)) return null;
-
     const local = layout or deep;
+    const direct_initial = selection.direct_initial;
     var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body, .inline_lists = buffered };
-    const direct_initial = deep and !buffered and try layout_analysis.initialValue(self.allocator, self.program, iteration.initial, self.identity_free_functions);
 
     const initial_expression = if (direct_initial) initial: {
         const previous = self.iteration_value;
@@ -72,7 +69,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     defer if (state_scope) |scope| scope.restore();
 
     const seed = try self.builder.identifier(try self.fresh("loop_seed"));
-    var fields = if (selected_state and selected_call == null and pure and !deep) try @import("iteration/fields/prepare.zig").prepare(self, iteration, type_id, &body, seed) else null;
+    var fields = if (selected_state and selected_call == null and selection.pure) try @import("iteration/fields/prepare.zig").prepare(self, iteration, type_id, &body, seed) else null;
     const previous_fields = self.loop_fields;
 
     defer self.loop_fields = previous_fields;
