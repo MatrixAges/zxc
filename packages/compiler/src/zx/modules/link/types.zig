@@ -20,6 +20,11 @@ pub fn append(self: *Self, temporary: std.mem.Allocator, module: Module) Error![
     return self.appendFrom(temporary, module.types, module.nominal_types, 0);
 }
 
+/// Extends a shared table while the caller owns only a temporary type-ID map.
+pub fn appendTemporary(self: *Self, temporary: std.mem.Allocator, module: Module) Error![]const ir.TypeId {
+    return self.appendValues(temporary, temporary, module.types, module.nominal_types, 0, false);
+}
+
 pub fn compact(self: *Self, temporary: std.mem.Allocator, first: usize, origin_count: usize) Error![]const ir.TypeId {
     const source = self.items.view();
     const origins = self.origins.items.view();
@@ -46,23 +51,23 @@ pub fn compact(self: *Self, temporary: std.mem.Allocator, first: usize, origin_c
 }
 
 pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize) Error![]const ir.TypeId {
-    return self.appendValues(temporary, values, nominal_types, first, false);
+    return self.appendValues(self.allocator, temporary, values, nominal_types, first, false);
 }
 
 /// Extends the shared table with a result analyzed against its existing prefix.
 pub fn appendAnalyzed(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize) Error![]const ir.TypeId {
-    return self.appendValues(temporary, values, nominal_types, first, true);
+    return self.appendValues(self.allocator, temporary, values, nominal_types, first, true);
 }
 
-fn appendValues(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize, comptime analyzed: bool) Error![]const ir.TypeId {
+fn appendValues(self: *Self, mapping_allocator: std.mem.Allocator, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize, comptime analyzed: bool) Error![]const ir.TypeId {
     const checked = !analyzed or @import("../../ir/validate.zig").internal;
 
     if ((first == 0 or checked) and !@import("../../ir/type_rules.zig").validate(values)) return error.InvalidModule;
 
-    var prepared = try @import("../../analysis/semantic/preflight.zig").prepare(self.allocator, temporary, values, nominal_types, self.items.view(), first, !analyzed);
+    var prepared = try @import("../../analysis/semantic/preflight.zig").prepare(mapping_allocator, temporary, values, nominal_types, self.items.view(), first, !analyzed);
 
     defer prepared.deinitScratch();
-    errdefer self.allocator.free(prepared.mapping);
+    errdefer mapping_allocator.free(prepared.mapping);
 
     if (!@import("parser_options").generated_parser) return @import("seed_types.zig").appendPrepared(self, temporary, values, nominal_types, first, prepared.origins, prepared.mapping);
 

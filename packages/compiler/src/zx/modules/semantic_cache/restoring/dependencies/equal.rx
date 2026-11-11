@@ -1,0 +1,43 @@
+<Module>
+    <Type from="model" as="Edge" />
+
+    <Args in={Edge.Pair} out={bool} />
+
+    <Call fn="identity" in={$in} />
+
+    <If on={!$ctx.identity}>
+        <Return value={false} />
+    </If>
+
+    <Task name="local" out={$ctx.names}>
+        <Call
+            fn="names"
+            in={{
+                previous: $in.previous.names,
+                current: $in.current.names
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.local}>
+        <Return value={false} />
+    </If>
+
+    <Task name="source" out={$ctx.names}>
+        <Call
+            fn="names"
+            in={{
+                previous: $in.previous.source_names,
+                current: $in.current.source_names
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.source}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="target" in={$in} />
+
+    <Return value={$ctx.target} />
+</Module>

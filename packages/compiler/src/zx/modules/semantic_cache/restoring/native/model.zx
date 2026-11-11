@@ -5,3 +5,11 @@ export type Declaration = {
     import_name: string,
     namespace: string[]
 }
+
+export type Import = {
+    namespace?: string,
+    name: string,
+    id: u32,
+    input_type: u32,
+    output_type: u32
+}

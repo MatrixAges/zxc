@@ -1,0 +1,36 @@
+import integers from "std:integer"
+
+import type { Binding } from "./model"
+
+export type Input = Binding
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { previous, current, mapping, types } = in
+
+    const index = integers.widen(previous.id ?? 0)
+    const id = current.id ?? 0
+
+    if (index >= mapping.length || integers.widen(id) >= in.current_count) {
+        return false
+    }
+
+    const bound = mapping[index]
+
+    if (bound != null && bound != id) {
+        return false
+    }
+
+    const input = integers.widen(previous.input_type ?? 0)
+    const output = integers.widen(previous.output_type ?? 0)
+
+    if (input >= types.length || output >= types.length) {
+        return false
+    }
+
+    const input_matches = types[input] == (current.input_type ?? 0)
+    const output_matches = types[output] == (current.output_type ?? 0)
+
+    return input_matches && output_matches
+}

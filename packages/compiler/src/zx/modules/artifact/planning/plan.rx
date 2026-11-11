@@ -1,5 +1,5 @@
 <Module>
-    <Type from="../../semantic_cache/restoring/functions/model" as="Model" />
+    <Type from="core/signature_table/model" as="Declarations" />
     <Type from="model" as="PlanningModel" />
     <Type from="functions/model" as="FunctionsModel" />
     <Type from="../../../ir/canonical/native/structure" as="Structure" />
@@ -11,7 +11,7 @@
 
     <Args
         in={{
-            declarations: Model.Signatures,
+            declarations: Declarations.Table,
             dependencies: PlanningModel.Dependencies,
             function_imports: FunctionsModel.Imports,
             modules: Structure.Input,

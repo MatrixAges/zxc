@@ -1,0 +1,17 @@
+import integers from "std:integer"
+
+import type { Alias } from "./model"
+
+export type Input = Alias
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.previous_type)
+
+    if (index >= in.types.length || in.previous_name != in.current_name) {
+        return false
+    }
+
+    return in.types[index] == in.current_type
+}

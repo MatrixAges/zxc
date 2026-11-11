@@ -1,0 +1,23 @@
+export type Dependency = {
+    specifier: string,
+    identity: string,
+    names: string[],
+    source_names: string[],
+    kind: u8,
+    exported: bool,
+    wildcard: bool,
+    target: u8,
+    path: string,
+    instance: string,
+    member: string
+}
+
+export type Pair = {
+    previous: Dependency,
+    current: Dependency
+}
+
+export type Names = {
+    previous: string[],
+    current: string[]
+}

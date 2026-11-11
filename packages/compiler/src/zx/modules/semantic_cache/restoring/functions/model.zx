@@ -1,11 +1,39 @@
-import type { Table } from "core/signature_table/model"
-
-export type Signatures = Table
+import type { Ownership } from "core/symbol_table/model"
 
 export type Import = {
     namespace?: string,
     name: string,
-    id: u32,
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32,
+    intrinsic?: u8
+}
+
+export type Binding = {
+    previous: Import,
+    current: Import,
+    mapping: u32?[],
+    types: u32[],
+    current_count: u64
+}
+
+export type Alias = {
+    previous_name: string,
+    current_name: string,
+    previous_type: u32,
+    current_type: u32,
+    types: u32[]
+}
+
+export type Signature = {
+    file: string,
     input_type: u32,
-    output_type: u32
+    output_type: u32,
+    ownership: Ownership
+}
+
+export type Comparison = {
+    previous: Signature,
+    current: Signature,
+    types: u32[]
 }

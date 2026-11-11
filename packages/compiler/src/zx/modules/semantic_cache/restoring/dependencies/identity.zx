@@ -1,0 +1,18 @@
+import type { Pair } from "./model"
+
+export type Input = Pair
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { previous, current } = in
+
+    const kind = previous.kind == current.kind
+    const exported = previous.exported == current.exported
+    const wildcard = previous.wildcard == current.wildcard
+    const flags = kind && exported && wildcard
+    const specifier = previous.specifier == current.specifier
+    const identity = previous.identity == current.identity
+
+    return flags && specifier && identity
+}

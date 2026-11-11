@@ -436,8 +436,9 @@ const Project = struct {
             unit.context_digest = try self.contextDigest(entry);
 
             if (cache.get(unit.path, source_digest, unit.context_digest)) |cached| {
-                if (try @import("semantic_cache/restore.zig").restore(cached.*, .{
+                if (try @import("semantic_cache/restore.zig").restore(cached, .{
                     .allocator = self.allocator,
+                    .backing = self.arena.child_allocator,
                     .types = &self.types,
                     .origins = &self.nominal_origins,
                     .functions = self.functions.view(),
@@ -446,8 +447,8 @@ const Project = struct {
                     .imports = imports.items,
                     .constant_imports = frame.constant_imports.items,
                     .dependencies = dependencies.items,
-                })) |result| {
-                    restored = result.program;
+                })) |program| {
+                    restored = program;
                     unit.reused = true;
                     cache.reused += 1;
                 }

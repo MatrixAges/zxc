@@ -7,9 +7,13 @@ const native = @import("../link/native.zig");
 const Origins = @import("../nominal_origins.zig");
 const Record = @import("../module_record.zig");
 const FunctionImport = @import("../function_import.zig");
+const generated = @import("parser_options").generated_parser;
+const Host = @import("restoring/host.zig");
+const Seed = @import("restoring/seed.zig");
 
 pub const Current = struct {
     allocator: std.mem.Allocator,
+    backing: std.mem.Allocator,
     types: *ir.TypeStorage,
     origins: *Origins,
     functions: ir.FunctionTable,
@@ -20,10 +24,9 @@ pub const Current = struct {
     dependencies: []const Record.Import,
 };
 
-pub const Result = struct { program: ir.Program, nominal_types: Origins.Table };
 const Error = Types.Error || model.Error;
 
-pub fn restore(module: model.Module, current: Current) std.mem.Allocator.Error!?Result {
+pub fn restore(module: *const model.Module, current: Current) std.mem.Allocator.Error!?ir.Program {
     return restoreChecked(module, current) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
@@ -31,15 +34,28 @@ pub fn restore(module: model.Module, current: Current) std.mem.Allocator.Error!?
     };
 }
 
-fn restoreChecked(module: model.Module, current: Current) Error!Result {
+fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Program {
     if (!module.native_modules.validStructure() or !module.functions.validStructure() or !current.native_modules.validStructure()) return error.InvalidModule;
-    if (!sameDependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
+
+    const same_dependencies = if (comptime generated)
+        Host.dependencies(module.dependencies, current.dependencies)
+    else
+        Seed.sameDependencies(module.dependencies, current.dependencies);
+
+    if (!same_dependencies) return error.InvalidModule;
     if (module.type_imports.len != current.aliases.len or module.function_imports.len != current.imports.len) return error.InvalidModule;
     if (module.constant_imports.len != current.constant_imports.len) return error.InvalidModule;
 
+    var arena = std.heap.ArenaAllocator.init(current.backing);
+    var buffer: [2048]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
+
+    defer arena.deinit();
+
+    const temporary = scratch.allocator();
     const constants = @import("../../analysis/constants/check.zig");
 
-    if (!try constants.validate(current.allocator, current.types.view(), current.constant_imports)) return error.InvalidModule;
+    if (!try constants.validate(temporary, current.types.view(), current.constant_imports)) return error.InvalidModule;
 
     const allocator = current.allocator;
     const first_type = current.types.count();
@@ -63,68 +79,70 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         for (std.enums.values(ir.Scalar)) |scalar| try types.items.append(allocator, .{ .scalar = scalar });
     }
 
-    const mapping = try types.append(allocator, module);
+    const mapping = try types.appendTemporary(temporary, module.*);
 
-    if (!try constants.validate(allocator, module.types, module.constant_exports)) return error.InvalidModule;
-    if (!try constants.validate(allocator, module.types, module.constant_imports)) return error.InvalidModule;
-    if (try @import("../../analysis/constants/bindings.zig").compare(allocator, .{ .previous = module.constant_imports, .current = current.constant_imports, .mapping = mapping }) != .Equal) return error.InvalidModule;
+    if (!try constants.validate(temporary, module.types, module.constant_exports)) return error.InvalidModule;
+    if (!try constants.validate(temporary, module.types, module.constant_imports)) return error.InvalidModule;
+    if (try @import("../../analysis/constants/bindings.zig").compare(temporary, .{ .previous = module.constant_imports, .current = current.constant_imports, .mapping = mapping }) != .Equal) return error.InvalidModule;
 
-    const function_mapping = try allocator.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
-    const native_mapping = try allocator.alloc(?ir.NativeModuleId, module.native_modules.count());
+    const function_mapping = try temporary.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
+    const native_mapping = try temporary.alloc(?ir.NativeModuleId, module.native_modules.count());
 
     @memset(function_mapping, null);
     @memset(native_mapping, null);
 
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
 
-    for (module.type_imports, current.aliases) |previous, alias| {
-        if (!std.mem.eql(u8, previous.name, alias.name) or try nodes.types.include(previous.type_id) != alias.type_id) return error.InvalidModule;
+    for (module.type_imports, current.aliases) |*previous, *alias| {
+        const same = if (comptime generated)
+            Host.alias(previous, alias, mapping)
+        else
+            std.mem.eql(u8, previous.name, alias.name) and try nodes.types.include(previous.type_id) == alias.type_id;
+
+        if (!same) return error.InvalidModule;
     }
 
     for (0..module.native_modules.count(), native_mapping) |previous_row, *id| {
         const previous = module.native_modules.at(previous_row);
 
-        id.* = if (comptime @import("parser_options").generated_parser)
-            try native.restore(allocator, current.native_modules, previous, mapping)
-
+        id.* = if (comptime generated)
+            try native.restore(temporary, current.native_modules, previous, mapping)
         else
-            try restoreNativeSeed(current.native_modules, previous, nodes.types);
+            try Seed.restoreNative(current.native_modules, previous, nodes.types);
     }
 
-    for (module.function_imports, current.imports) |previous, binding| {
-        if (!previous.valid() or !binding.valid() or previous.intrinsic != binding.intrinsic) return error.InvalidModule;
-        if (!std.mem.eql(u8, previous.name, binding.name) or !optionalName(previous.namespace, binding.namespace)) return error.InvalidModule;
-        if (previous.intrinsic != null) continue;
-        if (try nodes.types.include(previous.input_type.?) != binding.input_type or try nodes.types.include(previous.output_type.?) != binding.output_type) return error.InvalidModule;
+    const imported = function_mapping[0..module.functions.count()];
 
-        const index = @backingInt(previous.id.?);
-
-        if (index >= module.functions.count() or @backingInt(binding.id.?) >= current.functions.count()) return error.InvalidModule;
-
-        if (function_mapping[index]) |mapped| {
-            if (mapped != binding.id) return error.InvalidModule;
-        }
-
-        function_mapping[index] = binding.id;
+    for (module.function_imports, current.imports) |*previous, *binding| {
+        if (comptime generated) {
+            if (!Host.bind(previous, binding, imported, mapping, current.functions.count())) return error.InvalidModule;
+        } else try Seed.bind(previous, binding, imported, nodes.types, current.functions.count());
     }
 
-    for (0..module.functions.count(), function_mapping[0..module.functions.count()]) |row, id| {
-        const signature = module.functions.at(row);
-        const function = current.functions.at(@backingInt(id orelse return error.InvalidModule));
+    const linked = ir.SignatureTable.fromFunctions(current.functions);
 
-        if (!std.mem.eql(u8, signature.file_name, function.file_name) or try nodes.types.include(signature.input_type) != function.input_type or try nodes.types.include(signature.output_type) != function.output_type or signature.output_ownership != function.output_ownership) return error.InvalidModule;
+    for (imported, 0..) |id, row| {
+        const previous = module.functions.at(row);
+        const function = linked.at(@backingInt(id orelse return error.InvalidModule));
 
-        if (signature.external) |external| {
+        const same = if (comptime generated)
+            Host.sameSignature(previous, function, mapping)
+        else
+            try Seed.sameSignature(previous, function, nodes.types);
+
+        if (!same) return error.InvalidModule;
+
+        if (previous.external) |external| {
             if (external.member.len == 0) return error.InvalidModule;
 
             const implementation = function.external orelse return error.InvalidModule;
 
-            if (comptime @import("parser_options").generated_parser) {
+            if (comptime generated) {
                 var mapped = external;
 
                 mapped.module = try nodes.native_modules.get(external.module);
 
-                if (!try @import("../link/native/signature.zig").compatible(allocator, mapped, implementation)) return error.InvalidModule;
+                if (!try @import("../link/native/signature.zig").compatible(temporary, mapped, implementation)) return error.InvalidModule;
             } else {
                 const mapped = try nodes.external(external);
 
@@ -136,82 +154,16 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     if (module.function != null) function_mapping[module.functions.count()] = @fromBackingInt(@intCast(current.functions.count()));
 
     const function = if (module.function) |value| try nodes.function(value) else null;
-    const exports = try allocator.dupe(ir.Export, module.exports);
-    const stores = try nodes.stores(module.stores);
+    const body = if (function) |*value| value else null;
 
-    for (exports) |*item| {
-        item.name = try allocator.dupe(u8, item.name);
-        item.type_id = try nodes.types.include(item.type_id);
-    }
-
-    var result = Result{ .nominal_types = types.origins.items.view(), .program = .{
-        .file_name = try allocator.dupe(u8, module.path),
+    var program = try @import("../link/result/host.zig").assemble(allocator, temporary, module, body, null, .{
         .types = types.items.view(),
-        .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(0)),
-        .output_type = if (function) |value| value.output_type else @fromBackingInt(@intCast(0)),
-        .output_ownership = if (function) |value| value.output_ownership else .borrowed,
-        .symbols = if (function) |value| value.symbols else .{},
-        .expressions = if (function) |value| value.expressions else .{},
-        .body = if (function) |value| value.body else .{},
-        .contracts = if (function) |value| value.contracts else .{},
-        .exports = exports,
-        .constant_exports = try nodes.constants(module.constant_exports),
-        .stores = stores,
-        .store_mode = if (function) |value| value.store_mode else .transaction,
-        .functions = .{},
+        .functions = current.functions,
         .native_modules = current.native_modules,
-        .type_only = function == null,
-    } };
+    }, mapping);
 
-    try @import("../function_body.zig").complete(allocator, &result.program, current.functions);
-    if (try @import("../../ir/validate.zig").validate(allocator, result.program) != null) return error.InvalidIr;
+    try @import("../function_body.zig").complete(allocator, &program, current.functions);
+    if (try @import("../../ir/validate.zig").validate(temporary, program) != null) return error.InvalidIr;
 
-    return result;
-}
-
-fn restoreNativeSeed(modules: ir.NativeModuleTable, previous: ir.NativeModule, types: Nodes.TypeMap) Error!ir.NativeModuleId {
-    for (0..modules.count()) |index| {
-        const candidate = modules.at(index);
-
-        if (!std.mem.eql(u8, previous.key(), candidate.key()) or !std.mem.eql(u8, previous.import_name, candidate.import_name)) continue;
-        if (!native.stringsEqual(previous.type_namespace, candidate.type_namespace) or previous.types.count() != candidate.types.count()) return error.InvalidModule;
-
-        for (0..previous.types.count()) |binding_index| {
-            const a = previous.types.at(binding_index);
-            const b = candidate.types.at(binding_index);
-
-            if (!std.mem.eql(u8, a.name, b.name) or try types.include(a.type_id) != b.type_id) return error.InvalidModule;
-        }
-
-        return @fromBackingInt(@intCast(index));
-    }
-
-    return error.InvalidModule;
-}
-
-fn optionalName(left: ?[]const u8, right: ?[]const u8) bool {
-    if (left) |name| return std.mem.eql(u8, name, right orelse return false);
-
-    return right == null;
-}
-
-fn sameDependencies(left: []const Record.Import, right: []const Record.Import) bool {
-    if (left.len != right.len) return false;
-
-    for (left, right) |a, b| {
-        if (!std.mem.eql(u8, a.identity orelse a.specifier, b.identity orelse b.specifier)) return false;
-        if (a.exported != b.exported or a.wildcard != b.wildcard) return false;
-        if (!native.stringsEqual(if (a.source_names.len == 0) a.names else a.source_names, if (b.source_names.len == 0) b.names else b.source_names)) return false;
-        if (a.kind != b.kind or !std.mem.eql(u8, a.specifier, b.specifier) or !native.stringsEqual(a.names, b.names) or std.meta.activeTag(a.target) != std.meta.activeTag(b.target)) return false;
-        if (a.target == .source and !std.mem.eql(u8, a.target.source, b.target.source)) return false;
-
-        if (a.target == .compiled) {
-            const left_target = a.target.compiled;
-            const right_target = b.target.compiled;
-
-            if (!std.mem.eql(u8, left_target.instance, right_target.instance) or !std.mem.eql(u8, left_target.artifact, right_target.artifact) or !std.mem.eql(u8, left_target.name, right_target.name)) return false;
-        }
-    }
-
-    return true;
+    return program;
 }

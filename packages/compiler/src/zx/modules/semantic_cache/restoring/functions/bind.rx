@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Function" />
+
+    <Args in={Function.Binding} out={bool} />
+
+    <Call fn="identity" in={$in} />
+
+    <If on={!$ctx.identity}>
+        <Return value={false} />
+    </If>
+
+    <If on={$in.previous.intrinsic != null}>
+        <Return value={true} />
+    </If>
+
+    <Call fn="mapped" in={$in} />
+
+    <Return value={$ctx.mapped} />
+</Module>
