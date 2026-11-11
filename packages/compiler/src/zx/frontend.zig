@@ -32,6 +32,7 @@ pub const project = @import("modules/project.zig");
 pub const types = @import("analysis/types.zig");
 pub const type_views = @import("type_views");
 pub const type_table = @import("analysis/type_table.zig");
+pub const parseInteger = @import("analysis/integer.zig").parse;
 pub const validateTypes = @import("ir/type_rules.zig").validate;
 pub const binding_path = @import("analysis/binding_path.zig");
 pub const native_context = @import("modules/native_context.zig");

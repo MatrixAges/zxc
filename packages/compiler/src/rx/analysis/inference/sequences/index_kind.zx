@@ -1,0 +1,22 @@
+import { scalar_string } from "core/type_table/const"
+
+import { IndexRoute, Kind } from "./model"
+
+import type { Target } from "./model"
+
+export type Input = Target
+
+export type Output = IndexRoute
+
+export default function (in: Input): Output {
+    const text = in.scalar == scalar_string
+
+    return match in.kind {
+        Kind.Unknown => IndexRoute.Wait,
+        Kind.Sequence => IndexRoute.Wait,
+        Kind.List => IndexRoute.List,
+        Kind.Tuple => IndexRoute.Tuple,
+        Kind.Scalar => text ? IndexRoute.String : IndexRoute.Invalid,
+        _ => IndexRoute.Invalid
+    }
+}

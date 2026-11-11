@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Shape" />
+
+    <Args in={Shape.IndexInput} out={Shape.IndexRoute} />
+
+    <Call fn="index_kind" in={$in.target} />
+
+    <If on={$ctx.index_kind == Shape.IndexRoute.Tuple}>
+        <Call fn="tuple_index" in={$in.tuple} />
+
+        <Return value={$ctx.tuple_index} />
+    </If>
+
+    <Return value={$ctx.index_kind} />
+</Module>

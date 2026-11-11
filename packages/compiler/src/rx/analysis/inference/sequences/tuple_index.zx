@@ -1,0 +1,17 @@
+import { IndexRoute } from "./model"
+
+import type { TupleIndex } from "./model"
+
+export type Input = TupleIndex
+
+export type Output = IndexRoute
+
+export default function (in: Input): Output {
+    const position = in.position
+
+    if (position == null) {
+        return IndexRoute.MissingLiteral
+    }
+
+    return position < in.length ? IndexRoute.Tuple : IndexRoute.OutOfBounds
+}

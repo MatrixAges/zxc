@@ -45,6 +45,8 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/scalar/restrict.rx", .name = "rx_scalar_restriction", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/scalar/combine.zx", .name = "rx_scalar_combine", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/scalar/default.zx", .name = "rx_scalar_default", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/sequences/sequence.zx", .name = "rx_sequence", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/sequences/index.rx", .name = "rx_index", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/construction/resolve.rx", .name = "object_construction_resolve", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/selection/project.rx", .name = "object_selection_project", .owner = .rx_analysis },
     .{ .path = "zx/analysis/selection/covers.zx", .name = "object_selection_covers", .owner = .rx_analysis },

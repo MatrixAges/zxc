@@ -1,0 +1,18 @@
+import { Kind, SequenceRoute } from "./model"
+
+import type { SequenceInput } from "./model"
+
+export type Input = SequenceInput
+
+export type Output = SequenceRoute
+
+export default function (in: Input): Output {
+    const same_length = in.length == in.count
+
+    return match in.kind {
+        Kind.Sequence => SequenceRoute.Wait,
+        Kind.List => SequenceRoute.List,
+        Kind.Tuple => same_length ? SequenceRoute.Tuple : SequenceRoute.Length,
+        _ => in.count == 0 ? SequenceRoute.Wait : SequenceRoute.Invalid
+    }
+}

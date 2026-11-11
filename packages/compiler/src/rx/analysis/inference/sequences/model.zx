@@ -1,0 +1,47 @@
+export enum Kind {
+    Unknown,
+    Sequence,
+    List,
+    Tuple,
+    Scalar,
+    Other
+}
+
+export enum SequenceRoute {
+    Wait,
+    List,
+    Tuple,
+    Length,
+    Invalid
+}
+
+export enum IndexRoute {
+    Wait,
+    List,
+    Tuple,
+    String,
+    MissingLiteral,
+    OutOfBounds,
+    Invalid
+}
+
+export type SequenceInput = {
+    kind: Kind,
+    length: u64,
+    count: u64
+}
+
+export type Target = {
+    kind: Kind,
+    scalar: u32
+}
+
+export type TupleIndex = {
+    length: u64,
+    position?: u64
+}
+
+export type IndexInput = {
+    target: Target,
+    tuple: TupleIndex
+}
