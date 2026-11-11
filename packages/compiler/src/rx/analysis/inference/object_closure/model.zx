@@ -1,0 +1,15 @@
+export type Input = {
+    known: bool[],
+    sizes: u64[],
+    results: u64[],
+    offsets: u64[],
+    dependents: u64[],
+    constructions: u64,
+    spread: bool
+}
+
+export type Initial = {
+    ready: bool[],
+    queue: u64[],
+    known: u64
+}

@@ -52,7 +52,10 @@ pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeI
         },
     };
 
-    self.nodes.items[index].shape = .{ .known = id };
+    if (node.shape != .known) {
+        self.nodes.items[index].shape = .{ .known = id };
+        self.object_revision += 1;
+    }
 
     return id;
 }

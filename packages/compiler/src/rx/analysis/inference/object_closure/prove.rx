@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="ObjectRules" />
+
+    <Args in={ObjectRules.Input} out={bool[]} />
+
+    <Call fn="initial" in={$in} />
+
+    <If on={$in.dependents.length == 0}>
+        <Return value={$ctx.initial.ready} />
+    </If>
+
+    <Call
+        fn="propagate"
+        in={{
+            rules: $in,
+            initial: $ctx.initial
+        }}
+    />
+
+    <Return value={$ctx.propagate} />
+</Module>

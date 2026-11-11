@@ -36,6 +36,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/depth/solve.rx", .name = "assignment_depth", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/object_closure/prove.rx", .name = "object_closure", .owner = .rx_analysis },
     .{ .path = "rx/schema/attribute/classify.rx", .name = "attribute_role", .owner = .rx },
     .{ .path = "rx/schema/content/validate.rx", .name = "attribute_content", .owner = .rx },
     .{ .path = "rx/schema/call/validate.rx", .name = "call_rule", .owner = .rx },

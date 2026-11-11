@@ -1,12 +1,13 @@
 const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
+const ObjectClosure = @import("object_closure.zig");
 pub const Part = struct { name: ?[]const u8, value: Graph.Id, span: zx.Span };
 pub const Object = struct { result: Graph.Id, parts: []const Part, span: zx.Span };
 
 const Provider = struct { value: Graph.Id, field: bool };
 
-pub fn propagate(graph: *Graph, object: Object, final: bool) zx.Error!void {
+pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: bool) zx.Error!void {
     var names: std.StringHashMapUnmanaged(void) = .empty;
 
     defer names.deinit(graph.allocator);
@@ -19,7 +20,7 @@ pub fn propagate(graph: *Graph, object: Object, final: bool) zx.Error!void {
         } else {
             const source_shape = graph.shape(part.value);
 
-            if (final and (source_shape == .unknown or (source_shape == .object and source_shape.object.len == 0 and !closed(graph, part.value, 0)))) return graph.reporter.fail(.type_mismatch, part.span, "object spread source cannot be inferred from the available constraints");
+            if (final and (source_shape == .unknown or (source_shape == .object and source_shape.object.len == 0 and !try closure.prove(graph, part.value, .spread)))) return graph.reporter.fail(.type_mismatch, part.span, "object spread source cannot be inferred from the available constraints");
             try collect(graph, part.value, &names, part.span);
         }
     }
@@ -52,7 +53,7 @@ pub fn propagate(graph: *Graph, object: Object, final: bool) zx.Error!void {
                 break;
             }
 
-            if (closed(graph, part.value, 0)) continue;
+            if (try closure.prove(graph, part.value, .spread)) continue;
 
             if (provider) |existing| {
                 if (existing.field and graph.root(existing.value) == graph.root(part.value)) continue;
@@ -70,7 +71,7 @@ pub fn propagate(graph: *Graph, object: Object, final: bool) zx.Error!void {
 
         if (provider) |source| {
             if (source.field and optional(graph, target)) continue;
-            if (source.field and !final and graph.shape(target) == .unknown and graph.nodes.items[@intFromEnum(graph.root(target))].allowed == null) continue;
+            if (source.field and !final and graph.shape(target) == .unknown and graph.nodes.items[@backingInt(graph.root(target))].allowed == null) continue;
 
             const value = if (source.field) try graph.field(source.value, name.*, object.span) else source.value;
 
@@ -128,31 +129,4 @@ fn optional(graph: *Graph, value: Graph.Id) bool {
     const shape = graph.shape(value);
 
     return shape == .optional or (shape == .known and graph.types.get(shape.known) == .optional);
-}
-
-pub fn closed(graph: *const Graph, value: Graph.Id, depth: usize) bool {
-    if (graph.shape(value) == .known) return true;
-    if (depth >= 256) return false;
-
-    for (graph.selections.items) |selection| {
-        if (graph.root(selection.result) == graph.root(value)) return true;
-    }
-
-    for (graph.constructions.items) |object| {
-        if (graph.root(object.result) != graph.root(value)) continue;
-
-        var complete = true;
-
-        for (object.parts) |part| {
-            if (part.name == null and !closed(graph, part.value, depth + 1)) {
-                complete = false;
-
-                break;
-            }
-        }
-
-        if (complete) return true;
-    }
-
-    return false;
 }

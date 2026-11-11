@@ -11,16 +11,17 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
     if (a == b) return;
     if (try contains(self, a, b, span, 0) or try contains(self, b, a, span, 0)) return self.reporter.fail(.type_mismatch, span, "inference would require a recursive input type");
 
-    const first = self.nodes.items[@intFromEnum(a)];
-    const second = self.nodes.items[@intFromEnum(b)];
+    const first = self.nodes.items[@backingInt(a)];
+    const second = self.nodes.items[@backingInt(b)];
     const shape = try combine(self, first.shape, second.shape, span, depth);
     const allowed = if (first.allowed) |value| if (second.allowed) |other| value.intersectWith(other) else value else second.allowed;
 
-    self.nodes.items[@intFromEnum(a)].shape = shape;
-    self.nodes.items[@intFromEnum(a)].fallback = fallback(first.fallback, second.fallback);
-    self.nodes.items[@intFromEnum(b)].parent = a;
+    self.nodes.items[@backingInt(a)].shape = shape;
+    self.nodes.items[@backingInt(a)].fallback = fallback(first.fallback, second.fallback);
+    self.nodes.items[@backingInt(b)].parent = a;
 
     self.revision += 1;
+    self.object_revision += 1;
 
     if (allowed) |mask| try self.restrict(a, mask, span);
 }

@@ -3,6 +3,7 @@ const zx = @import("zx");
 const syntax = zx.syntax.borrow;
 const selection = @import("frontend").object_selection;
 const Graph = @import("types.zig");
+const ObjectClosure = @import("object_closure.zig");
 const Expression = @import("expression.zig");
 
 pub const Selection = struct { source: Graph.Id, result: Graph.Id, keys: []const []const u8, omit: bool, span: zx.Span };
@@ -30,8 +31,8 @@ pub fn infer(self: *Expression, expression: anytype) zx.Error!Graph.Id {
     return result;
 }
 
-pub fn propagate(graph: *Graph, value: Selection, final: bool) zx.Error!void {
-    if (!complete(graph, value.source, 0)) {
+pub fn propagate(graph: *Graph, closure: *ObjectClosure, value: Selection, final: bool) zx.Error!void {
+    if (!try closure.prove(graph, value.source, .selection)) {
         if (final) return graph.reporter.fail(.type_mismatch, value.span, "object selection requires a complete source type; declare Args or Input");
 
         return;
@@ -88,27 +89,6 @@ pub fn propagate(graph: *Graph, value: Selection, final: bool) zx.Error!void {
         },
         else => {},
     };
-}
-
-fn complete(graph: *const Graph, value: Graph.Id, depth: usize) bool {
-    if (graph.shape(value) == .known) return true;
-    if (depth >= 256) return false;
-
-    for (graph.constructions.items) |object| {
-        if (graph.root(object.result) != graph.root(value)) continue;
-
-        const closed = for (object.parts) |part| {
-            if (part.name == null and !complete(graph, part.value, depth + 1)) break false;
-        } else true;
-
-        if (closed) return true;
-    }
-
-    for (graph.selections.items) |operation| {
-        if (graph.root(operation.result) == graph.root(value) and complete(graph, operation.source, depth + 1)) return true;
-    }
-
-    return false;
 }
 
 fn selected(value: Selection, fields: []const Graph.Field, name: []const u8) bool {

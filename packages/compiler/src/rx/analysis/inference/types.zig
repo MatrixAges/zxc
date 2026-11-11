@@ -11,6 +11,7 @@ pub const Node = struct { parent: Id, shape: Shape, span: zx.Span, allowed: ?Mas
 const Projection = struct { target: Id, value: Id, span: zx.Span };
 const ValueUse = struct { value: Id, span: zx.Span };
 const Assignment = @import("assignment.zig");
+const ObjectClosure = @import("object_closure.zig");
 
 allocator: std.mem.Allocator,
 scratch: std.mem.Allocator,
@@ -30,6 +31,8 @@ sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.ArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
 revision: usize = 0,
+/// Changes that affect the roots or known types seen by object rules.
+object_revision: usize = 0,
 pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, reporter: *zx.Reporter, existing: zx.ir.TypeTable) zx.Error!Self {
     if (existing.count() != 0 and !@import("frontend").validateTypes(existing)) return reporter.fail(.contract, .{ .start = 0, .end = 0 }, "invalid inference type table");
 
@@ -215,8 +218,10 @@ pub fn payload(self: *Self, id: Id, kind: enum { list, optional }, span: zx.Span
 
 pub fn finish(self: *Self) zx.Error!void {
     var workspace = std.heap.ArenaAllocator.init(self.scratch);
+    var object_closure = ObjectClosure.init(self.scratch);
 
     defer workspace.deinit();
+    defer object_closure.deinit();
 
     while (true) {
         const revision = self.revision;
@@ -226,8 +231,8 @@ pub fn finish(self: *Self) zx.Error!void {
         try @import("bindings.zig").propagate(self, false);
         try @import("non_null.zig").propagate(self, false);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
-        for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, false);
-        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, selection, false);
+        for (self.constructions.items) |object| try @import("construction.zig").propagate(self, &object_closure, object, false);
+        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, &object_closure, selection, false);
 
         for (self.lengths.items) |projection| {
             if (self.shape(projection.target) == .unknown) continue;
@@ -256,9 +261,9 @@ pub fn finish(self: *Self) zx.Error!void {
         if (try @import("index.zig").defaultLists(self)) continue;
         try @import("non_null.zig").propagate(self, true);
         if (revision != self.revision) continue;
-        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, selection, true);
+        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, &object_closure, selection, true);
         if (revision != self.revision) continue;
-        for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, true);
+        for (self.constructions.items) |object| try @import("construction.zig").propagate(self, &object_closure, object, true);
         if (revision != self.revision) continue;
 
         break;

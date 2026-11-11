@@ -1,0 +1,46 @@
+import type { Initial, Input as Rules } from "./model"
+
+export type Input = Rules
+
+export type Output = Initial
+
+export default function (in: Input): Output {
+    const queue: u64[] = []
+
+    return loop({
+        ready: in.known.map(known => known)[0],
+        queue,
+        known: 0,
+        node: 0,
+        rule: 0
+    }, {
+        while: state => state.node < in.known.length || state.rule < in.sizes.length,
+        next: state => {
+            if (state.node < in.known.length) {
+                if (in.known[state.node]) {
+                    state.queue = state.queue.push(state.node)[0]
+                    state.known += 1
+                }
+
+                state.node += 1
+            } else {
+                const result = in.results[state.rule]
+                const empty = in.sizes[state.rule] == 0
+                const shortcut = in.spread && state.rule >= in.constructions
+                const admissible = empty || shortcut
+
+                if (admissible && !state.ready[result]) {
+                    state.queue = state.queue.push(result)[0]
+                    state.ready[result] = true
+                }
+
+                state.rule += 1
+            }
+        },
+        return: state => ({
+            ready: state.ready,
+            queue: state.queue,
+            known: state.known
+        })
+    })
+}
