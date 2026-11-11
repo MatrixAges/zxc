@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { Input, Prepared as Output } from "./model"
+
+export default function (in: Input): Output {
+    const base = integers.widen(in.expression_base)
+    const tuple = in.layout != null
+
+    const start = match tuple {
+        true => base + 2,
+        _ => base
+    }
+
+    const valid = start + 1 < integers.widen(max_u32)
+
+    const binding_base = match valid {
+        true => integers.narrow(start),
+        _ => in.expression_base
+    }
+
+    const value = match {
+        tuple && valid => integers.narrow(base + 1),
+        _ => in.value
+    }
+
+    return {
+        source: in,
+        binding: {
+            value,
+            expression_base: binding_base,
+            statement_base: 0,
+            body_count: 0,
+            serial: in.serial
+        },
+        valid
+    }
+}

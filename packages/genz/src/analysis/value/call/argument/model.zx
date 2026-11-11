@@ -1,0 +1,47 @@
+import type {
+    ExpressionsBuiltinName,
+    ExpressionsKind
+} from "../../../../printer/model/expressions"
+import type {
+    Input as Binding,
+    Output as Bound,
+    Statements
+} from "../../../aggregate/binding/model"
+
+export type Input = {
+    value: u32,
+    layout?: u32,
+    values: u32[],
+    expression_base: u32,
+    serial: u64
+}
+
+export type Prepared = {
+    source: Input,
+    binding: Binding,
+    valid: bool
+}
+
+export type Reference = {
+    prepared: Prepared,
+    bound: Bound
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    tuple: u32[][],
+    builtin_name: ExpressionsBuiltinName[],
+    builtin_arguments: u32[][],
+    identifier: u8[][],
+    address_of: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    name: u8[],
+    serial: u64,
+    root: u32,
+    valid: bool
+}

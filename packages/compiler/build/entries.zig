@@ -402,6 +402,7 @@ pub const growth = [_]Entry{
     .{ .path = "genz/analysis/value/locals/advance.zx", .name = "value_local_register", .owner = .genz },
     .{ .path = "genz/analysis/value/locals/optional.zx", .name = "value_local_optional", .owner = .genz },
     .{ .path = "genz/analysis/value/call/emit/build.rx", .name = "value_call_emit", .owner = .genz },
+    .{ .path = "genz/analysis/value/call/argument/build.rx", .name = "value_argument_borrow", .owner = .genz },
     .{ .path = "genz/analysis/value/call/expression.zx", .name = "value_dispatch", .owner = .genz },
     .{ .path = "genz/analysis/value/call/build.rx", .name = "value_call_plan", .owner = .genz },
     .{ .path = "genz/analysis/types/descendant.zx", .name = "type_descendant", .owner = .genz },

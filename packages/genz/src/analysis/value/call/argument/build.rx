@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Borrow" />
+
+    <Args in={Borrow.Input} out={Borrow.Output} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="../../../aggregate/binding/bind" in={$ctx.prepare.binding} />
+
+    <Call
+        fn="reference"
+        in={{
+            prepared: $ctx.prepare,
+            bound: $ctx.bind
+        }}
+    />
+
+    <Return value={$ctx.reference} />
+</Module>

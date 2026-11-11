@@ -5,6 +5,7 @@ const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 const object_fields = @import("../aggregate/object.zig");
 const operands = @import("../aggregate/operands.zig");
+const borrowed_argument = @import("borrowed_argument.zig");
 
 pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (self.cache.contains(id)) return existing(self, body, id);
@@ -18,9 +19,9 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
 
             for (items, values) |item, *value| value.* = try aggregate.bind(self, body, try borrow(self, body, item));
 
-            const value = try aggregate.bind(self, body, try self.cast(try @import("../types.zig").get(self, self.abi_layouts, expression.type_id), try self.builder.expression(.{ .tuple = values })));
+            const layout = try @import("../types.zig").get(self, self.abi_layouts, expression.type_id);
 
-            return self.builder.expression(.{ .address_of = value });
+            return borrowed_argument.lower(self, body, .{ .tuple = .{ .layout = layout, .values = values } });
         },
         .call => |invocation| {
             if (!self.value_functions[@backingInt(invocation.function)] or !self.constructed_outputs[@backingInt(invocation.function)]) return existing(self, body, id);
@@ -105,9 +106,7 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
         .fields = fields,
     });
 
-    const result = try aggregate.bind(self, body, value_expr);
-
-    return self.builder.expression(.{ .address_of = result });
+    return borrowed_argument.lower(self, body, .{ .value = value_expr });
 }
 
 fn existing(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {

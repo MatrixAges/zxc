@@ -69,7 +69,7 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
     var argument = switch (plan.argument) {
         .Value => try self.expr(value.argument),
         .BorrowObject => try @import("argument.zig").borrow(self, body, value.argument),
-        .StackObject => try emission.emit(self, body, .Stack, .{ .value = try aggregate.objectValue(self, value.argument) }),
+        .StackObject => try @import("borrowed_argument.zig").lower(self, body, .{ .value = try aggregate.objectValue(self, value.argument) }),
     };
 
     if (plan.legacy) {

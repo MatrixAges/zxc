@@ -1,0 +1,72 @@
+import integers from "std:integer"
+
+import {
+    ExpressionsBuiltinName,
+    ExpressionsKind
+} from "../../../../printer/model/expressions"
+
+import type { Expressions, Reference as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.prepared.source
+    const bound = in.bound
+    const layout = source.layout
+
+    const expressions: Expressions = match {
+        layout != null => {
+            tags: [
+                ExpressionsKind.Tuple,
+                ExpressionsKind.Builtin,
+                ExpressionsKind.Identifier,
+                ExpressionsKind.AddressOf
+            ],
+            offsets: [
+                0,
+                0,
+                0,
+                0
+            ],
+            tuple: [source.values],
+            builtin_name: [ExpressionsBuiltinName.As],
+            builtin_arguments: [[
+                layout,
+                source.expression_base
+            ]],
+            identifier: bound.expressions.identifier,
+            address_of: [bound.root]
+        },
+        _ => {
+            tags: [
+                ExpressionsKind.Identifier,
+                ExpressionsKind.AddressOf
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            tuple: [],
+            builtin_name: [],
+            builtin_arguments: [],
+            identifier: bound.expressions.identifier,
+            address_of: [bound.root]
+        }
+    }
+
+    const valid = in.prepared.valid && bound.valid
+
+    const root = match valid {
+        true => integers.narrow(integers.widen(bound.root) + 1),
+        _ => bound.root
+    }
+
+    return {
+        expressions,
+        ...bound.pick([
+            "statements",
+            "name",
+            "serial"
+        ]),
+        root,
+        valid
+    }
+}

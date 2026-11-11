@@ -10,20 +10,6 @@
             <Return value={$ctx.bind} />
         </Case>
 
-        <Case value={Emission.Operation.Stack}>
-            <Call fn="bind" in={$in} />
-
-            <Call
-                fn="unary"
-                in={{
-                    state: $ctx.bind,
-                    address: true
-                }}
-            />
-
-            <Return value={$ctx.unary} />
-        </Case>
-
         <Case value={Emission.Operation.Invoke}>
             <Call module="invocation" in={$in} />
 
