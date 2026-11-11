@@ -2,13 +2,17 @@ const std = @import("std");
 const zx = @import("zx");
 const Artifact = @import("../artifact/model.zig");
 pub const marker = "zxc.module.v7\n";
-const Payload = struct { ir_version: u32, context_digest: [32]u8, module: Artifact.Module };
+
+fn Payload(comptime Version: type) type {
+    return struct { ir_version: Version, context_digest: [32]u8, module: Artifact.Module };
+}
+
 pub const Decoded = struct { result: Artifact.Result, context_digest: [32]u8 };
 pub const Error = std.mem.Allocator.Error || error{InvalidCache};
 const generated = @import("parser_options").generated_parser;
 
 pub fn encode(allocator: std.mem.Allocator, module: Artifact.Module, context_digest: [32]u8, compiler_digest: [32]u8) std.mem.Allocator.Error![]u8 {
-    const value = Payload{ .ir_version = zx.ir_version, .context_digest = context_digest, .module = module };
+    const value = Payload(u32){ .ir_version = zx.ir_version, .context_digest = context_digest, .module = module };
 
     if (generated) return @import("envelope.zig").encode(allocator, value, compiler_digest);
 
@@ -24,12 +28,32 @@ pub fn encode(allocator: std.mem.Allocator, module: Artifact.Module, context_dig
 }
 
 pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: [32]u8) Error!Decoded {
-    const payload = (if (generated) @import("envelope.zig").open(bytes, compiler_digest) else openSeed(bytes, compiler_digest)) orelse return error.InvalidCache;
+    if (!generated) return decodeSeed(allocator, bytes, compiler_digest);
+
+    const payload = @import("envelope.zig").open(bytes, compiler_digest) orelse return error.InvalidCache;
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
 
-    try checkDepth(arena.allocator(), payload);
+    const memory = arena.allocator();
+
+    const parsed = @import("payload/scanner.zig").parse(Payload(@import("payload/version.zig")), memory, payload.bytes, payload.maximum_depth) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => return error.InvalidCache,
+    };
+
+    if (!try @import("validation.zig").validate(allocator, memory, &parsed.module)) return error.InvalidCache;
+
+    return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
+}
+
+fn decodeSeed(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: [32]u8) Error!Decoded {
+    const payload = openSeed(bytes, compiler_digest) orelse return error.InvalidCache;
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    errdefer arena.deinit();
+
+    try checkSeedDepth(arena.allocator(), payload);
 
     const Envelope = struct { ir_version: u32 };
 
@@ -41,17 +65,13 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
 
     if (envelope.ir_version != zx.ir_version) return error.InvalidCache;
 
-    const parsed = std.json.parseFromSliceLeaky(Payload, arena.allocator(), payload, .{ .allocate = .alloc_always }) catch |err| {
+    const parsed = std.json.parseFromSliceLeaky(Payload(u32), arena.allocator(), payload, .{ .allocate = .alloc_always }) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return error.InvalidCache;
     };
 
-    if (generated) {
-        if (!try @import("validation.zig").validate(allocator, arena.allocator(), &parsed.module)) return error.InvalidCache;
-    } else {
-        try validateSeed(allocator, arena.allocator(), &parsed.module);
-    }
+    try validateSeed(allocator, arena.allocator(), &parsed.module);
 
     return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
 }
@@ -104,7 +124,7 @@ fn openSeed(bytes: []const u8, compiler_digest: [32]u8) ?[]const u8 {
     return payload;
 }
 
-fn checkDepth(allocator: std.mem.Allocator, bytes: []const u8) Error!void {
+fn checkSeedDepth(allocator: std.mem.Allocator, bytes: []const u8) Error!void {
     var scanner = std.json.Scanner.initCompleteInput(allocator, bytes);
 
     defer scanner.deinit();

@@ -48,7 +48,12 @@ fn seal(header: []u8, payload: []const u8, compiler: []const u8) void {
     std.debug.assert(writer.end == header.len);
 }
 
-pub fn open(source: []const u8, compiler_digest: [32]u8) ?[]const u8 {
+pub const Payload = struct {
+    bytes: []const u8,
+    maximum_depth: usize,
+};
+
+pub fn open(source: []const u8, compiler_digest: [32]u8) ?Payload {
     const compiler_hex = std.fmt.bytesToHex(compiler_digest, .lower);
     var buffer: [256]u8 = undefined;
     var scratch = std.heap.FixedBufferAllocator.init(&buffer);
@@ -58,9 +63,9 @@ pub fn open(source: []const u8, compiler_digest: [32]u8) ?[]const u8 {
         .compiler = &compiler_hex,
     };
 
-    const start = (columns.invoke(opening.executeValue, scratch.allocator(), &input) catch |err| {
+    const payload = (columns.invoke(opening.executeValue, scratch.allocator(), &input) catch |err| {
         std.debug.panic("semantic cache header could not be checked: {s}", .{@errorName(err)});
     }) orelse return null;
 
-    return source[@intCast(start)..];
+    return .{ .bytes = source[@intCast(payload.start)..], .maximum_depth = @intCast(payload.maximum_depth) };
 }

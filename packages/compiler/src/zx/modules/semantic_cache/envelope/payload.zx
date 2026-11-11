@@ -1,0 +1,10 @@
+import { maximum_json_depth } from "./const"
+
+import type { Layout as Input, Payload as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        start: in.payload_start,
+        maximum_depth: maximum_json_depth
+    }
+}

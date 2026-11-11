@@ -1,7 +1,7 @@
 <Module>
     <Type from="model" as="Envelope" />
 
-    <Args in={Envelope.Open} out={u64?} />
+    <Args in={Envelope.Open} out={Envelope.Payload?} />
 
     <Call fn="layout" in={$in.compiler.length} />
 
@@ -29,5 +29,7 @@
         <Return value={null} />
     </If>
 
-    <Return value={$ctx.layout.payload_start} />
+    <Call fn="payload" in={$ctx.layout} />
+
+    <Return value={$ctx.payload} />
 </Module>

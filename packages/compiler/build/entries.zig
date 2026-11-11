@@ -83,6 +83,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/semantic_cache/validation/header.rx", .name = "semantic_cache_header" },
     .{ .path = "zx/modules/semantic_cache/validation/function.rx", .name = "semantic_cache_function" },
     .{ .path = "zx/modules/semantic_cache/validation/binding.zx", .name = "semantic_cache_binding" },
+    .{ .path = "zx/modules/semantic_cache/validation/version.zx", .name = "semantic_cache_version" },
     .{ .path = "verification/query/build.rx", .name = "verification_query", .owner = .compiler },
     input_snapshot,
     .{ .path = "backends/zig/cache/envelope/frame.rx", .name = "generation_cache_envelope", .owner = .compiler },
