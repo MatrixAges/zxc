@@ -1,7 +1,9 @@
 const ir = @import("zx").ir;
+const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 const Route = enum { None, Anchor, Field, Index };
-pub const Plan = struct { route: Route, managed_parent: bool = false };
+const Plan = struct { route: Route, managed_parent: bool = false };
+
 pub const Result = enum { Direct, Borrowed, Value, Element };
 
 pub fn raw(self: *const Lower, id: ir.TypeId, nested: bool) bool {
@@ -14,7 +16,7 @@ pub fn raw(self: *const Lower, id: ir.TypeId, nested: bool) bool {
     return kind == .list and self.program.typeOf(kind.list) == .list and @import("../../state_value/elements.zig").inlineStored(self, id);
 }
 
-pub fn route(self: *const Lower, id: ir.ExprId) Plan {
+fn route(self: *const Lower, id: ir.ExprId) Plan {
     const expression = self.program.expression(id);
     const flags = self.plan.get(id);
 
@@ -26,6 +28,30 @@ pub fn route(self: *const Lower, id: ir.ExprId) Plan {
         .field => .{ .route = .Field },
         .index => .{ .route = .Index, .managed_parent = self.program.typeOf(expression.type_id) == .object },
         else => .{ .route = .None },
+    };
+}
+
+pub fn path(self: *Lower, id: ir.ExprId) Lower.Error!?node.ExpressionId {
+    const expression = self.program.expression(id);
+    const plan = route(self, id);
+
+    return switch (plan.route) {
+        .None => null,
+        .Anchor => try @import("path.zig").anchor(self, id),
+        .Field => field: {
+            const selected = expression.value.field;
+            const parent = try path(self, selected.target) orelse return null;
+            const fields = self.program.typeOf(self.program.expression(selected.target).type_id).object;
+
+            break :field try self.field(parent, fields.at(selected.index).name);
+        },
+        .Index => index: {
+            const selected = expression.value.index;
+            const raw_parent = try path(self, selected.target);
+            const parent = raw_parent orelse if (plan.managed_parent) try @import("../../state_value/list.zig").expression(self, selected.target) else return null;
+
+            break :index try @import("../../intrinsics.zig").index(self, parent, try self.expr(selected.index));
+        },
     };
 }
 

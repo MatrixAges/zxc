@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Projection" />
+
+    <Args in={Projection.Input} out={Projection.Path} />
+
+    <Call fn="walk" in={$in} />
+
+    <If on={$ctx.walk.anchor != null}>
+        <Return
+            value={{
+                anchor: $ctx.walk.anchor,
+                steps: $ctx.walk.steps,
+                count: $ctx.walk.steps.length,
+                managed: false
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            anchor: $ctx.walk.fallback,
+            steps: $ctx.walk.steps,
+            count: $ctx.walk.fallback_count,
+            managed: true
+        }}
+    />
+</Module>

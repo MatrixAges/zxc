@@ -1,3 +1,34 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { State as Cache } from "core/integer/map/model"
+import type { Query } from "../../state/queries/model"
+
 export enum Route { None, Anchor, Field, Index }
 
 export enum Result { Direct, Borrowed, Value, Element }
+
+export type Input = {
+    kinds: ExpressionKind[],
+    types: u32[],
+    payloads: u32[],
+    projection_targets: u32[],
+    index_targets: u32[],
+    type_kinds: u8[],
+    queries: Query[],
+    flags: u8[],
+    cache: Cache,
+    id: u32
+}
+
+export type Walk = {
+    anchor?: u32,
+    fallback?: u32,
+    fallback_count: u64,
+    steps: u32[]
+}
+
+export type Path = {
+    anchor?: u32,
+    steps: u32[],
+    count: u64,
+    managed: bool
+}

@@ -305,7 +305,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/tasks/parallel/await.zx", .name = "task_parallel_await", .owner = .genz },
     .{ .path = "genz/analysis/tasks/parallel/build.rx", .name = "task_parallel_result", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/raw.zx", .name = "projection_raw", .owner = .genz },
-    .{ .path = "genz/analysis/access/projection/route.zx", .name = "projection_route", .owner = .genz },
+    .{ .path = "genz/analysis/access/projection/plan.rx", .name = "projection_path", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/anchor.zx", .name = "projection_anchor", .owner = .genz },
     .{ .path = "genz/analysis/access/projection/result.zx", .name = "projection_result", .owner = .genz },
     .{ .path = "genz/analysis/imports/build.rx", .name = "native_imports", .owner = .genz },

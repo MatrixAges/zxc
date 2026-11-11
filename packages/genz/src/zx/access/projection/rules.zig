@@ -4,9 +4,7 @@ const ir = zx.ir;
 const Lower = @import("../../lower.zig");
 const generated = @import("genz_options").generated_analysis;
 const seed = @import("seed.zig");
-const routing = @import("generated_projection_route");
 const finishing = @import("generated_projection_result");
-pub const Plan = if (generated) @typeInfo(@typeInfo(@TypeOf(routing.executeValue)).@"fn".return_type.?).error_union.payload else seed.Plan;
 pub const Result = if (generated) @typeInfo(@typeInfo(@TypeOf(finishing.executeValue)).@"fn".return_type.?).error_union.payload else seed.Result;
 
 pub fn raw(self: *const Lower, id: ir.TypeId, nested: bool) bool {
@@ -29,28 +27,6 @@ pub fn raw(self: *const Lower, id: ir.TypeId, nested: bool) bool {
     var memory = std.heap.FixedBufferAllocator.init(&.{});
 
     return zx.columns.invoke(entry.executeValue, memory.allocator(), &input) catch unreachable;
-}
-
-pub fn route(self: *const Lower, id: ir.ExprId) Plan {
-    if (!generated) return seed.route(self, id);
-
-    const Input = std.meta.Child(routing.Input);
-    const row = @backingInt(id);
-    const type_id = self.program.expressions.types[row];
-    const flags = self.plan.get(id);
-
-    const input: Input = .{
-        .kind = @fromBackingInt(@intCast(@backingInt(self.program.expressions.kinds[row]))),
-        .type_kind = self.program.types.kinds[type_id],
-        .query = @fromBackingInt(@intCast(@backingInt(self.state_plan.queries[type_id]))),
-        .normalize = flags.normalize,
-        .renew = flags.renew,
-        .cached = self.cache.contains(id),
-    };
-
-    var memory = std.heap.FixedBufferAllocator.init(&.{});
-
-    return zx.columns.invoke(routing.executeValue, memory.allocator(), &input) catch unreachable;
 }
 
 pub fn value(self: *const Lower, id: ir.ExprId) bool {

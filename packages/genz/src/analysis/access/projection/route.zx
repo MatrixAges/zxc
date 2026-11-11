@@ -1,44 +1,60 @@
+import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
-import kind from "core/type_table/kind"
-import { Kind } from "core/type_table/model"
+import lookup from "core/integer/map/lookup"
 
 import { Property } from "../../state/queries/model"
 import query from "../../state/queries/read"
+import {
+    no_flags,
+    normalize_flag,
+    renew_flag
+} from "../../uniqueness/function/plan/const"
 import { Route } from "./model"
 
-import type { Query } from "../../state/queries/model"
+import type { Input as Source } from "./model"
 
 export type Input = {
-    kind: ExpressionKind,
-    type_kind: u8,
-    query: Query,
-    normalize: bool,
-    renew: bool,
-    cached: bool
+    source: Source,
+    id: u32
 }
 
-export type Output = {
-    route: Route,
-    managed_parent: bool
-}
+export type Output = Route
 
 export default function (in: Input): Output {
-    const route = match {
-        in.normalize || in.renew => Route.None,
-        !query({
-            value: in.query,
-            property: Property.Represented
-        }) => Route.Anchor,
-        in.cached => Route.None,
-        _ => match in.kind {
-            ExpressionKind.Field => Route.Field,
-            ExpressionKind.Index => Route.Index,
-            _ => Route.None
-        }
+    const { source, id } = in
+
+    const row = integers.widen(id)
+
+    const flags = match {
+        row < source.flags.length => integers.widenByte(source.flags[row]),
+        _ => no_flags
     }
 
-    return {
-        route,
-        managed_parent: route == Route.Index && kind(in.type_kind) == Kind.Object
+    if (integers.andBits(flags, normalize_flag + renew_flag) != 0) {
+        return Route.None
     }
+
+    if (!query({
+        value: source.queries[integers.widen(source.types[row])],
+        property: Property.Represented
+    })) {
+        return Route.Anchor
+    }
+
+    const selected = match source.kinds[row] {
+        ExpressionKind.Field => Route.Field,
+        ExpressionKind.Index => Route.Index,
+        _ => Route.None
+    }
+
+    if (selected == Route.None) {
+        return Route.None
+    }
+
+    const cached = lookup({
+        ...source.cache.omit(["values"]),
+        key: id
+    })
+
+    return cached == null ? selected : Route.None
 }

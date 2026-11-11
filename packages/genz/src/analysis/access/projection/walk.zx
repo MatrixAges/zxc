@@ -1,0 +1,62 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Route } from "./model"
+import route from "./route"
+
+import type { Input, Walk as Output } from "./model"
+
+export default function (in: Input): Output {
+    const steps: u32[] = []
+    const anchor: u32? = null
+    const fallback: u32? = null
+
+    return loop({
+        id: in.id,
+        anchor,
+        fallback,
+        fallback_count: 0,
+        steps,
+        walking: true
+    }, {
+        while: state => state.walking,
+        next: state => {
+            const { id } = state
+            const selected = route({
+                source: in,
+                id
+            })
+
+            if (selected == Route.None || selected == Route.Anchor) {
+                if (selected == Route.Anchor) {
+                    state.anchor = id
+                }
+
+                state.walking = false
+            } else {
+                const row = integers.widen(id)
+                const payload = integers.widen(in.payloads[row])
+
+                state.steps = state.steps.push(id)[0]
+
+                if (selected == Route.Field) {
+                    state.id = in.projection_targets[payload]
+                } else {
+                    state.id = in.index_targets[payload]
+
+                    const type_id = integers.widen(in.types[row])
+
+                    if (kind(in.type_kinds[type_id]) == Kind.Object) {
+                        state.fallback = state.id
+                        state.fallback_count = state.steps.length
+                    }
+                }
+            }
+        },
+        return: state => state.omit([
+            "id",
+            "walking"
+        ])
+    })
+}
