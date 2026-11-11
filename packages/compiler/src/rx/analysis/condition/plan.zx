@@ -1,0 +1,80 @@
+import { Operator } from "../../../zx/frontend/parser/expressions/prepare/model"
+import { ExprKind } from "../../../zx/frontend/parser/expressions/state/model"
+
+import type { ExprNode } from "../../../zx/frontend/parser/expressions/state/model"
+
+export type Facts = {
+    first?: u64,
+    rest: u64[]
+}
+
+export type Input = {
+    nodes: ExprNode[],
+    condition: u64,
+    truth: bool,
+    facts: Facts
+}
+
+export type Output = Facts
+
+export default function plan(in: Input): Output {
+    const node = in.nodes[in.condition]
+
+    if (node.kind == ExprKind.Unary && !node.flag) {
+        return plan({
+            ...in,
+            condition: node.first,
+            truth: !in.truth
+        })
+    }
+
+    if (node.kind != ExprKind.Binary) {
+        return in.facts
+    }
+
+    const conjunction = node.operator == Operator.And && in.truth
+    const disjunction = node.operator == Operator.Or && !in.truth
+
+    if (conjunction || disjunction) {
+        const facts = plan({
+            ...in,
+            condition: node.first
+        })
+
+        return plan({
+            nodes: in.nodes,
+            condition: node.second,
+            truth: in.truth,
+            facts
+        })
+    }
+
+    const equality = node.operator == Operator.Equal && !in.truth
+    const inequality = node.operator == Operator.NotEqual && in.truth
+
+    if (!equality && !inequality) {
+        return in.facts
+    }
+
+    const fact: u64? = match {
+        in.nodes[node.first].kind == ExprKind.Null => node.second,
+        in.nodes[node.second].kind == ExprKind.Null => node.first,
+        _ => null
+    }
+
+    if (fact == null) {
+        return in.facts
+    }
+
+    if (in.facts.first == null) {
+        return {
+            first: fact,
+            rest: in.facts.rest
+        }
+    }
+
+    return {
+        first: in.facts.first,
+        rest: in.facts.rest.push(fact)[0]
+    }
+}

@@ -81,13 +81,13 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
 
             defer self.nonnull.shrinkRetainingCapacity(facts);
 
-            try @import("../condition.zig").assumeValue(branch.condition, true, self);
+            try @import("../condition.zig").assumeValue(self.graph.scratch, branch.condition, true, self);
 
             _ = try self.infer(branch.yes, result);
 
             self.nonnull.shrinkRetainingCapacity(facts);
 
-            try @import("../condition.zig").assumeValue(branch.condition, false, self);
+            try @import("../condition.zig").assumeValue(self.graph.scratch, branch.condition, false, self);
 
             _ = try self.infer(branch.no, result);
 

@@ -93,16 +93,30 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                 break :scope .{ .task = compiled };
             },
             .selection => |selection| selection: {
-                const subject = try self.value(selection.subject, null);
+                const condition = @import("condition.zig");
+                var parsed = try @import("attribute.zig").parse(self.allocator, selection.subject, self.owner);
+
+                defer parsed.deinit();
+
+                const subject = try self.valueParsed(&parsed, selection.subject, null);
                 const cases = try self.allocator.alloc(Flow.Case, selection.cases.len);
                 const count = self.bindings.items.len;
 
                 for (selection.cases, cases) |case, *item| {
-                    const label = if (case.value) |attribute| try self.value(attribute, subject.output_type) else null;
+                    const label: struct { value: ?zx.ir.Program, truth: ?bool } = if (case.value) |attribute| label: {
+                        var label = try @import("attribute.zig").parse(self.allocator, attribute, self.owner);
+
+                        defer label.deinit();
+
+                        const program = try self.valueParsed(&label, attribute, subject.output_type);
+
+                        break :label .{ .value = program, .truth = condition.boolean(&label) };
+                    } else .{ .value = null, .truth = try condition.defaultTruth(self.allocator, self.owner, selection.cases) };
+
                     const facts = self.nonnull.items.len;
 
-                    if (try @import("condition.zig").truth(self.allocator, self.owner, case.value, selection.cases)) |truth| {
-                        @import("condition.zig").assume(self.allocator, self.owner, selection.subject, truth, self) catch |err| switch (err) {
+                    if (label.truth) |present| {
+                        condition.assumeParsed(self.allocator, &parsed, present, self) catch |err| switch (err) {
                             error.OutOfMemory => return error.OutOfMemory,
                             else => return error.InvalidFlow,
                         };
@@ -113,7 +127,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                     self.nonnull.shrinkRetainingCapacity(facts);
                     self.bindings.shrinkRetainingCapacity(count);
 
-                    item.* = .{ .value = label, .body = body };
+                    item.* = .{ .value = label.value, .body = body };
                 }
 
                 if (@import("selection.zig").check(subject, selection.subject, cases, selection.cases)) |issue| {
@@ -133,13 +147,21 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
+    var parsed = try @import("attribute.zig").parse(self.allocator, attribute, self.owner);
+
+    defer parsed.deinit();
+
+    return self.valueParsed(&parsed, attribute, expected);
+}
+
+fn valueParsed(self: *Self, parsed: *const frontend.ExpressionInput.Result, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
     if (!viewed(self.type_storage, self.types)) {
         self.type_storage = .{};
 
         try self.type_storage.appendDelta(self.allocator, self.types);
     }
 
-    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .aliases = self.aliases, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
+    const compiled = try expression.compileParsed(self.allocator, parsed, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .aliases = self.aliases, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected }, true);
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;

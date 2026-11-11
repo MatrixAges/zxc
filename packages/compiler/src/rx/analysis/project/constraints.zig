@@ -170,18 +170,31 @@ const Walker = struct {
                 if (output) |value| try self.bindResult(task.node, value, .task);
             },
             .selection => |selection| {
-                const subject = try inferAttribute(expression, self.module.source.path, selection.subject, null);
+                const condition = @import("../condition.zig");
+                const owner = self.module.source.path;
+                const allocator = expression.graph.allocator;
+                var parsed = try @import("../attribute.zig").parse(allocator, selection.subject, owner);
+
+                defer parsed.deinit();
+
+                const subject = try inferParsedAttribute(expression, &parsed, selection.subject, null);
                 const count = expression.bindings.items.len;
 
                 for (selection.cases) |case| {
-                    if (case.value) |attribute| {
-                        _ = try inferAttribute(expression, self.module.source.path, attribute, subject);
-                    }
+                    const truth = if (case.value) |attribute| label: {
+                        var label = try @import("../attribute.zig").parse(allocator, attribute, owner);
+
+                        defer label.deinit();
+
+                        _ = try inferParsedAttribute(expression, &label, attribute, subject);
+
+                        break :label condition.boolean(&label);
+                    } else try condition.defaultTruth(allocator, owner, selection.cases);
 
                     const facts = expression.nonnull.items.len;
 
-                    if (try @import("../condition.zig").truth(expression.graph.allocator, self.module.source.path, case.value, selection.cases)) |truth| {
-                        try @import("../condition.zig").assume(expression.graph.allocator, self.module.source.path, selection.subject, truth, expression);
+                    if (truth) |present| {
+                        try condition.assumeParsed(expression.graph.scratch, &parsed, present, expression);
                     }
 
                     try self.steps(case.body);
@@ -251,11 +264,16 @@ const Walker = struct {
 };
 
 fn inferAttribute(expression: *Expression, owner: []const u8, attribute: rx.ast.Attribute, expected: ?Graph.Id) zx.Error!Graph.Id {
-    expression.attribute = attribute;
-    const allocator = expression.graph.allocator;
-    var parsed = try @import("../attribute.zig").parse(allocator, attribute, owner);
+    var parsed = try @import("../attribute.zig").parse(expression.graph.allocator, attribute, owner);
 
     defer parsed.deinit();
+
+    return inferParsedAttribute(expression, &parsed, attribute, expected);
+}
+
+fn inferParsedAttribute(expression: *Expression, parsed: *const frontend.ExpressionInput.Result, attribute: rx.ast.Attribute, expected: ?Graph.Id) zx.Error!Graph.Id {
+    expression.attribute = attribute;
+    const allocator = expression.graph.allocator;
 
     if (parsed.diagnostic()) |issue| {
         const message = try allocator.dupe(u8, issue.message);
@@ -263,7 +281,7 @@ fn inferAttribute(expression: *Expression, owner: []const u8, attribute: rx.ast.
         return expression.graph.reporter.fail(issue.code, expression.sourceSpan(issue.span), message);
     }
 
-    return switch (parsed) {
+    return switch (parsed.*) {
         .native => |result| expression.infer(result.value.parsed.expression, expected),
         .indexed => |result| if (@import("frontend").ExpressionInput.indexed_enabled) block: {
             var scratch = std.heap.ArenaAllocator.init(allocator);

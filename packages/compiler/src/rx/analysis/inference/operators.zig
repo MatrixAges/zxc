@@ -16,7 +16,7 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
 
         defer self.nonnull.shrinkRetainingCapacity(facts);
 
-        try @import("../condition.zig").assumeValue(binary.left, operator.route == .and_value, self);
+        try @import("../condition.zig").assumeValue(self.graph.scratch, binary.left, operator.route == .and_value, self);
 
         _ = try self.infer(binary.right, boolean);
 

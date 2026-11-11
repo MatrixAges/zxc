@@ -36,18 +36,14 @@ pub fn checkValues(allocator: std.mem.Allocator, node: rx.ast.Node, owner: []con
 }
 
 pub fn compile(allocator: std.mem.Allocator, path: []const u8, attribute: rx.ast.Attribute, options: frontend.expressions.Options) std.mem.Allocator.Error!Result {
-    return compileStage(allocator, path, attribute, options, false);
-}
-
-pub fn compileForLinking(allocator: std.mem.Allocator, path: []const u8, attribute: rx.ast.Attribute, options: frontend.expressions.Options) std.mem.Allocator.Error!Result {
-    return compileStage(allocator, path, attribute, options, true);
-}
-
-fn compileStage(allocator: std.mem.Allocator, path: []const u8, attribute: rx.ast.Attribute, options: frontend.expressions.Options, comptime linking: bool) std.mem.Allocator.Error!Result {
     var parsed = try @import("attribute.zig").parse(allocator, attribute, path);
 
     defer parsed.deinit();
 
+    return compileParsed(allocator, &parsed, attribute, options, false);
+}
+
+pub fn compileParsed(allocator: std.mem.Allocator, parsed: *const frontend.ExpressionInput.Result, attribute: rx.ast.Attribute, options: frontend.expressions.Options, comptime linking: bool) std.mem.Allocator.Error!Result {
     if (parsed.diagnostic()) |issue| {
         var arena = std.heap.ArenaAllocator.init(allocator);
 
@@ -60,7 +56,7 @@ fn compileStage(allocator: std.mem.Allocator, path: []const u8, attribute: rx.as
         return .{ .arena = arena, .value = .{ .diagnostic = diagnostic(attribute, owned) } };
     }
 
-    var analyzed = try frontend.expressions.compileInput(allocator, &parsed, options, linking);
+    var analyzed = try frontend.expressions.compileInput(allocator, parsed, options, linking);
 
     errdefer analyzed.deinit();
 

@@ -34,6 +34,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/path_segments/normalize.rx", .name = "paths", .owner = .rx },
     .{ .path = "rx/dependency_graph/validate.rx", .name = "graph", .owner = .rx },
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/condition/plan.zx", .name = "rx_condition_plan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/depth/solve.rx", .name = "assignment_depth", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/object_closure/prove.rx", .name = "object_closure", .owner = .rx_analysis },
