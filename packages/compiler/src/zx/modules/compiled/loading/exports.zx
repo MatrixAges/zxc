@@ -7,9 +7,11 @@ import ids from "./remap/ids"
 import type { Literal, Values } from "core/constant/model"
 import type { Imports } from "../../function_import"
 import type { Exports } from "../model"
+import type { Output as Selection } from "./selection/plan"
 
 export type Input = {
     source: Exports,
+    selection: Selection,
     mapping: u32[],
     first: u64,
     instance: string
@@ -24,9 +26,10 @@ export default function (in: Input): Output {
 
     const constants: Values?[] = []
     const function_members: Imports[] = []
+    const source_rows = in.selection.rows
+    const select_all = source_rows.length == 0
 
     const result = loop({
-        input: in,
         paths,
         functions,
         types,
@@ -34,28 +37,29 @@ export default function (in: Input): Output {
         members: function_members,
         index: 0
     }, {
-        while: current => current.index < current.input.source.names.length,
+        while: current => current.index < in.selection.names.length,
         next: current => {
-            const function_id = current.input.source.functions[current.index]
+            const row = select_all ? current.index : source_rows[current.index]
+            const function_id = in.source.functions[row]
             const mapped: u32? = match {
                 function_id == null => null,
                 _ => integers.narrow(
-                    current.input.first + integers.widen(
+                    in.first + integers.widen(
                         function_id
                     )
                 )
             }
 
             current.paths = current.paths.push(scope({
-                instance: current.input.instance,
-                value: current.input.source.paths[current.index]
+                instance: in.instance,
+                value: in.source.paths[row]
             }))[0]
             current.functions = current.functions.push(mapped)[0]
             current.types = current.types.push(ids({
-                values: current.input.source.type_ids[current.index],
-                mapping: current.input.mapping
+                values: in.source.type_ids[row],
+                mapping: in.mapping
             }))[0]
-            const source = current.input.source.constants[current.index]
+            const source = in.source.constants[row]
             const empty: Literal[] = []
             const mapped_constants: Values? = match {
                 source == null => null,
@@ -63,7 +67,7 @@ export default function (in: Input): Output {
                     names: source.names,
                     values: loop({
                         source: source.values,
-                        mapping: current.input.mapping,
+                        mapping: in.mapping,
                         values: empty,
                         index: 0
                     }, {
@@ -86,9 +90,9 @@ export default function (in: Input): Output {
             }
 
             current.members = current.members.push(members({
-                source: current.input.source.members[current.index],
-                mapping: current.input.mapping,
-                first: current.input.first
+                source: in.source.members[row],
+                mapping: in.mapping,
+                first: in.first
             }))[0]
             current.constants = current.constants.push(mapped_constants)[0]
             current.index += 1
@@ -96,9 +100,10 @@ export default function (in: Input): Output {
     })
 
     return {
-        ...in.source,
+        names: in.selection.names,
         paths: result.paths,
         functions: result.functions,
+        type_names: in.selection.type_names,
         type_ids: result.types,
         constants: result.constants,
         members: result.members

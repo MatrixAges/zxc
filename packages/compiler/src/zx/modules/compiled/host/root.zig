@@ -12,7 +12,7 @@ pub fn validate(allocator: std.mem.Allocator, graph: model.Graph) (std.mem.Alloc
 
     var input: Input = undefined;
 
-    try input.init(arena.allocator(), &graph, "", "", null, false);
+    try input.init(arena.allocator(), &graph, "", "", null, false, null);
 
     const result = generated.execute(&arena, &input.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
@@ -31,14 +31,14 @@ pub fn loadOptions(allocator: std.mem.Allocator, options: load_model.Options) !m
         .origins = &origins,
         .functions = options.functions,
         .native_modules = options.native_modules,
-    }, true);
+    }, true, options.selected);
 }
 
 pub fn load(allocator: std.mem.Allocator, library: model.Library, destination: Destination) !model.Loaded {
-    return loadPrepared(allocator, library, destination, false);
+    return loadPrepared(allocator, library, destination, false, null);
 }
 
-fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destination: Destination, seed: bool) !model.Loaded {
+fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destination: Destination, seed: bool, selected: ?[]const model.PublicReference) !model.Loaded {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
@@ -46,7 +46,7 @@ fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destinatio
     const graph = model.Graph{ .program = library.program, .exports = library.exports, .nominal_types = library.nominal_types, .store_initializers = library.store_initializers };
     var input: Input = undefined;
 
-    try input.init(arena.allocator(), &graph, library.instance, library.artifact, destination, seed);
+    try input.init(arena.allocator(), &graph, library.instance, library.artifact, destination, seed, selected);
 
     const result = generated.execute(&arena, &input.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
@@ -62,6 +62,7 @@ fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destinatio
         5 => return error.ConflictingInterface,
         6 => return error.OutOfMemory,
         7 => return error.InvalidNominalTypes,
+        8 => return error.MissingPublicModule,
         else => unreachable,
     }
 

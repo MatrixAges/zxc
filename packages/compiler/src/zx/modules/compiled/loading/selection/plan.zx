@@ -1,0 +1,100 @@
+import { missing_public_module } from "./const"
+import locate from "./locate"
+
+import type { Aliases, Exports, Selection } from "../../model"
+
+export type Input = {
+    source: Exports,
+    selection?: Selection
+}
+
+export type Output = {
+    status: u64,
+    rows: u64[],
+    names: string[],
+    type_names: string[][],
+    aliases: Aliases
+}
+
+export default function (in: Input): Output {
+    const { source, selection } = in
+
+    if (selection == null) {
+        return {
+            status: 0,
+            rows: [],
+            names: source.names,
+            type_names: source.type_names,
+            aliases: {
+                names: [],
+                rows: [],
+                first: []
+            }
+        }
+    }
+
+    const rows: u64[] = []
+    const names: string[] = []
+    const type_names: string[][] = []
+
+    const result = loop({
+        index: 0,
+        rows,
+        names,
+        type_names,
+        alias_rows: rows,
+        first: rows,
+        found: true
+    }, {
+        while: current =>
+            current.found && current.index < selection.modules.length,
+        next: current => {
+            const module = selection.modules[current.index]
+            const row = locate({
+                names: source.names,
+                module
+            })
+
+            if (row < source.names.length) {
+                const selected_rows = current.rows
+                const selected = loop({
+                    index: 0
+                }, {
+                    while: item =>
+                        item.index < selected_rows.length &&
+                        selected_rows[item.index] != row,
+                    next: item => {
+                        item.index += 1
+                    },
+                    return: item => item.index
+                })
+
+                if (selected == selected_rows.length) {
+                    current.rows = current.rows.push(row)[0]
+                    current.names = current.names.push(source.names[row])[0]
+                    current.type_names =
+                        current.type_names.push(source.type_names[row])[0]
+                    current.first = current.first.push(current.index)[0]
+                }
+
+                current.alias_rows = current.alias_rows.push(selected)[0]
+            } else {
+                current.found = false
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        status: result.found ? 0 : missing_public_module,
+        rows: result.rows,
+        names: result.names,
+        type_names: result.type_names,
+        aliases: {
+            names: selection.names,
+            rows: result.alias_rows,
+            first: result.first
+        }
+    }
+}

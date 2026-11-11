@@ -1,0 +1,19 @@
+export type Input = {
+    names: string[],
+    module: string
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0
+    }, {
+        while: current => current.index < in.names.length &&
+            in.names[current.index] != in.module,
+        next: current => {
+            current.index += 1
+        },
+        return: current => current.index
+    })
+}

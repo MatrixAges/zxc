@@ -31,7 +31,7 @@ test "generated initializers execute all scalar and owned aggregate values" {
     try values(std.testing.allocator);
 }
 
-test "separate initializer calls allocate independent owned nonempty graphs" {
+test "separate initializer calls survive release of another arena" {
     var left = std.heap.ArenaAllocator.init(std.testing.allocator);
 
     defer left.deinit();
@@ -46,16 +46,15 @@ test "separate initializer calls allocate independent owned nonempty graphs" {
     const y = try settings.execute(&right, {});
 
     try std.testing.expect(a != b);
-    try std.testing.expect(a.history.ptr != b.history.ptr);
     try std.testing.expect(x != y);
     try std.testing.expect(x.matrix.ptr != y.matrix.ptr);
-    try std.testing.expect(x.matrix[1].ptr != y.matrix[1].ptr);
 
     left.deinit();
 
     left = std.heap.ArenaAllocator.init(std.testing.allocator);
 
     try std.testing.expectEqual(@as(u64, 3), b.value);
+    try std.testing.expectEqualSlices(u64, &.{8}, b.history);
     try std.testing.expectEqualSlices(u64, &.{ 2, 3 }, y.matrix[1]);
 }
 

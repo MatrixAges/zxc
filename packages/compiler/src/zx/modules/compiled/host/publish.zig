@@ -20,13 +20,28 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: D
         try destination.functions.append(allocator, try @import("function.zig").copy(allocator, functions.at(index)));
     }
 
-    const exports = try allocator.alloc(model.Export, output.exports.names.len);
+    const aliased = output.aliases.names.len != 0;
+    const names = if (aliased) output.aliases.names else output.exports.names;
+    const exports = try allocator.alloc(model.Export, names.len);
 
-    for (exports, 0..) |*exported, index| {
+    for (exports, names, 0..) |*exported, name, position| {
+        const index = if (aliased) @as(usize, @intCast(output.aliases.rows[position])) else position;
+
+        if (aliased) {
+            const first = output.aliases.first[index];
+
+            if (first != position) {
+                exported.* = exports[@intCast(first)];
+                exported.name = try allocator.dupe(u8, name);
+
+                continue;
+            }
+        }
+
         const types = try allocator.alloc(ir.Export, output.exports.type_names[index].len);
 
-        for (types, output.exports.type_names[index], output.exports.type_ids[index]) |*item, name, id| {
-            item.* = .{ .name = try allocator.dupe(u8, name), .type_id = @fromBackingInt(id) };
+        for (types, output.exports.type_names[index], output.exports.type_ids[index]) |*item, type_name, id| {
+            item.* = .{ .name = try allocator.dupe(u8, type_name), .type_id = @fromBackingInt(id) };
         }
 
         const source_members = output.exports.members[index];
@@ -42,7 +57,7 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: D
         };
 
         exported.* = .{
-            .name = try allocator.dupe(u8, output.exports.names[index]),
+            .name = try allocator.dupe(u8, name),
             .path = try allocator.dupe(u8, output.exports.paths[index]),
             .function = if (output.exports.functions[index]) |id| @fromBackingInt(id) else null,
             .types = types,

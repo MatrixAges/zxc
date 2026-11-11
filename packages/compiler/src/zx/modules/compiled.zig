@@ -3,6 +3,7 @@ const std = @import("std");
 const Origins = @import("nominal_origins.zig");
 pub const Target = struct { instance: []const u8, artifact: []const u8, name: []const u8 };
 pub const Export = struct { name: []const u8, path: []const u8, function: ?ir.FunctionId, types: []const ir.Export, constants: []const ir.Constant = &.{}, members: []const @import("function_import.zig") = &.{} };
+pub const PublicReference = struct { name: []const u8, module: []const u8 };
 
 pub const StoreInitializer = struct {
     function: ir.FunctionId,

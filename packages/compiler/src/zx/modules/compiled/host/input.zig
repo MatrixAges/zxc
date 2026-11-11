@@ -8,6 +8,7 @@ const generated = @import("generated_compiled_library");
 const Input = std.meta.Child(generated.Input);
 const Graph = std.meta.Child(@FieldType(Input, "graph"));
 const Destination = std.meta.Child(@FieldType(Input, "destination"));
+const Selection = std.meta.Child(@typeInfo(@FieldType(Input, "selection")).optional.child);
 const Self = @This();
 
 program: @import("../../../ir/canonical/validation/input.zig").Storage(std.meta.Child(@FieldType(Graph, "program"))),
@@ -19,8 +20,9 @@ base_origins: std.meta.Child(@FieldType(Destination, "origins")),
 natives: std.meta.Child(@FieldType(Destination, "natives")),
 graph: Graph,
 destination: Destination,
+selection: Selection,
 input: Input,
-pub fn init(self: *Self, allocator: std.mem.Allocator, graph: *const model.Graph, instance: []const u8, artifact: []const u8, destination: ?load.Destination, seed: bool) std.mem.Allocator.Error!void {
+pub fn init(self: *Self, allocator: std.mem.Allocator, graph: *const model.Graph, instance: []const u8, artifact: []const u8, destination: ?load.Destination, seed: bool, selected: ?[]const model.PublicReference) std.mem.Allocator.Error!void {
     try self.program.init(allocator, &graph.program, 0);
 
     self.origins = Origins.Table.borrow(@TypeOf(self.origins), graph.nominal_types);
@@ -31,5 +33,18 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, graph: *const model.Graph
     self.natives = borrow.columns(@TypeOf(self.natives), if (destination) |target| target.native_modules.view() else @as(ir.NativeModuleTable, .{}));
     self.graph = .{ .program = &self.program.input, .origins = &self.origins, .origin_names = graph.nominal_types.names, .exports = &self.exports, .initializers = &self.initializers };
     self.destination = .{ .types = &self.types, .origins = &self.base_origins, .origin_names = if (destination) |target| target.origins.items.view().names else &.{}, .natives = &self.natives, .function_count = if (destination) |target| target.functions.count() else 0 };
-    self.input = .{ .graph = &self.graph, .instance = instance, .artifact = artifact, .load = destination != null, .seed = seed, .destination = &self.destination };
+
+    if (selected) |values| {
+        const names = try allocator.alloc([]const u8, values.len);
+        const modules = try allocator.alloc([]const u8, values.len);
+
+        for (values, names, modules) |value, *name, *module| {
+            name.* = value.name;
+            module.* = value.module;
+        }
+
+        self.selection = .{ .names = names, .modules = modules };
+    }
+
+    self.input = .{ .graph = &self.graph, .instance = instance, .artifact = artifact, .load = destination != null, .seed = seed, .destination = &self.destination, .selection = if (selected != null) &self.selection else null };
 }

@@ -2,7 +2,7 @@ const std = @import("std");
 const frontend = @import("frontend");
 const ir = @import("zx").ir;
 const model = @import("root.zig");
-pub const Export = struct { name: []const u8, module: []const u8 };
+pub const Export = frontend.project.compiled.PublicReference;
 
 pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Library, selected: []const Export) !model.Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
@@ -19,18 +19,8 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
         .nominal_types = .{},
         .functions = &functions,
         .native_modules = &native_modules,
+        .selected = selected,
     });
-
-    const exports = try owned.alloc(model.Export, selected.len);
-
-    for (selected, exports) |selection, *exported| {
-        const found = for (imported.exports) |candidate| {
-            if (std.mem.eql(u8, candidate.name, selection.module)) break candidate;
-        } else return error.MissingPublicModule;
-
-        exported.* = found;
-        exported.name = try owned.dupe(u8, selection.name);
-    }
 
     const result = model.Result{
         .arena = arena,
@@ -46,7 +36,7 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
             .native_modules = native_modules.view(),
             .type_only = true,
         },
-        .exports = exports,
+        .exports = imported.exports,
         .nominal_types = imported.nominal_types,
         .store_initializers = imported.store_initializers,
     };

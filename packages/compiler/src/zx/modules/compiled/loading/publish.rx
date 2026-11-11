@@ -26,9 +26,24 @@
     />
 
     <Call
+        fn="selection/plan"
+        in={{
+            source: $in.input.graph.exports,
+            selection: $in.input.selection
+        }}
+    />
+
+    <If on={$ctx.plan.status != 0}>
+        <Call fn="../empty" in={$ctx.plan.status} />
+
+        <Return value={$ctx.empty} />
+    </If>
+
+    <Call
         fn="exports"
         in={{
             source: $in.input.graph.exports,
+            selection: $ctx.plan,
             mapping: $in.merged.mapping,
             first: $in.input.destination.function_count,
             instance: $in.input.instance
@@ -61,7 +76,8 @@
             natives: $in.native.delta,
             functions: $ctx.walk,
             exports: $ctx.exports,
-            initializers: $ctx.initializers
+            initializers: $ctx.initializers,
+            aliases: $ctx.plan.aliases
         }}
     />
 </Module>
