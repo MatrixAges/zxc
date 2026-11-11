@@ -105,7 +105,7 @@ fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
         if (!changed) return;
     }
 
-    const span = if (assignments.len != 0) assignments.items(.span)[0] else graph.nodes.items(.facts)[0].span;
+    const span = if (assignments.len != 0) assignments.items(.span)[0] else graph.nodes.items(.span)[0];
 
     return graph.reporter.fail(.type_mismatch, span, "inference would require a recursive optional type");
 }

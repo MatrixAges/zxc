@@ -25,7 +25,7 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
     );
 
     self.setShape(@backingInt(a), shape);
-    self.nodes.items(.facts)[@backingInt(a)].fallback = constraints.fallback;
+    self.nodes.items(.fallback)[@backingInt(a)] = constraints.fallback;
     self.forest.connect(a, b);
 
     self.revision += 1;

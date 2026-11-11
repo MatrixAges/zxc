@@ -35,7 +35,7 @@ pub fn hint(graph: *Graph, source: Graph.Id) zx.Error!?Graph.Id {
 
         switch (step.route) {
             .Stable => return @fromBackingInt(step.value),
-            .Open => return if (graph.nodes.items(.facts)[@backingInt(step.root)].allowed != null) @fromBackingInt(step.value) else null,
+            .Open => return if (graph.nodes.items(.allowed)[@backingInt(step.root)] != null) @fromBackingInt(step.value) else null,
             .Declared => value = try register(graph, step),
             .Boundary => unreachable,
         }
@@ -58,7 +58,7 @@ pub fn payload(graph: *Graph, source: Graph.Id) zx.Error!Graph.Id {
             .Boundary => {
                 const root = graph.root(@fromBackingInt(step.value));
 
-                return graph.reporter.fail(.unsupported, graph.nodes.items(.facts)[@backingInt(root)].span, "type inference nesting exceeds 256 levels");
+                return graph.reporter.fail(.unsupported, graph.nodes.items(.span)[@backingInt(root)], "type inference nesting exceeds 256 levels");
             },
         }
     }
@@ -84,36 +84,16 @@ pub fn accepts(table: zx.ir.TypeTable, actual: zx.ir.TypeId, expected: zx.ir.Typ
 
     const types: Types = .{ .kinds = table.kinds, .children = table.first };
     var empty = std.heap.FixedBufferAllocator.init(&.{});
+    const Parameter = @typeInfo(@TypeOf(known_rule.executeValue)).@"fn".param_types[1].?;
+    const Request = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
 
-    return (known_rule.executeValue(empty.allocator(), &.{
+    const request: Request = .{
         .types = &types,
         .expected = @backingInt(expected),
         .actual = @backingInt(actual),
-    }) catch unreachable).accepts;
-}
+    };
 
-pub fn depth(table: zx.ir.TypeTable, value: zx.ir.TypeId) u64 {
-    const index = @backingInt(value);
-
-    if (table.kinds[index] != optional_tag) return 0;
-
-    if (!enabled) {
-        var current = index;
-        var count: u64 = 0;
-
-        while (table.kinds[current] == optional_tag) : (count += 1) current = table.first[current];
-
-        return count;
-    }
-
-    const types: Types = .{ .kinds = table.kinds, .children = table.first };
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    return (known_rule.executeValue(empty.allocator(), &.{
-        .types = &types,
-        .expected = index,
-        .actual = null,
-    }) catch unreachable).depth;
+    return (known_rule.executeValue(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &request else request) catch unreachable).accepts;
 }
 
 fn walk(graph: *const Graph, source: Graph.Id, remaining: u64) Step {
@@ -139,7 +119,7 @@ fn walk(graph: *const Graph, source: Graph.Id, remaining: u64) Step {
 }
 
 fn register(graph: *Graph, step: Step) zx.Error!Graph.Id {
-    return graph.known(@fromBackingInt(step.value), graph.nodes.items(.facts)[@backingInt(step.root)].span);
+    return graph.known(@fromBackingInt(step.value), graph.nodes.items(.span)[@backingInt(step.root)]);
 }
 
 fn seedWalk(graph: *const Graph, source: Graph.Id, remaining: u64) Step {

@@ -4,9 +4,11 @@
     <Args in={OptionalDepth.Input} out={OptionalDepth.Output} />
 
     <If on={$in.assignments.left.length == 0 && $in.optionals.left.length == 0}>
+        <Call fn="lower" in={$in.graph} />
+
         <Return
             value={{
-                depths: $in.depths,
+                depths: $ctx.lower,
                 issue: OptionalDepth.Issue.None,
                 position: 0
             }}

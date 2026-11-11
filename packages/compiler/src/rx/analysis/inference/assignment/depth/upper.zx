@@ -1,0 +1,25 @@
+import { max_u64 } from "core/const"
+
+import { Kind } from "../../unification/model"
+
+import type { Nodes } from "../model"
+
+export type Input = {
+    nodes: Nodes,
+    lower: u64[]
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    return in.nodes.kinds.map(
+        (kind, index) => {
+            const open = kind == Kind.Unknown && in.nodes.allowed[index] == null
+
+            return match {
+                kind == Kind.Optional || open => max_u64,
+                _ => in.lower[index]
+            }
+        }
+    )[0]
+}

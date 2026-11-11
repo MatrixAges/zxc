@@ -37,6 +37,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/condition/plan.zx", .name = "rx_condition_plan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/depth/solve.rx", .name = "assignment_depth", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/assignment/depth/edges.zx", .name = "assignment_optional_edges", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/bindings/status.zx", .name = "rx_binding_status", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/bindings/pair.zx", .name = "rx_binding_pair", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/bindings/uses.zx", .name = "rx_binding_uses", .owner = .rx_analysis },

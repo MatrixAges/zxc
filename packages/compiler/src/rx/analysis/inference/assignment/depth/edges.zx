@@ -1,0 +1,74 @@
+import integers from "std:integer"
+
+import representative from "../../forest/representative"
+import { Kind } from "../../unification/model"
+
+import type { Kind as ShapeKind } from "../../unification/model"
+
+export type Input = {
+    kinds: ShapeKind[],
+    arguments: u32[],
+    parents: u32[],
+    left: u32[],
+    right: u32[],
+    index: u64,
+    count: u64,
+    position: u64,
+    collecting: bool
+}
+
+export type Output = {
+    parents: u32[],
+    left: u32[],
+    right: u32[]
+}
+
+export default function (in: Input): Output {
+    const zero: u32 = 0
+
+    return loop(in, {
+        while: state => !state.collecting || state.index < state.kinds.length,
+        next: state => {
+            if (state.index == state.kinds.length) {
+                state.collecting = true
+
+                if (state.count != 0) {
+                    const rows = state.kinds.splice(0, state.count, [])[1]
+
+                    state.left = rows.map(kind => zero)[0]
+                    state.right = rows.map(kind => zero)[0]
+                    state.index = 0
+                }
+            } else {
+                const index = state.index
+                const optional = state.kinds[index] == Kind.Optional
+
+                if (
+                    optional && integers.widen(state.parents[index]) == index
+                ) {
+                    if (state.collecting) {
+                        const root = representative({
+                            parents: state.parents,
+                            value: state.arguments[index]
+                        })
+                        const parent = integers.narrow(index)
+
+                        state.parents = root.parents
+                        state.left[state.position] = root.item
+                        state.right[state.position] = parent
+                        state.position += 1
+                    } else {
+                        state.count += 1
+                    }
+                }
+
+                state.index += 1
+            }
+        },
+        return: state => ({
+            parents: state.parents,
+            left: state.left,
+            right: state.right
+        })
+    })
+}

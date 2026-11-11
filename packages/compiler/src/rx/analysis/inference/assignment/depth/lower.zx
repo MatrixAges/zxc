@@ -1,0 +1,30 @@
+import integers from "std:integer"
+import { kind_optional } from "core/type_table/const"
+
+import known from "../../optional/known"
+import { Kind } from "../../unification/model"
+
+import type { Graph } from "./model"
+
+export type Input = Graph
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    return in.nodes.kinds.map((kind, index) => {
+        const expected = in.arguments[index]
+
+        return match kind {
+            Kind.Optional => 1,
+            Kind.Known => match {
+                in.types.kinds[integers.widen(expected)] == kind_optional => known({
+                    types: in.types,
+                    expected,
+                    actual: null
+                }).depth,
+                _ => 0
+            },
+            _ => 0
+        }
+    })[0]
+}

@@ -1,3 +1,10 @@
+import type { Kind } from "../unification/model"
+
+export type Nodes = {
+    kinds: Kind[],
+    allowed: u16?[]
+}
+
 export type Edges = {
     left: u32[],
     right: u32[]

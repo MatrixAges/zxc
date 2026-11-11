@@ -1,10 +1,5 @@
-import type { Edges } from "../model"
-
-export enum Fact {
-    Open,
-    Optional,
-    Exact
-}
+import type { Types } from "../../optional/model"
+import type { Edges, Nodes } from "../model"
 
 export enum Issue {
     None,
@@ -22,9 +17,14 @@ export enum Stage {
     Done
 }
 
+export type Graph = {
+    nodes: Nodes,
+    arguments: u32[],
+    types: Types
+}
+
 export type Input = {
-    facts: Fact[],
-    depths: u64[],
+    graph: Graph,
     assignments: Edges,
     optionals: Edges
 }

@@ -15,18 +15,18 @@ pub const Kind = if (enabled) std.meta.Elem(@FieldType(View, "kinds")) else enum
     Tuple,
 };
 
-const Facts = struct {
-    span: zx.Span,
-    allowed: ?Graph.Mask = null,
-    fallback: ?zx.ir.Scalar = null,
-};
-
 const Row = struct {
     kind: Kind,
     argument: u32,
     members: []const u32,
-    facts: Facts,
+    span: zx.Span,
+    allowed: ?u16 = null,
+    fallback: ?zx.ir.Scalar = null,
 };
+
+comptime {
+    if (Graph.Mask.len > @bitSizeOf(u16)) @compileError("scalar constraints exceed the type graph mask column");
+}
 
 pub const Storage = std.MultiArrayList(Row);
 
@@ -51,7 +51,7 @@ pub fn record(value: Graph.Shape, span: zx.Span) Row {
             .tuple => |members| @ptrCast(members),
             else => &.{},
         },
-        .facts = .{ .span = span },
+        .span = span,
     };
 }
 
@@ -67,10 +67,14 @@ pub fn shape(rows: Storage.Slice, index: usize) Graph.Shape {
     };
 }
 
-pub fn get(rows: Storage.Slice, index: usize) Graph.Node {
-    const facts = rows.items(.facts)[index];
+pub fn allowed(rows: Storage.Slice, index: usize) ?Graph.Mask {
+    const bits = rows.items(.allowed)[index] orelse return null;
 
-    return .{ .shape = shape(rows, index), .span = facts.span, .allowed = facts.allowed, .fallback = facts.fallback };
+    return .{ .bits = .{ .mask = @intCast(bits) } };
+}
+
+pub fn get(rows: Storage.Slice, index: usize) Graph.Node {
+    return .{ .shape = shape(rows, index), .span = rows.items(.span)[index], .allowed = allowed(rows, index), .fallback = rows.items(.fallback)[index] };
 }
 
 pub fn setShape(rows: Storage.Slice, index: usize, value: Graph.Shape) void {

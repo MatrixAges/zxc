@@ -5,38 +5,9 @@ const Graph = @import("../types.zig");
 pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     if (!@import("rx_options").generated_graph) return @import("depth/seed.zig").solve(graph, scratch);
 
-    const generated = @import("generated_assignment_depth");
-    const Input = @typeInfo(generated.Input).pointer.child;
-    const Fact = std.meta.Elem(@FieldType(Input, "facts"));
     const rows = graph.nodes.slice();
     const kinds = rows.items(.kind);
     const arguments = rows.items(.argument);
-    const metadata = rows.items(.facts);
-    const types = graph.types.items.view();
-    const depths = try scratch.alloc(u64, kinds.len);
-    const facts = try scratch.alloc(Fact, kinds.len);
-    var optional_count: usize = 0;
-
-    for (kinds, arguments, metadata, depths, facts, 0..) |kind, argument, node, *depth, *fact, index| {
-        depth.* = 0;
-        fact.* = .Exact;
-
-        switch (kind) {
-            .Known => depth.* = @import("../optional.zig").depth(types, @fromBackingInt(argument)),
-            .Optional => {
-                depth.* = 1;
-                fact.* = .Optional;
-
-                const id: Graph.Id = @fromBackingInt(@intCast(index));
-                optional_count += @intFromBool(graph.forest.parent(id) == id);
-            },
-            .Unknown => if (node.allowed == null) {
-                fact.* = .Open;
-            },
-            else => {},
-        }
-    }
-
     const assignments = graph.assignments.slice();
 
     for (assignments.items(.value), assignments.items(.expected)) |*value, *expected| {
@@ -44,46 +15,51 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
         expected.* = graph.root(expected.*);
     }
 
-    const left = try scratch.alloc(u32, optional_count);
-    const right = try scratch.alloc(u32, optional_count);
-    var position: usize = 0;
+    const optional = @import("generated_assignment_optional_edges").executeState(scratch, .{
+        .kinds = .{ .items = kinds, .storage = .plain },
+        .arguments = .{ .items = arguments, .storage = .plain },
+        .parents = graph.forest.state,
+        .left = .{ .items = &.{}, .storage = .plain },
+        .right = .{ .items = &.{}, .storage = .plain },
+        .index = 0,
+        .position = 0,
+        .count = 0,
+        .collecting = false,
+    }) catch |err| return allocationFailure(err);
 
-    for (kinds, arguments, 0..) |kind, argument, index| {
-        if (kind != .Optional) continue;
+    std.debug.assert(optional.parents.items.ptr == graph.forest.state.items.ptr);
 
-        const id: Graph.Id = @fromBackingInt(@intCast(index));
-
-        if (graph.forest.parent(id) != id) continue;
-
-        left[position] = @backingInt(graph.root(@fromBackingInt(argument)));
-        right[position] = @intCast(index);
-        position += 1;
-    }
-
-    const solution = generated.executeValue(scratch, &.{
-        .facts = facts,
-        .depths = depths,
+    const solution = @import("generated_assignment_depth").executeValue(scratch, &.{
+        .graph = &.{
+            .nodes = &.{ .kinds = kinds, .allowed = rows.items(.allowed) },
+            .arguments = arguments,
+            .types = &.{ .kinds = graph.types.items.kinds.items, .children = graph.types.items.first.items },
+        },
         .assignments = &.{ .left = @ptrCast(assignments.items(.value)), .right = @ptrCast(assignments.items(.expected)) },
-        .optionals = &.{ .left = left, .right = right },
-    }) catch |err| switch (err) {
-        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
-        error.IndexOutOfBounds => unreachable,
-    };
+        .optionals = &.{ .left = optional.left.items, .right = optional.right.items },
+    }) catch |err| return allocationFailure(err);
 
     return switch (solution.issue) {
         .None => solution.depths,
-        .Bounds, .OptionalToRequired => failure(graph, right, @intCast(solution.position), switch (solution.issue) {
+        .Bounds, .OptionalToRequired => failure(graph, optional.right.items, @intCast(solution.position), switch (solution.issue) {
             .Bounds => "incompatible optional input requirements",
             .OptionalToRequired => "optional input cannot satisfy a non-optional requirement",
             else => unreachable,
         }),
-        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments.items(.span)[0] else metadata[0].span, "inference would require a recursive optional type"),
+        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments.items(.span)[0] else rows.items(.span)[0], "inference would require a recursive optional type"),
+    };
+}
+
+fn allocationFailure(err: anyerror) zx.Error {
+    return switch (err) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => error.OutOfMemory,
+        else => unreachable,
     };
 }
 
 fn failure(graph: *Graph, parents: []const u32, position: usize, message: []const u8) zx.Error {
     const assignments = graph.assignments.items(.span);
-    const span = if (position < assignments.len) assignments[position] else graph.nodes.items(.facts)[parents[position - assignments.len]].span;
+    const span = if (position < assignments.len) assignments[position] else graph.nodes.items(.span)[parents[position - assignments.len]];
 
     return graph.reporter.fail(.type_mismatch, span, message);
 }

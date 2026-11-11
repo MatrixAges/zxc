@@ -51,10 +51,12 @@ for (const family of families) {
     const prefix = `language/expressions/match/scalars/${family.name}`
     const rows = []
     const enumeration = family.name === 'enum'
-    const declarations = enumeration ? 'export enum State { First, Second, Third }\n\n' : ''
+    const declarations = enumeration ? 'export enum State {\n    First,\n    Second,\n    Third\n}\n\n' : ''
     const indent = enumeration ? '    ' : '  '
-    const field_indent = enumeration ? '    ' : ' '
     const branch_indent = indent.repeat(2)
+    const input_type = enumeration
+        ? `{\n    target: ${family.type}\n    first: ${family.type}\n    second: ${family.type}\n}`
+        : `{ target: ${family.type}\n first: ${family.type}\n second: ${family.type} }`
     const bindings = enumeration
         ? ['target', 'first', 'second']
               .map(
@@ -87,9 +89,7 @@ for (const family of families) {
 
     writeOutput(
         `tests/${prefix}.zx`,
-        `${declarations}export type Input = { target: ${family.type}
-${field_indent}first: ${family.type}
-${field_indent}second: ${family.type} }
+        `${declarations}export type Input = ${input_type}
 
 export type Output = u8
 
@@ -134,7 +134,7 @@ const cases = [
     ['unsupported_i16', '', 'i16', 'match in { _ => 11 }', 'analyze', 'name'],
     [
         'enum_missing_default',
-        'export enum State { First, Second }\n\n',
+        'export enum State {\n    First,\n    Second\n}\n\n',
         'State',
         'match in { State.First => 11, State.Second => 22, }',
         'parse',
@@ -142,7 +142,7 @@ const cases = [
     ],
     [
         'foreign_enum',
-        'export enum State { First }\n\nexport enum Other { First }\n\n',
+        'export enum State {\n    First\n}\n\nexport enum Other {\n    First\n}\n\n',
         'State',
         'match in { Other.First => 11, _ => 22 }',
         'analyze',
@@ -150,7 +150,7 @@ const cases = [
     ],
     [
         'enum_numeric_pattern',
-        'export enum State { First }\n\n',
+        'export enum State {\n    First\n}\n\n',
         'State',
         'match in { 0 => 11, _ => 22 }',
         'analyze',

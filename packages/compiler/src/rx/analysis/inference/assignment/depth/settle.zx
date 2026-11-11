@@ -1,7 +1,10 @@
 import integers from "std:integer"
 import { max_u64 } from "core/const"
 
-import { Fact, Issue, Stage } from "./model"
+import { Kind } from "../../unification/model"
+import initialLower from "./lower"
+import { Issue, Stage } from "./model"
+import initialUpper from "./upper"
 
 import type { Input as Problem, Output as Solution } from "./model"
 
@@ -12,14 +15,21 @@ export type Output = Solution
 export default function (in: Input): Output {
     const assignment_count = in.assignments.left.length
     const edge_count = assignment_count + in.optionals.left.length
+    const nodes = in.graph.nodes
+    const lower = initialLower(in.graph)
+
+    const upper = initialUpper({
+        nodes,
+        lower
+    })
 
     return loop({
-        lower: in.depths.map(depth => depth)[0],
-        upper: in.depths.map(
-            (depth, index) =>
-                in.facts[index] == Fact.Exact ? depth : max_u64
+        lower,
+        upper,
+        prefer_lower: nodes.kinds.map(
+            (kind, index) =>
+                kind != Kind.Unknown || nodes.allowed[index] != null
         )[0],
-        prefer_lower: in.facts.map(fact => fact != Fact.Open)[0],
         stage: Stage.Minimum,
         issue: Issue.None,
         position: 0,

@@ -20,15 +20,23 @@ const base = 'tests/language/expressions/comparison/optional_enum/cases'
 writeCatalog(base + '.jsonl', rows)
 writeOutput(
     base + '.zx',
-    `export enum State { First, Second, Third }
+    `export enum State {
+    First,
+    Second,
+    Third
+}
 
-export type Input = { left?: u8
-    right?: u8 }
+export type Input = {
+    left?: u8
+    right?: u8
+}
 
-export type Output = { equal: bool
+export type Output = {
+    equal: bool
     different: bool
     left_none: bool
-    right_none: bool }
+    right_none: bool
+}
 
 export default function (in: Input): Output {
     const left: State? = match {
@@ -45,7 +53,12 @@ export default function (in: Input): Output {
         _ => State.Third
     }
 
-    return { equal: left == right, different: left != right, left_none: left == null, right_none: null == right }
+    return {
+        equal: left == right,
+        different: left != right,
+        left_none: left == null,
+        right_none: null == right
+    }
 }
 `
 )
@@ -65,9 +78,17 @@ for (const [name, operator] of [
 
         frontend.push({
             id: `language/types/optional_enum/${name}/${identity}`,
-            source: `export enum State { First, Second, Third }
+            source: `export enum State {
+    First,
+    Second,
+    Third
+}
 
-export enum Other { First, Second, Third }
+export enum Other {
+    First,
+    Second,
+    Third
+}
 
 export type Input = { left?: State
  right?: ${right_type} }

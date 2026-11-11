@@ -1,11 +1,14 @@
 import integers from "std:integer"
 
+import { Kind } from "../../unification/model"
+
+import type { Nodes } from "../model"
 import type { Output as Classes } from "./model"
 
 export type Input = {
     parents: u32[],
     payloads: u32[],
-    candidates: bool[]
+    nodes: Nodes
 }
 
 export type Output = Classes
@@ -20,10 +23,14 @@ export default function (in: Input): Output {
     }, {
         while: state => state.index < in.payloads.length,
         next: state => {
-            if (in.candidates[state.index]) {
-                const payload = in.payloads[state.index]
+            const payload = in.payloads[state.index]
+            const index = integers.widen(payload)
 
-                const parent = parents[integers.widen(payload)]
+            if (
+                in.nodes.kinds[index] != Kind.Unknown ||
+                    in.nodes.allowed[index] != null
+            ) {
+                const parent = parents[index]
 
                 state.values[integers.widen(parent)] = payload
             }

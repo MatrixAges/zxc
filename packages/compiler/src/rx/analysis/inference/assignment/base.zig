@@ -23,20 +23,12 @@ fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         try payloads.append(allocator, @backingInt(try payload(graph, @fromBackingInt(@intCast(index)))));
     }
 
-    const candidates = try allocator.alloc(bool, payloads.items.len);
     const rows = graph.nodes.slice();
-    const kinds = rows.items(.kind);
-    const facts = rows.items(.facts);
-
-    for (payloads.items, candidates) |id, *candidate| {
-        candidate.* = kinds[id] != .Unknown or facts[id].allowed != null;
-    }
-
     const edges = graph.assignments.slice();
 
     const classes = generated.executeValue(allocator, &.{
         .payloads = payloads.items,
-        .candidates = candidates,
+        .nodes = &.{ .kinds = rows.items(.kind), .allowed = rows.items(.allowed) },
         .edges = &.{ .left = @ptrCast(edges.items(.value)), .right = @ptrCast(edges.items(.expected)) },
     }) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
@@ -73,7 +65,7 @@ fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         const index_of_base = @backingInt(base);
         const rows = graph.nodes.slice();
 
-        if (rows.items(.kind)[index_of_base] == .Unknown and rows.items(.facts)[index_of_base].allowed == null) continue;
+        if (rows.items(.kind)[index_of_base] == .Unknown and rows.items(.allowed)[index_of_base] == null) continue;
 
         representatives[root(parents, @backingInt(base))] = @backingInt(base);
     }

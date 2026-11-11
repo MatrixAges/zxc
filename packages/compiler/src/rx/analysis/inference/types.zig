@@ -117,7 +117,8 @@ pub fn requireValue(self: *Self, value: Id, span: zx.Span) zx.Error!void {
 pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void {
     const index = @backingInt(self.root(id));
     const current = self.shapeAt(index);
-    const facts = &self.nodes.items(.facts)[index];
+    const rows = self.nodes.slice();
+    const previous = &rows.items(.allowed)[index];
 
     const known_scalar: ?zx.ir.Scalar = if (current == .known) switch (self.types.get(current.known)) {
         .scalar => |value| value,
@@ -130,7 +131,7 @@ pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void
         else => .structure,
     };
 
-    const merged = Scalar.restrict(facts.allowed, allowed, constraint_shape, known_scalar);
+    const merged = Scalar.restrict(Nodes.allowed(rows, index), allowed, constraint_shape, known_scalar);
 
     switch (merged.issue) {
         .none => {},
@@ -139,19 +140,24 @@ pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void
         .structure => return self.reporter.fail(.type_mismatch, span, "the operator requires a scalar value"),
     }
 
-    if (facts.allowed == null or !facts.allowed.?.eql(merged.allowed)) {
+    const bits: u16 = @intCast(merged.allowed.bits.mask);
+
+    if (previous.* == null or previous.*.? != bits) {
         self.revision += 1;
     }
 
-    facts.allowed = merged.allowed;
+    previous.* = bits;
 }
 
 pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.Error!Id {
     const number_type = Scalar.literal(text, negative);
     const id = try self.add(.unknown, span);
-    const facts = &self.nodes.items(.facts)[@backingInt(id)];
-    facts.allowed = number_type.allowed;
-    facts.fallback = number_type.fallback;
+    const rows = self.nodes.slice();
+    const index = @backingInt(id);
+
+    rows.items(.allowed)[index] = @intCast(number_type.allowed.bits.mask);
+    rows.items(.fallback)[index] = number_type.fallback;
+
     self.revision += 1;
 
     return id;
@@ -189,7 +195,7 @@ pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
         .Open => {},
     }
 
-    if (self.nodes.items(.facts)[index].allowed != null) return self.reporter.fail(.type_mismatch, span, "object fields conflict with scalar requirements");
+    if (self.nodes.items(.allowed)[index] != null) return self.reporter.fail(.type_mismatch, span, "object fields conflict with scalar requirements");
 
     const fields: Fields = if (value == .object) value.object else .{};
 

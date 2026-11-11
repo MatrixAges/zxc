@@ -7,7 +7,7 @@ const header = 'export type Input = Code\n\nexport type Output = u64\n\n'
 const body =
     'export default function (in: Input): Output {\n  return match choose(in) { State.First => 11, State.Second => 22, _ => 33 }\n}\n'
 
-writeOutput(base + 'types.zx', 'export enum State { First, Second, Third }\n\nexport type Code = u8\n')
+writeOutput(base + 'types.zx', 'export enum State {\n    First,\n    Second,\n    Third\n}\n\nexport type Code = u8\n')
 writeOutput(
     base + 'nested/choose.zx',
     'import { State } from "../types"\n\nimport type { Code } from "../types"\n\nexport type Input = Code\n\nexport type Output = State\n\nexport default function (in: Input): Output {\n    return match {\n        in == 0 => State.First,\n        in == 1 => State.Second,\n        _ => State.Third\n    }\n}\n'

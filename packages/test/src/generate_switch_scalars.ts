@@ -1,6 +1,15 @@
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
 
 type Frontend = { id: string; source: string; phase: string; diagnostic: string | null; span?: Array<number> }
+
+const state_declaration = `export enum State {
+    First,
+    Second,
+    Third
+}
+
+`
+
 const groups = [
     {
         name: 'integer',
@@ -35,7 +44,7 @@ const groups = [
     {
         name: 'enumeration',
         type: 'u8',
-        header: 'export enum State { First, Second, Third }\n\n',
+        header: state_declaration,
         setup: '    const value = match {\n        in == 0 => State.First,\n        in == 1 => State.Second,\n        _ => State.Third\n    }\n\n',
         subject: 'value',
         cases: 'case State.First: return 1\n    case State.Second: return 2\n    case State.Third: return 3\n',
@@ -80,7 +89,7 @@ const duplicates = [
 ]
 const frontend: Array<Frontend> = duplicates.map(sample => ({
     id: `language/statements/switch_scalars/duplicate/${sample.name}`,
-    source: `export enum State { First, Second, Third }\n\nexport type Input = ${sample.type}
+    source: `${state_declaration}export type Input = ${sample.type}
 
 export type Output = u64
 
@@ -100,7 +109,7 @@ for (const type of ['bool', 'State'])
     for (const fallback of [false, true])
         frontend.push({
             id: `language/statements/switch_scalars/exhaustive/${type}/${fallback}`,
-            source: `export enum State { First, Second, Third }\n\nexport type Input = ${type}
+            source: `${state_declaration}export type Input = ${type}
 
 export type Output = u64
 
