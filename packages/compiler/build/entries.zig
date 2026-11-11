@@ -204,6 +204,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/statements/basic/store_target.zx", .name = "statement_store_target", .owner = .genz },
     .{ .path = "genz/ast/fresh/suffix.zx", .name = "fresh_name_suffix", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/binding/bind.zx", .name = "operand_binding", .owner = .genz },
+    .{ .path = "genz/analysis/aggregate/binding/reference.zx", .name = "operand_reference", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/operands/bindings.zx", .name = "aggregate_operand_bindings", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/operands/retire.zx", .name = "aggregate_operand_retirement", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/binding/finish.zx", .name = "result_block", .owner = .genz },

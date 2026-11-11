@@ -1,0 +1,24 @@
+import integers from "std:integer"
+
+import type { Input as Bases } from "../../../ast/context/model"
+import type { Input as Output } from "../../aggregate/binding/model"
+import type { Value } from "./model"
+
+export type Input = {
+    bases: Bases,
+    literal: Value
+}
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.bases.expression_base)
+
+    return {
+        ...in.bases.pick([
+            "statement_base",
+            "serial"
+        ]),
+        value: in.literal.root,
+        expression_base: integers.narrow(first + in.literal.expressions.tags.length),
+        body_count: in.literal.statements.tags.length
+    }
+}

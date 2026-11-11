@@ -1,7 +1,9 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
+const rows = @import("../../node/import_rows.zig");
 const Self = @This();
 
 name: []const u8,
@@ -10,13 +12,44 @@ reference: node.ExpressionId,
 pub const empty: Self = .{ .name = &.{}, .value = @fromBackingInt(0), .reference = @fromBackingInt(0) };
 
 pub fn lower(lowering: *Lower, id: ir.ExprId) Lower.Error!Self {
-    var storage: [1]node.Statement = undefined;
-    var body = std.ArrayList(node.Statement).initBuffer(&storage);
-    const reference = try @import("../aggregate.zig").bind(lowering, &body, try lowering.expr(id));
+    return bind(lowering, try lowering.expr(id));
+}
 
-    std.debug.assert(body.items.len == 1);
+noinline fn bind(lowering: *Lower, value: node.ExpressionId) Lower.Error!Self {
+    const entry = @import("generated_operand_reference");
+    const Input = std.meta.Child(entry.Input);
 
-    const binding = body.items[0].constant;
+    const input: Input = .{
+        .expression_base = @intCast(lowering.builder.nodes.expressions.tags.items.len),
+        .serial = lowering.serial,
+    };
 
-    return .{ .name = binding.name, .value = binding.value, .reference = reference };
+    var scratch = std.heap.ArenaAllocator.init(lowering.workspace);
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+
+    defer scratch.deinit();
+
+    const output = zx.columns.invoke(entry.executeValue, memory.allocator(), &input) catch |err| return failure(err);
+
+    if (!output.valid) return error.OutOfMemory;
+
+    const name = try lowering.allocator.dupe(u8, output.name);
+    const names = [_][]const u8{name};
+    var expressions = zx.columns.view(std.meta.Child(@FieldType(std.meta.Child(entry.Output), "expressions")), output.expressions);
+
+    expressions.identifier = &names;
+
+    rows.appendBorrowed(lowering.allocator, &lowering.builder.nodes.expressions, &expressions) catch |err| return failure(err);
+
+    lowering.serial = output.serial;
+
+    return .{ .name = name, .value = value, .reference = @fromBackingInt(output.root) };
+}
+
+fn failure(err: anyerror) Lower.Error {
+    return switch (err) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => error.OutOfMemory,
+        else => unreachable,
+    };
 }

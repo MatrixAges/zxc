@@ -5,6 +5,7 @@ const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 const Operand = @import("operand.zig");
 const emitting = @import("literals.zig");
+const recursive_scratch_bytes = 1024;
 
 pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (!@import("genz_options").generated_analysis) return @import("aggregate_seed.zig").lower(self, id);
@@ -13,7 +14,7 @@ pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!node.ExpressionId {
     const expression = lowering.program.expression(id);
     const type_expr = try @import("types.zig").get(self, expression.type_id);
     var scratch = std.heap.ArenaAllocator.init(lowering.workspace);
-    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var buffer: [recursive_scratch_bytes]u8 = undefined;
     var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
     defer scratch.deinit();

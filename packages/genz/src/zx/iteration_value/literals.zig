@@ -1,6 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
+const rows = @import("../../node/import_rows.zig");
 const view = @import("../../node/view.zig");
 const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
@@ -41,7 +42,7 @@ pub const Request = struct {
     prior: []const u64 = &.{},
 };
 
-pub fn lower(context: *Context, args: Request) Lower.Error!node.ExpressionId {
+pub noinline fn lower(context: *Context, args: Request) Lower.Error!node.ExpressionId {
     const self = context.lowering;
     const Prepared = std.meta.Child(@FieldType(Input, "bindings"));
     const Counter = std.meta.Child(@FieldType(Input, "reads"));
@@ -84,20 +85,32 @@ pub fn lower(context: *Context, args: Request) Lower.Error!node.ExpressionId {
     defer scratch.deinit();
 
     const output = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
+    const block = output.block orelse return error.OutOfMemory;
 
-    if (!output.valid) return error.OutOfMemory;
+    if (!block.valid) return error.OutOfMemory;
 
-    const expressions = view.join(output.expressions.*, output.forms.*);
-    @import("../../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
+    const literal = output.literal;
+    const expressions = view.join(literal.expressions.*, literal.forms.*);
 
-    try @import("../../node/import_fields.zig").appendObject(self.allocator, &self.builder.nodes.field_columns, output.fields);
+    rows.appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
 
-    var body: std.ArrayList(node.Statement) = .empty;
-    @import("../../node/import_statements.zig").appendBorrowingText(self.allocator, &body, output.statements) catch |err| return failure(err);
+    try @import("../../node/import_fields.zig").appendObject(self.allocator, &self.builder.nodes.field_columns, literal.fields);
 
-    self.uses_allocator = self.uses_allocator or output.uses_allocator;
+    const label = try self.allocator.dupe(u8, block.name);
+    const labels = [_][]const u8{label};
+    var block_expressions = block.expressions.*;
+    var block_statements = block.statements.*;
+    block_expressions.block_label = &labels;
+    block_statements.break_value_label = &labels;
 
-    return @import("../aggregate.zig").finish(self, &body, @fromBackingInt(output.root));
+    rows.appendBorrowed(self.allocator, &self.builder.nodes.statements, literal.statements) catch |err| return failure(err);
+    rows.appendBorrowed(self.allocator, &self.builder.nodes.statements, &block_statements) catch |err| return failure(err);
+    rows.appendBorrowed(self.allocator, &self.builder.nodes.expressions, &block_expressions) catch |err| return failure(err);
+
+    self.uses_allocator = self.uses_allocator or literal.uses_allocator;
+    self.serial = block.serial;
+
+    return @fromBackingInt(block.root);
 }
 
 fn failure(err: anyerror) Lower.Error {

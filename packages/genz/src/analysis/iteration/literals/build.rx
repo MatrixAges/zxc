@@ -3,41 +3,31 @@
 
     <Args in={Literal.Input} out={Literal.Output} />
 
-    <Call fn="initialize" in={$in} />
-    <Call fn="bindings" in={$ctx.initialize} />
+    <Call module="emit" in={$in} />
 
-    <Switch on={$in.mode}>
-        <Case value={Literal.Mode.Object}>
-            <Call fn="object" in={$ctx.bindings} />
-            <Call fn="discard" in={$ctx.object} />
-            <Call fn="finish" in={$ctx.discard} />
+    <If on={!$ctx.emit.valid}>
+        <Return
+            value={{
+                literal: $ctx.emit,
+                block: null
+            }}
+        />
+    </If>
 
-            <Return value={$ctx.finish} />
-        </Case>
+    <Call
+        fn="block_input"
+        in={{
+            bases: $in.bases,
+            literal: $ctx.emit
+        }}
+    />
 
-        <Case value={Literal.Mode.Tuple}>
-            <Call fn="tuple" in={$ctx.bindings} />
-            <Call fn="cast" in={$ctx.tuple} />
-            <Call fn="finish" in={$ctx.cast} />
+    <Call fn="../../aggregate/binding/finish" in={$ctx.block_input} />
 
-            <Return value={$ctx.finish} />
-        </Case>
-
-        <Case value={Literal.Mode.List}>
-            <Call fn="array" in={$ctx.bindings} />
-
-            <If on={$in.bindings.references.length != 0}>
-                <Call fn="duplicate" in={$ctx.array} />
-                <Call fn="cast" in={$ctx.duplicate} />
-                <Call fn="finish" in={$ctx.cast} />
-
-                <Return value={$ctx.finish} />
-            </If>
-
-            <Call fn="cast" in={$ctx.array} />
-            <Call fn="finish" in={$ctx.cast} />
-
-            <Return value={$ctx.finish} />
-        </Case>
-    </Switch>
+    <Return
+        value={{
+            literal: $ctx.emit,
+            block: $ctx.finish
+        }}
+    />
 </Module>

@@ -3,6 +3,7 @@ import type { Table } from "core/type_table/model"
 import type { Input as Bases, State as Context } from "../../../ast/context/model"
 import type { Columns as Forms } from "../../../ast/expressions/forms/model"
 import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Output as Block } from "../../aggregate/binding/model"
 import type { Fields } from "../../aggregate/object/model"
 import type { Statements } from "../../aggregate/operands/model"
 
@@ -37,7 +38,7 @@ export type State = {
     root: u32
 }
 
-export type Output = {
+export type Value = {
     expressions: Expressions,
     forms: Forms,
     statements: Statements,
@@ -45,4 +46,9 @@ export type Output = {
     root: u32,
     uses_allocator: bool,
     valid: bool
+}
+
+export type Output = {
+    literal: Value,
+    block?: Block
 }
