@@ -8,13 +8,14 @@ pub const Error = model.Error || error{ConflictingInterface};
 
 allocator: std.mem.Allocator,
 temporary: std.mem.Allocator,
-modules: []const *const model.Module,
+modules: []const model.Module,
+plan: @import("graph.zig").Plan,
 type_mappings: []const []const ir.TypeId,
 functions: ir.FunctionStorage = .{},
 native_modules: ir.NativeModuleStorage = .{},
 module_functions: []?ir.FunctionId,
 pub fn module(self: *Self, index: usize) Error!?ir.Function {
-    const value = self.modules[index];
+    const value = &self.modules[index];
 
     if (!value.native_modules.validStructure() or !value.functions.validStructure()) return error.InvalidModule;
 
@@ -40,28 +41,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         id.* = try native.append(self.allocator, &self.native_modules, item, &nodes);
     }
 
-    for (0..value.functions.count(), function_mapping[0..value.functions.count()]) |row, *id| {
-        const signature = value.functions.at(row);
-        const input = try nodes.types.include(signature.input_type);
-        const output = try nodes.types.include(signature.output_type);
-
-        if (signature.external) |external| {
-            if (external.member.len == 0) return error.InvalidModule;
-
-            id.* = try self.importExternal(signature, input, output, external, &nodes);
-        } else {
-            const target = self.find(signature.file_name) orelse return error.InvalidModule;
-
-            if (!self.sourceDependency(value, signature.file_name)) return error.InvalidModule;
-
-            const target_id = self.module_functions[target] orelse return error.InvalidModule;
-            const callee = self.functions.at(@backingInt(target_id));
-
-            if (callee.input_type != input or callee.output_type != output or callee.output_ownership != signature.output_ownership) return error.ConflictingInterface;
-
-            id.* = target_id;
-        }
-    }
+    try self.bindSignatures(index, function_mapping[0..value.functions.count()], &nodes);
 
     if (comptime @import("parser_options").generated_parser) {
         try @import("dependencies/host.zig").verify(self, index, function_mapping);
@@ -85,8 +65,52 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
     return null;
 }
 
+fn bindSignatures(self: *Self, index: usize, mapping: []?ir.FunctionId, nodes: *Nodes) Error!void {
+    const value = &self.modules[index];
+    const generated = @import("parser_options").generated_parser;
+    const source = if (generated) @import("source_signature/host.zig") else void;
+    var arena = std.heap.ArenaAllocator.init(self.temporary);
+    var buffer: [2048]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
+
+    defer arena.deinit();
+
+    const memory = scratch.allocator();
+    var edges: if (generated) ?source.Edges else void = if (generated) null else {};
+
+    for (mapping, 0..) |*id, row| {
+        const signature = value.functions.at(row);
+
+        if (signature.external) |external| {
+            const input = try nodes.types.include(signature.input_type);
+            const output = try nodes.types.include(signature.output_type);
+
+            if (external.member.len == 0) return error.InvalidModule;
+
+            id.* = try self.importExternal(signature, input, output, external, nodes);
+        } else if (comptime generated) {
+            if (edges == null) edges = try source.project(self, memory, index);
+
+            id.* = try source.resolve(self, memory, index, edges.?, signature);
+        } else {
+            const input = try nodes.types.include(signature.input_type);
+            const output = try nodes.types.include(signature.output_type);
+            const target = self.findSeed(signature.file_name) orelse return error.InvalidModule;
+
+            if (!self.sourceDependencySeed(value, signature.file_name)) return error.InvalidModule;
+
+            const target_id = self.module_functions[target] orelse return error.InvalidModule;
+            const callee = self.functions.at(@backingInt(target_id));
+
+            if (callee.input_type != input or callee.output_type != output or callee.output_ownership != signature.output_ownership) return error.ConflictingInterface;
+
+            id.* = target_id;
+        }
+    }
+}
+
 fn importsSeed(self: *Self, index: usize, nodes: *Nodes) Error!void {
-    const value = self.modules[index];
+    const value = &self.modules[index];
 
     for (value.function_imports) |binding| {
         if (!binding.valid()) return error.InvalidModule;
@@ -119,8 +143,8 @@ fn importsSeed(self: *Self, index: usize, nodes: *Nodes) Error!void {
             continue;
         }
 
-        const target_index = self.find(dependency.target.source) orelse return error.InvalidModule;
-        const target = self.modules[target_index];
+        const target_index = self.findSeed(dependency.target.source) orelse return error.InvalidModule;
+        const target = &self.modules[target_index];
         const members = @import("members.zig");
         const consumers = if (dependency.exported) value.members else value.function_imports;
 
@@ -264,20 +288,20 @@ fn appendExternal(self: *Self, signature: model.Signature, implementation: ir.Ex
     });
 }
 
-pub fn find(self: *const Self, path: []const u8) ?usize {
-    for (self.modules, 0..) |value, index| {
-        if (std.mem.eql(u8, value.path, path)) return index;
+fn findSeed(self: *const Self, path: []const u8) ?usize {
+    for (self.plan.order) |index| {
+        if (std.mem.eql(u8, self.modules[index].path, path)) return index;
     }
 
     return null;
 }
 
-fn sourceDependency(self: *Self, value: *const model.Module, path: []const u8) bool {
+fn sourceDependencySeed(self: *Self, value: *const model.Module, path: []const u8) bool {
     for (value.dependencies) |dependency| {
         if (dependency.target != .source or dependency.kind == .type_only) continue;
         if (dependency.kind == .function and std.mem.eql(u8, dependency.target.source, path)) return true;
 
-        const target = self.modules[self.find(dependency.target.source) orelse return false];
+        const target = &self.modules[self.findSeed(dependency.target.source) orelse return false];
 
         for (target.members) |member| {
             if (member.intrinsic != null or !member.valid()) continue;

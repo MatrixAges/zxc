@@ -1,0 +1,21 @@
+import integers from "std:integer"
+
+import type { Ports } from "./model"
+
+export type Input = {
+    ports: Ports,
+    types: u32[]
+}
+
+export type Output = Ports
+
+export default function (in: Input): Output {
+    const input_id = integers.widen(in.ports.input_type)
+    const output_id = integers.widen(in.ports.output_type)
+
+    return {
+        input_type: in.types[input_id],
+        output_type: in.types[output_id],
+        ownership: in.ports.ownership
+    }
+}

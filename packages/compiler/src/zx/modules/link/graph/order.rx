@@ -10,7 +10,9 @@
             value={{
                 status: LinkGraph.Status.Invalid,
                 order: [],
-                count: 0
+                count: 0,
+                buckets: [],
+                targets: []
             }}
         />
     </If>
@@ -28,7 +30,9 @@
             value={{
                 status: LinkGraph.Status.Missing,
                 order: [],
-                count: 0
+                count: 0,
+                buckets: [],
+                targets: []
             }}
         />
     </If>
@@ -50,7 +54,9 @@
         value={{
             status: $ctx.status,
             order: $ctx.walk.order,
-            count: $ctx.walk.count
+            count: $ctx.walk.count,
+            buckets: $ctx.registry.index.buckets,
+            targets: $ctx.edges.targets
         }}
     />
 </Module>

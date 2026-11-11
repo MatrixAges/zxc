@@ -1,0 +1,72 @@
+<Module>
+    <Type from="model" as="Source" />
+
+    <Args in={Source.Request} out={Source.Output} />
+
+    <Call
+        fn="remap"
+        in={{
+            ports: $in.signature.ports,
+            types: $in.types
+        }}
+    />
+
+    <Call
+        fn="../graph/locate"
+        in={{
+            index: $in.registry,
+            key: $in.signature.key
+        }}
+    />
+
+    <If on={$ctx.locate == null}>
+        <Return
+            value={{
+                status: Source.Status.Invalid,
+                id: null
+            }}
+        />
+    </If>
+
+    <Call
+        fn="visible"
+        in={{
+            edges: $in.edges,
+            path: $in.signature.path
+        }}
+    />
+
+    <If on={!$ctx.visible}>
+        <Return
+            value={{
+                status: Source.Status.Invalid,
+                id: null
+            }}
+        />
+    </If>
+
+    <If on={$in.functions[$ctx.locate ?? 0] == null}>
+        <Return
+            value={{
+                status: Source.Status.Invalid,
+                id: null
+            }}
+        />
+    </If>
+
+    <Call
+        fn="compatible"
+        in={{
+            ports: $ctx.remap,
+            linked: $in.linked,
+            id: $in.functions[$ctx.locate ?? 0] ?? 0
+        }}
+    />
+
+    <Return
+        value={{
+            status: $ctx.compatible ? Source.Status.Ready : Source.Status.Conflict,
+            id: $in.functions[$ctx.locate ?? 0]
+        }}
+    />
+</Module>

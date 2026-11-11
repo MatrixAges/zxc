@@ -30,32 +30,31 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     const owned = arena.allocator();
     const scratch = temporary.allocator();
-    const order = try graph.order(scratch, modules, entry);
-    const sorted = try scratch.alloc(*const model.Module, order.len);
-    const mappings = try scratch.alloc([]const ir.TypeId, order.len);
-    const function_ids = try scratch.alloc(?ir.FunctionId, order.len);
+    const plan = try graph.prepare(scratch, modules, entry);
+    const order = plan.order;
+    const mappings = try scratch.alloc([]const ir.TypeId, modules.len);
+    const function_ids = try scratch.alloc(?ir.FunctionId, modules.len);
     var types = try Types.init(owned);
 
     @memset(function_ids, null);
 
-    for (order, sorted, mappings) |index, *module, *mapping| {
+    for (order) |index| {
         const source = &modules[index];
-
-        module.* = source;
-        mapping.* = try types.appendFrom(scratch, source.types, source.nominal_types, 0);
+        mappings[index] = try types.appendFrom(scratch, source.types, source.nominal_types, 0);
     }
 
-    var builder = Builder{ .allocator = owned, .temporary = scratch, .modules = sorted, .type_mappings = mappings, .module_functions = function_ids };
+    var builder = Builder{ .allocator = owned, .temporary = scratch, .modules = modules, .plan = plan, .type_mappings = mappings, .module_functions = function_ids };
     var root: ?ir.Function = null;
     var recursive_root: ?ir.FunctionId = null;
 
-    for (sorted, 0..) |module, index| {
+    for (order, 0..) |index, position| {
+        const module = &modules[index];
         const function = try builder.module(index);
         const id: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
 
         const action = try @import("link/placement.zig").select(
             scratch,
-            index + 1 == sorted.len,
+            position + 1 == order.len,
             module.stores.count(),
             if (function) |*body| body else null,
             id,
@@ -79,8 +78,9 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         }
     }
 
-    const module = sorted[sorted.len - 1];
-    const mapping = TypeMap{ .mapped = mappings[mappings.len - 1] };
+    const entry_index = order[order.len - 1];
+    const module = &modules[entry_index];
+    const mapping = TypeMap{ .mapped = mappings[entry_index] };
     const exports = try owned.dupe(ir.Export, module.exports);
     var nodes = @import("artifact/nodes.zig"){ .allocator = owned, .types = mapping, .functions = .{ .indexed = &.{} }, .native_modules = .{ .indexed = &.{} } };
     const stores = try nodes.stores(module.stores);

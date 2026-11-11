@@ -24,7 +24,7 @@ const Context = struct {
 };
 
 pub fn verify(self: *Builder, index: usize, functions: []const ?ir.FunctionId) Builder.Error!void {
-    const consumer = self.modules[index];
+    const consumer = &self.modules[index];
     var arena = std.heap.ArenaAllocator.init(self.temporary);
     var buffer: [2048]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
@@ -55,11 +55,16 @@ pub fn verify(self: *Builder, index: usize, functions: []const ?ir.FunctionId) B
 
     try decision(checks.executeValue, memory, &input);
 
+    const targets = self.plan.sources(index);
+    var source_index: usize = 0;
+
     for (consumer.dependencies) |*dependency| {
         if (dependency.target == .source) {
-            const target_index = self.find(dependency.target.source) orelse return error.InvalidModule;
+            const target_index: usize = @intCast(targets[source_index]);
 
             try check(self, index, target_index, dependency, &context);
+
+            source_index += 1;
         } else {
             const external = @import("generated_artifact_external_dependency");
 
@@ -79,8 +84,8 @@ pub fn verify(self: *Builder, index: usize, functions: []const ?ir.FunctionId) B
 }
 
 fn check(self: *Builder, index: usize, target_index: usize, dependency: *const Record.Import, context: *const Context) Builder.Error!void {
-    const consumer = self.modules[index];
-    const provider = self.modules[target_index];
+    const consumer = &self.modules[index];
+    const provider = &self.modules[target_index];
     var arena = std.heap.ArenaAllocator.init(self.temporary);
     var buffer: [2048]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
@@ -145,7 +150,7 @@ fn failure(err: anyerror) Builder.Error {
     return if (err == error.OutOfMemory) error.OutOfMemory else error.InvalidModule;
 }
 
-fn signatures(source: ir.SignatureTable) Signatures {
+pub fn signatures(source: ir.SignatureTable) Signatures {
     return .{
         .files = source.files,
         .input_types = source.input_types,
@@ -154,7 +159,7 @@ fn signatures(source: ir.SignatureTable) Signatures {
     };
 }
 
-fn bindings(allocator: std.mem.Allocator, source: []const Binding) std.mem.Allocator.Error!Bindings {
+pub fn bindings(allocator: std.mem.Allocator, source: []const Binding) std.mem.Allocator.Error!Bindings {
     const names = try allocator.alloc([]const u8, source.len);
     const namespaces = try allocator.alloc(?[]const u8, source.len);
     const ids = try allocator.alloc(?u32, source.len);

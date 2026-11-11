@@ -75,6 +75,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/link/dependencies/bindings.rx", .name = "artifact_binding_checks" },
     .{ .path = "zx/modules/link/dependencies/external.zx", .name = "artifact_external_dependency" },
     .{ .path = "zx/modules/link/placement/place.rx", .name = "artifact_placement" },
+    .{ .path = "zx/modules/link/source_signature/resolve.rx", .name = "artifact_source_signature" },
     .{ .path = "zx/ir/canonical/refinement/facts/mark.rx", .name = "refinement_mark" },
     .{ .path = "zx/ir/canonical/refinement/facts/restore.rx", .name = "refinement_restore" },
     .{ .path = "zx/ir/canonical/refinement/facts/add.rx", .name = "refinement_add" },

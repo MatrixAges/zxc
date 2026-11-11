@@ -1,0 +1,40 @@
+import type { Index } from "core/bytes/index/model"
+import type { Ownership } from "core/symbol_table/model"
+import type { Bindings, Signatures } from "../dependencies/model"
+
+export enum Status { Ready, Invalid, Conflict }
+
+export enum Visibility { Found, Missing, Invalid }
+
+export type Edge = {
+    path: string,
+    default_call: bool,
+    members?: Bindings,
+    files: string[]
+}
+
+export type Ports = {
+    input_type: u32,
+    output_type: u32,
+    ownership: Ownership
+}
+
+export type Signature = {
+    path: string,
+    key: u8[],
+    ports: Ports
+}
+
+export type Request = {
+    signature: Signature,
+    types: u32[],
+    registry: Index,
+    edges: Edge[],
+    functions: u32?[],
+    linked: Signatures
+}
+
+export type Output = {
+    status: Status,
+    id?: u32
+}

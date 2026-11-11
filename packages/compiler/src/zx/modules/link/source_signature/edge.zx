@@ -1,0 +1,55 @@
+import integers from "std:integer"
+
+import valid from "../dependencies/binding_valid"
+import { Visibility } from "./model"
+
+import type { Edge } from "./model"
+
+export type Input = {
+    edge: Edge,
+    path: string
+}
+
+export type Output = Visibility
+
+export default function (in: Input): Output {
+    const { edge, path } = in
+
+    if (edge.default_call && edge.path == path) {
+        return Visibility.Found
+    }
+
+    const members = edge.members
+
+    if (members == null) {
+        return Visibility.Missing
+    }
+
+    return loop({
+        row: 0,
+        status: Visibility.Missing
+    }, {
+        while: state =>
+            state.status == Visibility.Missing && state.row < members.names.length,
+        next: state => {
+            const row = state.row
+            const id = members.ids[row]
+
+            if (id != null && valid({
+                bindings: members,
+                row
+            })) {
+                const index = integers.widen(id)
+
+                if (index >= edge.files.length) {
+                    state.status = Visibility.Invalid
+                } else if (edge.files[index] == path) {
+                    state.status = Visibility.Found
+                }
+            }
+
+            state.row += 1
+        },
+        return: state => state.status
+    })
+}
