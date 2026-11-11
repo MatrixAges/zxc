@@ -1,0 +1,41 @@
+import type { Kind as Concrete } from "core/type_table/model"
+
+export enum Kind {
+    Unknown,
+    Sequence,
+    Known,
+    Object,
+    List,
+    Optional,
+    Tuple
+}
+
+export enum Route {
+    Left,
+    Right,
+    Known,
+    Child,
+    Tuple,
+    Object,
+    SequenceMismatch,
+    ShapeMismatch,
+    TupleMismatch,
+    ConcreteMismatch,
+    ConcreteObjectMismatch,
+    ConcreteContainerMismatch,
+    ConcreteTupleMismatch
+}
+
+export type Shape = {
+    kind: Kind,
+    concrete: Concrete,
+    identity: u32,
+    size: u64
+}
+
+export type Input = {
+    left: Shape,
+    right: Shape
+}
+
+export type Output = Route

@@ -1,0 +1,47 @@
+import { Kind, Route } from "./model"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const left = in.left.kind
+    const right = in.right.kind
+
+    if (left == Kind.Unknown) {
+        return Route.Right
+    }
+
+    if (right == Kind.Unknown) {
+        return Route.Left
+    }
+
+    if (left == Kind.Known || right == Kind.Known) {
+        return Route.Known
+    }
+
+    if (left == Kind.Sequence) {
+        return match right {
+            Kind.Sequence => Route.Right,
+            Kind.List => Route.Right,
+            Kind.Tuple => Route.Right,
+            _ => Route.SequenceMismatch
+        }
+    }
+
+    if (right == Kind.Sequence) {
+        const accepted = left == Kind.List || left == Kind.Tuple
+
+        return accepted ? Route.Left : Route.SequenceMismatch
+    }
+
+    if (left != right) {
+        return Route.ShapeMismatch
+    }
+
+    const same_size = in.left.size == in.right.size
+
+    return match left {
+        Kind.Tuple => same_size ? Route.Tuple : Route.TupleMismatch,
+        Kind.Object => Route.Object,
+        _ => Route.Child
+    }
+}

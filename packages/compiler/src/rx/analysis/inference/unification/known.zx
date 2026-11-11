@@ -1,0 +1,34 @@
+import { Kind as Concrete } from "core/type_table/model"
+
+import { Kind, Route } from "./model"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const left_known = in.left.kind == Kind.Known
+    const declared = left_known ? in.left : in.right
+    const inferred = left_known ? in.right : in.left
+    const kind = declared.concrete
+    const same = declared.identity == inferred.identity
+    const sequence = kind == Concrete.List || kind == Concrete.Tuple
+    const tuple = kind == Concrete.Tuple && declared.size == inferred.size
+
+    return match inferred.kind {
+        Kind.Known => same ? Route.Known : Route.ConcreteMismatch,
+        Kind.Sequence => sequence ? Route.Known : Route.SequenceMismatch,
+        Kind.Object => match kind {
+            Concrete.Object => Route.Known,
+            _ => Route.ConcreteObjectMismatch
+        },
+        Kind.List => match kind {
+            Concrete.List => Route.Known,
+            _ => Route.ConcreteContainerMismatch
+        },
+        Kind.Optional => match kind {
+            Concrete.Optional => Route.Known,
+            _ => Route.ConcreteContainerMismatch
+        },
+        Kind.Tuple => tuple ? Route.Known : Route.ConcreteTupleMismatch,
+        _ => Route.ShapeMismatch
+    }
+}

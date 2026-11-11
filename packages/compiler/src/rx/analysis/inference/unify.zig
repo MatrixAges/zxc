@@ -1,6 +1,7 @@
-const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
+const Plan = @import("unification/plan.zig");
+const Fields = @import("unification/fields.zig");
 
 pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth: usize) zx.Error!void {
     if (depth >= 256) return self.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels");
@@ -27,125 +28,83 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
 }
 
 fn combine(self: *Graph, left: Graph.Shape, right: Graph.Shape, span: zx.Span, depth: usize) zx.Error!Graph.Shape {
-    if (left == .unknown) return right;
-    if (right == .unknown) return left;
+    const concrete: ?zx.ir.Type = if (left == .known and right != .unknown and right != .known)
+        self.types.get(left.known)
 
-    if (left == .known) {
-        try matchKnown(self, left.known, right, span, depth);
+    else if (right == .known and left != .unknown and left != .known)
+        self.types.get(right.known)
+    else
+        null;
 
-        return left;
-    }
+    switch (Plan.choose(left, right, concrete)) {
+        .Left => return left,
+        .Right => return right,
+        .Known => {
+            const declared = if (left == .known) left else right;
+            const inferred = if (left == .known) right else left;
 
-    if (right == .known) {
-        try matchKnown(self, right.known, left, span, depth);
+            try applyKnown(self, inferred, concrete, span, depth);
 
-        return right;
-    }
-
-    if (left == .sequence) {
-        if (right == .sequence or right == .list or right == .tuple) return right;
-
-        return self.reporter.fail(.type_mismatch, span, "a sequence requires a list or tuple type");
-    }
-
-    if (right == .sequence) {
-        if (left == .list or left == .tuple) return left;
-
-        return self.reporter.fail(.type_mismatch, span, "a sequence requires a list or tuple type");
-    }
-
-    if (std.meta.activeTag(left) != std.meta.activeTag(right)) return self.reporter.fail(.type_mismatch, span, "incompatible inferred input shapes");
-
-    switch (left) {
-        .list, .optional => |child| try merge(self, child, if (right == .list) right.list else right.optional, span, depth + 1),
-        .tuple => |children| {
-            if (children.len != right.tuple.len) return self.reporter.fail(.type_mismatch, span, "incompatible inferred tuple lengths");
-            for (children, right.tuple) |a, b| try merge(self, a, b, span, depth + 1);
+            return declared;
         },
-        .object => |fields| {
-            var merged: std.ArrayList(Graph.Field) = .empty;
+        .Child => {
+            const a = if (left == .list) left.list else left.optional;
+            const b = if (right == .list) right.list else right.optional;
 
-            try merged.appendSlice(self.allocator, fields);
-
-            for (right.object) |field| {
-                var found = false;
-
-                for (fields) |existing| {
-                    if (!std.mem.eql(u8, existing.name, field.name)) continue;
-                    try merge(self, existing.value, field.value, span, depth + 1);
-
-                    found = true;
-
-                    break;
-                }
-
-                if (!found) try merged.append(self.allocator, field);
-            }
-
-            return .{ .object = merged.items };
+            try merge(self, a, b, span, depth + 1);
         },
-        else => unreachable,
+        .Tuple => for (left.tuple, right.tuple) |a, b| {
+            try merge(self, a, b, span, depth + 1);
+        },
+        .Object => return .{ .object = try Fields.combine(self, left.object, right.object, span, depth + 1) },
+        else => |issue| return self.reporter.fail(.type_mismatch, span, message(issue)),
     }
 
     return left;
 }
 
-fn matchKnown(self: *Graph, id: zx.ir.TypeId, shape: Graph.Shape, span: zx.Span, depth: usize) zx.Error!void {
-    if (shape == .known) {
-        if (id != shape.known) return self.reporter.fail(.type_mismatch, span, "input uses require different concrete types");
-
-        return;
-    }
-
-    const concrete = self.types.get(id);
-
+fn applyKnown(self: *Graph, shape: Graph.Shape, concrete: ?zx.ir.Type, span: zx.Span, depth: usize) zx.Error!void {
     switch (shape) {
-        .sequence => {
-            if (concrete != .list and concrete != .tuple) return self.reporter.fail(.type_mismatch, span, "a sequence requires a list or tuple type");
-        },
-        .object => |fields| {
-            if (concrete != .object) return self.reporter.fail(.type_mismatch, span, "input object requirements conflict with its complete type");
-
-            for (fields) |field| {
-                var found = false;
-
-                for (0..concrete.object.len) |view_index| {
-                    const existing = concrete.object.at(view_index);
-
-                    if (!std.mem.eql(u8, existing.name, field.name)) continue;
-                    try merge(self, field.value, try self.known(existing.type_id, span), span, depth + 1);
-
-                    found = true;
-
-                    break;
-                }
-
-                if (!found) return self.reporter.fail(.type_mismatch, span, "the complete input type does not contain a required field");
-            }
-        },
+        .known, .sequence => {},
+        .object => |fields| try Fields.applyKnown(self, fields, concrete.?.object, span, depth + 1),
         .list, .optional => |child| {
-            if ((shape == .list and concrete != .list) or (shape == .optional and concrete != .optional)) return self.reporter.fail(.type_mismatch, span, "input container requirements conflict with its complete type");
+            const value = concrete.?;
+            const type_id = if (shape == .list) value.list else value.optional;
 
-            try merge(self, child, try self.known(if (concrete == .list) concrete.list else concrete.optional, span), span, depth + 1);
+            try merge(self, child, try self.known(type_id, span), span, depth + 1);
         },
         .tuple => |children| {
-            if (concrete != .tuple or concrete.tuple.len != children.len) return self.reporter.fail(.type_mismatch, span, "input tuple requirements conflict with its complete type");
+            const tuple = concrete.?.tuple;
 
-            for (children, 0..concrete.tuple.len) |child, item_index| {
-                const known = concrete.tuple.at(item_index);
-
-                try merge(self, child, try self.known(known, span), span, depth + 1);
+            for (children, 0..) |child, index| {
+                try merge(self, child, try self.known(tuple.at(index), span), span, depth + 1);
             }
         },
-        else => unreachable,
+        .unknown => unreachable,
     }
+}
+
+fn message(route: Plan.Route) []const u8 {
+    return switch (route) {
+        .SequenceMismatch => "a sequence requires a list or tuple type",
+        .ShapeMismatch => "incompatible inferred input shapes",
+        .TupleMismatch => "incompatible inferred tuple lengths",
+        .ConcreteMismatch => "input uses require different concrete types",
+        .ConcreteObjectMismatch => "input object requirements conflict with its complete type",
+        .ConcreteContainerMismatch => "input container requirements conflict with its complete type",
+        .ConcreteTupleMismatch => "input tuple requirements conflict with its complete type",
+        else => unreachable,
+    };
 }
 
 fn contains(self: *const Graph, parent: Graph.Id, child: Graph.Id, span: zx.Span, depth: usize) zx.Error!bool {
     if (depth >= 256) return self.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels");
-    if (self.root(parent) == self.root(child)) return true;
 
-    switch (self.shape(parent)) {
+    const root = self.root(parent);
+
+    if (root == child) return true;
+
+    switch (self.nodes.items[@backingInt(root)].shape) {
         .list, .optional => |nested| return contains(self, nested, child, span, depth + 1),
         .tuple => |items| for (items) |item| {
             if (try contains(self, item, child, span, depth + 1)) return true;

@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Unification" />
+
+    <Args in={Unification.Input} out={Unification.Output} />
+
+    <Call fn="shape" in={$in} />
+
+    <If on={$ctx.shape == Unification.Route.Known}>
+        <Call fn="known" in={$in} />
+
+        <Return value={$ctx.known} />
+    </If>
+
+    <Return value={$ctx.shape} />
+</Module>
