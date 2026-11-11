@@ -69,6 +69,23 @@ pub fn compileWithContext(allocator: std.mem.Allocator, source: []const u8, file
 }
 
 pub fn checkSource(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!?Diagnostic {
+    if (std.mem.endsWith(u8, file_name, ".d.zx")) {
+        return switch (try frontend.formatNative(allocator, source)) {
+            .diagnostic => |issue| issue,
+            .source => |formatted| block: {
+                defer allocator.free(formatted.text);
+
+                const span = formatted.first_change orelse break :block null;
+
+                break :block .{
+                    .code = .style,
+                    .span = span,
+                    .message = "enum declarations must use one member per line; run zxc fmt",
+                };
+            },
+        };
+    }
+
     var parsed = try frontend.parseModule(allocator, source, file_name);
 
     defer parsed.deinit();
@@ -79,6 +96,13 @@ pub fn checkSource(allocator: std.mem.Allocator, source: []const u8, file_name: 
 }
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!Result {
+    if (std.mem.endsWith(u8, file_name, ".d.zx")) {
+        return switch (try frontend.formatNative(allocator, source)) {
+            .source => |formatted| .{ .source = formatted.text },
+            .diagnostic => |issue| .{ .diagnostic = issue },
+        };
+    }
+
     if (std.mem.endsWith(u8, file_name, ".rx")) {
         var parsed = try frontend.parseExpressionXml(allocator, source);
 

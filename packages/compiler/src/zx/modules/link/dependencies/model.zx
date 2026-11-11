@@ -2,9 +2,17 @@ import type { Values } from "core/constant/model"
 import type { Ownership } from "core/symbol_table/model"
 import type { Fields } from "core/type_table/model"
 
-export enum Status { Ready, Invalid, Conflict }
+export enum Status {
+    Ready,
+    Invalid,
+    Conflict
+}
 
-export enum Kind { TypeOnly, Function, Enumeration }
+export enum Kind {
+    TypeOnly,
+    Function,
+    Enumeration
+}
 
 export type Dependency = {
     kind: Kind,

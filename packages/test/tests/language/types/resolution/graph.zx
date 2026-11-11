@@ -1,9 +1,19 @@
-export enum Mode { Second, First }
+export enum Mode {
+    Second,
+    First
+}
 
-export type Leaf = { z: string, a: u64 }
+export type Leaf = {
+    z: string,
+    a: u64
+}
 
 export type Row = [Leaf?, boolean, Array<u64>]
 
-export type Payload = { rows: Row[], optional?: Leaf, direct: Leaf }
+export type Payload = {
+    rows: Row[],
+    optional?: Leaf,
+    direct: Leaf
+}
 
 export type Mirror = Payload

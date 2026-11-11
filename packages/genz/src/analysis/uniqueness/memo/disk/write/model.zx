@@ -6,7 +6,14 @@ import type {
     Renewed
 } from "../../../replay/ordered/model"
 
-export enum Phase { Header, Settled, Demanded, Planned, Flowed, Done }
+export enum Phase {
+    Header,
+    Settled,
+    Demanded,
+    Planned,
+    Flowed,
+    Done
+}
 
 export type Frame = {
     writer: Writer,

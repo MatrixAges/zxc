@@ -1,6 +1,16 @@
-export enum State { Copy, Borrowed, Owned, Loaned, Moved }
+export enum State {
+    Copy,
+    Borrowed,
+    Owned,
+    Loaned,
+    Moved
+}
 
-export enum Operation { Assign, Borrow, Freeze }
+export enum Operation {
+    Assign,
+    Borrow,
+    Freeze
+}
 
 export type Layout = {
     parents: u64[]

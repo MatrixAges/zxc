@@ -15,7 +15,12 @@ export enum Knowledge {
     Unknown
 }
 
-export enum Table { Input, Output, Inputs, Outputs }
+export enum Table {
+    Input,
+    Output,
+    Inputs,
+    Outputs
+}
 
 export type Read = {
     table: Table,
@@ -24,7 +29,11 @@ export type Read = {
     value: Knowledge
 }
 
-export enum GrowthKind { Normalized, Carried, Value }
+export enum GrowthKind {
+    Normalized,
+    Carried,
+    Value
+}
 
 export type Growth = {
     key: u64,
@@ -58,7 +67,12 @@ export type Request = {
     raw: bool
 }
 
-export enum Operation { Pass, Written, Push, Concat }
+export enum Operation {
+    Pass,
+    Written,
+    Push,
+    Concat
+}
 
 export type State = {
     known: Knowledge[],

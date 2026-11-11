@@ -1,7 +1,12 @@
 import type { ExpressionsKind } from "../../printer/model/expressions"
 import type { Input as Labels } from "../selection/labels/model"
 
-export enum Operation { Expression, Value, Equality, Literal }
+export enum Operation {
+    Expression,
+    Value,
+    Equality,
+    Literal
+}
 
 export type Input = {
     source: Labels,

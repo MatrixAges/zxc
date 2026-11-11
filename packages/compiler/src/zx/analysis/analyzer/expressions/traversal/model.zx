@@ -16,7 +16,14 @@ import type { Entries } from "../objects/model"
 import type { Source } from "../request"
 import type { Frame as PipelineFrame } from "./pipeline/model"
 
-export enum Phase { Evaluate, Complete, StateBlock, ScopeNext, StateSwitch, Done }
+export enum Phase {
+    Evaluate,
+    Complete,
+    StateBlock,
+    ScopeNext,
+    StateSwitch,
+    Done
+}
 
 export enum Action {
     PipelineInput,

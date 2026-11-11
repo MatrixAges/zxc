@@ -8,7 +8,11 @@ export type Object = {
     independent: bool
 }
 
-export enum Policy { ReadOnly, Shared, Independent }
+export enum Policy {
+    ReadOnly,
+    Shared,
+    Independent
+}
 
 export type Input = {
     objects: Object[],

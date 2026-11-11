@@ -4,7 +4,15 @@ export type Level = {
     deferred: bool
 }
 
-export enum Operation { None, All, Fresh, Join, Meet, Materialized, Written }
+export enum Operation {
+    None,
+    All,
+    Fresh,
+    Join,
+    Meet,
+    Materialized,
+    Written
+}
 
 export type Pair = {
     left: Level,

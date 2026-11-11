@@ -9,7 +9,13 @@ import type { State as Statements } from "../../../ast/statements/builder/model"
 import type { Columns as Scopes } from "../../../ast/statements/builder/scope"
 import type { Columns as StatementColumns } from "../../../ast/statements/model"
 
-export enum Method { Reserve, Bounded, Allocate, Retract, Renew }
+export enum Method {
+    Reserve,
+    Bounded,
+    Allocate,
+    Retract,
+    Renew
+}
 
 export type Input = {
     bases: Bases,

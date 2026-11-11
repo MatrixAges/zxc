@@ -1,6 +1,15 @@
-export enum Issue { None, InvalidPath, Missing, Cycle }
+export enum Issue {
+    None,
+    InvalidPath,
+    Missing,
+    Cycle
+}
 
-export enum Mark { Unseen, Visiting, Done }
+export enum Mark {
+    Unseen,
+    Visiting,
+    Done
+}
 
 export type Graph = {
     offsets: u64[],

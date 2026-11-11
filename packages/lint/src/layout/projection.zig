@@ -45,7 +45,20 @@ pub const Projection = struct {
         token.object = false;
         token.block = block;
     }
+
     pub fn excludeEnding(self: *Projection, end: usize, block: bool) void {
+        const index = self.openingAtEnd(end) orelse return;
+        const token = &self.tokens[index];
+        token.object = false;
+        token.block = block;
+    }
+
+    pub fn multilineEnding(self: *Projection, end: usize) void {
+        const index = self.openingAtEnd(end) orelse return;
+
+        self.tokens[index].multiline = true;
+    }
+    fn openingAtEnd(self: *const Projection, end: usize) ?usize {
         var first: usize = 0;
         var limit = self.tokens.len;
 
@@ -55,33 +68,31 @@ pub const Projection = struct {
             if (self.tokens[middle].end <= end) first = middle + 1 else limit = middle;
         }
 
-        if (first == 0) return;
+        if (first == 0) return null;
 
         const closer = self.tokens[first - 1].text;
-        const opener: []const u8 = if (std.mem.eql(u8, closer, "}")) "{" else if (std.mem.eql(u8, closer, "]")) "[" else return;
+        const opener: []const u8 = if (std.mem.eql(u8, closer, "}")) "{" else if (std.mem.eql(u8, closer, "]")) "[" else return null;
         var index = first;
         var depth: usize = 0;
 
         while (index != 0) {
             index -= 1;
-            const token = &self.tokens[index];
+            const token = self.tokens[index];
 
             if (token.end > end) continue;
             if (std.mem.eql(u8, token.text, closer)) depth += 1;
             if (!std.mem.eql(u8, token.text, opener)) continue;
-            if (depth == 0) return;
+            if (depth == 0) return null;
 
             depth -= 1;
 
             if (depth != 0) continue;
 
-            token.object = false;
-            token.block = block;
-
-            return;
+            return index;
         }
-    }
 
+        return null;
+    }
     pub fn boundary(self: *Projection, offset: usize) void {
         const index = self.find(offset) orelse return;
 

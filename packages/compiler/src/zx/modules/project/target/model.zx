@@ -1,6 +1,17 @@
-export enum Route { File, Package, Intrinsic, Interface, Invalid }
+export enum Route {
+    File,
+    Package,
+    Intrinsic,
+    Interface,
+    Invalid
+}
 
-export enum PathBase { Relative, Root, Extension, Invalid }
+export enum PathBase {
+    Relative,
+    Root,
+    Extension,
+    Invalid
+}
 
 export type Path = {
     path: string,
@@ -8,7 +19,12 @@ export type Path = {
     directory: bool
 }
 
-export enum PackageShape { Source, Compiled, InvalidSource, InvalidCompiled }
+export enum PackageShape {
+    Source,
+    Compiled,
+    InvalidSource,
+    InvalidCompiled
+}
 
 export type Package = {
     entry: string,

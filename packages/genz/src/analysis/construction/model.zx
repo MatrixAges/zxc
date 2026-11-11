@@ -5,7 +5,11 @@ import type { Columns as Expressions } from "../../ast/expressions/model"
 import type { Columns as Statements } from "../../ast/statements/model"
 import type { ExpressionsKind } from "../../printer/model/expressions"
 
-export enum Mode { Heap, Value, Reference }
+export enum Mode {
+    Heap,
+    Value,
+    Reference
+}
 
 export type Policy = {
     active: bool,

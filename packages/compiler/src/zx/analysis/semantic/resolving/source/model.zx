@@ -2,7 +2,15 @@ import type { Span } from "../../../../frontend/lexer/token_model"
 import type { Declaration } from "../../../../frontend/parser/declarations/model"
 import type { Tree, Order } from "../../../../frontend/parser/types/model"
 
-export enum NodeKind { Named, Object, Optional, List, Tuple, Enumeration, Application }
+export enum NodeKind {
+    Named,
+    Object,
+    Optional,
+    List,
+    Tuple,
+    Enumeration,
+    Application
+}
 
 export type Name = {
     text: string,

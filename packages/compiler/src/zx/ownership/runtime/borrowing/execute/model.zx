@@ -4,7 +4,14 @@ import type { Forest } from "../../../facts/model"
 import type { Built } from "../../../layout/model"
 import type { State } from "../../../places/model"
 
-export enum Phase { Next, Query, Descend, Expand, Enter, Done }
+export enum Phase {
+    Next,
+    Query,
+    Descend,
+    Expand,
+    Enter,
+    Done
+}
 
 export type Session = {
     types: Tables,

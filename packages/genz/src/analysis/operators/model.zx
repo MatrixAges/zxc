@@ -7,7 +7,14 @@ import type {
 } from "../../printer/model/expressions"
 import type { Output as Equality } from "../comparison/equality/model"
 
-export enum Mode { Direct, Nulls, Equal, NotEqual, SignedRemainder, Builtin }
+export enum Mode {
+    Direct,
+    Nulls,
+    Equal,
+    NotEqual,
+    SignedRemainder,
+    Builtin
+}
 
 export type Expressions = {
     kinds: ExpressionKind[],

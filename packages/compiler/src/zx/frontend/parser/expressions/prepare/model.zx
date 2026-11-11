@@ -19,9 +19,20 @@ export enum Operator {
     Pipeline
 }
 
-export enum Family { None, Coalesce, Logical }
+export enum Family {
+    None,
+    Coalesce,
+    Logical
+}
 
-export enum Connector { None, And, Or, Xor, Nand, Nor }
+export enum Connector {
+    None,
+    And,
+    Or,
+    Xor,
+    Nand,
+    Nor
+}
 
 export type Binary = {
     operator: Operator,

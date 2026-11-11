@@ -12,7 +12,7 @@ pub fn native(allocator: std.mem.Allocator, parsed: @import("parse.zig").Parsed)
     for (parsed.ast.declarations) |item| {
         result.boundary(item.span.start);
 
-        if (item.value.* == .enumeration) result.excludeRange(item.span);
+        if (item.value.* == .enumeration) result.multilineEnding(item.span.end);
     }
 
     for (parsed.ast.constants) |item| {
@@ -38,7 +38,7 @@ pub fn indexed(allocator: std.mem.Allocator, source: []const u8, output: anytype
     for (output.declarations) |item| {
         result.boundary(@intCast(item.span.start));
 
-        if (item.enumeration) result.excludeRange(zx.syntax.header.span(item.span));
+        if (item.enumeration) result.multilineEnding(@intCast(item.span.end));
     }
 
     for (output.constants) |item| result.boundary(@intCast(item.span.start));

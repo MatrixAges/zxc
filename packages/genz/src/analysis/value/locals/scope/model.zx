@@ -32,7 +32,13 @@ export type Scan = {
     projected: bool[]
 }
 
-export enum Phase { Candidate, Resolve, Append, Insert, Done }
+export enum Phase {
+    Candidate,
+    Resolve,
+    Append,
+    Insert,
+    Done
+}
 
 export type State = {
     index: Index,

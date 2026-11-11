@@ -5,7 +5,11 @@ import type { Columns as Expressions } from "../../../ast/expressions/model"
 import type { Columns as Statements } from "../../../ast/statements/model"
 import type { Field } from "../../types/definitions/model"
 
-export enum Mode { Push, Pop, Update }
+export enum Mode {
+    Push,
+    Pop,
+    Update
+}
 
 export type Binding = {
     name: u8[],

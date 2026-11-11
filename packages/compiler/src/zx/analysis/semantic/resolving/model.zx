@@ -1,7 +1,14 @@
 import type { Table } from "core/type_table/model"
 import type { Source, Name, Reference } from "./source/model"
 
-export enum Operation { Name, FinishName, Node, Wrap, Tuple, Object }
+export enum Operation {
+    Name,
+    FinishName,
+    Node,
+    Wrap,
+    Tuple,
+    Object
+}
 
 export type Cache = {
     names: string[],

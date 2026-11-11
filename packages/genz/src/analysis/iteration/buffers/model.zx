@@ -1,8 +1,16 @@
 import type { Input as Layout } from "../model"
 
-export enum Definition { Missing, Value, Conflict }
+export enum Definition {
+    Missing,
+    Value,
+    Conflict
+}
 
-export enum Visit { Unknown, Active, Done }
+export enum Visit {
+    Unknown,
+    Active,
+    Done
+}
 
 export type Input = {
     source: Layout,

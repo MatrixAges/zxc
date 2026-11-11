@@ -5,7 +5,10 @@ import type { Names, Errors } from "../signature_table/model"
 import type { Stores } from "../store_table/model"
 import type { Symbols, Ownership } from "../symbol_table/model"
 
-export enum StoreMode { transaction, orchestration }
+export enum StoreMode {
+    transaction,
+    orchestration
+}
 
 export type Complete = {
     files: string[]

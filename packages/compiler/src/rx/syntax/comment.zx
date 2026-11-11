@@ -2,7 +2,11 @@ import {xml_comment_end, xml_comment_start, xml_double_dash} from "./const"
 import { invalid_comment, unterminated_comment } from "./diagnostic/const"
 import starts from "./starts"
 
-export enum Issue { None, Unterminated, DoubleDash }
+export enum Issue {
+    None,
+    Unterminated,
+    DoubleDash
+}
 
 export type Input = {
     source: u8[],

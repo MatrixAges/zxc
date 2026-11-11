@@ -28,7 +28,11 @@ export type Input = {
     process: bool[]
 }
 
-export enum Status { Valid, InvalidOrigin, MissingOrigin }
+export enum Status {
+    Valid,
+    InvalidOrigin,
+    MissingOrigin
+}
 
 export type Output = {
     status: Status,

@@ -1,9 +1,18 @@
 import type { Cache, Diagnostic } from "../../analysis/semantic/resolving/model"
 import type { ImportKind } from "../../frontend/parser/imports/model"
 
-export enum Target { Source, Compiled, Native }
+export enum Target {
+    Source,
+    Compiled,
+    Native
+}
 
-export enum Section { Types, Constants, Functions, Done }
+export enum Section {
+    Types,
+    Constants,
+    Functions,
+    Done
+}
 
 export type Names = {
     values: string[],

@@ -1,6 +1,11 @@
 import type { Index } from "core/bytes/index/model"
 
-export enum Status { Ready, Invalid, Missing, Cycle }
+export enum Status {
+    Ready,
+    Invalid,
+    Missing,
+    Cycle
+}
 
 export type Input = {
     paths: u8[][],

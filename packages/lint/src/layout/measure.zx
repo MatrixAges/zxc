@@ -56,7 +56,7 @@ export default function (in: Input): Output {
             }
             const active = (
                 - opening
-                - and nonempty
+                - and (nonempty || token.multiline)
                 - and !token.block
             )
 

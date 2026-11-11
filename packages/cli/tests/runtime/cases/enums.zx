@@ -1,13 +1,18 @@
-export enum Mode { Add, Subtract }
+export enum Mode {
+    Add,
+    Subtract
+}
 
-export type Input = { mode: Mode
- value: i64 }
+export type Input = {
+    mode: Mode
+    value: i64
+}
 
 export type Output = i64
 
 export default function (in: Input): Output {
-  switch (in.mode) {
-    case Mode.Add: return in.value + 1
-    case Mode.Subtract: return in.value - 1
-  }
+    switch (in.mode) {
+        case Mode.Add: return in.value + 1
+        case Mode.Subtract: return in.value - 1
+    }
 }

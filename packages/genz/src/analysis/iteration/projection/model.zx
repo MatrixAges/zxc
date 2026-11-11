@@ -8,9 +8,18 @@ import type { Columns as Statements } from "../../../ast/statements/model"
 import type { Field } from "../../types/definitions/model"
 import type { State as History } from "../transfer/history/model"
 
-export enum Operation { Field, Index, Length }
+export enum Operation {
+    Field,
+    Index,
+    Length
+}
 
-export enum Requirement { None, IterationType, Expression, NativeType }
+export enum Requirement {
+    None,
+    IterationType,
+    Expression,
+    NativeType
+}
 
 export type Input = {
     types: Table,

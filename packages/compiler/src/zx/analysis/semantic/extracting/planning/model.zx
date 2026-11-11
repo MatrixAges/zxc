@@ -1,7 +1,11 @@
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
 
-export enum Status { Invalid, MissingOrigin, Ready }
+export enum Status {
+    Invalid,
+    MissingOrigin,
+    Ready
+}
 
 export type State = {
     mapping: u64[]

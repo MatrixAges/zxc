@@ -9,6 +9,10 @@ pub const use_default_width = 0;
 pub fn format(allocator: std.mem.Allocator, source: []const u8, tokens: []const Token, width: usize, level: usize) std.mem.Allocator.Error![]u8 {
     const newline: []const u8 = if (std.mem.indexOf(u8, source, "\r\n") != null) "\r\n" else "\n";
 
+    return formatWithLineEnding(allocator, source, tokens, width, level, newline);
+}
+
+pub fn formatWithLineEnding(allocator: std.mem.Allocator, source: []const u8, tokens: []const Token, width: usize, level: usize, newline: []const u8) std.mem.Allocator.Error![]u8 {
     return apply(allocator, source, tokens, .{ .width = width, .level = level }, newline);
 }
 

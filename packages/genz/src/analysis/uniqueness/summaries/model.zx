@@ -21,7 +21,12 @@ export type Storage = {
     outputs: u8[]
 }
 
-export enum Mode { Initialize, Reset, Clear, ClearWants }
+export enum Mode {
+    Initialize,
+    Reset,
+    Clear,
+    ClearWants
+}
 
 export type Lifecycle = {
     mode: Mode,

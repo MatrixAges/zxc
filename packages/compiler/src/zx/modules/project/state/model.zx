@@ -11,7 +11,12 @@ export type Shared = {
     maximum_count: u64
 }
 
-export enum Admission { Ready, Types, Native, Nominal }
+export enum Admission {
+    Ready,
+    Types,
+    Native,
+    Nominal
+}
 
 export type Body = {
     type_only: bool,
@@ -19,4 +24,10 @@ export type Body = {
     recursive: bool
 }
 
-export enum Publication { Types, Dependency, Entry, RecursiveDependency, RecursiveEntry }
+export enum Publication {
+    Types,
+    Dependency,
+    Entry,
+    RecursiveDependency,
+    RecursiveEntry
+}

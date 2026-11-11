@@ -7,7 +7,11 @@ import type { Output as Block } from "../../aggregate/binding/model"
 import type { Fields } from "../../aggregate/object/model"
 import type { Statements } from "../../aggregate/operands/model"
 
-export enum Mode { Object, Tuple, List }
+export enum Mode {
+    Object,
+    Tuple,
+    List
+}
 
 export type Bindings = {
     names: u8[][],

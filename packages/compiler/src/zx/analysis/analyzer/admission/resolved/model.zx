@@ -6,7 +6,11 @@ import type { Cache } from "../../../semantic/resolving/model"
 import type { FunctionImports } from "../../context"
 import type { NativeModule } from "../../source/model"
 
-export enum DeclarationKind { Callable, Alias, Constant }
+export enum DeclarationKind {
+    Callable,
+    Alias,
+    Constant
+}
 
 export type Request = {
     source_text: string

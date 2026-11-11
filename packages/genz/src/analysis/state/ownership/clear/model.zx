@@ -6,7 +6,13 @@ import type { Columns as Statements } from "../../../../ast/statements/model"
 import type { Ast } from "../../list/model"
 import type { Outline } from "../model"
 
-export enum Operation { List, Optional, Object, Tuple, Reference }
+export enum Operation {
+    List,
+    Optional,
+    Object,
+    Tuple,
+    Reference
+}
 
 export type Plan = {
     types: u32[],

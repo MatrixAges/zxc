@@ -3,7 +3,13 @@ import type { Input as Context, State } from "../../../../ast/context/model"
 import type { Columns } from "../../../../ast/statements/model"
 import type { Output as Policy, Result } from "../model"
 
-export enum Operation { Bind, Invoke, Dereference, Conditional, Block }
+export enum Operation {
+    Bind,
+    Invoke,
+    Dereference,
+    Conditional,
+    Block
+}
 
 export type Input = {
     context: Context,

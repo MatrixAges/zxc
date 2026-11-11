@@ -1,9 +1,23 @@
 import type { Diagnostic } from "../../lexer/model"
 import type { Span, Token } from "../../lexer/token_model"
 
-export enum Phase { Start, Binding, Name, Separator, Alias, From, Path, End, Done }
+export enum Phase {
+    Start,
+    Binding,
+    Name,
+    Separator,
+    Alias,
+    From,
+    Path,
+    End,
+    Done
+}
 
-export enum ImportKind { Function, Enumeration, TypeOnly }
+export enum ImportKind {
+    Function,
+    Enumeration,
+    TypeOnly
+}
 
 export type Import = {
     kind: ImportKind,

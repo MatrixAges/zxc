@@ -4,7 +4,12 @@ import type { Expressions } from "../expression_table/model"
 import type { Table } from "../function_table/model"
 import type { Tables } from "../type_table/model"
 
-export enum Operation { Expression, Function, Block, Children }
+export enum Operation {
+    Expression,
+    Function,
+    Block,
+    Children
+}
 
 export type Frame = {
     operation: Operation,

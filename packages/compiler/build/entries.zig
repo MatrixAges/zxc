@@ -72,6 +72,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/ir/canonical/refinement/facts/add_value.rx", .name = "refinement_add_value" },
     .{ .path = "zx/ir/canonical/native_modules_check.rx", .name = "native_modules" },
     .{ .path = "zx/modules/native/load.rx", .name = "native_interface" },
+    .{ .path = "zx/modules/native/parse.rx", .name = "native_syntax" },
     .{ .path = "zx/modules/link/native/bind.rx", .name = "native_link_binding" },
     .{ .path = "zx/modules/link/native/signature/resolve.rx", .name = "native_link_signature" },
     .{ .path = "zx/modules/link/native/signature/compatible.zx", .name = "native_signature_compatible" },

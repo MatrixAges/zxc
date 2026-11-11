@@ -28,9 +28,20 @@ export type Dispatch = {
     value_function: bool
 }
 
-export enum Argument { Value, BorrowObject, StackObject }
+export enum Argument {
+    Value,
+    BorrowObject,
+    StackObject
+}
 
-export enum Result { Value, Dereference, Borrow, Address, Convert, Construct }
+export enum Result {
+    Value,
+    Dereference,
+    Borrow,
+    Address,
+    Convert,
+    Construct
+}
 
 export type Facts = {
     types: Table,

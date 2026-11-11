@@ -2,9 +2,19 @@ import type { ExpressionKind } from "core/expression_table/kinds"
 import type { Lookup } from "core/integer/map/model"
 import type { Query } from "../../state/queries/model"
 
-export enum Route { Regular, Value, Pointer }
+export enum Route {
+    Regular,
+    Value,
+    Pointer
+}
 
-export enum Argument { Value, ExternalTuple, ScalarBorrow, StateBorrow, StatePointer }
+export enum Argument {
+    Value,
+    ExternalTuple,
+    ScalarBorrow,
+    StateBorrow,
+    StatePointer
+}
 
 export type Types = {
     kinds: u8[],

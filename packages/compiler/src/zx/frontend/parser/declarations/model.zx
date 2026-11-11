@@ -2,7 +2,16 @@ import type { Diagnostic } from "../../lexer/model"
 import type { Span, Token } from "../../lexer/token_model"
 import type { Tree, Frame, Control } from "../types/model"
 
-export enum Phase { Start, Kind, Name, Open, Value, Member, Separator, Done }
+export enum Phase {
+    Start,
+    Kind,
+    Name,
+    Open,
+    Value,
+    Member,
+    Separator,
+    Done
+}
 
 export type Declaration = {
     name: Span,

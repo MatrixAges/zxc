@@ -1,11 +1,26 @@
 import type { Action, Mode } from "../layout/model"
 import type { Layout } from "../parameters/model"
 
-export enum Evaluation { Reference, Value, Deep }
+export enum Evaluation {
+    Reference,
+    Value,
+    Deep
+}
 
-export enum Storage { Keep, Dereference, Deep, State, StateValue, Clip }
+export enum Storage {
+    Keep,
+    Dereference,
+    Deep,
+    State,
+    StateValue,
+    Clip
+}
 
-export enum Guard { None, Unit, Consumer }
+export enum Guard {
+    None,
+    Unit,
+    Consumer
+}
 
 export type Input = {
     representation: Action,

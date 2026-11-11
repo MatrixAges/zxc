@@ -7,9 +7,18 @@ import type {
 import type { Input as Facts, Mode } from "../conversion/model"
 import type { Ast } from "../list/model"
 
-export enum Operation { Read, Write, Capture, Type }
+export enum Operation {
+    Read,
+    Write,
+    Capture,
+    Type
+}
 
-export enum Table { Abi, Layout, State }
+export enum Table {
+    Abi,
+    Layout,
+    State
+}
 
 export type Query = {
     source: Facts,

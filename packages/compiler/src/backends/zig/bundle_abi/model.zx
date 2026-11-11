@@ -1,7 +1,11 @@
 import type { Alias } from "genz/abi/model"
 import type { Bindings } from "../source_abi/model"
 
-export enum Status { Valid, ConflictingAlias, NameConflict }
+export enum Status {
+    Valid,
+    ConflictingAlias,
+    NameConflict
+}
 
 export type Scope = {
     root: string,

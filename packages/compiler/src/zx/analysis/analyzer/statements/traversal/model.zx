@@ -2,7 +2,13 @@ import type { Mark } from "../../../../ir/canonical/refinement/facts/model"
 import type { Work } from "../../expressions/traversal/model"
 import type { Blocks } from "../blocks/model"
 
-export enum Phase { Next, Expression, Resume, Selection, Done }
+export enum Phase {
+    Next,
+    Expression,
+    Resume,
+    Selection,
+    Done
+}
 
 export enum Action {
     Constant,

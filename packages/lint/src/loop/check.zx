@@ -1,6 +1,12 @@
 import { loop_name } from "./const"
 
-export enum Kind { Other, Call, Field, Index, Identifier }
+export enum Kind {
+    Other,
+    Call,
+    Field,
+    Index,
+    Identifier
+}
 
 export type Input = {
     kind: Kind,

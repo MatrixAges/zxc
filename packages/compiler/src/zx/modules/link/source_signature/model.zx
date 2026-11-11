@@ -2,9 +2,17 @@ import type { Index } from "core/bytes/index/model"
 import type { Ownership } from "core/symbol_table/model"
 import type { Bindings, Signatures } from "../dependencies/model"
 
-export enum Status { Ready, Invalid, Conflict }
+export enum Status {
+    Ready,
+    Invalid,
+    Conflict
+}
 
-export enum Visibility { Found, Missing, Invalid }
+export enum Visibility {
+    Found,
+    Missing,
+    Invalid
+}
 
 export type Edge = {
     path: string,

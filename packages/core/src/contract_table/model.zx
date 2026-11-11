@@ -1,7 +1,10 @@
 import type { Expressions } from "../expression_table/model"
 import type { Symbols } from "../symbol_table/model"
 
-export enum ContractKind { Requires, Ensures }
+export enum ContractKind {
+    Requires,
+    Ensures
+}
 
 export type Contracts = {
     kinds: ContractKind[],
