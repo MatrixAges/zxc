@@ -54,15 +54,7 @@
     />
 
     <Call
-        fn="renewal_paths"
-        in={{
-            source: $in,
-            keys: $ctx.renewal_keys.keys
-        }}
-    />
-
-    <Call
-        fn="../transfer/build"
+        fn="../transfer/selected"
         in={{
             source: $in,
             flags: $ctx.renewal_keys.working.flags
@@ -72,11 +64,8 @@
     <Return
         value={{
             ...$ctx.renewal_keys.working,
-            renewals: {
-                keys: $ctx.renewal_keys.keys,
-                paths: $ctx.renewal_paths
-            },
-            transfers: $ctx.build
+            keys: $ctx.renewal_keys.keys,
+            needed: $ctx.selected
         }}
     />
 </Module>

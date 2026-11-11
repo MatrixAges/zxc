@@ -1,0 +1,9 @@
+import integers from "std:integer"
+
+export type Input = u64[]
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    return in.map(flag => integers.narrowByte(flag))[0]
+}

@@ -3,14 +3,17 @@ import integers from "std:integer"
 import { bits_per_word } from "../../flow/body/const"
 import empty from "../../flow/body/visited"
 import qualify from "./qualify"
-import selected from "./selected"
 
-import type { Input } from "./selected"
+import type { Input as Source } from "../plan/model"
+
+export type Input = {
+    source: Source,
+    needed: bool[]
+}
 
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    const needed = selected(in)
     const transfers = empty(in.source.state.known.length)
     const first = in.source.context.metadata.usage.plan.slot_first
     const symbols = in.source.context.metadata.usage.symbols
@@ -23,7 +26,7 @@ export default function (in: Input): Output {
 
     const loop_scope = {
         input: in.source,
-        needed,
+        needed: in.needed,
         first,
         symbols
     }

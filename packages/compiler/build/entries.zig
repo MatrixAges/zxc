@@ -171,6 +171,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/summaries/create.rx", .name = "uniqueness_summaries_create", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/summaries/lifecycle.rx", .name = "uniqueness_summaries_lifecycle", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/plan/plan.rx", .name = "uniqueness_function_plan", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/function/plan/finish.rx", .name = "uniqueness_function_plan_finish", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/summary/settle.rx", .name = "uniqueness_function_settlement", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/demand/analyze.rx", .name = "uniqueness_function_demand", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/function/prepare/operations.zx", .name = "uniqueness_function_operations", .owner = .genz },

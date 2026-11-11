@@ -37,6 +37,19 @@ export type Output = {
     known: Knowledge[],
     reads: Read[],
     flags: u64[],
+    keys: u64[],
+    needed: bool[]
+}
+
+export type Finish = {
+    source: Input,
+    flags: u64[],
+    keys: u64[],
+    needed: bool[]
+}
+
+export type Published = {
+    flags: u8[],
     renewals: Renewals
     transfers: u64[]
 }

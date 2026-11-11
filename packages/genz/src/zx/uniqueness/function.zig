@@ -294,7 +294,40 @@ fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![
 }
 
 pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = false, in_place: bool = false, normalize: bool = false, renew: bool = false, grow: bool = false, lazy: bool = false, buffered: bool = false };
-pub const Plan = struct { flags: []const Flags, renewals: Renewals, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
+
+pub const Plan = struct {
+    const storage = @import("renewals.zig");
+    flags: []const Flags,
+    renewals: Renewals = storage.empty,
+    transfers: []const u64 = &.{},
+    slot_first: []const u32 = &.{},
+    pub fn get(self: Plan, id: ir.ExprId) Flags {
+        const index = @backingInt(id);
+
+        return if (index < self.flags.len) self.flags[index] else .{};
+    }
+    pub fn renewalCount(self: Plan) usize {
+        return storage.count(self.renewals);
+    }
+    pub fn renewalAt(self: Plan, index: usize) Renewal {
+        return storage.at(self.renewals, index);
+    }
+    pub fn copy(self: Plan, allocator: std.mem.Allocator) std.mem.Allocator.Error!Plan {
+        const owned_flags = try allocator.dupe(Flags, self.flags);
+
+        errdefer allocator.free(owned_flags);
+
+        const transfers = try allocator.dupe(u64, self.transfers);
+
+        errdefer allocator.free(transfers);
+
+        const slot_first = try allocator.dupe(u32, self.slot_first);
+
+        errdefer allocator.free(slot_first);
+
+        return .{ .flags = owned_flags, .renewals = try storage.copy(allocator, self.renewals), .transfers = transfers, .slot_first = slot_first };
+    }
+};
 
 pub fn plan(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!Plan {
     if (generated_analysis) return @import("function/plan.zig").build(self, allocator);

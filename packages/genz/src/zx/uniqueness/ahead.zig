@@ -26,11 +26,10 @@ states: []std.atomic.Value(State),
 dirty: []bool,
 settled: []Settled,
 demanded: []Demanded,
-planned: []Planned,
+planned: []Function.Plan,
 pub const Settled = struct { passed: []const Function.Contribution, output: []const Level, reads: []const Function.Read };
 
 pub const Demanded = struct { marks: []const Function.Mark, grew: bool, normalized: []const Memo.Normalized, renewed: []const Memo.Renewed, reads: []const Function.Read };
-pub const Planned = struct { flags: []const Function.Flags, renewals: Function.Renewals, transfers: []const u64 = &.{}, slot_first: []const u32 = &.{} };
 
 const State = enum(u32) {
     idle,
@@ -68,7 +67,7 @@ pub fn init(allocator: std.mem.Allocator, pool: *Pool, functions: ir.FunctionTab
         .dirty = dirty,
         .settled = try allocator.alloc(Settled, units.len),
         .demanded = try allocator.alloc(Demanded, units.len),
-        .planned = try allocator.alloc(Planned, units.len),
+        .planned = try allocator.alloc(Function.Plan, units.len),
     };
 }
 
@@ -118,7 +117,7 @@ pub fn request(self: *Self, comptime kind: Memo.Kind, memo: *Memo, indices: []co
 
         self.dirty[index] = false;
 
-        if (try memo.holds(kind, self.summaries, self.units[index].?.state(index))) {
+        if ((kind != .planned or memo.persistent) and try memo.holds(kind, self.summaries, self.units[index].?.state(index))) {
             state.store(.held, .monotonic);
 
             continue;
@@ -165,7 +164,7 @@ fn Found(comptime kind: Memo.Kind) type {
     return switch (kind) {
         .settled => Settled,
         .demanded => Demanded,
-        .planned => Planned,
+        .planned => Function.Plan,
     };
 }
 
@@ -217,9 +216,8 @@ fn Task(comptime kind: Memo.Kind) type {
                 },
                 .planned => {
                     var analysis = try unit.analyze(scratch, lasting, ahead.functions, ahead.slots, summaries, null, null);
-                    const plan = try analysis.plan(keep);
 
-                    return .{ .flags = plan.flags, .renewals = plan.renewals, .transfers = plan.transfers, .slot_first = plan.slot_first };
+                    return analysis.plan(keep);
                 },
             }
         }

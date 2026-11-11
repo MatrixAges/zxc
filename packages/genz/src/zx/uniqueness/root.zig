@@ -10,7 +10,6 @@ const Sites = @import("sites.zig");
 const Pool = @import("pool.zig");
 const Ahead = @import("ahead.zig");
 const Topology = @import("topology.zig");
-const renewals = @import("renewals.zig");
 pub const Basis = @import("basis.zig");
 pub const Slots = @import("slots.zig");
 pub const Summaries = @import("summaries.zig");
@@ -21,25 +20,7 @@ pub const Flags = Function.Flags;
 /// reach an append get one growth copy where they enter; each new copy restarts the fixpoint, and copies only accrue.
 pub const Renewal = Function.Renewal;
 pub const Renewals = Function.Renewals;
-
-pub const Plan = struct {
-    flags: []const Flags,
-    renewals: Renewals = renewals.empty,
-    transfers: []const u64 = &.{},
-    slot_first: []const u32 = &.{},
-    pub fn get(self: Plan, id: ir.ExprId) Flags {
-        const index = @backingInt(id);
-
-        return if (index < self.flags.len) self.flags[index] else .{};
-    }
-    pub fn renewalCount(self: Plan) usize {
-        return renewals.count(self.renewals);
-    }
-    pub fn renewalAt(self: Plan, index: usize) Renewal {
-        return renewals.at(self.renewals, index);
-    }
-};
-
+pub const Plan = Function.Plan;
 pub const Result = struct { functions: []const Plan, entry: Plan };
 
 pub const Unit = struct {
@@ -165,6 +146,11 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
     ahead.begin(.planned);
     defer ahead.finish();
 
+    var plan_round = std.heap.ArenaAllocator.init(workspace);
+
+    defer plan_round.deinit();
+
+    const plan_owner = if (memo.persistent) memo.arena.allocator() else allocator;
     const plans = try allocator.alloc(Plan, count);
     var entry_plan = Plan{ .flags = &.{} };
 
@@ -179,19 +165,29 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
 
         _ = try work.pop();
 
-        const recalled = (try replay.recall(.planned, index)) orelse try memo.getPlanned(&summaries, unit.state(index));
+        const recalled = if (memo.persistent)
+            (try replay.recall(.planned, index)) orelse try memo.getPlanned(&summaries, unit.state(index))
+
+        else
+            null;
+
         const early = try ahead.take(.planned, index);
 
-        const planned = recalled orelse if (early) |found| try memo.putPlanned(memo.key, .{ .flags = found.flags, .renewals = found.renewals, .transfers = found.transfers, .slot_first = found.slot_first }) else planned: {
-            var analysis = try unit.analyze(temporary, temporary, program.functions, slots, &summaries, null, null);
-            const plan = try analysis.plan(temporary);
+        const built = if (recalled) |found| found.plan() else if (early) |found| try found.copy(plan_owner) else fresh: {
+            _ = plan_round.reset(.retain_capacity);
 
-            break :planned try memo.putPlanned(memo.key, plan);
+            var analysis = try unit.analyze(plan_round.allocator(), temporary, program.functions, slots, &summaries, null, null);
+
+            break :fresh try analysis.plan(plan_owner);
         };
 
-        try replay.met(.planned, index, planned, memo);
+        const plan = if (memo.persistent) stored: {
+            const record = recalled orelse try memo.putOwnedPlan(memo.key, built);
 
-        const plan = Plan{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try @import("renewals.zig").copy(allocator, planned.renewals), .transfers = try allocator.dupe(u64, planned.transfers), .slot_first = try allocator.dupe(u32, planned.slot_first) };
+            try replay.met(.planned, index, record, memo);
+
+            break :stored try built.copy(allocator);
+        } else built;
 
         if (index < count) plans[index] = plan else entry_plan = plan;
     }
@@ -248,9 +244,8 @@ pub fn analyzeEntryWith(allocator: std.mem.Allocator, workspace: std.mem.Allocat
     }
 
     var analysis = try unit.analyze(temporary, temporary, program.functions, slots, summaries, null, null);
-    const plan = try analysis.plan(allocator);
 
-    return .{ .flags = plan.flags, .renewals = plan.renewals, .transfers = plan.transfers, .slot_first = plan.slot_first };
+    return analysis.plan(allocator);
 }
 
 const Work = if (@import("genz_options").generated_analysis) @import("work.zig") else @import("work/seed.zig");
@@ -455,7 +450,7 @@ fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program:
 
             if (renewed) |replacement| value.* = replacement;
 
-            break :plan .{ .flags = try allocator.dupe(Flags, value.flags), .renewals = try @import("renewals.zig").copy(allocator, value.renewals), .transfers = try allocator.dupe(u64, value.transfers), .slot_first = try allocator.dupe(u32, value.slot_first) };
+            break :plan try value.plan().copy(allocator);
         };
 
         if (index < count) plans[index] = plan else entry_plan = plan;
@@ -494,9 +489,9 @@ fn revisit(comptime kind: Memo.Kind, temporary: std.mem.Allocator, program: ir.P
         .planned => {
             try analysis.close();
 
-            const plan = try analysis.plan(temporary);
+            const plan = try analysis.plan(memo.arena.allocator());
 
-            return try memo.putPlanned(memo.key, plan);
+            return try memo.putOwnedPlan(memo.key, plan);
         },
     }
 }

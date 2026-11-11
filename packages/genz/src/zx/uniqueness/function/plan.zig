@@ -2,25 +2,23 @@ const std = @import("std");
 const zx = @import("zx");
 const Function = @import("../function.zig");
 const levels = @import("levels.zig");
-const generated = @import("generated_uniqueness_function_plan");
-const Parameter = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
-const indirect = @typeInfo(Parameter) == .pointer;
-const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+const analysis = @import("generated_uniqueness_function_plan");
+const publication = @import("generated_uniqueness_function_plan_finish");
+const Input = std.meta.Child(analysis.Input);
+const Finish = std.meta.Child(publication.Input);
 
 pub fn build(function: *Function, allocator: std.mem.Allocator) std.mem.Allocator.Error!Function.Plan {
     var borrowed: levels.Borrowed = undefined;
 
     try borrowed.init(function);
 
+    const context: *const @TypeOf(borrowed.descriptor) = &borrowed.descriptor;
     const types = zx.ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), function.slots.types);
-    const AbiState = std.meta.Child(@FieldType(std.meta.Child(generated.Input), "state"));
-    const state = zx.columns.view(AbiState, function.evaluation.?);
-    const Context = @FieldType(Input, "context");
-    const State = @FieldType(Input, "state");
+    const state = zx.columns.view(std.meta.Child(@FieldType(Input, "state")), function.evaluation.?);
 
     const input: Input = .{
-        .context = if (@typeInfo(Context) == .pointer) &borrowed.descriptor else borrowed.context,
-        .state = if (@typeInfo(State) == .pointer) &state else zx.columns.borrow(State, &state),
+        .context = zx.columns.pointer(@FieldType(Input, "context"), context),
+        .state = &state,
         .types = &types,
         .time = function.order.nodes.time,
         .operations = @ptrCast(function.operations),
@@ -28,20 +26,31 @@ pub fn build(function: *Function, allocator: std.mem.Allocator) std.mem.Allocato
         .results = @ptrCast(function.order.results),
     };
 
-    const result = generated.executeValue(function.allocator, if (indirect) &input else input) catch |err| switch (err) {
-        error.OutOfMemory => return error.OutOfMemory,
-        else => std.debug.panic("function plan failed: {s}", .{@errorName(err)}),
+    const facts = zx.columns.invoke(analysis.executeValue, function.allocator, &input) catch |err| return failure(err);
+
+    const finish: Finish = .{
+        .source = zx.columns.pointer(@FieldType(Finish, "source"), &input),
+        .flags = facts.flags,
+        .keys = try allocator.dupe(u64, facts.keys),
+        .needed = facts.needed,
     };
 
-    function.evaluation.?.known = result.known;
-    function.evaluation.?.reads = result.reads;
+    const result = zx.columns.invoke(publication.executeValue, allocator, &finish) catch |err| return failure(err);
+    function.evaluation.?.known = facts.known;
+    function.evaluation.?.reads = facts.reads;
 
     try levels.publish(function);
 
-    const flags = try allocator.alloc(Function.Flags, result.flags.len);
-    const renewals = try @import("../renewals.zig").copy(allocator, result.renewals);
+    return .{
+        .flags = @ptrCast(result.flags),
+        .renewals = .{ .keys = result.renewals.keys, .paths = result.renewals.paths },
+        .transfers = result.transfers,
+        .slot_first = try allocator.dupe(u32, function.sites.slot_first[function.sites.symbols.count()..]),
+    };
+}
 
-    for (result.flags, flags) |value, *target| target.* = @bitCast(@as(u8, @intCast(value)));
+fn failure(err: anyerror) std.mem.Allocator.Error {
+    if (err == error.OutOfMemory) return error.OutOfMemory;
 
-    return .{ .flags = flags, .renewals = renewals, .transfers = try allocator.dupe(u64, result.transfers), .slot_first = try allocator.dupe(u32, function.sites.slot_first[function.sites.symbols.count()..]) };
+    std.debug.panic("function plan failed: {s}", .{@errorName(err)});
 }

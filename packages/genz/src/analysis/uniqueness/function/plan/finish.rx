@@ -1,0 +1,34 @@
+<Module>
+    <Type from="model" as="Plan" />
+
+    <Args in={Plan.Finish} out={Plan.Published} />
+
+    <Call
+        fn="renewal_paths"
+        in={$in.pick([
+            "source",
+            "keys"
+        ])}
+    />
+
+    <Call
+        fn="../transfer/build"
+        in={$in.pick([
+            "source",
+            "needed"
+        ])}
+    />
+
+    <Call fn="pack_flags" in={$in.flags} />
+
+    <Return
+        value={{
+            flags: $ctx.pack_flags,
+            renewals: {
+                keys: $in.keys,
+                paths: $ctx.renewal_paths
+            },
+            transfers: $ctx.build
+        }}
+    />
+</Module>
