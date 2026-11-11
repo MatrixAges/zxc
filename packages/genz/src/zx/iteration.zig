@@ -189,7 +189,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = qualified } });
         if (tracker) |value| try value.mark(self, &loop);
-        try frame.append(self, &entered, &loop, .{ .condition = condition, .after_step = true });
+        try frame.append(self, &entered, null, &loop, .{ .condition = condition, .after_step = true });
 
         const restored = if (mode == .discard) state else try aggregate.bind(self, &entered, try selected.restore(self, state));
         const result = try finish.lower(self, &entered, restored);
@@ -231,8 +231,6 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     try renewals.emit(self, &entered, type_id, .{ .reference = state });
 
-    const prepared = entered.items.len != 0;
-
     if (selected_state) {
         const qualified = try @import("state_value/ownership.zig").clip(self, &loop, iteration.body, next);
 
@@ -241,16 +239,11 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     if (tracker) |value| try value.mark(self, &loop);
 
-    try frame.append(self, &entered, &loop, .{
+    try frame.append(self, &body, &entered, &loop, .{
         .condition = condition,
         .after_step = iteration.postcondition,
-        .renewed = prepared,
         .guarded_initial = initial_guard != null,
     });
-
-    if (!iteration.postcondition and prepared) {
-        try body.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = try self.builder.statements(entered.items), .no = .{} } });
-    } else try body.appendSlice(self.allocator, entered.items);
 
     const result = try finish.lower(self, &body, state);
 

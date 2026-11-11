@@ -5,6 +5,7 @@ import {
     ExpressionsUnaryOperator
 } from "../../../printer/model/expressions"
 import { StatementsKind } from "../../../printer/model/statements"
+import branch from "./branch"
 
 import type { Input, Guard as Output } from "./model"
 
@@ -30,18 +31,11 @@ export default function (in: Input): Output {
             tags: [StatementsKind.BreakLoop],
             offsets: [0]
         },
-        exit: {
-            tags: [StatementsKind.Branch],
-            offsets: [0],
-            branch_condition: [in.expression_base],
-            branch_yes_start: [in.statement_base],
-            branch_yes_len: [1],
-            branch_no_start: [0],
-            branch_no_len: [0],
-            branch_capture: [null],
-            branch_capture_reference: [false],
-            branch_error_capture: [null]
-        },
+        exit: branch({
+            condition: in.expression_base,
+            start: in.statement_base,
+            count: 1
+        }),
         loop: {
             condition,
             start,

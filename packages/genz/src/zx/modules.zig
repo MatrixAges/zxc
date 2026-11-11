@@ -227,7 +227,9 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
 
     const value = selected.external == null and lower.value_functions[@backingInt(id)];
 
-    if (!value or regular) {
+    lower.local_regular_function = !value or regular;
+
+    if (lower.local_regular_function) {
         var declaration = if (selected.external) |external| native: {
             const module = program.native_modules.at(@backingInt(external.module));
             const native_names = try temporary.alloc([]const u8, program.native_modules.count());

@@ -9,8 +9,8 @@ export type Input = {
     expression_base: u32,
     statement_base: u32,
     body_count: u64,
+    prefix_count: u64,
     after_step: bool,
-    renewed: bool,
     guarded_initial: bool
 }
 
@@ -64,5 +64,6 @@ export type Guard = {
 
 export type Output = {
     guard?: Guard,
-    statement: While
+    statement: While,
+    entry?: Branch
 }

@@ -67,6 +67,8 @@ shared_types: bool = false,
 pending_name: []const u8 = "zx_pending",
 type_names: ?[]const []const u8 = null,
 function_modules: ?[]const []const u8 = null,
+
+local_regular_function: bool = false,
 function_requests: *@import("functions/requests.zig") = undefined,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
 task_declarations: *@import("auxiliary.zig") = undefined,
@@ -328,7 +330,16 @@ pub fn functionReference(self: *Self, id: ir.FunctionId) Error!node.ExpressionId
 }
 
 pub fn requestFunction(self: *Self, id: ir.FunctionId, variant: @import("functions/requests.zig").Variant) Error!node.ExpressionId {
-    if (self.function_modules) |modules| return self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(id)])}), variant.member());
+    if (self.function_modules) |modules| {
+        const member = variant.member();
+
+        if (id == self.self_function and (variant == .value or self.local_regular_function)) {
+            return self.builder.identifier(member);
+        }
+
+        return self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(id)])}), member);
+    }
+
     try self.function_requests.add(self.allocator, id, variant);
 
     return self.builder.identifier(try variant.name(self.allocator, id));

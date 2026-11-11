@@ -1,0 +1,20 @@
+import integers from "std:integer"
+
+import branch from "./branch"
+
+import type { Branch as Output } from "./model"
+
+export type Input = {
+    condition: u32,
+    body_start: u32,
+    body_count: u64,
+    prefix_count: u64
+}
+
+export default function (in: Input): Output {
+    return branch({
+        condition: in.condition,
+        start: integers.narrow(integers.widen(in.body_start) + in.body_count),
+        count: integers.narrow(in.prefix_count + 1)
+    })
+}

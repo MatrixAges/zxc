@@ -3,14 +3,35 @@
 
     <Args in={Loop.Input} out={Loop.Output} />
 
-    <If on={$in.after_step || $in.renewed || $in.guarded_initial}>
+    <If on={$in.after_step || $in.prefix_count > 0 || $in.guarded_initial}>
         <Call fn="guard" in={$in} />
         <Call fn="statement" in={$ctx.guard.loop} />
+
+        <If on={!$in.after_step && $in.prefix_count > 0}>
+            <Call
+                fn="entry"
+                in={{
+                    condition: $in.condition,
+                    body_start: $ctx.guard.loop.start,
+                    body_count: $ctx.guard.loop.count,
+                    prefix_count: $in.prefix_count
+                }}
+            />
+
+            <Return
+                value={{
+                    guard: $ctx.guard,
+                    statement: $ctx.statement,
+                    entry: $ctx.entry
+                }}
+            />
+        </If>
 
         <Return
             value={{
                 guard: $ctx.guard,
-                statement: $ctx.statement
+                statement: $ctx.statement,
+                entry: null
             }}
         />
     </If>
@@ -27,7 +48,8 @@
     <Return
         value={{
             guard: null,
-            statement: $ctx.statement
+            statement: $ctx.statement,
+            entry: null
         }}
     />
 </Module>
