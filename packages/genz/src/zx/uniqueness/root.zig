@@ -120,6 +120,8 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
 
     var replay = try follow(temporary, memo, shared, exported, units);
 
+    defer replay.deinit();
+
     if (try shortcut(allocator, temporary, program, slots, &summaries, units, memo, &replay)) |result| return result;
 
     var pool = try Pool.init(temporary, concurrent);
@@ -193,7 +195,7 @@ fn analyzeWithConcurrency(allocator: std.mem.Allocator, workspace: std.mem.Alloc
     }
 
     if (memo.persistent) {
-        const trace = try replay.finish(memo.arena.child_allocator);
+        const trace = try replay.finish();
 
         if (memo.trace) |*previous| previous.deinit();
 
@@ -417,14 +419,13 @@ fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program:
     if (replay.trace == null) return null;
 
     const trace = &memo.trace.?;
-    const planned = try temporary.alloc(?Memo.Planned, units.len);
+    const Replacement = struct { body: usize, value: Memo.Planned };
+    var replacements: std.ArrayList(Replacement) = .empty;
 
-    @memset(planned, null);
-
-    for (units, replay.changed, planned, 0..) |entry, changed, *plan, index| {
+    for (units, replay.changed, 0..) |entry, changed, index| {
         const unit = entry orelse continue;
 
-        if (trace.of(.planned, index).values.len != 1) return null;
+        if (trace.of(.planned, index).values.len != 1) return undo(summaries, units, replay.changed);
         if (!changed) continue;
 
         inline for (.{ Memo.Kind.settled, Memo.Kind.demanded }) |kind| {
@@ -437,24 +438,33 @@ fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program:
             }
         }
 
-        plan.* = try revisit(.planned, temporary, program, slots, summaries, unit, index, memo, trace.of(.planned, index).states[0]) orelse return undo(summaries, units, replay.changed);
+        const value = try revisit(.planned, temporary, program, slots, summaries, unit, index, memo, trace.of(.planned, index).states[0]) orelse return undo(summaries, units, replay.changed);
+
+        try replacements.append(temporary, .{ .body = index, .value = value });
     }
 
     const count = program.functions.count();
     const plans = try allocator.alloc(Plan, count);
     var entry_plan = Plan{ .flags = &.{} };
+    var next: usize = 0;
 
-    for (units, planned, 0..) |entry, renewed, index| {
+    for (units, 0..) |entry, index| {
         const plan: Plan = if (entry == null) .{ .flags = &.{} } else plan: {
-            const value = &trace.of(.planned, index).values[0];
+            const value = if (next < replacements.items.len and replacements.items[next].body == index) changed: {
+                const replacement = replacements.items[next].value;
 
-            if (renewed) |replacement| value.* = replacement;
+                next += 1;
+
+                break :changed replacement;
+            } else trace.of(.planned, index).values[0];
 
             break :plan try value.plan().copy(allocator);
         };
 
         if (index < count) plans[index] = plan else entry_plan = plan;
     }
+
+    for (replacements.items) |replacement| trace.of(.planned, replacement.body).values[0] = replacement.value;
 
     @memcpy(trace.identities, replay.identities);
 
@@ -510,6 +520,8 @@ fn undo(summaries: *Summaries, units: []const ?*Unit, changed: []const bool) ?Re
 
 /// The replay of the memo's last analysis, which this one follows when it ran for the same program shape and exports.
 fn follow(allocator: std.mem.Allocator, memo: *const Memo, shared: [32]u8, exported: []const ir.FunctionId, units: []const ?*Unit) std.mem.Allocator.Error!Trace.Replay {
+    if (!memo.persistent) return .{ .allocator = allocator };
+
     const identities = try allocator.alloc(Trace.Digest, units.len);
     const calls = try allocator.alloc([]const u32, units.len);
 
@@ -523,9 +535,9 @@ fn follow(allocator: std.mem.Allocator, memo: *const Memo, shared: [32]u8, expor
     hash.update(&shared);
     hash.update(std.mem.sliceAsBytes(exported));
 
-    const previous = if (memo.persistent) if (memo.trace) |*trace| trace else null else null;
+    const previous = if (memo.trace) |*trace| trace else null;
 
-    return .init(allocator, previous, hash.finalResult(), identities, calls);
+    return .init(allocator, memo.arena.child_allocator, previous, hash.finalResult(), identities, calls);
 }
 
 fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block, called: []const u32, recursive: bool) std.mem.Allocator.Error!*Unit {

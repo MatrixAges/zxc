@@ -152,6 +152,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/replay/recall.rx", .name = "uniqueness_replay_recall", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/replay/expect.rx", .name = "uniqueness_replay_expect", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/replay/confirm.rx", .name = "uniqueness_replay_confirm", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/group/build.rx", .name = "uniqueness_group", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/begin.rx", .name = "uniqueness_memo_begin", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/replay.rx", .name = "uniqueness_memo_replay", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/encoding/finish.rx", .name = "uniqueness_memo_finish", .owner = .genz },

@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Group" />
+
+    <Args in={Group.Input} out={Group.Output} />
+
+    <Call
+        fn="ends"
+        in={$in.pick([
+            "count",
+            "owners"
+        ])}
+    />
+
+    <Call
+        fn="arrange"
+        in={{
+            owners: $in.owners,
+            items: $in.items,
+            ends: $ctx.ends
+        }}
+    />
+
+    <Return value={$ctx.arrange} />
+</Module>

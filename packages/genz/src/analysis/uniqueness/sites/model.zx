@@ -1,12 +1,10 @@
 import type { Expressions } from "core/expression_table/model"
+import type { Output as Group } from "../group/model"
 import type { Role } from "../order/model"
 import type { Edges, Nodes, Regions } from "../order/plan"
 import type { Layout } from "../slots/model"
 
-export type Index = {
-    first: u32[],
-    items: u32[]
-}
+export type Index = Group
 
 export type Effects = {
     kind: Role[],

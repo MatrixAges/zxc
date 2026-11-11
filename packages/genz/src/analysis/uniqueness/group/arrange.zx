@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import type { Output } from "./model"
+
+export type Input = {
+    owners: u32[],
+    items?: u32[],
+    ends: u32[]
+}
+
+export default function (in: Input): Output {
+    const items: u32[] = in.owners.map(owner => 0)[0]
+    const supplied = in.items
+
+    return loop({
+        first: in.ends,
+        items,
+        index: in.owners.length
+    }, {
+        while: state => state.index != 0,
+        next: state => {
+            state.index -= 1
+
+            const owner = integers.widen(in.owners[state.index])
+
+            state.first[owner] -= 1
+
+            const position = integers.widen(state.first[owner])
+
+            if (supplied == null) {
+                state.items[position] = integers.narrow(state.index)
+            } else {
+                state.items[position] = supplied[state.index]
+            }
+        },
+        return: state => state.pick([
+            "first",
+            "items"
+        ])
+    })
+}

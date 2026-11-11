@@ -1,5 +1,6 @@
 const std = @import("std");
 const Memo = @import("memo.zig");
+const Group = @import("replay/group.zig");
 const Self = @This();
 const Control = if (@import("genz_options").generated_analysis) @import("replay/root.zig") else @import("replay/seed.zig");
 /// The results every body met in one analysis of a program, visit by visit, with the states it met them in. An
@@ -34,8 +35,19 @@ fn Visits(comptime Result: type) type {
     };
 }
 
-fn Visit(comptime Value: type) type {
-    return struct { body: u32, value: Value, state: []const u8 };
+fn Log(comptime Value: type) type {
+    return struct {
+        owners: std.ArrayList(u32) = .empty,
+        entries: std.ArrayList(Entry) = .empty,
+        const Entry = struct { value: Value, state: []const u8 };
+
+        fn append(self: *@This(), allocator: std.mem.Allocator, owner: u32, value: Value, state: []const u8) std.mem.Allocator.Error!void {
+            try self.owners.ensureUnusedCapacity(allocator, 1);
+            try self.entries.append(allocator, .{ .value = value, .state = state });
+
+            self.owners.appendAssumeCapacity(owner);
+        }
+    };
 }
 
 /// The results and states of body `index` for `kind`.
@@ -50,34 +62,39 @@ pub fn of(self: *const Self, comptime kind: Kind, index: usize) struct { values:
 /// One analysis following the trace an earlier one left, and recording its own.
 pub const Replay = struct {
     allocator: std.mem.Allocator,
+    recording: ?std.heap.ArenaAllocator = null,
     /// No longer followed once a changed body met a different result than recorded.
-    trace: ?*const Self,
-    changed: []const bool,
-    control: Control,
-    settled: std.ArrayList(Visit(Memo.Settled)) = .empty,
-    demanded: std.ArrayList(Visit(Memo.Demanded)) = .empty,
-    planned: std.ArrayList(Visit(Memo.Planned)) = .empty,
+    trace: ?*const Self = null,
+    changed: []const bool = &.{},
+    control: Control = undefined,
+    settled: Log(Memo.Settled) = .{},
+    demanded: Log(Memo.Demanded) = .{},
+    planned: Log(Memo.Planned) = .{},
     /// The state of the visit `recall` answered, which `met` records instead of the memo's.
     recalled: ?[]const u8 = null,
-    key: Digest,
-    identities: []const Digest,
-    callees: []const []const u32,
+    key: Digest = undefined,
+    identities: []const Digest = &.{},
+    callees: []const []const u32 = &.{},
     /// Follows `previous` when it ran for the same program shape with every body calling the same functions, so the
     /// worklist meets the bodies in the same order as long as their results agree.
-    pub fn init(allocator: std.mem.Allocator, previous: ?*const Self, key: Digest, identities: []const Digest, callees: []const []const u32) std.mem.Allocator.Error!Replay {
+    pub fn init(allocator: std.mem.Allocator, backing: std.mem.Allocator, previous: ?*const Self, key: Digest, identities: []const Digest, callees: []const []const u32) std.mem.Allocator.Error!Replay {
         const control = try Control.init(allocator, previous, key, identities, callees);
 
-        return .{ .allocator = allocator, .trace = if (control.following()) previous else null, .changed = control.changed(), .control = control, .key = key, .identities = identities, .callees = callees };
+        return .{ .allocator = allocator, .recording = .init(backing), .trace = if (control.following()) previous else null, .changed = control.changed(), .control = control, .key = key, .identities = identities, .callees = callees };
+    }
+
+    pub fn deinit(self: *Replay) void {
+        if (self.recording) |*arena| arena.deinit();
     }
     /// The result body `index` met at this visit last time, while it is unchanged and the trace is followed.
     pub fn recall(self: *Replay, comptime kind: Kind, index: usize) std.mem.Allocator.Error!?Memo.Result(kind) {
-        const end = if (self.trace) |trace| @field(trace, @tagName(kind)).starts[index + 1] else 0;
-        const selected = try self.control.recall(kind, index, end);
+        const trace = self.trace orelse return null;
+        const visits = @field(trace, @tagName(kind));
+        const selected = try self.control.recall(kind, index, visits.starts[index + 1]);
 
         if (!self.control.following()) self.trace = null;
 
         const cursor = selected orelse return null;
-        const visits = @field(self.trace.?, @tagName(kind));
 
         self.recalled = visits.states[cursor];
 
@@ -86,19 +103,20 @@ pub const Replay = struct {
     /// Records the result body `index` met, in the state `recall` or the last lookup in `memo` encoded; a changed
     /// body that met another result than recorded ends the replay.
     pub fn met(self: *Replay, comptime kind: Kind, index: usize, value: Memo.Result(kind), memo: *const Memo) std.mem.Allocator.Error!void {
-        const state = self.recalled orelse try self.allocator.dupe(u8, memo.lastState());
+        const recording = if (self.recording) |*arena| arena.allocator() else return;
+        const state = try recording.dupe(u8, self.recalled orelse memo.lastState());
 
         self.recalled = null;
 
-        try @field(self, @tagName(kind)).append(self.allocator, .{ .body = @intCast(index), .value = value, .state = state });
+        try @field(self, @tagName(kind)).append(self.allocator, @intCast(index), value, state);
 
-        const end = if (self.trace) |trace| @field(trace, @tagName(kind)).starts[index + 1] else 0;
-        const selected = try self.control.expect(kind, index, end);
+        const trace = self.trace orelse return;
+        const visits = @field(trace, @tagName(kind));
+        const selected = try self.control.expect(kind, index, visits.starts[index + 1]);
 
         if (!self.control.following()) self.trace = null;
 
         const cursor = selected orelse return;
-        const visits = @field(self.trace.?, @tagName(kind));
         const matched = try agree(kind, self.allocator, visits.values[cursor], value);
 
         try self.control.confirm(kind, index, matched);
@@ -106,51 +124,49 @@ pub const Replay = struct {
         if (!self.control.following()) self.trace = null;
     }
     /// The trace of this analysis, for the next one.
-    pub fn finish(self: *const Replay, backing: std.mem.Allocator) std.mem.Allocator.Error!Self {
-        var arena = std.heap.ArenaAllocator.init(backing);
+    pub fn finish(self: *Replay) std.mem.Allocator.Error!Self {
+        const arena = &self.recording.?;
+        var scratch = std.heap.ArenaAllocator.init(arena.child_allocator);
 
-        errdefer arena.deinit();
+        defer scratch.deinit();
 
         const allocator = arena.allocator();
         const callees = try allocator.alloc([]const u32, self.callees.len);
 
         for (callees, self.callees) |*target, source| target.* = try allocator.dupe(u32, source);
 
-        return .{
-            .arena = arena,
+        var result: Self = .{
+            .arena = undefined,
             .key = self.key,
             .identities = try allocator.dupe(Digest, self.identities),
             .callees = callees,
-            .settled = try group(Memo.Settled, allocator, self.identities.len, self.settled.items),
-            .demanded = try group(Memo.Demanded, allocator, self.identities.len, self.demanded.items),
-            .planned = try group(Memo.Planned, allocator, self.identities.len, self.planned.items),
+            .settled = try group(Memo.Settled, allocator, &scratch, self.identities.len, self.settled),
+            .demanded = try group(Memo.Demanded, allocator, &scratch, self.identities.len, self.demanded),
+            .planned = try group(Memo.Planned, allocator, &scratch, self.identities.len, self.planned),
         };
+
+        result.arena = arena.*;
+        self.recording = null;
+
+        return result;
     }
 };
 
 /// Visits sorted by body, keeping their order within each body.
-fn group(comptime Value: type, allocator: std.mem.Allocator, bodies: usize, visits: []const Visit(Value)) std.mem.Allocator.Error!Visits(Value) {
-    const starts = try allocator.alloc(u32, bodies + 1);
-    const values = try allocator.alloc(Value, visits.len);
-    const states = try allocator.alloc([]const u8, visits.len);
-    const next = try allocator.alloc(u32, bodies);
+fn group(comptime Value: type, allocator: std.mem.Allocator, scratch: *std.heap.ArenaAllocator, bodies: usize, log: Log(Value)) std.mem.Allocator.Error!Visits(Value) {
+    _ = scratch.reset(.retain_capacity);
 
-    defer allocator.free(next);
+    const index = try Group.build(scratch.allocator(), bodies, log.owners.items);
+    const values = try allocator.alloc(Value, index.items.len);
+    const states = try allocator.alloc([]const u8, index.items.len);
 
-    @memset(starts, 0);
-
-    for (visits) |visit| starts[visit.body + 1] += 1;
-    for (1..starts.len) |index| starts[index] += starts[index - 1];
-
-    @memcpy(next, starts[0..bodies]);
-
-    for (visits) |visit| {
-        values[next[visit.body]] = visit.value;
-        states[next[visit.body]] = try allocator.dupe(u8, visit.state);
-        next[visit.body] += 1;
+    for (index.items, values, states) |row, *value, *state| {
+        const entry = log.entries.items[row];
+        value.* = entry.value;
+        state.* = entry.state;
     }
 
-    return .{ .starts = starts, .values = values, .states = states };
+    return .{ .starts = try allocator.dupe(u32, index.first), .values = values, .states = states };
 }
 
 /// Whether two results of `kind` have the same effect: growth copies are sets, whatever order they were listed in.
