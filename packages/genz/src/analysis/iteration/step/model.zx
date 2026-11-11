@@ -1,0 +1,27 @@
+export enum Assignment { Direct, State, Projected }
+
+export type Input = {
+    body: u32,
+    forwarded?: u32,
+    postcondition: bool,
+    projected: bool,
+    selected_state: bool,
+    layout: bool,
+    buffered: bool
+}
+
+export type Evaluation = {
+    step: u32,
+    by_value: bool,
+    assignment: Assignment
+}
+
+export type Output = {
+    step: u32,
+    by_value: bool,
+    first_test: bool,
+    after_step: bool,
+    classify_renewals: bool,
+    inline_lists: bool,
+    assignment: Assignment
+}

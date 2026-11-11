@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Step" />
+
+    <Args in={Step.Input} out={Step.Output} />
+
+    <If on={$in.projected}>
+        <Return
+            value={{
+                step: $in.body,
+                by_value: true,
+                first_test: !$in.postcondition,
+                after_step: true,
+                classify_renewals: false,
+                inline_lists: false,
+                assignment: Step.Assignment.Projected
+            }}
+        />
+    </If>
+
+    <Call fn="evaluation" in={$in} />
+
+    <Return
+        value={{
+            ...$ctx.evaluation,
+            first_test: false,
+            after_step: $in.postcondition,
+            classify_renewals: $in.selected_state && $in.forwarded == null,
+            inline_lists: $in.buffered
+        }}
+    />
+</Module>

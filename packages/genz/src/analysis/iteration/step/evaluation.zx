@@ -1,0 +1,22 @@
+import { Assignment } from "./model"
+
+import type { Input, Evaluation as Output } from "./model"
+
+export default function (in: Input): Output {
+    const forwarded = in.forwarded
+    const assignment = in.selected_state ? Assignment.State : Assignment.Direct
+
+    if (forwarded != null) {
+        return {
+            step: forwarded,
+            by_value: true,
+            assignment
+        }
+    }
+
+    return {
+        step: in.body,
+        by_value: in.layout,
+        assignment
+    }
+}

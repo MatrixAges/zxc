@@ -6,6 +6,7 @@ const aggregate = @import("aggregate.zig");
 const frame = @import("iteration/frame.zig");
 const renewal = @import("iteration/renewal.zig");
 const state_declaration = @import("iteration/state.zig");
+const step = @import("iteration/step.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!node.ExpressionId {
     return (try lowerMode(self, id, iteration, .reference, null)).?;
@@ -130,8 +131,24 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const temporary = renewal_memory.allocator();
 
+    const schedule = step.plan(.{
+        .body = @backingInt(iteration.body),
+        .forwarded = if (selected_call) |call| @backingInt(call) else null,
+        .postcondition = iteration.postcondition,
+        .projected = fields != null,
+        .selected_state = selected_state,
+        .layout = layout,
+        .buffered = buffered,
+    });
+
+    const renewals = try renewal.plan(self, temporary, .{
+        .owner = id,
+        .type_id = type_id,
+        .classify = if (schedule.classify_renewals) iteration else null,
+        .inline_lists = schedule.inline_lists,
+    });
+
     if (fields) |*selected| {
-        const renewals = try renewal.plan(self, temporary, .{ .owner = id, .type_id = type_id });
         const renewed = renewals.needsEntries(self);
         const seed_name = self.builder.nodes.get(seed).identifier;
 
@@ -143,16 +160,16 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
             .tracking = tracking,
         });
 
-        parameters.rename(seed_name);
+        const first_condition = if (schedule.first_test) first: {
+            parameters.rename(seed_name);
+            defer parameters.rename(name);
 
-        const first_condition = if (iteration.postcondition) null else try self.expr(iteration.condition);
-
-        parameters.rename(name);
+            break :first try self.expr(iteration.condition);
+        } else null;
 
         self.loop_fields = selected;
 
-        const condition = try self.expr(iteration.condition);
-        const next = try @import("value_call/root.zig").expression(self, iteration.body);
+        const next = try step.lower(self, schedule, iteration.condition);
 
         self.loop_fields = previous_fields;
 
@@ -167,11 +184,17 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
             .initial = try selected.initial(self),
         });
 
-        const qualified = try selected.qualify(self, &loop, iteration.body, next);
+        try step.append(self, &loop, schedule, .{
+            .type_id = type_id,
+            .origin = iteration.body,
+            .target = state,
+            .value = next.value,
+            .fields = selected,
+        });
 
-        try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = qualified } });
         if (tracker) |value| try value.mark(self, &loop);
-        try frame.append(self, &entered, null, &loop, .{ .condition = condition, .after_step = true });
+
+        try frame.append(self, &entered, null, &loop, .{ .condition = next.condition, .after_step = schedule.after_step });
 
         const restored = if (mode == .discard) state else try aggregate.bind(self, &entered, try selected.restore(self, state));
         const result = try finish.lower(self, &entered, restored);
@@ -185,20 +208,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         return try aggregate.finish(self, &body, result);
     }
 
-    const renewals = try renewal.plan(self, temporary, .{
-        .owner = id,
-        .type_id = type_id,
-        .classify = if (!deep and selected_state and selected_call == null) iteration else null,
-        .inline_lists = buffered,
-    });
-
     const previous_deferred = self.deferred_lists;
 
     defer self.deferred_lists = previous_deferred;
     self.deferred_lists = renewals.delayed;
 
-    const condition = try self.expr(iteration.condition);
-    const next = if (selected_call) |call| try @import("value_call/root.zig").expression(self, call) else if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
+    const next = try step.lower(self, schedule, iteration.condition);
 
     parameters.restoreContext();
 
@@ -215,17 +230,18 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     try renewals.emit(self, &entered, type_id, .{ .reference = state });
 
-    if (selected_state) {
-        const qualified = try @import("state_value/ownership.zig").clip(self, &loop, iteration.body, next);
-
-        try @import("iteration/assignment.zig").append(self, &loop, type_id, state, qualified);
-    } else try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
+    try step.append(self, &loop, schedule, .{
+        .type_id = type_id,
+        .origin = iteration.body,
+        .target = state,
+        .value = next.value,
+    });
 
     if (tracker) |value| try value.mark(self, &loop);
 
     try frame.append(self, &body, &entered, &loop, .{
-        .condition = condition,
-        .after_step = iteration.postcondition,
+        .condition = next.condition,
+        .after_step = schedule.after_step,
         .guarded_initial = initial_guard != null,
     });
 
