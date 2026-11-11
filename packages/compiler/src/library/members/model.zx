@@ -1,0 +1,11 @@
+import type { Imports } from "../../zx/modules/function_import"
+
+export type Input = {
+    source: Imports,
+    mapping: u32[],
+    first: u64,
+    function_count: u64,
+    barrel: bool
+}
+
+export type Output = Imports?

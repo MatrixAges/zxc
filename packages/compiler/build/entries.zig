@@ -90,6 +90,7 @@ pub const main = [_]Entry{
     .{ .path = "library/envelope/seal.rx", .name = "library_envelope_seal", .owner = .compiler },
     .{ .path = "library/envelope/versions.zx", .name = "library_envelope_versions", .owner = .compiler },
     .{ .path = "library/interface/complete.rx", .name = "library_public_types", .owner = .compiler },
+    .{ .path = "library/members/build.rx", .name = "library_public_members", .owner = .compiler },
     input_snapshot,
     .{ .path = "backends/zig/cache/envelope/frame.rx", .name = "generation_cache_envelope", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/scoped.zx", .name = "source_abi_scoped", .owner = .compiler },

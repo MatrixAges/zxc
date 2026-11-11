@@ -1,0 +1,54 @@
+import type { Imports } from "../../zx/modules/function_import"
+import type { Operation } from "../../zx/modules/intrinsic/model"
+
+export type Input = {
+    source: Imports,
+    barrel: bool
+}
+
+export type Output = Imports
+
+export default function (in: Input): Output {
+    if (!in.barrel) {
+        return in.source
+    }
+
+    const source = in.source
+    const namespaces: string?[] = []
+    const names: string[] = []
+    const ids: u32?[] = []
+    const input_types: u32?[] = []
+    const output_types: u32?[] = []
+    const intrinsics: Operation?[] = []
+
+    return loop({
+        index: 0,
+        namespaces,
+        names,
+        ids,
+        input_types,
+        output_types,
+        intrinsics
+    }, {
+        while: current => current.index < source.names.length,
+        next: current => {
+            const index = current.index
+            const name = source.names[index]
+            const intrinsic = source.intrinsics[index]
+
+            if (name.length != 0 || intrinsic != null) {
+                current.namespaces = current.namespaces.push(null)[0]
+                current.names = current.names.push(name)[0]
+                current.ids = current.ids.push(source.ids[index])[0]
+                current.input_types =
+                    current.input_types.push(source.input_types[index])[0]
+                current.output_types =
+                    current.output_types.push(source.output_types[index])[0]
+                current.intrinsics = current.intrinsics.push(intrinsic)[0]
+            }
+
+            current.index += 1
+        },
+        return: current => current.omit(["index"])
+    })
+}

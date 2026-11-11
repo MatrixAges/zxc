@@ -1,0 +1,36 @@
+<Module>
+    <Type from="model" as="Members" />
+
+    <Args in={Members.Input} out={Members.Output} />
+
+    <Call
+        fn="select"
+        in={$in.pick([
+            "source",
+            "barrel"
+        ])}
+    />
+
+    <Call
+        fn="bounds"
+        in={{
+            ids: $ctx.select.ids,
+            count: $in.function_count
+        }}
+    />
+
+    <If on={!$ctx.bounds}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="../../zx/modules/compiled/loading/members"
+        in={{
+            source: $ctx.select,
+            mapping: $in.mapping,
+            first: $in.first
+        }}
+    />
+
+    <Return value={$ctx.members} />
+</Module>
