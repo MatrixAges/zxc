@@ -179,7 +179,7 @@ pub fn bindings(allocator: std.mem.Allocator, source: []const Binding) std.mem.A
     return .{ .names = names, .namespaces = namespaces, .ids = ids, .inputs = inputs, .outputs = outputs, .intrinsics = intrinsics };
 }
 
-fn aliases(allocator: std.mem.Allocator, source: []const ir.Export) std.mem.Allocator.Error!Aliases {
+pub fn aliases(allocator: std.mem.Allocator, source: []const ir.Export) std.mem.Allocator.Error!Aliases {
     const names = try allocator.alloc([]const u8, source.len);
     const types = try allocator.alloc(u32, source.len);
 

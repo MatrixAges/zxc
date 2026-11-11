@@ -1,0 +1,26 @@
+<Module>
+    <Type from="model" as="Forward" />
+
+    <Args in={Forward.Input} out={Forward.Output} />
+
+    <Call fn="symbols" in={$in.parameter} />
+    <Call fn="expressions" in={$in} />
+    <Call fn="control" in={{}} />
+
+    <Return
+        value={{
+            symbols: $ctx.symbols,
+            expressions: $ctx.expressions,
+            control: $ctx.control.table,
+            root: $ctx.control.root,
+            contracts: {
+                kinds: [],
+                predicates: [],
+                symbols: [],
+                expressions: [],
+                span_start: [],
+                span_end: []
+            }
+        }}
+    />
+</Module>

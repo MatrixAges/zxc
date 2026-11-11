@@ -1,0 +1,38 @@
+<Module>
+    <Type from="core/type_table/model" as="Types" />
+
+    <Args
+        in={{
+            exports: Types.Fields,
+            imports: Types.Fields,
+            type_count: u64
+        }}
+        out={bool}
+    />
+
+    <Task name="exports" out={$ctx.valid}>
+        <Call
+            fn="valid"
+            in={{
+                fields: $in.exports,
+                type_count: $in.type_count
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.exports}>
+        <Return value={false} />
+    </If>
+
+    <Task name="imports" out={$ctx.valid}>
+        <Call
+            fn="valid"
+            in={{
+                fields: $in.imports,
+                type_count: $in.type_count
+            }}
+        />
+    </Task>
+
+    <Return value={$ctx.task.imports} />
+</Module>

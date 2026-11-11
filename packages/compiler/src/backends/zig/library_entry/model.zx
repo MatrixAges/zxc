@@ -1,27 +1,10 @@
-import type { Contracts } from "core/contract_table/model"
-import type { Control } from "core/control_table/model"
-import type { Expressions } from "core/expression_table/model"
-import type { Symbols } from "core/symbol_table/model"
+import type { Output as Body } from "../../../zx/modules/forward_entry/model"
 
 export type Input = {
     function_id?: u32,
     input_type: u32,
     output_type: u32,
     store_count: u64
-}
-
-export type Invocation = {
-    function_id: u32,
-    input_type: u32,
-    output_type: u32
-}
-
-export type Body = {
-    symbols: Symbols,
-    expressions: Expressions,
-    control: Control,
-    root: u32,
-    contracts: Contracts
 }
 
 export type Output = Body?

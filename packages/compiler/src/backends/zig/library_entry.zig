@@ -23,13 +23,8 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, index: usiz
     };
 
     const wrapper = result orelse return program;
-    const control = try allocator.create(ir.ControlTable);
 
-    control.* = zx.columns.borrow(ir.ControlTable, &wrapper.control);
-    program.symbols = zx.columns.borrow(ir.SymbolTable, &wrapper.symbols);
-    program.expressions = zx.columns.borrow(ir.ExpressionTable, &wrapper.expressions);
-    program.body = .{ .control = control, .root = @fromBackingInt(wrapper.root) };
-    program.contracts = zx.columns.borrow(ir.ContractTable, &wrapper.contracts);
+    try @import("frontend").installForwardEntry(allocator, &program, &wrapper);
 
     return program;
 }

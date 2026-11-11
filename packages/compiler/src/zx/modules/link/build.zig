@@ -27,8 +27,12 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
 
     var nodes = Nodes{ .allocator = self.allocator, .types = .{ .mapped = self.type_mappings[index] }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
 
-    try checkExports(value.exports, nodes.types);
-    try checkExports(value.type_imports, nodes.types);
+    if (comptime @import("parser_options").generated_parser) {
+        try @import("surface/host.zig").admit(self.temporary, value.exports, value.type_imports, self.type_mappings[index].len);
+    } else {
+        try checkExportsSeed(value.exports, nodes.types);
+        try checkExportsSeed(value.type_imports, nodes.types);
+    }
 
     const constants = @import("../../analysis/constants/check.zig");
 
@@ -218,7 +222,7 @@ fn importsSeed(self: *Self, index: usize, nodes: *Nodes) Error!void {
     }
 }
 
-fn checkExports(values: []const ir.Export, mapping: Nodes.TypeMap) Error!void {
+fn checkExportsSeed(values: []const ir.Export, mapping: Nodes.TypeMap) Error!void {
     for (values, 0..) |item, index| {
         if (item.name.len == 0) return error.InvalidModule;
 

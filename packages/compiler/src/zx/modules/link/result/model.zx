@@ -1,0 +1,20 @@
+import type { StoreMode } from "core/function_table/complete"
+import type { Ownership } from "core/symbol_table/model"
+
+export type Header = {
+    input_type: u32,
+    output_type: u32,
+    ownership: Ownership,
+    store_mode: StoreMode
+}
+
+export type Root = {
+    body?: Header,
+    recursive?: u32
+}
+
+export type State = {
+    header: Header,
+    type_only: bool,
+    recursive?: u32
+}

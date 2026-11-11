@@ -34,7 +34,10 @@ pub fn own(program: ir.Program) ?ir.FunctionId {
 }
 
 pub fn entry(allocator: std.mem.Allocator, program: *ir.Program, id: ir.FunctionId) std.mem.Allocator.Error!void {
+    if (comptime @import("parser_options").generated_parser) return @import("forward_entry/host.zig").replace(allocator, program, id);
+
     const span = program.symbols.at(0).span;
+
     program.symbols = try ir.SymbolTable.fromValues(allocator, &.{program.symbols.at(0)});
 
     program.expressions = try ir.ExpressionTable.fromValues(allocator, &.{

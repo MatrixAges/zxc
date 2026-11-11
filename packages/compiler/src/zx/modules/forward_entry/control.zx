@@ -1,0 +1,27 @@
+import empty from "core/control_table/empty"
+import { StatementKind } from "core/control_table/model"
+
+import { call_id, payload_index, root_block, statement_count } from "./const"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = {}
+
+export type Output = {
+    table: Control,
+    root: u32
+}
+
+export default function (in: Input): Output {
+    return {
+        table: {
+            ...empty(),
+            statement_kinds: [StatementKind.Result],
+            statement_payloads: [payload_index],
+            results: [call_id],
+            block_first: [payload_index],
+            block_count: [statement_count]
+        },
+        root: root_block
+    }
+}

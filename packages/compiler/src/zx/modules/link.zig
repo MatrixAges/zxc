@@ -5,7 +5,7 @@ const Origins = @import("nominal_origins.zig");
 const Types = @import("link/types.zig");
 const Builder = @import("link/build.zig");
 const graph = @import("link/graph.zig");
-const TypeMap = @import("artifact/nodes.zig").TypeMap;
+const result = @import("link/result/host.zig");
 pub const Error = Types.Error || Builder.Error || graph.Error;
 
 pub const Result = struct {
@@ -44,8 +44,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     }
 
     var builder = Builder{ .allocator = owned, .temporary = scratch, .modules = modules, .plan = plan, .type_mappings = mappings, .module_functions = function_ids };
-    var root: ?ir.Function = null;
-    var recursive_root: ?ir.FunctionId = null;
+    var selected: result.Entry = .{};
 
     for (order, 0..) |index, position| {
         const module = &modules[index];
@@ -63,15 +62,15 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         switch (action) {
             .Invalid => return error.InvalidModule,
             .Skip => {},
-            .Entry => root = function,
+            .Entry => selected.body = function,
             .Append => {
                 function_ids[index] = id;
 
                 try builder.functions.append(owned, function.?);
             },
             .RecursiveEntry => {
-                root = function;
-                recursive_root = id;
+                selected.body = function;
+                selected.recursive = id;
 
                 try builder.functions.append(owned, function.?);
             },
@@ -79,38 +78,12 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     }
 
     const entry_index = order[order.len - 1];
-    const module = &modules[entry_index];
-    const mapping = TypeMap{ .mapped = mappings[entry_index] };
-    const exports = try owned.dupe(ir.Export, module.exports);
-    var nodes = @import("artifact/nodes.zig"){ .allocator = owned, .types = mapping, .functions = .{ .indexed = &.{} }, .native_modules = .{ .indexed = &.{} } };
-    const stores = try nodes.stores(module.stores);
 
-    for (exports) |*item| {
-        item.name = try owned.dupe(u8, item.name);
-        item.type_id = try mapping.include(item.type_id);
-    }
-
-    var program = ir.Program{
-        .file_name = try owned.dupe(u8, module.path),
+    const program = try result.materialize(owned, scratch, &modules[entry_index], &selected, .{
         .types = types.items.view(),
-        .input_type = if (root) |value| value.input_type else @fromBackingInt(@intCast(0)),
-        .output_type = if (root) |value| value.output_type else @fromBackingInt(@intCast(0)),
-        .output_ownership = if (root) |value| value.output_ownership else .borrowed,
-        .symbols = if (root) |value| value.symbols else .{},
-        .expressions = if (root) |value| value.expressions else .{},
-        .body = if (root) |value| value.body else .{},
-        .contracts = if (root) |value| value.contracts else .{},
-        .exports = exports,
-        .constant_exports = try nodes.constants(module.constant_exports),
         .functions = builder.functions.view(),
         .native_modules = builder.native_modules.view(),
-        .stores = stores,
-        .store_mode = if (root) |value| value.store_mode else .transaction,
-        .type_only = root == null,
-    };
-
-    if (recursive_root) |id| try @import("function_body.zig").entry(owned, &program, id);
-    if (try @import("../ir/validate.zig").validate(scratch, program) != null) return error.InvalidIr;
+    }, mappings[entry_index]);
 
     return .{ .arena = arena, .program = program, .nominal_types = types.origins.items.view() };
 }

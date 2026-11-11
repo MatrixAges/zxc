@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import type { Fields } from "core/type_table/model"
+
+export type Input = {
+    fields: Fields,
+    type_count: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { names, types } = in.fields
+
+    return loop({
+        row: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.row < names.length,
+        next: state => {
+            const name = names[state.row]
+            const id = integers.widen(types[state.row])
+
+            if (name.length == 0 || id >= in.type_count) {
+                state.valid = false
+            } else {
+                const duplicate = loop({
+                    row: 0,
+                    found: false
+                }, {
+                    while: prior => !prior.found && prior.row < state.row,
+                    next: prior => {
+                        prior.found = names[prior.row] == name
+                        prior.row += 1
+                    },
+                    return: prior => prior.found
+                })
+
+                state.valid = !duplicate
+            }
+
+            state.row += 1
+        },
+        return: state => state.valid
+    })
+}

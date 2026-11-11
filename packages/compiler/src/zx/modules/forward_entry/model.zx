@@ -1,0 +1,28 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Ownership, Symbols } from "core/symbol_table/model"
+
+export type Parameter = {
+    name: string,
+    type_id: u32,
+    ownership: Ownership,
+    span_start: u64,
+    span_end: u64
+}
+
+export type Input = {
+    parameter: Parameter,
+    input_type: u32,
+    output_type: u32,
+    function_id: u32,
+    unit: bool
+}
+
+export type Output = {
+    symbols: Symbols,
+    expressions: Expressions,
+    control: Control,
+    root: u32,
+    contracts: Contracts
+}

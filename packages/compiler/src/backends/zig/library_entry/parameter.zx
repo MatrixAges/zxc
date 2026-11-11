@@ -1,0 +1,26 @@
+import { Ownership } from "core/symbol_table/model"
+import { scalar_void } from "core/type_table/const"
+
+import { input_name } from "./const"
+
+import type { Parameter } from "../../../zx/modules/forward_entry/model"
+
+export type Input = u32
+
+export type Output = {
+    symbol: Parameter,
+    unit: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        symbol: {
+            name: input_name,
+            type_id: in,
+            span_start: 0,
+            span_end: 0,
+            ownership: Ownership.Copy
+        },
+        unit: in == scalar_void
+    }
+}
