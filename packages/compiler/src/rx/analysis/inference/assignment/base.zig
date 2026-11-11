@@ -5,6 +5,8 @@ const Self = @This();
 
 parents: []const u64,
 representatives: []const ?u64,
+
+payloads: []const u64 = &.{},
 pub fn init(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     return if (@import("rx_options").generated_graph)
         build(graph, allocator)
@@ -46,7 +48,7 @@ fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         error.IndexOutOfBounds => unreachable,
     };
 
-    return .{ .parents = classes.parents, .representatives = classes.representatives };
+    return .{ .parents = classes.parents, .representatives = classes.representatives, .payloads = payloads.items };
 }
 
 fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
@@ -98,6 +100,11 @@ fn root(parents: []u64, index: usize) usize {
 
 pub fn representative(self: Self, graph: *Graph, id: Graph.Id) zx.Error!?Graph.Id {
     return self.lookup(@backingInt(try payload(graph, id)));
+}
+
+/// Available to the Source solver while the graph revision still matches this assignment base.
+pub fn stableRoot(self: Self, graph: *const Graph, id: Graph.Id) Graph.Id {
+    return self.lookup(@intCast(self.payloads[@backingInt(id)])) orelse graph.root(id);
 }
 
 fn lookup(self: Self, index: usize) ?Graph.Id {

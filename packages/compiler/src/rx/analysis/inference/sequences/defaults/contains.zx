@@ -1,0 +1,45 @@
+import integers from "std:integer"
+import { max_nesting_depth } from "core/const"
+
+import { Reach } from "./model"
+
+import type { Edges } from "./model"
+
+export type Input = {
+    edges: Edges,
+    source: u32,
+    target: u32,
+    depth: u64
+}
+
+export type Output = Reach
+
+export default function contains(in: Input): Output {
+    if (in.depth >= max_nesting_depth) {
+        return Reach.Depth
+    }
+
+    if (in.source == in.target) {
+        return Reach.Present
+    }
+
+    const node = integers.widen(in.source)
+    const end = in.edges.offsets[node + 1]
+
+    return loop({
+        edge: in.edges.offsets[node],
+        result: Reach.Absent
+    }, {
+        while: state => state.edge < end && state.result == Reach.Absent,
+        next: state => {
+            state.result = contains({
+                edges: in.edges,
+                source: in.edges.children[state.edge],
+                target: in.target,
+                depth: in.depth + 1
+            })
+            state.edge += 1
+        },
+        return: state => state.result
+    })
+}

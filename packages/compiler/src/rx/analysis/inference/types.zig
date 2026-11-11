@@ -261,7 +261,7 @@ pub fn finish(self: *Self) zx.Error!void {
         try base.propagate(self);
 
         if (revision != self.revision) continue;
-        if (try @import("sequences.zig").defaultLists(self, base)) continue;
+        if (try @import("sequences/defaults/apply.zig").apply(self, base, scratch)) continue;
         try Assignment.materialize(self, base, scratch);
         if (revision != self.revision) continue;
         if (try @import("index.zig").defaultLists(self)) continue;

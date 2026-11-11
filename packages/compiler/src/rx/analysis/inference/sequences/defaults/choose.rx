@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="SequenceDefault" />
+
+    <Args in={SequenceDefault.Input} out={SequenceDefault.Output} />
+
+    <If on={$in.edges.children.length == 0}>
+        <Call fn="flat" in={$in} />
+
+        <Return value={$ctx.flat} />
+    </If>
+
+    <Call fn="choose" in={$in} />
+
+    <Return value={$ctx.choose} />
+</Module>

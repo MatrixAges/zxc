@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+import { Route } from "./model"
+
+import type { Input as Graph, Output as Selection } from "./model"
+
+export type Input = Graph
+
+export type Output = Selection
+
+export default function (in: Input): Output {
+    const position = loop(0, {
+        while: item => item < in.candidates.length &&
+            integers.widen(in.candidates[item]) < in.direct,
+        next: item => {
+            item += 1
+        },
+        return: item => item
+    })
+
+    if (position < in.candidates.length) {
+        return {
+            route: Route.Select,
+            position
+        }
+    }
+
+    if (position == 0) {
+        return {
+            route: Route.Empty,
+            position
+        }
+    }
+
+    return {
+        route: Route.Recursive,
+        position: position - 1
+    }
+}

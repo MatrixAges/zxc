@@ -1,0 +1,29 @@
+export enum Reach {
+    Absent,
+    Present,
+    Depth
+}
+
+export enum Route {
+    Empty,
+    Select,
+    Recursive,
+    Depth
+}
+
+export type Edges = {
+    offsets: u64[],
+    children: u32[]
+}
+
+export type Input = {
+    candidates: u32[],
+    elements: u32[],
+    direct: u64,
+    edges: Edges
+}
+
+export type Output = {
+    route: Route,
+    position: u64
+}

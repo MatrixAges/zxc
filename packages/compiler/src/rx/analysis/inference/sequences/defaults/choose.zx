@@ -1,0 +1,56 @@
+import contains from "./contains"
+import { Reach, Route } from "./model"
+
+import type { Input as Graph, Output as Selection } from "./model"
+
+export type Input = Graph
+
+export type Output = Selection
+
+export default function (in: Input): Output {
+    return loop({
+        position: 0,
+        element: 0,
+        nested: false,
+        route: Route.Empty
+    }, {
+        while: state =>
+            state.position < in.candidates.length && state.route == Route.Empty,
+        next: state => {
+            if (state.element == in.elements.length) {
+                if (!state.nested) {
+                    state.route = Route.Select
+                } else {
+                    if (state.position + 1 == in.candidates.length) {
+                        state.route = Route.Recursive
+                    } else {
+                        state.position += 1
+                        state.element = 0
+                        state.nested = false
+                    }
+                }
+            } else {
+                const reach = contains({
+                    edges: in.edges,
+                    source: in.elements[state.element],
+                    target: in.candidates[state.position],
+                    depth: 0
+                })
+
+                if (reach == Reach.Depth) {
+                    state.route = Route.Depth
+                }
+
+                if (reach == Reach.Present) {
+                    state.nested = true
+                }
+
+                state.element += 1
+            }
+        },
+        return: state => ({
+            route: state.route,
+            position: state.position
+        })
+    })
+}
