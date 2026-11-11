@@ -1,0 +1,65 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import row from "./row"
+
+import type { AtomicRows } from "std:bytes"
+import type { Cursor as Output } from "./model"
+
+export type Input = {
+    source: u8[],
+    first: u64,
+    own: AtomicRows,
+    called: AtomicRows,
+    body: u64,
+    callees: u32[],
+    trailing: bool,
+    apply: bool
+}
+
+export default function (in: Input): Output {
+    const own_index = in.trailing ? in.callees.length : 0
+    const end = in.callees.length + 1
+
+    return loop({
+        index: 0,
+        offset: in.first,
+        valid: true
+    }, {
+        while: state => state.index < end && state.valid,
+        next: state => {
+            const own = state.index == own_index
+            const target = own ? in.own : in.called
+            const selected = match {
+                own => in.body,
+                in.trailing => integers.widen(in.callees[state.index]),
+                _ => integers.widen(in.callees[state.index - 1])
+            }
+            const length = match {
+                own && selected == bytes.atomicRowsCount(target) => 0,
+                _ => bytes.atomicRowLength(target, selected)
+            }
+
+            const offset = row({
+                source: in.source,
+                offset: state.offset,
+                target,
+                row: selected,
+                length,
+                apply: in.apply
+            })
+
+            if (offset == null) {
+                state.valid = false
+            } else {
+                state.offset = offset
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            end: state.offset,
+            valid: state.valid
+        })
+    })
+}

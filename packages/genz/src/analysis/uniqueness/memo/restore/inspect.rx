@@ -1,0 +1,105 @@
+<Module>
+    <Type from="model" as="Restore" />
+
+    <Args in={Restore.Input} out={Restore.Output} />
+
+    <Call
+        fn="header"
+        in={$in.pick([
+            "source",
+            "body"
+        ])}
+    />
+
+    <If on={!$ctx.header.valid}>
+        <Return value={null} />
+    </If>
+
+    <Task name="facts" out={$ctx.levels}>
+        <Call
+            fn="levels"
+            in={{
+                ...$in.pick([
+                    "source",
+                    "body",
+                    "callees"
+                ]),
+                first: $ctx.header.end,
+                own: $in.input,
+                called: $in.output,
+                trailing: false,
+                apply: false
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.facts.valid}>
+        <Return value={null} />
+    </If>
+
+    <Task name="normalized" out={$ctx.entries}>
+        <Call
+            fn="entries"
+            in={{
+                source: $in.source,
+                start: $ctx.task.facts.end,
+                wide: false
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.normalized.valid}>
+        <Return value={null} />
+    </If>
+
+    <Task name="renewed" out={$ctx.entries}>
+        <Call
+            fn="entries"
+            in={{
+                source: $in.source,
+                start: $ctx.task.normalized.end,
+                wide: true
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.renewed.valid}>
+        <Return value={null} />
+    </If>
+
+    <If on={$in.demanded}>
+        <Call
+            fn="levels"
+            in={{
+                ...$in.pick([
+                    "source",
+                    "body",
+                    "callees"
+                ]),
+                first: $ctx.task.renewed.end,
+                own: $in.outputs,
+                called: $in.inputs,
+                trailing: true,
+                apply: false
+            }}
+        />
+
+        <If on={!$ctx.levels.valid || $ctx.levels.end != $in.source.length}>
+            <Return value={null} />
+        </If>
+
+        <Else>
+            <If on={$ctx.task.renewed.end != $in.source.length}>
+                <Return value={null} />
+            </If>
+        </Else>
+    </If>
+
+    <Return
+        value={{
+            facts_start: $ctx.header.end,
+            normalized: $ctx.task.normalized,
+            renewed: $ctx.task.renewed
+        }}
+    />
+</Module>

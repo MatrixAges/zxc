@@ -1,0 +1,41 @@
+<Module>
+    <Type from="model" as="Restore" />
+
+    <Args in={Restore.Publication} out={void} />
+
+    <Task name="facts" out={$ctx.levels}>
+        <Call
+            fn="levels"
+            in={{
+                ...$in.input.pick([
+                    "source",
+                    "body",
+                    "callees"
+                ]),
+                first: $in.facts_start,
+                own: $in.input.input,
+                called: $in.input.output,
+                trailing: false,
+                apply: true
+            }}
+        />
+    </Task>
+
+    <If on={$in.input.demanded}>
+        <Call
+            fn="levels"
+            in={{
+                ...$in.input.pick([
+                    "source",
+                    "body",
+                    "callees"
+                ]),
+                first: $in.wants_start,
+                own: $in.input.outputs,
+                called: $in.input.inputs,
+                trailing: true,
+                apply: true
+            }}
+        />
+    </If>
+</Module>

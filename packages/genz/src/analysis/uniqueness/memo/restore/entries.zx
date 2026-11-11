@@ -1,0 +1,77 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { level_modulus } from "../../replay/ordered/const"
+import { level_width, word_radix, word_width } from "../encoding/const"
+
+import type { Entries } from "./model"
+
+export type Input = {
+    source: u8[],
+    start: u64,
+    wide: bool
+}
+
+export type Output = Entries
+
+export default function (in: Input): Output {
+    const count = integers.widen(bytes.readU32(in.source, in.start, true))
+    const first = in.start + word_width
+    const width = in.wide ? word_width * 2 : word_width
+    const stride = width + level_width
+    const end = first + count * stride
+
+    if (end > in.source.length) {
+        return {
+            keys: [],
+            levels: [],
+            end,
+            valid: false
+        }
+    }
+
+    const keys: u64[] = []
+    const levels: u8[] = []
+
+    const decoded = loop({
+        keys,
+        levels,
+        offset: first,
+        valid: true
+    }, {
+        while: state => state.valid && state.offset < end,
+        next: state => {
+            const level = in.source[state.offset + width]
+
+            if (level < level_modulus) {
+                const low =
+                    integers.widen(bytes.readU32(in.source, state.offset, true))
+                const high = match in.wide {
+                    true => integers.widen(
+                        bytes.readU32(
+                            in.source,
+                            state.offset + word_width,
+                            true
+                        )
+                    ),
+                    _ => 0
+                }
+
+                state.keys = state.keys.push(low + high * word_radix)[0]
+                state.levels = state.levels.push(level)[0]
+                state.offset += stride
+            } else {
+                state.valid = false
+            }
+        }
+    })
+
+    return {
+        ...decoded.pick([
+            "keys",
+            "levels",
+            "valid"
+        ]),
+        end
+    }
+}

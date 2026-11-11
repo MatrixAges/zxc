@@ -329,7 +329,9 @@ fn appendBytes(self: *Self, values: []const u8) std.mem.Allocator.Error!void {
 
 /// Writes a state `lastState` returned for a lookup of `kind` back into the summaries and growth copies of body `index`,
 /// so the body can be analyzed in it again; false when the bytes do not describe a state of this body.
-pub fn restore(comptime kind: Kind, state: []const u8, summaries: *Summaries, index: usize, callees: []const u32, normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level)) std.mem.Allocator.Error!bool {
+pub fn restore(comptime kind: Kind, backing: std.mem.Allocator, state: []const u8, summaries: *Summaries, index: usize, callees: []const u32, normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level)) std.mem.Allocator.Error!bool {
+    if (generated_encoding) return @import("memo/restore.zig").apply(backing, state, summaries, index, callees, kind == .demanded, normalized, renewed);
+
     var reader: std.Io.Reader = .fixed(state);
 
     return restoreFrom(kind, &reader, summaries, index, callees, normalized, renewed) catch |err| switch (err) {

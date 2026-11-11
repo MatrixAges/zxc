@@ -1,0 +1,38 @@
+import type { AtomicRows } from "std:bytes"
+
+export type Input = {
+    source: u8[],
+    body: u64,
+    callees: u32[],
+    demanded: bool,
+    input: AtomicRows,
+    output: AtomicRows,
+    inputs: AtomicRows,
+    outputs: AtomicRows
+}
+
+export type Cursor = {
+    end: u64,
+    valid: bool
+}
+
+export type Entries = {
+    keys: u64[],
+    levels: u8[],
+    end: u64,
+    valid: bool
+}
+
+export type Decoded = {
+    facts_start: u64,
+    normalized: Entries,
+    renewed: Entries
+}
+
+export type Output = Decoded?
+
+export type Publication = {
+    input: Input,
+    facts_start: u64,
+    wants_start: u64
+}

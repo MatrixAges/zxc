@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { level_modulus } from "../../replay/ordered/const"
+import { level_pair_radix, word_width } from "../encoding/const"
+
+import type { AtomicRows } from "std:bytes"
+
+export type Input = {
+    source: u8[],
+    offset: u64,
+    target: AtomicRows,
+    row: u64,
+    length: u64,
+    apply: bool
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const length = integers.widen(bytes.readU32(in.source, in.offset, true))
+    const first = in.offset + word_width
+    const end = first + (length + 1) / 2
+
+    if (length != in.length || end > in.source.length) {
+        return null
+    }
+
+    if (in.apply) {
+        const modulus = integers.widenByte(level_modulus)
+
+        const progress = loop({
+            column: 0,
+            offset: first
+        }, {
+            while: state => state.column < length,
+            next: state => {
+                const encoded = integers.widenByte(in.source[state.offset])
+                const lower = integers.narrowByte(encoded % modulus)
+
+                bytes.storeAtomicCell(in.target, in.row, state.column, lower)
+
+                if (state.column + 1 < length) {
+                    const upper = integers.narrowByte(
+                        encoded / level_pair_radix % modulus
+                    )
+
+                    bytes.storeAtomicCell(
+                        in.target,
+                        in.row,
+                        state.column + 1,
+                        upper
+                    )
+                }
+
+                state.column += 2
+                state.offset += 1
+            }
+        })
+    }
+
+    return end
+}

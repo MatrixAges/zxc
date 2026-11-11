@@ -474,7 +474,7 @@ fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program:
 /// The result body `index` reaches in a recorded state: the memo's when it has one, or a new analysis in that state.
 fn revisit(comptime kind: Memo.Kind, temporary: std.mem.Allocator, program: ir.Program, slots: Slots, summaries: *Summaries, unit: *Unit, index: usize, memo: *Memo, state: []const u8) std.mem.Allocator.Error!?Memo.Result(kind) {
     if (try memo.find(kind, unit.identity, state)) |value| return value;
-    if (!try Memo.restore(kind, state, summaries, index, unit.callees, &unit.normalized, &unit.renewed)) return null;
+    if (!try Memo.restore(kind, memo.arena.child_allocator, state, summaries, index, unit.callees, &unit.normalized, &unit.renewed)) return null;
 
     var changed: std.ArrayList(usize) = .empty;
     var analysis = try unit.initialize(temporary, temporary, program.functions, slots, summaries, null, null);

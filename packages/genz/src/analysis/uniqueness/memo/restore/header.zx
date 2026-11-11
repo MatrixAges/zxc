@@ -1,0 +1,20 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { word_width } from "../encoding/const"
+
+import type { Cursor as Output } from "./model"
+
+export type Input = {
+    source: u8[],
+    body: u64
+}
+
+export default function (in: Input): Output {
+    const body = integers.widen(bytes.readU32(in.source, 0, true))
+
+    return {
+        end: word_width,
+        valid: body == in.body
+    }
+}
