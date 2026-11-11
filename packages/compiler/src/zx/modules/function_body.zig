@@ -34,19 +34,28 @@ pub fn own(program: ir.Program) ?ir.FunctionId {
 }
 
 pub fn entry(allocator: std.mem.Allocator, program: *ir.Program, id: ir.FunctionId) std.mem.Allocator.Error!void {
-    if (comptime @import("parser_options").generated_parser) return @import("forward_entry/host.zig").replace(allocator, program, id);
+    try forward(allocator, program, id, program.symbols.at(0), false);
 
-    const span = program.symbols.at(0).span;
+    program.contracts = .{};
+}
 
-    program.symbols = try ir.SymbolTable.fromValues(allocator, &.{program.symbols.at(0)});
+pub fn externalEntry(allocator: std.mem.Allocator, program: *ir.Program, id: ir.FunctionId) std.mem.Allocator.Error!void {
+    const parameter: ir.Symbol = .{ .name = "$in", .type_id = program.input_type, .span = .{ .start = 0, .end = 0 } };
+
+    try forward(allocator, program, id, parameter, @backingInt(program.input_type) == @backingInt(ir.Scalar.void));
+}
+
+fn forward(allocator: std.mem.Allocator, program: *ir.Program, id: ir.FunctionId, parameter: ir.Symbol, unit: bool) std.mem.Allocator.Error!void {
+    if (comptime @import("parser_options").generated_parser) return @import("forward_entry/host.zig").write(allocator, program, id, parameter, unit);
+
+    program.symbols = try ir.SymbolTable.fromValues(allocator, &.{parameter});
 
     program.expressions = try ir.ExpressionTable.fromValues(allocator, &.{
-        .{ .type_id = program.input_type, .span = span, .value = .{ .reference = @fromBackingInt(@as(u32, 0)) } },
-        .{ .type_id = program.output_type, .span = span, .value = .{ .call = .{ .function = id, .argument = @fromBackingInt(@as(u32, 0)) } } },
+        .{ .type_id = program.input_type, .span = parameter.span, .value = if (unit) .unit else .{ .reference = @fromBackingInt(@as(u32, 0)) } },
+        .{ .type_id = program.output_type, .span = parameter.span, .value = .{ .call = .{ .function = id, .argument = @fromBackingInt(@as(u32, 0)) } } },
     });
 
     program.body = try ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@as(u32, 1)) }});
-    program.contracts = .{};
 }
 
 pub fn complete(allocator: std.mem.Allocator, program: *ir.Program, functions: ir.FunctionTable) std.mem.Allocator.Error!void {

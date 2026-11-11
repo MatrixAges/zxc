@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import { module_extension, rx_extension } from "../../path/const"
+import { PackageShape } from "./model"
+
+import type { Package } from "./model"
+
+export type Input = Package
+
+export type Output = PackageShape
+
+export default function (in: Input): Output {
+    if (in.compiled) {
+        const identified = (
+            - in.entry.length == 0
+            - and in.instance
+            - and in.artifact
+            - and in.name
+        )
+
+        return identified ? PackageShape.Compiled : PackageShape.InvalidCompiled
+    }
+
+    const entry = bytes.fromText(in.entry)
+    const width = module_extension.length
+
+    if (entry.length < width) {
+        return PackageShape.InvalidSource
+    }
+
+    const suffix = entry.length - width
+
+    const source = bytes.startsWithText(entry, suffix, module_extension) ||
+        bytes.startsWithText(entry, suffix, rx_extension)
+
+    return source ? PackageShape.Source : PackageShape.InvalidSource
+}

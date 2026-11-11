@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+
+import {
+    current_directory,
+    parent_directory,
+    parent_prefix,
+    relative_prefix,
+    root_prefix
+} from "../../path/const"
+import { PathBase } from "./model"
+
+import type { Path } from "./model"
+
+export type Input = Path
+
+export type Output = PathBase
+
+export default function (in: Input): Output {
+    if (!in.directory && in.extension) {
+        return PathBase.Extension
+    }
+
+    const path = bytes.fromText(in.path)
+
+    if (bytes.startsWithText(path, 0, root_prefix)) {
+        return PathBase.Root
+    }
+
+    if (in.path == current_directory || in.path == parent_directory) {
+        return PathBase.Relative
+    }
+
+    const relative = bytes.startsWithText(path, 0, relative_prefix) ||
+        bytes.startsWithText(path, 0, parent_prefix)
+
+    return relative ? PathBase.Relative : PathBase.Invalid
+}

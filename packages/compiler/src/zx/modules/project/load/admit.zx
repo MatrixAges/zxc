@@ -1,0 +1,16 @@
+import { max_dependency_depth } from "./const"
+import { Admission, State } from "./model"
+
+import type { Frame } from "./model"
+
+export type Input = Frame
+
+export type Output = Admission
+
+export default function (in: Input): Output {
+    return match in.state {
+        State.Done => Admission.Skip,
+        State.Visiting => Admission.Cycle,
+        _ => in.depth < max_dependency_depth ? Admission.Push : Admission.Depth
+    }
+}

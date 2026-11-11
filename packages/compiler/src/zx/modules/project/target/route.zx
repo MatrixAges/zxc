@@ -1,0 +1,18 @@
+import { Kind } from "../../specifier/model"
+import { Route } from "./model"
+
+export type Input = {
+    kind: Kind,
+    intrinsic: bool
+}
+
+export type Output = Route
+
+export default function (in: Input): Output {
+    return match in.kind {
+        Kind.File => Route.File,
+        Kind.Package => Route.Package,
+        Kind.Invalid => Route.Invalid,
+        _ => in.intrinsic ? Route.Intrinsic : Route.Interface
+    }
+}

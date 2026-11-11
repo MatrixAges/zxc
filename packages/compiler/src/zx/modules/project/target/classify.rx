@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Target" />
+
+    <Args
+        in={{
+            path: string,
+            intrinsic: string
+        }}
+        out={Target.Route}
+    />
+
+    <Call fn="../../specifier/check" in={$in.path} />
+
+    <Call
+        fn="route"
+        in={{
+            kind: $ctx.check,
+            intrinsic: $in.path == $in.intrinsic
+        }}
+    />
+
+    <Return value={$ctx.route} />
+</Module>

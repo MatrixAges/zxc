@@ -82,13 +82,13 @@ fn readImports(header: anytype, context: ImportContext) !void {
         const imported = header.importAt(index);
         var reporter: zx.Reporter = .{};
 
-        const target = compiler.project.resolveModuleTarget(context.allocator, context.owner, imported.path, context.project, &reporter, imported.span) catch |err| {
+        const reference = compiler.project.resolveModuleReference(context.allocator, context.owner, imported.path, context.project, &reporter, imported.span) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             continue;
         };
 
-        const candidate = switch (target) {
+        const candidate = switch (reference.target) {
             .source => |path| path,
             .compiled => |compiled| {
                 const collection = context.libraries orelse return error.CompiledLibraryLoaderRequired;
@@ -105,10 +105,9 @@ fn readImports(header: anytype, context: ImportContext) !void {
             continue;
         }
 
-        const file_reference = (try compiler.project.specifier.classify(imported.path)) == .file;
-        const path = if (file_reference) try @import("sources/module_path.zig").select(context.io, context.allocator, candidate, context.inputs) else candidate;
+        const path = if (reference.file) try @import("sources/module_path.zig").select(context.io, context.allocator, candidate, context.inputs) else candidate;
 
-        if (file_reference) compiler.project.checkFileTarget(context.owner, path, context.project, &reporter, imported.span) catch |err| {
+        if (reference.file) compiler.project.checkFileTarget(context.owner, path, context.project, &reporter, imported.span) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             continue;

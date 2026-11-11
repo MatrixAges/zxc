@@ -12,6 +12,8 @@ const Analysis = @import("../analysis/analyze.zig");
 const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
 const Input = @import("module_input.zig");
+const Loading = @import("project/load/host.zig");
+const Target = @import("project/target/host.zig");
 pub const signature_project = @import("signature_project.zig");
 pub const import_binding = @import("binding.zig");
 pub const import_view = @import("import_view.zig");
@@ -56,7 +58,7 @@ pub const Options = struct {
 
 const Unit = struct {
     path: []const u8,
-    state: enum { fresh, visiting, done } = .fresh,
+    state: Loading.State = .Fresh,
     program: ?ir.Program = null,
     signature: ?@import("source_signature.zig").Result = null,
     signature_aliases: []const ir.Export = &.{},
@@ -73,13 +75,13 @@ const Unit = struct {
 
 const NativeUnit = struct { exports: []const ir.Export, members: []const FunctionImport };
 const Imported = struct { exports: []const ir.Export, constant_exports: []const ir.Constant = &.{}, members: []const FunctionImport = &.{}, signatures: []const Signature.Member = &.{} };
-pub const ImportTarget = union(enum) { source: []const u8, compiled: compiled.Target };
+pub const ImportTarget = Target.Target;
 
 const LoadFrame = struct {
     index: usize,
     parsed: *const ParseCache.ModuleResult,
     next_import: usize = 0,
-    pending: ?ImportTarget = null,
+    pending: ?struct { path: []const u8, index: usize } = null,
     aliases: std.ArrayList(ir.Export) = .empty,
     imported_names: std.StringHashMapUnmanaged(void) = .empty,
     imports: std.ArrayList(FunctionImport) = .empty,
@@ -98,7 +100,8 @@ const Project = struct {
     sources: []const Source,
     parse_cache: *ParseCache,
     semantic_cache: ?*SemanticCache = null,
-    phase: enum { body, signature } = .body,
+    phase: Loading.Phase = .body,
+    load_frames: std.ArrayList(LoadFrame) = .empty,
     units: []Unit,
     /// Each unit path to the first unit with it.
     unit_indices: @import("zx").bytes.Map(usize) = .empty,
@@ -141,26 +144,15 @@ const Project = struct {
             program.stores = function.stores;
             program.store_mode = function.store_mode;
 
-            if (function.external != null) {
-                const span = zx.Span{ .start = 0, .end = 0 };
-
-                program.symbols = try ir.SymbolTable.fromValues(self.allocator, &.{.{ .name = "$in", .type_id = program.input_type, .span = span }});
-
-                program.expressions = try ir.ExpressionTable.fromValues(self.allocator, &.{
-                    .{ .type_id = program.input_type, .span = span, .value = if (@backingInt(program.input_type) == @backingInt(ir.Scalar.void)) .unit else .{ .reference = @fromBackingInt(0) } },
-                    .{ .type_id = program.output_type, .span = span, .value = .{ .call = .{ .function = id, .argument = @fromBackingInt(0) } } },
-                });
-
-                program.body = try ir.ControlBody.fromValues(self.allocator, &.{.{ .result = @fromBackingInt(1) }});
-            }
+            if (function.external != null) try @import("function_body.zig").externalEntry(self.allocator, &program, id);
         };
 
         return program;
     }
     fn loadFrames(self: *Project, index: usize) zx.Error!void {
-        var frames: std.ArrayList(LoadFrame) = .empty;
+        const frames = &self.load_frames;
 
-        try self.pushFrame(&frames, index);
+        try self.pushFrame(index);
 
         while (frames.items.len != 0) {
             const frame = &frames.items[frames.items.len - 1];
@@ -172,20 +164,24 @@ const Project = struct {
             };
 
             if (dependency) |child| {
-                try self.pushFrame(&frames, child);
+                try self.pushFrame(child);
             } else {
                 _ = frames.pop();
             }
         }
     }
-    fn pushFrame(self: *Project, frames: *std.ArrayList(LoadFrame), index: usize) zx.Error!void {
+    fn pushFrame(self: *Project, index: usize) zx.Error!void {
         const unit = &self.units[index];
+        const frames = &self.load_frames;
 
-        if (unit.state == .done) return;
-        if (unit.state == .visiting) return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "ZX module imports must be acyclic, including unused imports");
-        if (frames.items.len >= 256) return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "module dependency depth exceeds 256");
+        switch (Loading.admit(unit.state, frames.items.len)) {
+            .Skip => return,
+            .Cycle => return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "ZX module imports must be acyclic, including unused imports"),
+            .Depth => return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "module dependency depth exceeds 256"),
+            .Push => {},
+        }
 
-        unit.state = .visiting;
+        unit.state = .Visiting;
         self.current_source = index;
 
         const parsed = try self.parse_cache.getModule(self.sources[index].source, unit.path);
@@ -199,7 +195,7 @@ const Project = struct {
             return error.InvalidSource;
         }
 
-        try frames.append(self.allocator, .{ .index = index, .parsed = parsed });
+        try frames.append(self.arena.child_allocator, .{ .index = index, .parsed = parsed });
     }
     fn loadInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!?usize {
         const index = frame.index;
@@ -216,8 +212,9 @@ const Project = struct {
             const selected_aliases = if (item.exported) &frame.export_aliases else aliases;
             const selected_imports = if (item.exported) &frame.export_functions else imports;
             const selected_constants = if (item.exported) &frame.export_constants else constants;
+            const pending = frame.pending;
 
-            const target = frame.pending orelse target_block: {
+            const target: ImportTarget = if (pending) |resumed| .{ .source = resumed.path } else target_block: {
                 if (!item.exported) for (0..item.nameCount()) |name_index| {
                     const name = item.nameAt(name_index);
                     const entry = try imported_names.getOrPut(self.allocator, name.text);
@@ -225,10 +222,11 @@ const Project = struct {
                     if (entry.found_existing) return self.reporter.fail(.name, name.span, "duplicate import binding");
                 };
 
-                const kind = specifier.classify(item.path) catch return self.reporter.fail(.module, item.span, "invalid or unknown import specifier");
+                const route = Target.classify(item.path);
 
-                if (kind != .file and kind != .package) {
-                    if (std.mem.eql(u8, item.path, @import("intrinsic.zig").specifier)) {
+                switch (route) {
+                    .Invalid => return self.reporter.fail(.module, item.span, "invalid or unknown import specifier"),
+                    .Intrinsic => {
                         try import_binding.apply(self.allocator, self.bindingAllocator(), item, .{
                             .target = .native,
                             .types = self.types.view(),
@@ -239,46 +237,40 @@ const Project = struct {
                         try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, .intrinsic));
 
                         continue;
-                    }
+                    },
+                    .Interface => {
+                        if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
+                            var dependency = try ModuleRecord.copyImport(self.allocator, item, .native);
+                            dependency.identity = try self.allocator.dupe(u8, identity);
 
-                    if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
-                        var dependency = try ModuleRecord.copyImport(self.allocator, item, .native);
-                        dependency.identity = try self.allocator.dupe(u8, identity);
+                            try dependencies.append(self.allocator, dependency);
 
-                        try dependencies.append(self.allocator, dependency);
+                            continue;
+                        }
+
+                        if (item.kind != .function or item.nameCount() != 1) return self.reporter.fail(.module, item.span, "external interfaces require a default function import");
+                        try self.importExternal(item, imports);
+                        try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, .external));
 
                         continue;
-                    }
-
-                    if (item.kind != .function or item.nameCount() != 1) return self.reporter.fail(.module, item.span, "external interfaces require a default function import");
-                    try self.importExternal(item, imports);
-                    try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, .external));
-
-                    continue;
+                    },
+                    .File, .Package => break :target_block try Target.resolve(self.allocator, unit.path, item.path, route, self.options, self.reporter, item.span),
                 }
-
-                break :target_block if (self.phase == .signature)
-                    try resolveModuleTarget(self.allocator, unit.path, item.path, self.options, self.reporter, item.span)
-                else
-                    try resolveTarget(self.allocator, unit.path, item.path, self.options, self.reporter, item.span);
             };
-
-            if (self.phase == .signature and item.kind == .function and !item.exported and target == .source and std.mem.endsWith(u8, target.source, ".rx")) {
-                frame.pending = null;
-
-                continue;
-            }
 
             const imported = switch (target) {
                 .source => |path| block: {
-                    if (self.phase == .signature and std.mem.endsWith(u8, path, ".rx")) {
-                        break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null, .source = path }} };
-                    }
+                    if (pending == null) switch (Loading.source(path, self.phase, item.kind == .function, item.exported)) {
+                        .Load => {},
+                        .SkipSignature => continue,
+                        .DeferSignature => break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null, .source = path }} },
+                        .RejectRx => return self.reporter.fail(.module, item.span, "ZX package entry must be a .zx source file"),
+                    };
 
-                    const dependency = self.find(path) orelse return self.reporter.fail(.module, item.span, "import target is missing from the source set");
+                    const dependency = if (pending) |resumed| resumed.index else self.find(path) orelse return self.reporter.fail(.module, item.span, "import target is missing from the source set");
 
-                    if (self.units[dependency].state != .done) {
-                        frame.pending = target;
+                    if (self.units[dependency].state != .Done) {
+                        frame.pending = .{ .path = path, .index = dependency };
 
                         return dependency;
                     }
@@ -336,7 +328,7 @@ const Project = struct {
             unit.signature_imports = imports.items;
             unit.signature_reexports = frame.export_functions.items;
             unit.signature_constant_imports = constants.items;
-            unit.state = .done;
+            unit.state = .Done;
         } else try self.finishInput(frame, input);
 
         return null;
@@ -519,7 +511,7 @@ const Project = struct {
 
         unit.program = program;
         unit.program.?.types = .{};
-        unit.state = .done;
+        unit.state = .Done;
     }
     fn loadCompiled(self: *Project, target: compiled.Target, span: zx.Span) zx.Error!Imported {
         var selected: ?usize = null;
@@ -747,6 +739,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
     var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
 
     defer project.binding_scratch.deinit();
+    defer project.load_frames.deinit(allocator);
 
     if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared type table" } } };
     if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared native module table" } } };
@@ -843,6 +836,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
 
     defer project.binding_scratch.deinit();
+    defer project.load_frames.deinit(allocator);
 
     project.native_modules = try @import("native_context.zig").storage(temporary, options.context.native_modules);
     project.types = try @import("../analysis/type_table.zig").storage(temporary, options.context.types);
@@ -909,21 +903,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     return result;
 }
 
-pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const u8, root: []const u8, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
-    const extension = std.fs.path.extension(path);
-    const directory = module_path.directoryReference(path);
-
-    if (!directory and extension.len != 0) return reporter.fail(.module, span, "project imports must omit the .zx extension; runtime and RX imports are forbidden");
-
-    const source_path = if (directory) try module_path.directory(allocator, path) else try std.fmt.allocPrint(allocator, "{s}.zx", .{path});
-
-    defer allocator.free(source_path);
-
-    if (std.mem.startsWith(u8, path, "@/")) return std.fs.path.resolve(allocator, &.{ root, source_path[2..] });
-    if (!std.mem.eql(u8, path, ".") and !std.mem.eql(u8, path, "..") and !std.mem.startsWith(u8, path, "./") and !std.mem.startsWith(u8, path, "../")) return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration");
-
-    return std.fs.path.resolve(allocator, &.{ std.fs.path.dirname(from) orelse ".", source_path });
-}
+pub const resolvePath = Target.resolvePath;
 
 pub fn resolveImport(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
     return switch (try resolveTarget(allocator, from, path, options, reporter, span)) {
@@ -940,74 +920,25 @@ pub fn resolveTarget(allocator: std.mem.Allocator, from: []const u8, path: []con
     return target;
 }
 
+pub const ModuleReference = struct { target: ImportTarget, file: bool };
+
+pub fn resolveModuleReference(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error!ModuleReference {
+    const route = Target.classify(path);
+
+    return .{
+        .target = try Target.resolve(allocator, from, path, route, options, reporter, span),
+        .file = route == .File,
+    };
+}
+
 pub fn resolveModuleTarget(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error!ImportTarget {
-    const kind = specifier.classify(path) catch return reporter.fail(.module, span, "invalid or unknown import specifier");
-    const owner = package_scope.owner(options.package_scopes, from);
-    const root = if (owner) |index| options.package_scopes[index].root else options.root_dir;
-
-    if (options.package_scopes.len != 0 and owner == null) return reporter.fail(.module, span, "source file does not belong to a declared package");
-
-    if (kind == .file) {
-        const rx_source = std.mem.endsWith(u8, path, ".rx");
-
-        var resolved = if (rx_source) block: {
-            const candidate = try resolvePath(allocator, from, path[0 .. path.len - ".rx".len], root, reporter, span);
-
-            defer allocator.free(candidate);
-
-            break :block try std.fmt.allocPrint(allocator, "{s}.rx", .{candidate[0 .. candidate.len - ".zx".len]});
-        } else try resolvePath(allocator, from, path, root, reporter, span);
-
-        errdefer allocator.free(resolved);
-
-        const selected = if (module_path.directoryReference(path)) resolved else try selectSource(allocator, resolved, options);
-
-        if (selected.ptr != resolved.ptr) allocator.free(resolved);
-
-        resolved = selected;
-
-        try checkFileTarget(from, resolved, options, reporter, span);
-
-        return .{ .source = resolved };
-    }
-
-    if (kind != .package) return reporter.fail(.module, span, "native and standard imports must use the interface registry");
-
-    var target: ?ImportTarget = null;
-    const dependencies = if (owner) |index| options.package_scopes[index].packages else options.packages;
-
-    for (dependencies) |package| {
-        if (!std.mem.eql(u8, package.specifier, path)) continue;
-        if (target != null) return reporter.fail(.module, span, "duplicate ZX package specifier");
-
-        if (package.compiled) |value| {
-            if (package.entry.len != 0 or value.instance.len == 0 or value.artifact.len == 0 or value.name.len == 0) return reporter.fail(.module, span, "compiled package target must identify one instance, artifact and public module");
-
-            target = .{ .compiled = .{
-                .instance = try allocator.dupe(u8, value.instance),
-                .artifact = try std.fs.path.resolve(allocator, &.{ options.root_dir, value.artifact }),
-                .name = try allocator.dupe(u8, value.name),
-            } };
-        } else {
-            if (!std.mem.endsWith(u8, package.entry, ".zx") and !std.mem.endsWith(u8, package.entry, ".rx")) return reporter.fail(.module, span, "package entry must be a .zx or .rx source file");
-
-            target = .{ .source = try std.fs.path.resolve(allocator, &.{ options.root_dir, package.entry }) };
-        }
-    }
-
-    return target orelse return reporter.fail(.module, span, "ZX package is not declared in the project dependencies");
+    return (try resolveModuleReference(allocator, from, path, options, reporter, span)).target;
 }
 
 pub fn selectSource(allocator: std.mem.Allocator, candidate: []const u8, options: Options) std.mem.Allocator.Error![]const u8 {
-    const paths = options.source_index orelse return candidate;
-
-    return module_path.select(allocator, candidate, source_index.Known{ .paths = paths });
+    return Target.select(allocator, candidate, options.source_index);
 }
 
 pub fn checkFileTarget(from: []const u8, target: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error!void {
-    if (options.package_scopes.len == 0) return;
-
-    const owner = package_scope.owner(options.package_scopes, from) orelse return reporter.fail(.module, span, "source file does not belong to a declared package");
-
-    if (package_scope.owner(options.package_scopes, target) != owner) return reporter.fail(.module, span, "file import crosses a package boundary; declare and import the package dependency");
+    return Target.checkFile(from, target, options.package_scopes, reporter, span);
 }

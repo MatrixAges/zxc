@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Load" />
+
+    <Args in={Load.Source} out={Load.SourceAction} />
+
+    <If on={!$in.rx}>
+        <Return value={Load.SourceAction.Load} />
+    </If>
+
+    <If on={!$in.signature}>
+        <Return value={Load.SourceAction.RejectRx} />
+    </If>
+
+    <If on={$in.function_import && !$in.exported}>
+        <Return value={Load.SourceAction.SkipSignature} />
+    </If>
+
+    <Return value={Load.SourceAction.DeferSignature} />
+</Module>

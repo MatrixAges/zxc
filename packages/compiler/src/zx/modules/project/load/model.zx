@@ -1,0 +1,17 @@
+export enum State { Fresh, Visiting, Done }
+
+export enum Admission { Push, Skip, Cycle, Depth }
+
+export type Frame = {
+    state: State,
+    depth: u64
+}
+
+export enum SourceAction { Load, DeferSignature, SkipSignature, RejectRx }
+
+export type Source = {
+    rx: bool,
+    signature: bool,
+    function_import: bool,
+    exported: bool
+}
