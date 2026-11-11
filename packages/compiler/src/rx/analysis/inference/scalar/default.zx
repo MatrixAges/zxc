@@ -1,0 +1,67 @@
+import {
+    scalar_f32,
+    scalar_f64,
+    scalar_i32,
+    scalar_i64,
+    scalar_u8,
+    scalar_u16,
+    scalar_u32,
+    scalar_u64
+} from "core/type_table/const"
+
+import contains from "./contains"
+
+export type Input = {
+    allowed?: u64,
+    fallback: u32
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const allowed = in.allowed
+
+    if (allowed == null) {
+        return in.fallback
+    }
+
+    if (contains({
+        allowed,
+        scalar: in.fallback
+    })) {
+        return in.fallback
+    }
+
+    const missing: u32? = null
+
+    const preferred: u32[] = [
+        scalar_i64,
+        scalar_f64,
+        scalar_i32,
+        scalar_f32,
+        scalar_u64,
+        scalar_u32,
+        scalar_u16,
+        scalar_u8
+    ]
+
+    return loop({
+        index: 0,
+        selected: missing
+    }, {
+        while: state => state.selected == null && state.index < preferred.length,
+        next: state => {
+            const scalar = preferred[state.index]
+
+            if (contains({
+                allowed,
+                scalar
+            })) {
+                state.selected = scalar
+            }
+
+            state.index += 1
+        },
+        return: state => state.selected
+    })
+}

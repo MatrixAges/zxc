@@ -1,0 +1,19 @@
+import integers from "std:integer"
+import { scalar_f32, scalar_f64, scalar_i32, scalar_u8 } from "core/type_table/const"
+
+import { Domain } from "./model"
+
+export type Input = Domain
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const first = match in {
+        Domain.Floating => scalar_f32,
+        Domain.Signed => scalar_i32,
+        _ => scalar_u8
+    }
+
+    return integers.bitMask(integers.widen(scalar_f64) + 1) -
+        integers.bitMask(integers.widen(first))
+}

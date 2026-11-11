@@ -1,0 +1,33 @@
+import { scalar_f64, scalar_i64 } from "core/type_table/const"
+
+import intersect from "./intersect"
+
+import type { Constraints } from "./model"
+
+export type Input = {
+    left: Constraints,
+    right: Constraints
+}
+
+export type Output = Constraints
+
+export default function (in: Input): Output {
+    const left = in.left.fallback
+    const right = in.right.fallback
+
+    const fallback = match {
+        left == null => right,
+        right == null => left,
+        left == scalar_f64 || right == scalar_f64 => scalar_f64,
+        left == scalar_i64 || right == scalar_i64 => scalar_i64,
+        _ => left
+    }
+
+    return {
+        allowed: intersect({
+            left: in.left.allowed,
+            right: in.right.allowed
+        }),
+        fallback
+    }
+}

@@ -1,5 +1,6 @@
 const zx = @import("zx");
 const Graph = @import("types.zig");
+const Scalar = @import("scalar.zig");
 const Types = @import("frontend").types;
 
 pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeId {
@@ -12,25 +13,8 @@ pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeI
         .known => |id| id,
         .sequence => return self.reporter.fail(.contract, node.span, "sequence constraints must be finalized before type resolution"),
         .unknown => if (node.fallback) |scalar| block: {
-            var numeric_default = scalar;
-
-            if (node.allowed) |mask| {
-                if (!mask.contains(numeric_default)) {
-                    const preferred = [_]zx.ir.Scalar{ .i64, .f64, .i32, .f32, .u64, .u32, .u16, .u8 };
-                    var found = false;
-
-                    for (preferred) |candidate| {
-                        if (!mask.contains(candidate)) continue;
-
-                        numeric_default = candidate;
-                        found = true;
-
-                        break;
-                    }
-
-                    if (!found) return self.reporter.fail(.type_mismatch, node.span, "numeric constraints do not determine an accepted default type");
-                }
-            }
+            const numeric_default = Scalar.default(node.allowed, scalar) orelse
+                return self.reporter.fail(.type_mismatch, node.span, "numeric constraints do not determine an accepted default type");
 
             break :block Types.scalarId(numeric_default);
         } else return self.reporter.fail(.type_mismatch, node.span, "input type cannot be inferred from the available constraints"),

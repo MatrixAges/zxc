@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+export type Input = {
+    left?: u64,
+    right?: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const { left, right } = in
+
+    if (left == null) {
+        return right
+    }
+
+    if (right == null) {
+        return left
+    }
+
+    return integers.andBits(left, right)
+}

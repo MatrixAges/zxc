@@ -1,0 +1,24 @@
+export enum Domain {
+    Numeric,
+    Signed,
+    Floating
+}
+
+export enum Shape {
+    Open,
+    Scalar,
+    Concrete,
+    Structure
+}
+
+export enum Issue {
+    None,
+    Empty,
+    Operator,
+    Structure
+}
+
+export type Constraints = {
+    allowed?: u64,
+    fallback?: u32
+}

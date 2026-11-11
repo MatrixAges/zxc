@@ -1,0 +1,39 @@
+<Module>
+    <Type from="restriction" as="Restriction" />
+    <Type from="model" as="Scalar" />
+
+    <Args in={Restriction.Input} out={Restriction.Output} />
+
+    <Call
+        fn="intersect"
+        in={{
+            left: $in.previous,
+            right: $in.requested
+        }}
+    />
+
+    <If on={($ctx.intersect ?? 0) == 0}>
+        <Return
+            value={{
+                allowed: 0,
+                issue: Scalar.Issue.Empty
+            }}
+        />
+    </If>
+
+    <Call
+        fn="admit"
+        in={{
+            allowed: $ctx.intersect ?? 0,
+            shape: $in.shape,
+            scalar: $in.scalar
+        }}
+    />
+
+    <Return
+        value={{
+            allowed: $ctx.intersect ?? 0,
+            issue: $ctx.admit
+        }}
+    />
+</Module>

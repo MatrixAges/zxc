@@ -1,5 +1,6 @@
 const zx = @import("zx");
 const Graph = @import("types.zig");
+const Scalar = @import("scalar.zig");
 const Plan = @import("unification/plan.zig");
 const Fields = @import("unification/fields.zig");
 
@@ -15,16 +16,20 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
     const first = self.nodes.items[@backingInt(a)];
     const second = self.nodes.items[@backingInt(b)];
     const shape = try combine(self, first.shape, second.shape, span, depth);
-    const allowed = if (first.allowed) |value| if (second.allowed) |other| value.intersectWith(other) else value else second.allowed;
+
+    const constraints = Scalar.combine(
+        .{ .allowed = first.allowed, .fallback = first.fallback },
+        .{ .allowed = second.allowed, .fallback = second.fallback },
+    );
 
     self.nodes.items[@backingInt(a)].shape = shape;
-    self.nodes.items[@backingInt(a)].fallback = fallback(first.fallback, second.fallback);
+    self.nodes.items[@backingInt(a)].fallback = constraints.fallback;
     self.nodes.items[@backingInt(b)].parent = a;
 
     self.revision += 1;
     self.object_revision += 1;
 
-    if (allowed) |mask| try self.restrict(a, mask, span);
+    if (constraints.allowed) |mask| try self.restrict(a, mask, span);
 }
 
 fn combine(self: *Graph, left: Graph.Shape, right: Graph.Shape, span: zx.Span, depth: usize) zx.Error!Graph.Shape {
@@ -116,13 +121,4 @@ fn contains(self: *const Graph, parent: Graph.Id, child: Graph.Id, span: zx.Span
     }
 
     return false;
-}
-
-fn fallback(left: ?zx.ir.Scalar, right: ?zx.ir.Scalar) ?zx.ir.Scalar {
-    if (left == null) return right;
-    if (right == null) return left;
-    if (left.? == .f64 or right.? == .f64) return .f64;
-    if (left.? == .i64 or right.? == .i64) return .i64;
-
-    return left;
 }

@@ -65,7 +65,7 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
 
             const result = try self.graph.add(.unknown, span);
 
-            try self.graph.restrict(result, Graph.Mask.initMany(&.{ .i32, .i64, .f32, .f64 }), span);
+            try self.graph.restrict(result, @import("scalar.zig").domain(.signed), span);
 
             _ = try self.infer(unary.operand, result);
 

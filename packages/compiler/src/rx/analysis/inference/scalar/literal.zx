@@ -1,0 +1,39 @@
+import { ascii_dot, ascii_lower_e, ascii_upper_e } from "core/ascii/const"
+import { scalar_f64, scalar_i64, scalar_u64 } from "core/type_table/const"
+
+import domain from "./domain"
+import { Domain } from "./model"
+
+export type Input = {
+    text: u8[],
+    negative: bool
+}
+
+export type Output = {
+    allowed: u64,
+    fallback: u32
+}
+
+export default function (in: Input): Output {
+    const floating = in.text.some(
+        byte =>
+            byte == ascii_dot || byte == ascii_lower_e || byte == ascii_upper_e
+    )
+
+    const kind = match {
+        floating => Domain.Floating,
+        in.negative => Domain.Signed,
+        _ => Domain.Numeric
+    }
+
+    const fallback = match kind {
+        Domain.Floating => scalar_f64,
+        Domain.Signed => scalar_i64,
+        _ => scalar_u64
+    }
+
+    return {
+        allowed: domain(kind),
+        fallback
+    }
+}

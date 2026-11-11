@@ -1,0 +1,27 @@
+import contains from "./contains"
+import { Issue, Shape } from "./model"
+
+export type Input = {
+    allowed: u64,
+    shape: Shape,
+    scalar: u32
+}
+
+export type Output = Issue
+
+export default function (in: Input): Output {
+    if (in.shape == Shape.Scalar) {
+        const accepted = contains({
+            allowed: in.allowed,
+            scalar: in.scalar
+        })
+
+        return accepted ? Issue.None : Issue.Operator
+    }
+
+    return match in.shape {
+        Shape.Open => Issue.None,
+        Shape.Concrete => Issue.Operator,
+        _ => Issue.Structure
+    }
+}

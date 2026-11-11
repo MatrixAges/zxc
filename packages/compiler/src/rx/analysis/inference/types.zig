@@ -1,9 +1,10 @@
 const std = @import("std");
 const zx = @import("zx");
 const Types = @import("frontend").types;
+const Scalar = @import("scalar.zig");
 const Self = @This();
 pub const Id = enum(u32) { _ };
-pub const Mask = std.enums.EnumSet(zx.ir.Scalar);
+pub const Mask = Scalar.Mask;
 pub const Field = struct { name: []const u8, value: Id };
 pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: []const Field, list: Id, optional: Id, tuple: []const Id };
 pub const Node = struct { parent: Id, shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
@@ -116,39 +117,44 @@ fn checkValue(self: *Self, use: ValueUse) zx.Error!void {
 }
 
 pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void {
-    const index = @backingInt(self.root(id));
-    const merged = if (self.nodes.items[index].allowed) |previous| previous.intersectWith(allowed) else allowed;
+    const node = &self.nodes.items[@backingInt(self.root(id))];
 
-    if (merged.count() == 0) return self.reporter.fail(.type_mismatch, span, "incompatible inferred scalar requirements");
+    const known_scalar: ?zx.ir.Scalar = if (node.shape == .known) switch (self.types.get(node.shape.known)) {
+        .scalar => |value| value,
+        else => null,
+    } else null;
 
-    switch (self.nodes.items[index].shape) {
-        .unknown => {},
-        .known => |type_id| {
-            const value = self.types.get(type_id);
+    const constraint_shape: Scalar.Shape = switch (node.shape) {
+        .unknown => .open,
+        .known => if (known_scalar != null) .scalar else .concrete,
+        else => .structure,
+    };
 
-            if (value != .scalar or !merged.contains(value.scalar)) return self.reporter.fail(.type_mismatch, span, "inferred type does not satisfy the operator");
-        },
-        else => return self.reporter.fail(.type_mismatch, span, "the operator requires a scalar value"),
+    const merged = Scalar.restrict(node.allowed, allowed, constraint_shape, known_scalar);
+
+    switch (merged.issue) {
+        .none => {},
+        .empty => return self.reporter.fail(.type_mismatch, span, "incompatible inferred scalar requirements"),
+        .operator => return self.reporter.fail(.type_mismatch, span, "inferred type does not satisfy the operator"),
+        .structure => return self.reporter.fail(.type_mismatch, span, "the operator requires a scalar value"),
     }
 
-    if (self.nodes.items[index].allowed == null or !self.nodes.items[index].allowed.?.eql(merged)) self.revision += 1;
+    if (node.allowed == null or !node.allowed.?.eql(merged.allowed)) {
+        self.revision += 1;
+    }
 
-    self.nodes.items[index].allowed = merged;
+    node.allowed = merged.allowed;
 }
 
 pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.Error!Id {
-    const floating = std.mem.indexOfAny(u8, text, ".eE") != null;
+    const number_type = Scalar.literal(text, negative);
     const id = try self.add(.unknown, span);
-
-    try self.restrict(id, if (floating) Mask.initMany(&.{ .f32, .f64 }) else if (negative) Mask.initMany(&.{ .i32, .i64, .f32, .f64 }) else numeric(), span);
-
-    self.nodes.items[@backingInt(id)].fallback = if (floating) .f64 else if (negative) .i64 else .u64;
+    const node = &self.nodes.items[@backingInt(id)];
+    node.allowed = number_type.allowed;
+    node.fallback = number_type.fallback;
+    self.revision += 1;
 
     return id;
-}
-
-pub fn numeric() Mask {
-    return Mask.initMany(&.{ .u8, .u16, .u32, .u64, .i32, .i64, .f32, .f64 });
 }
 
 pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {

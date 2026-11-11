@@ -1,0 +1,13 @@
+import type { Issue, Shape } from "./model"
+
+export type Input = {
+    previous?: u64,
+    requested: u64,
+    shape: Shape,
+    scalar: u32
+}
+
+export type Output = {
+    allowed: u64,
+    issue: Issue
+}
