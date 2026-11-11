@@ -1,0 +1,16 @@
+import { Preparation } from "./model"
+
+export type Input = {
+    converted: bool,
+    by_value: bool
+}
+
+export type Output = Preparation
+
+export default function (in: Input): Output {
+    if (in.converted) {
+        return in.by_value ? Preparation.Layout : Preparation.Pointer
+    }
+
+    return in.by_value ? Preparation.Block : Preparation.Reserve
+}

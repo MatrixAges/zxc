@@ -1,0 +1,17 @@
+import { Preparation } from "./model"
+
+export type Input = {
+    deep: bool,
+    inline_lists: bool,
+    converted: bool
+}
+
+export type Output = Preparation
+
+export default function (in: Input): Output {
+    if (in.deep) {
+        return in.inline_lists ? Preparation.BufferedConsumer : Preparation.DeepConsumer
+    }
+
+    return in.converted ? Preparation.ConvertedConsumer : Preparation.Consumer
+}

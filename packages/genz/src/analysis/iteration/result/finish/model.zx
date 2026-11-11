@@ -1,0 +1,36 @@
+export enum Preparation {
+    BufferedConsumer,
+    DeepConsumer,
+    Consumer,
+    ConvertedConsumer,
+    Unit,
+    Reserve,
+    Block,
+    Layout,
+    Pointer
+}
+
+export enum Completion {
+    Prepared,
+    State,
+    GuardPrepared,
+    GuardState,
+    GuardDeep,
+    GuardConstruct
+}
+
+export type Input = {
+    consumer: bool,
+    deep: bool,
+    inline_lists: bool,
+    converted: bool,
+    discard: bool,
+    by_value: bool,
+    local: bool,
+    selected: bool
+}
+
+export type Output = {
+    preparation: Preparation,
+    completion: Completion
+}

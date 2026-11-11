@@ -330,7 +330,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/transfer/build.rx", .name = "iteration_transfer", .owner = .genz },
     .{ .path = "genz/analysis/iteration/result/analyze.rx", .name = "iteration_result", .owner = .genz },
-    .{ .path = "genz/analysis/iteration/result/route.zx", .name = "iteration_result_route", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/result/finish/plan.rx", .name = "iteration_result_finish", .owner = .genz },
     .{ .path = "genz/analysis/intrinsics/index/build.rx", .name = "checked_index", .owner = .genz },
     .{ .path = "genz/analysis/intrinsics/guard/build.rx", .name = "failure_branch", .owner = .genz },
     .{ .path = "genz/analysis/functions/precondition/next.zx", .name = "precondition_next", .owner = .genz },

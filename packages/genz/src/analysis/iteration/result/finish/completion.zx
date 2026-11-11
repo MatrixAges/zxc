@@ -1,0 +1,22 @@
+import { Completion } from "./model"
+
+export type Input = {
+    by_value: bool,
+    local: bool,
+    converted: bool,
+    selected: bool,
+    deep: bool
+}
+
+export type Output = Completion
+
+export default function (in: Input): Output {
+    return match {
+        in.by_value => Completion.Prepared,
+        !in.local => Completion.State,
+        in.converted => Completion.GuardPrepared,
+        in.selected => Completion.GuardState,
+        in.deep => Completion.GuardDeep,
+        _ => Completion.GuardConstruct
+    }
+}

@@ -5,14 +5,14 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 const generated = @import("genz_options").generated_analysis;
-const entry = if (generated) @import("generated_iteration_result_route") else struct {};
+const entry = if (generated) @import("generated_iteration_result_finish") else struct {};
 
-const Route = if (generated)
-    @typeInfo(@typeInfo(@TypeOf(entry.executeValue)).@"fn".return_type.?).error_union.payload
+const Plan = if (generated) std.meta.Child(entry.Output) else struct {
+    preparation: enum { BufferedConsumer, DeepConsumer, Consumer, ConvertedConsumer, Unit, Reserve, Block, Layout, Pointer },
+    completion: enum { Prepared, State, GuardPrepared, GuardState, GuardDeep, GuardConstruct },
+};
 
-else
-    enum { BufferedConsumer, DeepConsumer, ConvertedConsumer, Consumer, Discard, Value, Reference, ConvertedGuard, SelectedGuard, DeepGuard, ConstructGuard };
-
+const Preparation = @FieldType(Plan, "preparation");
 pub const Mode = enum { reference, value, discard, consume };
 
 pub const Result = struct {
@@ -28,73 +28,59 @@ pub const Result = struct {
     changed_name: []const u8,
     mode: Mode,
     pub fn lower(config: Result, self: *Lower, body: *std.ArrayList(node.Statement), state: node.ExpressionId) Lower.Error!node.ExpressionId {
-        const selected = config.route();
+        const actions = config.plan();
+        const prepared = try config.prepare(self, body, state, actions.preparation);
 
-        switch (selected) {
-            .BufferedConsumer => return aggregate.finish(self, body, try @import("../iteration_value/result.zig").buffered(config.context, body, config.consumer.?, state)),
-            .DeepConsumer => return aggregate.finish(self, body, try @import("../iteration_value/result.zig").lower(self, config.consumer.?, state)),
-            .Consumer, .ConvertedConsumer => {
-                const consumer = config.consumer.?;
-                var result = try @import("../iteration_consumer.zig").read(self, consumer, consumer.result, state);
-
-                if (selected == .ConvertedConsumer) {
-                    const bound = try aggregate.bind(self, body, result);
-                    result = try @import("../state_value/conversion.zig").convert(self, body, self.program.expression(consumer.result).type_id, bound, .pointer);
-                }
-
-                return try aggregate.finish(self, body, result);
-            },
-            .Discard => return aggregate.finish(self, body, try self.builder.expression(.unit)),
-            else => {},
-        }
-
-        const boundary = if (!generated or config.converted or selected == .Value) converted: {
-            var converted_body: std.ArrayList(node.Statement) = .empty;
-            const converted_state = if (config.converted) try @import("../state_value/conversion.zig").convert(self, &converted_body, config.type_id, state, if (selected == .Value) .layout else .pointer) else state;
-
-            break :converted try aggregate.finish(self, &converted_body, converted_state);
-        } else unused: {
-            // Preserve later label numbers without storing an unreachable result block.
-            self.serial = std.math.add(usize, self.serial, 1) catch return error.OutOfMemory;
-
-            break :unused state;
-        };
-
-        switch (selected) {
-            .Value => return aggregate.finish(self, body, boundary),
-            .Reference => return aggregate.finish(self, body, state),
+        switch (actions.completion) {
+            .Prepared => return aggregate.finish(self, body, prepared),
+            .State => return aggregate.finish(self, body, state),
             else => {},
         }
 
         const condition = try self.builder.identifier(config.changed_name);
 
-        const result = switch (selected) {
-            .ConvertedGuard => boundary,
-            .SelectedGuard => state,
-            .DeepGuard => try @import("../iteration_value/conversion.zig").convert(config.context, config.type_id, state, true),
-            .ConstructGuard => try self.construct(config.type_id, state),
+        const result = switch (actions.completion) {
+            .GuardPrepared => prepared,
+            .GuardState => state,
+            .GuardDeep => try @import("../iteration_value/conversion.zig").convert(config.context, config.type_id, state, true),
+            .GuardConstruct => try self.construct(config.type_id, state),
             else => unreachable,
         };
 
         return aggregate.finishGuarded(self, body, condition, result, config.initial);
     }
-    fn route(config: Result) Route {
-        if (!generated) {
-            if (config.consumer != null) {
-                if (config.deep) return if (config.context.inline_lists) .BufferedConsumer else .DeepConsumer;
+    fn prepare(config: Result, self: *Lower, body: *std.ArrayList(node.Statement), state: node.ExpressionId, action: Preparation) Lower.Error!node.ExpressionId {
+        return switch (action) {
+            .BufferedConsumer => @import("../iteration_value/result.zig").buffered(config.context, body, config.consumer.?, state),
+            .DeepConsumer => @import("../iteration_value/result.zig").lower(self, config.consumer.?, state),
+            .Consumer, .ConvertedConsumer => projected: {
+                const consumer = config.consumer.?;
+                const value = try @import("../iteration_consumer.zig").read(self, consumer, consumer.result, state);
 
-                return if (config.converted) .ConvertedConsumer else .Consumer;
-            }
+                if (action == .Consumer) break :projected value;
 
-            if (config.mode == .discard) return .Discard;
-            if (config.by_value) return .Value;
-            if (!config.local) return .Reference;
-            if (config.converted) return .ConvertedGuard;
-            if (config.selected_state) return .SelectedGuard;
-            if (config.deep) return .DeepGuard;
+                const bound = try aggregate.bind(self, body, value);
+                const type_id = self.program.expression(consumer.result).type_id;
 
-            return .ConstructGuard;
-        }
+                break :projected @import("../state_value/conversion.zig").convert(self, body, type_id, bound, .pointer);
+            },
+            .Unit => self.builder.expression(.unit),
+            .Reserve => reserved: {
+                self.serial = std.math.add(usize, self.serial, 1) catch return error.OutOfMemory;
+
+                break :reserved state;
+            },
+            .Block, .Layout, .Pointer => wrapped: {
+                var inner: std.ArrayList(node.Statement) = .empty;
+                const value = if (action == .Block) state else try @import("../state_value/conversion.zig").convert(self, &inner, config.type_id, state, if (action == .Layout) .layout else .pointer);
+
+                break :wrapped aggregate.finish(self, &inner, value);
+            },
+        };
+    }
+
+    fn plan(config: Result) Plan {
+        if (!generated) return config.seedPlan();
 
         const Input = std.meta.Child(entry.Input);
 
@@ -110,7 +96,44 @@ pub const Result = struct {
         };
 
         var fixed = std.heap.FixedBufferAllocator.init(&.{});
+        const result = zx.columns.invoke(entry.executeValue, fixed.allocator(), &input) catch unreachable;
 
-        return zx.columns.invoke(entry.executeValue, fixed.allocator(), &input) catch unreachable;
+        return .{ .preparation = result.preparation, .completion = result.completion };
+    }
+    fn seedPlan(config: Result) Plan {
+        if (config.consumer != null) {
+            const action: Preparation = if (config.deep)
+                if (config.context.inline_lists) .BufferedConsumer else .DeepConsumer
+
+            else if (config.converted)
+                .ConvertedConsumer
+            else
+                .Consumer;
+
+            return .{ .preparation = action, .completion = .Prepared };
+        }
+
+        if (config.mode == .discard) return .{ .preparation = .Unit, .completion = .Prepared };
+
+        const action: Preparation = if (config.converted)
+            if (config.by_value) .Layout else .Pointer
+        else
+            .Block;
+
+        const completion: @FieldType(Plan, "completion") = if (config.by_value)
+            .Prepared
+
+        else if (!config.local)
+            .State
+        else if (config.converted)
+            .GuardPrepared
+        else if (config.selected_state)
+            .GuardState
+        else if (config.deep)
+            .GuardDeep
+        else
+            .GuardConstruct;
+
+        return .{ .preparation = action, .completion = completion };
     }
 };

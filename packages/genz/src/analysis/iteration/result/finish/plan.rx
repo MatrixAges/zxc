@@ -1,0 +1,58 @@
+<Module>
+    <Type from="model" as="Result" />
+
+    <Args in={Result.Input} out={Result.Output} />
+
+    <If on={$in.consumer}>
+        <Call
+            fn="consumer"
+            in={$in.pick([
+                "deep",
+                "inline_lists",
+                "converted"
+            ])}
+        />
+
+        <Return
+            value={{
+                preparation: $ctx.consumer,
+                completion: Result.Completion.Prepared
+            }}
+        />
+    </If>
+
+    <If on={$in.discard}>
+        <Return
+            value={{
+                preparation: Result.Preparation.Unit,
+                completion: Result.Completion.Prepared
+            }}
+        />
+    </If>
+
+    <Call
+        fn="boundary"
+        in={$in.pick([
+            "converted",
+            "by_value"
+        ])}
+    />
+
+    <Call
+        fn="completion"
+        in={$in.pick([
+            "by_value",
+            "local",
+            "converted",
+            "selected",
+            "deep"
+        ])}
+    />
+
+    <Return
+        value={{
+            preparation: $ctx.boundary,
+            completion: $ctx.completion
+        }}
+    />
+</Module>
