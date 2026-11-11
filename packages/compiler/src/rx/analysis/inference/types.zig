@@ -14,7 +14,7 @@ pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: 
 pub const Node = struct { shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
 
 const Projection = struct { target: Id, value: Id, span: zx.Span };
-const ValueUse = struct { value: Id, span: zx.Span };
+const Bindings = @import("bindings.zig");
 const Assignment = @import("assignment.zig");
 const ObjectClosure = @import("object_closure.zig");
 
@@ -26,9 +26,9 @@ nodes: Nodes.Storage = .empty,
 forest: @import("forest.zig") = .{},
 lengths: std.ArrayList(Projection) = .empty,
 indexes: std.ArrayList(@import("index.zig").Projection) = .empty,
-value_uses: std.ArrayList(ValueUse) = .empty,
-binding_collisions: std.ArrayList(@import("bindings.zig").Collision) = .empty,
-binding_lookups: std.ArrayList(@import("bindings.zig").Lookup) = .empty,
+value_uses: std.MultiArrayList(Bindings.Use) = .empty,
+binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
+binding_lookups: std.ArrayList(Bindings.Lookup) = .empty,
 assignments: std.MultiArrayList(Assignment.Edge) = .empty,
 assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
@@ -111,15 +111,7 @@ pub fn expect(self: *Self, value: Id, expected: Id, span: zx.Span) zx.Error!void
 }
 
 pub fn requireValue(self: *Self, value: Id, span: zx.Span) zx.Error!void {
-    try self.checkValue(.{ .value = value, .span = span });
-    if (self.shape(value) != .unknown) return;
-    try self.value_uses.append(self.allocator, .{ .value = value, .span = span });
-}
-
-fn checkValue(self: *Self, use: ValueUse) zx.Error!void {
-    const value = self.shape(use.value);
-
-    if (value == .known and value.known == Types.scalarId(.void)) return self.reporter.fail(.name, use.span, "flow value is not defined in this scope");
+    return Bindings.requireValue(self, value, span);
 }
 
 pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void {
@@ -234,9 +226,8 @@ pub fn finish(self: *Self) zx.Error!void {
     while (true) {
         const revision = self.revision;
 
-        for (self.value_uses.items) |use| try self.checkValue(use);
-
-        try @import("bindings.zig").propagate(self, false);
+        try Bindings.validateUses(self);
+        try Bindings.propagate(self, false);
         try @import("non_null.zig").propagate(self, false);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, &object_closure, object, false);
@@ -281,7 +272,7 @@ pub fn finish(self: *Self) zx.Error!void {
         if (self.shape(projection.target) == .unknown) return self.reporter.fail(.type_mismatch, projection.span, "length alone cannot determine whether the input is a list, string or object");
     }
 
-    try @import("bindings.zig").propagate(self, true);
+    try Bindings.propagate(self, true);
     try Assignment.validate(self);
 }
 

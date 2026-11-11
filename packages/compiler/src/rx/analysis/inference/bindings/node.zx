@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import halve from "../forest/halve"
+import status from "./status"
+
+import type { Graph, Status } from "./model"
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    value: u32
+}
+
+export type Output = {
+    parents: u32[],
+    status: Status
+}
+
+export default function (in: Input): Output {
+    const first = in.parents[integers.widen(in.value)]
+    const direct = in.parents[integers.widen(first)] == first
+
+    const root = match {
+        direct => ({
+            parents: in.parents,
+            item: first,
+            parent: first
+        }),
+        _ => halve({
+            parents: in.parents,
+            item: in.value,
+            parent: first
+        })
+    }
+
+    const index = integers.widen(root.item)
+
+    return {
+        parents: root.parents,
+        status: status({
+            kind: in.graph.kinds[index],
+            argument: in.graph.arguments[index]
+        })
+    }
+}

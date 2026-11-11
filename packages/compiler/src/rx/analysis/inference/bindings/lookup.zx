@@ -1,0 +1,47 @@
+import { Status } from "./model"
+import inspect from "./node"
+
+import type { Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    candidates: u32[],
+    index: u64,
+    selected?: u32,
+    multiple: bool
+}
+
+export type Output = {
+    parents: u32[],
+    selected?: u32,
+    multiple: bool
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.index < state.candidates.length,
+        next: state => {
+            const candidate = state.candidates[state.index]
+            const item = inspect({
+                graph: state.graph,
+                parents: state.parents,
+                value: candidate
+            })
+
+            state.parents = item.parents
+
+            if (item.status != Status.Void) {
+                state.multiple = state.multiple || state.selected != null
+                state.selected = candidate
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            selected: state.selected,
+            multiple: state.multiple
+        })
+    })
+}

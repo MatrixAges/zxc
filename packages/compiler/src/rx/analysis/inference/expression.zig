@@ -178,14 +178,20 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
     var selected: ?Graph.Id = null;
     var candidates: std.ArrayList(Graph.Id) = .empty;
 
-    defer candidates.deinit(self.graph.allocator);
+    errdefer candidates.deinit(self.graph.allocator);
 
     for (self.bindings.items) |binding| {
         if (!@import("frontend").binding_path.matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
 
         if (selected) |previous| {
-            if (candidates.items.len == 0) try candidates.append(self.graph.allocator, previous);
-            try candidates.append(self.graph.allocator, binding.value);
+            if (candidates.items.len == 0) {
+                try candidates.ensureTotalCapacityPrecise(self.graph.allocator, 2);
+
+                candidates.appendAssumeCapacity(previous);
+                candidates.appendAssumeCapacity(binding.value);
+            } else {
+                try candidates.append(self.graph.allocator, binding.value);
+            }
         }
 
         selected = binding.value;

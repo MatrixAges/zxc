@@ -1,0 +1,49 @@
+import { Collision, Status } from "./model"
+import inspect from "./node"
+
+import type { Collision as CollisionRoute, Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    left: u32,
+    right: u32,
+    final: bool
+}
+
+export type Output = {
+    parents: u32[],
+    route: CollisionRoute
+}
+
+export default function (in: Input): Output {
+    const left = inspect({
+        graph: in.graph,
+        parents: in.parents,
+        value: in.left
+    })
+
+    if (left.status == Status.Void) {
+        return {
+            parents: left.parents,
+            route: CollisionRoute.Ignore
+        }
+    }
+
+    const right = inspect({
+        graph: in.graph,
+        parents: left.parents,
+        value: in.right
+    })
+
+    const known = left.status == Status.Value && right.status == Status.Value
+
+    return {
+        parents: right.parents,
+        route: match {
+            right.status == Status.Void => Collision.Ignore,
+            in.final || known => Collision.Conflict,
+            _ => Collision.Defer
+        }
+    }
+}

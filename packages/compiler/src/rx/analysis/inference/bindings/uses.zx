@@ -1,0 +1,39 @@
+import { Status } from "./model"
+import inspect from "./node"
+
+import type { Check, Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    values: u32[],
+    index: u64,
+    position?: u64
+}
+
+export type Output = Check
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.position == null && state.index < state.values.length,
+        next: state => {
+            const item = inspect({
+                graph: state.graph,
+                parents: state.parents,
+                value: state.values[state.index]
+            })
+
+            state.parents = item.parents
+
+            if (item.status == Status.Void) {
+                state.position = state.index
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            position: state.position
+        })
+    })
+}

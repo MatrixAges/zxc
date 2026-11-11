@@ -1,0 +1,43 @@
+import { Collision } from "./model"
+import pair from "./pair"
+
+import type { Check, Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    left: u32[],
+    right: u32[],
+    final: bool,
+    index: u64,
+    position?: u64
+}
+
+export type Output = Check
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.position == null && state.index < state.left.length,
+        next: state => {
+            const result = pair({
+                graph: state.graph,
+                parents: state.parents,
+                left: state.left[state.index],
+                right: state.right[state.index],
+                final: state.final
+            })
+
+            state.parents = result.parents
+
+            if (result.route == Collision.Conflict) {
+                state.position = state.index
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            position: state.position
+        })
+    })
+}

@@ -1,0 +1,22 @@
+import { scalar_void } from "core/type_table/const"
+
+import { Kind } from "../unification/model"
+import { Status } from "./model"
+
+import type { Kind as ShapeKind } from "../unification/model"
+import type { Status as NodeStatus } from "./model"
+
+export type Input = {
+    kind: ShapeKind,
+    argument: u32
+}
+
+export type Output = NodeStatus
+
+export default function (in: Input): Output {
+    return match {
+        in.kind == Kind.Unknown => Status.Pending,
+        in.kind == Kind.Known && in.argument == scalar_void => Status.Void,
+        _ => Status.Value
+    }
+}

@@ -1,0 +1,23 @@
+import type { Kind } from "../unification/model"
+
+export enum Status {
+    Void,
+    Pending,
+    Value
+}
+
+export enum Collision {
+    Ignore,
+    Defer,
+    Conflict
+}
+
+export type Graph = {
+    kinds: Kind[],
+    arguments: u32[]
+}
+
+export type Check = {
+    parents: u32[],
+    position?: u64
+}
