@@ -1,0 +1,39 @@
+<Module>
+    <Type from="model" as="List" />
+
+    <Args in={List.Input} out={List.Output} />
+
+    <Call
+        fn="../array"
+        in={$in.pick([
+            "values",
+            "element",
+            "base"
+        ])}
+    />
+
+    <If on={$in.values.length == 0}>
+        <Return
+            value={{
+                literal: $ctx.array,
+                allocation: null
+            }}
+        />
+    </If>
+
+    <Call
+        fn="duplicate"
+        in={$in.pick([
+            "base",
+            "element",
+            "capture"
+        ])}
+    />
+
+    <Return
+        value={{
+            literal: $ctx.array,
+            allocation: $ctx.duplicate
+        }}
+    />
+</Module>

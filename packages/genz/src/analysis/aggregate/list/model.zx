@@ -1,0 +1,34 @@
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+import type { Output as ArrayNodes } from "../array"
+
+export type Input = {
+    values: u32[],
+    element: u32,
+    base: u32,
+    capture?: Capture
+}
+
+export type Allocation = {
+    nodes: {
+        tags: ExpressionsKind[],
+        offsets: u32[],
+        identifier: u8[][],
+        field_target: u32[],
+        field_name: u8[][],
+        call_callee: u32[],
+        call_arguments: u32[][],
+        try_value: u32[],
+        catch_value_value: u32[],
+        catch_value_capture: u8[][],
+        catch_value_label: u8[][],
+        catch_value_result: u32[]
+    },
+    root: u32,
+    valid: bool
+}
+
+export type Output = {
+    literal: ArrayNodes,
+    allocation?: Allocation
+}

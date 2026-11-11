@@ -1,0 +1,58 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { allocator_name } from "../../growth/declarations/const"
+import invoke from "../../invocation/nodes"
+import { duplicate_name } from "./const"
+
+import type { Capture } from "../../../ast/expressions/fallible"
+import type { Allocation as Output } from "./model"
+
+export type Input = {
+    base: u32,
+    element: u32,
+    capture?: Capture
+}
+
+export default function (in: Input): Output {
+    const base = integers.widen(in.base)
+    const address = integers.narrow(base + 1)
+    const allocator = integers.narrow(base + 2)
+    const callee = integers.narrow(base + 3)
+    const start = integers.narrow(base + 4)
+
+    const call = invoke({
+        callee,
+        arguments: [
+            in.element,
+            address
+        ],
+        expression_base: start,
+        fallible: true,
+        capture: in.capture
+    })
+
+    const tags = [
+        ExpressionsKind.Identifier,
+        ExpressionsKind.Field
+    ]
+
+    const offsets: u32[] = [
+        0,
+        0
+    ]
+
+    return {
+        nodes: {
+            ...call.nodes,
+            tags: tags.concat(call.nodes.tags)[0],
+            offsets: offsets.concat(call.nodes.offsets)[0],
+            identifier: [bytes.fromText(allocator_name)],
+            field_target: [allocator],
+            field_name: [bytes.fromText(duplicate_name)]
+        },
+        root: call.root,
+        valid: call.valid
+    }
+}

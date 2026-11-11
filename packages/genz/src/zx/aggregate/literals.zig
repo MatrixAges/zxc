@@ -17,7 +17,7 @@ pub fn object(self: *Lower, type_expr: node.ExpressionId, fields: []const node.F
         .count = stored.len,
     };
 
-    return append(self, entry, &input, 1);
+    return append(self, entry, &input);
 }
 
 pub fn tuple(self: *Lower, values: []const node.ExpressionId) Lower.Error!node.ExpressionId {
@@ -26,32 +26,10 @@ pub fn tuple(self: *Lower, values: []const node.ExpressionId) Lower.Error!node.E
     const entry = @import("generated_aggregate_tuple");
     const input = view.slice(entry.Input, values);
 
-    return append(self, entry, input, 1);
+    return append(self, entry, input);
 }
 
-pub fn array(self: *Lower, element: node.ExpressionId, values: []const node.ExpressionId) Lower.Error!node.ExpressionId {
-    if (!@import("genz_options").generated_analysis) {
-        const literal = try self.builder.expression(.{ .array = .{ .element_type = element, .values = values } });
-
-        return self.builder.expression(.{ .address_of = literal });
-    }
-
-    const entry = @import("generated_aggregate_array");
-    const Input = std.meta.Child(entry.Input);
-    const base = self.builder.nodes.expressions.tags.items.len;
-
-    if (base > std.math.maxInt(u32) - 2) return error.OutOfMemory;
-
-    const input: Input = .{
-        .values = view.slice(@FieldType(Input, "values"), values),
-        .element = @backingInt(element),
-        .base = @intCast(base),
-    };
-
-    return append(self, entry, &input, 2);
-}
-
-fn append(self: *Lower, comptime entry: type, input: entry.Input, count: usize) Lower.Error!node.ExpressionId {
+fn append(self: *Lower, comptime entry: type, input: entry.Input) Lower.Error!node.ExpressionId {
     const base = self.builder.nodes.expressions.tags.items.len;
     var buffer: [std.heap.page_size_min]u8 = undefined;
     var memory = std.heap.FixedBufferAllocator.init(&buffer);
@@ -68,5 +46,5 @@ fn append(self: *Lower, comptime entry: type, input: entry.Input, count: usize) 
         error.InvalidAst => unreachable,
     };
 
-    return @fromBackingInt(@intCast(base + count - 1));
+    return @fromBackingInt(@intCast(base));
 }
