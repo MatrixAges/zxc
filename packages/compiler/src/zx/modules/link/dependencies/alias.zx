@@ -1,0 +1,80 @@
+import integers from "std:integer"
+import { kind_enumeration } from "core/type_table/const"
+
+import { Kind, Status } from "./model"
+
+import type { Item } from "./model"
+
+export type Input = Item
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    const { provider, consumer, dependency } = in.request
+
+    if (provider.executable) {
+        return Status.Invalid
+    }
+
+    const missing: u32? = null
+
+    const exported = loop({
+        row: 0,
+        id: missing
+    }, {
+        while: state => state.row < provider.aliases.names.length,
+        next: state => {
+            if (provider.aliases.names[state.row] == in.original) {
+                state.id = provider.aliases.types[state.row]
+            }
+
+            state.row += 1
+        },
+        return: state => state.id
+    })
+
+    const imported = loop({
+        row: 0,
+        id: missing
+    }, {
+        while: state => state.row < consumer.aliases.names.length,
+        next: state => {
+            if (consumer.aliases.names[state.row] == in.local) {
+                state.id = consumer.aliases.types[state.row]
+            }
+
+            state.row += 1
+        },
+        return: state => state.id
+    })
+
+    if (exported == null) {
+        return Status.Conflict
+    }
+
+    const export_id = integers.widen(exported)
+
+    if (export_id >= provider.types.length) {
+        return Status.Invalid
+    }
+
+    const enumeration = dependency.kind == Kind.Enumeration
+
+    if (enumeration && provider.kinds[export_id] != kind_enumeration) {
+        return Status.Conflict
+    }
+
+    if (imported == null) {
+        return Status.Conflict
+    }
+
+    const import_id = integers.widen(imported)
+
+    if (import_id >= consumer.types.length) {
+        return Status.Invalid
+    }
+
+    const same_type = provider.types[export_id] == consumer.types[import_id]
+
+    return same_type ? Status.Ready : Status.Conflict
+}

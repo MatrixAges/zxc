@@ -1,0 +1,32 @@
+import { default_member } from "./const"
+
+export type Input = {
+    names: string[],
+    namespaces?: string?[],
+    name: string
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const name = in.name == default_member ? "" : in.name
+
+    const { names, namespaces } = in
+
+    return loop({
+        row: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.row < names.length,
+        next: state => {
+            const visible = namespaces == null || namespaces[state.row] == null
+
+            state.found = visible && names[state.row] == name
+
+            if (!state.found) {
+                state.row += 1
+            }
+        },
+        return: state => state.found ? state.row : null
+    })
+}

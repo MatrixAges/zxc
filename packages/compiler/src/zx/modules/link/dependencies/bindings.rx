@@ -1,0 +1,53 @@
+<Module>
+    <Type from="model" as="Link" />
+
+    <Args
+        in={{
+            count: u64,
+            functions: u32?[],
+            imports: Link.Bindings,
+            linked: Link.Signatures,
+            members: Link.Bindings,
+            types: u32[]
+        }}
+        out={Link.Status}
+    />
+
+    <Task name="imports" out={$ctx.shape}>
+        <Call
+            fn="shape"
+            in={{
+                bindings: $in.imports,
+                count: $in.count
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.imports}>
+        <Return value={Link.Status.Invalid} />
+    </If>
+
+    <Task name="members" out={$ctx.shape}>
+        <Call
+            fn="shape"
+            in={{
+                bindings: $in.members,
+                count: $in.count
+            }}
+        />
+    </Task>
+
+    <If on={!$ctx.task.members}>
+        <Return value={Link.Status.Invalid} />
+    </If>
+
+    <Call
+        fn="ports"
+        in={$in.omit([
+            "count",
+            "members"
+        ])}
+    />
+
+    <Return value={$ctx.ports} />
+</Module>

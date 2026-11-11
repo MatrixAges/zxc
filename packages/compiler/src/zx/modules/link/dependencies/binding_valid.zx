@@ -1,0 +1,21 @@
+import type { Bindings } from "./model"
+
+export type Input = {
+    bindings: Bindings,
+    row: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { bindings, row } = in
+
+    const has_id = bindings.ids[row] != null
+    const has_input = bindings.inputs[row] != null
+    const has_output = bindings.outputs[row] != null
+
+    return match {
+        bindings.intrinsics[row] == null => has_id && has_input && has_output,
+        _ => !has_id && !has_input && !has_output
+    }
+}

@@ -51,27 +51,31 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     for (sorted, 0..) |module, index| {
         const function = try builder.module(index);
+        const id: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
 
-        if (index + 1 == sorted.len) {
-            root = function;
+        const action = try @import("link/placement.zig").select(
+            scratch,
+            index + 1 == sorted.len,
+            module.stores.count(),
+            if (function) |*body| body else null,
+            id,
+        );
 
-            if (function) |value| {
-                const id: ir.FunctionId = @fromBackingInt(@intCast(builder.functions.count()));
+        switch (action) {
+            .Invalid => return error.InvalidModule,
+            .Skip => {},
+            .Entry => root = function,
+            .Append => {
+                function_ids[index] = id;
 
-                if (@import("function_body.zig").calls(value.expressions, id)) {
-                    recursive_root = id;
+                try builder.functions.append(owned, function.?);
+            },
+            .RecursiveEntry => {
+                root = function;
+                recursive_root = id;
 
-                    try builder.functions.append(owned, value);
-                }
-            }
-        } else {
-            if (module.stores.count() != 0) return error.InvalidModule;
-
-            if (function) |value| {
-                function_ids[index] = @fromBackingInt(@intCast(builder.functions.count()));
-
-                try builder.functions.append(owned, value);
-            }
+                try builder.functions.append(owned, function.?);
+            },
         }
     }
 

@@ -1,0 +1,52 @@
+import integers from "std:integer"
+
+import { Status } from "./model"
+
+import type { Bindings, Signatures } from "./model"
+
+export type Input = {
+    imports: Bindings,
+    linked: Signatures,
+    functions: u32?[],
+    types: u32[],
+    row: u64
+}
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    const { imports, linked, row } = in
+
+    if (imports.intrinsics[row] != null) {
+        return Status.Ready
+    }
+
+    const id = imports.ids[row]
+    const input = imports.inputs[row]
+    const output = imports.outputs[row]
+
+    if (id == null || input == null) {
+        return Status.Invalid
+    }
+
+    if (output == null) {
+        return Status.Invalid
+    }
+
+    const mapped = in.functions[integers.widen(id)]
+
+    if (mapped == null) {
+        return Status.Invalid
+    }
+
+    const target = integers.widen(mapped)
+    const types = in.types
+
+    if (types[integers.widen(input)] != linked.input_types[target]) {
+        return Status.Conflict
+    }
+
+    const same_output = types[integers.widen(output)] == linked.output_types[target]
+
+    return same_output ? Status.Ready : Status.Conflict
+}

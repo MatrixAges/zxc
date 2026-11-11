@@ -1,0 +1,32 @@
+<Module>
+    <Type from="model" as="Link" />
+    <Type from="recursive" as="Recursive" />
+
+    <Args
+        in={{
+            entry: bool,
+            has_body: bool,
+            stores: u64,
+            calls: Recursive.Input
+        }}
+        out={Link.Placement}
+    />
+
+    <If on={!$in.entry}>
+        <If on={$in.stores != 0}>
+            <Return value={Link.Placement.Invalid} />
+        </If>
+
+        <Return value={$in.has_body ? Link.Placement.Append : Link.Placement.Skip} />
+    </If>
+
+    <If on={$in.has_body}>
+        <Call fn="recursive" in={$in.calls} />
+
+        <If on={$ctx.recursive}>
+            <Return value={Link.Placement.RecursiveEntry} />
+        </If>
+    </If>
+
+    <Return value={Link.Placement.Entry} />
+</Module>

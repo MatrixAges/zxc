@@ -1,0 +1,40 @@
+import integers from "std:integer"
+
+import valid from "./binding_valid"
+
+import type { Bindings } from "./model"
+
+export type Input = {
+    bindings: Bindings,
+    count: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const bindings = in.bindings
+
+    return loop({
+        row: 0,
+        ready: true
+    }, {
+        while: state => state.ready && state.row < bindings.names.length,
+        next: state => {
+            const row = state.row
+
+            state.ready = valid({
+                bindings,
+                row
+            })
+
+            const id = bindings.ids[row]
+
+            if (state.ready && id != null) {
+                state.ready = integers.widen(id) < in.count
+            }
+
+            state.row += 1
+        },
+        return: state => state.ready
+    })
+}

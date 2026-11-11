@@ -1,0 +1,95 @@
+import integers from "std:integer"
+
+import valid from "./binding_valid"
+import find from "./find"
+import { Status } from "./model"
+
+import type { Member } from "./model"
+
+export type Input = Member
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    const { request, row } = in
+    const { provider, consumer, linked } = request
+
+    const member = provider.members
+
+    if (member.namespaces[row] != null || !valid({
+        bindings: member,
+        row
+    })) {
+        return Status.Invalid
+    }
+
+    const bindings = consumer.members
+
+    const local = find({
+        names: bindings.names,
+        namespaces: bindings.namespaces,
+        name: in.local
+    })
+
+    if (local == null) {
+        return Status.Conflict
+    }
+
+    const intrinsic = member.intrinsics[row]
+
+    if (intrinsic != bindings.intrinsics[local] || !valid({
+        bindings,
+        row: local
+    })) {
+        return Status.Conflict
+    }
+
+    if (intrinsic != null) {
+        return Status.Ready
+    }
+
+    const id = member.ids[row]
+    const local_id = bindings.ids[local]
+
+    if (id == null || local_id == null) {
+        return Status.Invalid
+    }
+
+    const expected = integers.widen(id)
+    const declarations = provider.signatures
+
+    if (expected >= declarations.files.length) {
+        return Status.Invalid
+    }
+
+    const mapped = consumer.functions[integers.widen(local_id)]
+
+    if (mapped == null) {
+        return Status.Invalid
+    }
+
+    const actual = integers.widen(mapped)
+    const input_id = integers.widen(declarations.input_types[expected])
+    const output_id = integers.widen(declarations.output_types[expected])
+    const types = provider.types
+
+    if (input_id >= types.length || output_id >= types.length) {
+        return Status.Invalid
+    }
+
+    const same_file = declarations.files[expected] == linked.files[actual]
+    const same_input = types[input_id] == linked.input_types[actual]
+    const same_output = types[output_id] == linked.output_types[actual]
+
+    const same_ownership =
+        declarations.ownership[expected] == linked.ownership[actual]
+
+    const compatible = (
+        - same_file
+        - and same_input
+        - and same_output
+        - and same_ownership
+    )
+
+    return compatible ? Status.Ready : Status.Conflict
+}

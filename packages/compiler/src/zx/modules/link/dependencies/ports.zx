@@ -1,0 +1,31 @@
+import { Status } from "./model"
+import port from "./port"
+
+import type { Bindings, Signatures } from "./model"
+
+export type Input = {
+    imports: Bindings,
+    linked: Signatures,
+    functions: u32?[],
+    types: u32[]
+}
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    return loop({
+        row: 0,
+        status: Status.Ready
+    }, {
+        while: state =>
+            state.status == Status.Ready && state.row < in.imports.names.length,
+        next: state => {
+            state.status = port({
+                ...in,
+                row: state.row
+            })
+            state.row += 1
+        },
+        return: state => state.status
+    })
+}

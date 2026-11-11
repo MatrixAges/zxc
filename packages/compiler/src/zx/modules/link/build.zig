@@ -63,12 +63,16 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         }
     }
 
-    for ([_][]const @import("../function_import.zig"){ value.function_imports, value.members }) |bindings| for (bindings) |binding| {
-        if (!binding.valid()) return error.InvalidModule;
-        if (binding.intrinsic == null and @backingInt(binding.id.?) >= value.functions.count()) return error.InvalidModule;
-    };
+    if (comptime @import("parser_options").generated_parser) {
+        try @import("dependencies/host.zig").verify(self, index, function_mapping);
+    } else {
+        for ([_][]const @import("../function_import.zig"){ value.function_imports, value.members }) |bindings| for (bindings) |binding| {
+            if (!binding.valid()) return error.InvalidModule;
+            if (binding.intrinsic == null and @backingInt(binding.id.?) >= value.functions.count()) return error.InvalidModule;
+        };
 
-    try self.imports(index, &nodes);
+        try self.importsSeed(index, &nodes);
+    }
 
     if (value.function) |function| {
         function_mapping[value.functions.count()] = @fromBackingInt(@intCast(self.functions.count()));
@@ -81,7 +85,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
     return null;
 }
 
-fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
+fn importsSeed(self: *Self, index: usize, nodes: *Nodes) Error!void {
     const value = self.modules[index];
 
     for (value.function_imports) |binding| {
@@ -260,7 +264,7 @@ fn appendExternal(self: *Self, signature: model.Signature, implementation: ir.Ex
     });
 }
 
-fn find(self: *const Self, path: []const u8) ?usize {
+pub fn find(self: *const Self, path: []const u8) ?usize {
     for (self.modules, 0..) |value, index| {
         if (std.mem.eql(u8, value.path, path)) return index;
     }

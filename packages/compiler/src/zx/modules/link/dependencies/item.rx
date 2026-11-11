@@ -1,0 +1,55 @@
+<Module>
+    <Type from="model" as="Link" />
+    <Type from="../../../analysis/constants/bindings/model" as="Constants" />
+
+    <Args in={Link.Item} out={Link.Status} />
+
+    <If on={$in.request.dependency.kind != Link.Kind.TypeOnly}>
+        <Call
+            fn="find"
+            in={{
+                names: $in.request.provider.members.names,
+                namespaces: null,
+                name: $in.original
+            }}
+        />
+
+        <If on={$ctx.find != null}>
+            <Call
+                fn="member"
+                in={{
+                    request: $in.request,
+                    local: $in.local,
+                    row: $ctx.find ?? 0
+                }}
+            />
+
+            <Return value={$ctx.member} />
+        </If>
+    </If>
+
+    <If on={$in.request.provider.constants != null}>
+        <Call
+            fn="../../../analysis/constants/bindings/named"
+            in={{
+                previous: $in.request.provider.constants,
+                current: $in.request.consumer.constants,
+                mapping: $in.request.provider.types,
+                current_mapping: $in.request.consumer.types,
+                name: $in.local
+            }}
+        />
+
+        <If on={$ctx.named == Constants.Comparison.Equal}>
+            <Return value={Link.Status.Ready} />
+        </If>
+
+        <If on={$ctx.named == Constants.Comparison.Different}>
+            <Return value={Link.Status.Conflict} />
+        </If>
+    </If>
+
+    <Call fn="alias" in={$in} />
+
+    <Return value={$ctx.alias} />
+</Module>

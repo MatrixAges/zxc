@@ -1,0 +1,38 @@
+import item from "compiler/artifact_named_item"
+
+import { Status } from "./model"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    const { names, source_names } = in.dependency
+
+    const aliased = source_names.length != 0
+
+    if (aliased && source_names.length != names.length) {
+        return Status.Invalid
+    }
+
+    return loop({
+        row: 0,
+        status: Status.Ready
+    }, {
+        while: state => state.status == Status.Ready && state.row < names.length,
+        next: state => {
+            const local = names[state.row]
+            const original = aliased ? source_names[state.row] : local
+
+            state.status = item({
+                request: in,
+                local,
+                original
+            })
+            state.row += 1
+        },
+        return: state => state.status
+    })
+}

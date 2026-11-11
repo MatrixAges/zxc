@@ -1,0 +1,33 @@
+import member from "./member"
+import { Status } from "./model"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    const names = in.provider.members.names
+
+    return loop({
+        row: 0,
+        status: Status.Ready
+    }, {
+        while: state => state.status == Status.Ready && state.row < names.length,
+        next: state => {
+            const name = names[state.row]
+
+            if (name.length != 0) {
+                state.status = member({
+                    request: in,
+                    local: name,
+                    row: state.row
+                })
+            }
+
+            state.row += 1
+        },
+        return: state => state.status
+    })
+}

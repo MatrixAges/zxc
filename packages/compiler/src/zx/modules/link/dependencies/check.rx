@@ -1,0 +1,53 @@
+<Module>
+    <Type from="model" as="Link" />
+
+    <Args in={Link.Request} out={Link.Status} />
+
+    <If on={$in.dependency.kind == Link.Kind.Function}>
+        <If on={$in.dependency.names.length != 1}>
+            <Return value={Link.Status.Invalid} />
+        </If>
+
+        <Call
+            fn="find"
+            in={{
+                names: $in.provider.members.names,
+                namespaces: null,
+                name: ""
+            }}
+        />
+
+        <If on={$ctx.find != null}>
+            <Call
+                fn="member"
+                in={{
+                    request: $in,
+                    local: $in.dependency.names[0],
+                    row: $ctx.find ?? 0
+                }}
+            />
+
+            <Return value={$ctx.member} />
+        </If>
+
+        <Return
+            value={$in.provider.executable ? Link.Status.Ready : Link.Status.Invalid}
+        />
+    </If>
+
+    <If on={$in.dependency.wildcard && $in.dependency.kind != Link.Kind.TypeOnly}>
+        <Call fn="wildcard" in={$in} />
+
+        <If on={$ctx.wildcard != Link.Status.Ready}>
+            <Return value={$ctx.wildcard} />
+        </If>
+    </If>
+
+    <If on={$in.provider.executable && $in.dependency.kind != Link.Kind.Enumeration}>
+        <Return value={Link.Status.Invalid} />
+    </If>
+
+    <Call fn="named" in={$in} />
+
+    <Return value={$ctx.named} />
+</Module>
