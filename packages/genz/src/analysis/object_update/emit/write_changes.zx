@@ -4,7 +4,6 @@ import integers from "std:integer"
 import assignment from "../../../ast/context/assignment"
 import field from "../../../ast/context/field"
 import identifier from "../../../ast/context/identifier"
-import changed from "./changed"
 import clearOrigin from "./clear_origin"
 import valueName from "./value_name"
 
@@ -22,10 +21,6 @@ export default function (in: Input): Output {
         name: in.source.target_name
     })
 
-    const expressions = changes.expressions
-    const node = integers.widen(changes.object)
-    const payload = integers.widen(expressions.payloads[node])
-    const first = integers.widen(expressions.object_first[payload])
     const type_id = integers.widen(in.source.type_id)
     const fields = integers.widen(in.source.types.first[type_id])
 
@@ -35,36 +30,28 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < changes.values.length,
         next: current => {
-            if (changed({
-                source: in.source,
-                index: current.index
-            })) {
-                const value = identifier({
-                    state: current.context,
-                    name: valueName({
-                        target_name: in.source.target_name,
-                        index: current.index
-                    })
-                })
+            const position = integers.widen(changes.positions[current.index])
+            const index = fields + integers.widen(changes.indices[position])
 
-                const index = fields +
-                    integers.widen(
-                        expressions.object_field_indices[first +
-                            current.index]
-                    )
-
-                const member = field({
-                    state: value.state,
-                    target: target.id,
-                    name: bytes.fromText(in.source.types.field_names[index])
+            const value = identifier({
+                state: current.context,
+                name: valueName({
+                    target_name: in.source.target_name,
+                    index: position
                 })
+            })
 
-                current.context = assignment({
-                    state: member.state,
-                    target: member.id,
-                    value: value.id
-                })
-            }
+            const member = field({
+                state: value.state,
+                target: target.id,
+                name: bytes.fromText(in.source.types.field_names[index])
+            })
+
+            current.context = assignment({
+                state: member.state,
+                target: member.id,
+                value: value.id
+            })
 
             current.index += 1
         },

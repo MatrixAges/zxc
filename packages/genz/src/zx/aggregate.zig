@@ -58,7 +58,7 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         .references = references,
     };
 
-    const updated = try @import("object_update.zig").lower(self, id, &body);
+    const updated = try @import("object_update.zig").lower(self, temporary, id, &body);
     const type_id = self.program.expression(id).type_id;
     const plan = @import("aggregate/layout.zig").plan(self, id, type_id, layout, updated != null);
 

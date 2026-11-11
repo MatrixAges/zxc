@@ -1,5 +1,6 @@
+import integers from "std:integer"
+
 import binding from "../../../ast/context/binding"
-import changed from "./changed"
 import valueName from "./value_name"
 
 import type { State as Input, State as Output } from "./model"
@@ -17,19 +18,16 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < changes.values.length,
         next: current => {
-            if (changed({
-                source: in.source,
-                index: current.index
-            })) {
-                current.context = binding({
-                    state: current.context,
-                    name: valueName({
-                        target_name: in.source.target_name,
-                        index: current.index
-                    }),
-                    value: changes.values[current.index]
-                })
-            }
+            const position = integers.widen(changes.positions[current.index])
+
+            current.context = binding({
+                state: current.context,
+                name: valueName({
+                    target_name: in.source.target_name,
+                    index: position
+                }),
+                value: changes.values[current.index]
+            })
 
             current.index += 1
         },

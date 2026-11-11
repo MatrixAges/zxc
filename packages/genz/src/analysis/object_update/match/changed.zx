@@ -1,3 +1,5 @@
+import integers from "std:integer"
+
 import result from "./result"
 import unchanged from "./unchanged"
 
@@ -6,12 +8,14 @@ import type { Candidate as Input, Output } from "./model"
 export default function (in: Input): Output {
     const empty: u32? = null
     const initial: u32 = 0
+    const positions: u32[] = []
 
     return loop({
         index: 0,
+        first_position: 0,
         field_index: empty,
         field_value: initial,
-        changed_count: 0,
+        positions,
         valid: true
     }, {
         while: state => state.valid && state.index < in.root.count,
@@ -20,16 +24,24 @@ export default function (in: Input): Output {
                 candidate: in,
                 index: state.index
             })) {
-                state.changed_count += 1
-
-                if (state.field_index != null && !in.root.source.evaluated) {
-                    state.valid = false
-                } else if (state.field_index == null) {
+                if (state.field_index == null) {
                     const expressions = in.root.source.expressions
                     const field = in.root.first + state.index
 
+                    state.first_position = state.index
                     state.field_index = expressions.object_field_indices[field]
                     state.field_value = expressions.object_field_values[field]
+                } else if (in.root.source.evaluated) {
+                    if (state.positions.length == 0) {
+                        const first = integers.narrow(state.first_position)
+
+                        state.positions = state.positions.push(first)[0]
+                    }
+
+                    state.positions =
+                        state.positions.push(integers.narrow(state.index))[0]
+                } else {
+                    state.valid = false
                 }
             }
 
@@ -40,7 +52,7 @@ export default function (in: Input): Output {
             ...state.pick([
                 "field_index",
                 "field_value",
-                "changed_count",
+                "positions",
                 "valid"
             ])
         })

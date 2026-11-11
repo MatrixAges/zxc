@@ -4,7 +4,9 @@ const ir = zx.ir;
 const Lower = @import("../lower.zig");
 const Change = @import("../object_update.zig").Change;
 
-pub fn match(lowering: *const Lower, id: ir.ExprId, evaluated: bool) ?Change {
+pub const Plan = struct { change: Change, positions: []const u32 };
+
+pub fn match(lowering: *const Lower, scratch: std.mem.Allocator, id: ir.ExprId, evaluated: bool) Lower.Error!?Plan {
     const generated = @import("generated_object_update_candidate");
     const Input = std.meta.Child(generated.Input);
     const program: *const ir.Program = &lowering.program;
@@ -34,37 +36,21 @@ pub fn match(lowering: *const Lower, id: ir.ExprId, evaluated: bool) ?Change {
         .cache = &cache,
     };
 
-    var fixed = std.heap.FixedBufferAllocator.init(&.{});
-    const result = zx.columns.invoke(generated.executeValue, fixed.allocator(), &input) catch unreachable;
+    const result = zx.columns.invoke(generated.executeValue, scratch, &input) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
     const output = result orelse return null;
 
     return .{
-        .previous = @fromBackingInt(output.previous),
-        .reference = @fromBackingInt(output.reference),
-        .field = .{ .index = output.field_index, .value = @fromBackingInt(output.field_value) },
-        .type_id = @fromBackingInt(output.type_id),
-        .object = id,
-        .multiple = output.multiple,
+        .change = .{
+            .previous = @fromBackingInt(output.previous),
+            .reference = @fromBackingInt(output.reference),
+            .field = .{ .index = output.field_index, .value = @fromBackingInt(output.field_value) },
+            .type_id = @fromBackingInt(output.type_id),
+            .object = id,
+        },
+        .positions = output.positions,
     };
-}
-
-pub fn unchanged(lowering: *const Lower, reference: ir.ExprId, field: ir.ObjectField) bool {
-    const generated = @import("generated_object_update_unchanged");
-    const Input = std.meta.Child(generated.Input);
-    const program: *const ir.Program = &lowering.program;
-    const flags = lowering.plan.flags;
-
-    comptime std.debug.assert(@sizeOf(std.meta.Child(@TypeOf(flags))) == @sizeOf(u8));
-
-    const input: Input = .{
-        .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &program.expressions),
-        .flags = @as([*]const u8, @ptrCast(flags.ptr))[0..flags.len],
-        .reference = @backingInt(reference),
-        .field_index = field.index,
-        .value = @backingInt(field.value),
-    };
-
-    var fixed = std.heap.FixedBufferAllocator.init(&.{});
-
-    return zx.columns.invoke(generated.executeValue, fixed.allocator(), &input) catch unreachable;
 }

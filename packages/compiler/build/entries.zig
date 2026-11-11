@@ -320,7 +320,6 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/object_update/emit/expression.rx", .name = "object_update_expression", .owner = .genz },
     .{ .path = "genz/analysis/object_update/emit/statements.rx", .name = "object_update_statements", .owner = .genz },
     .{ .path = "genz/analysis/object_update/match/candidate.rx", .name = "object_update_candidate", .owner = .genz },
-    .{ .path = "genz/analysis/object_update/match/field_unchanged.zx", .name = "object_update_unchanged", .owner = .genz },
     .{ .path = "genz/analysis/inline/prepare.rx", .name = "inline_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/transfer/build.rx", .name = "iteration_transfer", .owner = .genz },
     .{ .path = "genz/analysis/iteration/result/analyze.rx", .name = "iteration_result", .owner = .genz },

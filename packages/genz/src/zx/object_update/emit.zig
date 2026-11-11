@@ -1,13 +1,14 @@
 const std = @import("std");
-const zx = @import("zx");
-const ir = zx.ir;
+const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const view = @import("../../node/view.zig");
 const rows = @import("../../node/import_rows.zig");
 const Lower = @import("../lower.zig");
 const Change = @import("../object_update.zig").Change;
+const Plan = @import("matching.zig").Plan;
 
-pub fn expression(self: *Lower, change: Change, body: *std.ArrayList(node.Statement)) Lower.Error!node.ExpressionId {
+pub fn expression(self: *Lower, temporary: std.mem.Allocator, plan: Plan, body: *std.ArrayList(node.Statement)) Lower.Error!node.ExpressionId {
+    const change = plan.change;
     const generated = @import("generated_object_update_expression");
     const Input = std.meta.Child(generated.Input);
     const Write = std.meta.Child(@FieldType(Input, "source"));
@@ -17,36 +18,22 @@ pub fn expression(self: *Lower, change: Change, body: *std.ArrayList(node.Statem
     const selected = self.state_plan.selected[@backingInt(change.type_id)];
     const reference = try self.expr(change.reference);
     const initial = if (selected) reference else try self.builder.expression(.{ .dereference = reference });
-    const value: node.ExpressionId = if (change.multiple) @fromBackingInt(0) else try operand(self, body, change.field.value, selected);
+    const multiple = plan.positions.len != 0;
+    const value: node.ExpressionId = if (multiple) @fromBackingInt(0) else try operand(self, body, change.field.value, selected);
     const value_name = try self.fresh("operand");
     const label = try self.fresh("block");
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Write, "types")), self.program.types);
     var changes: Changes = undefined;
 
-    if (change.multiple) {
+    if (multiple) {
         const object = self.program.expression(change.object.?).value.object;
-        const values = try self.allocator.alloc(u32, object.fields.len);
+        const values = try temporary.alloc(u32, plan.positions.len);
 
-        for (values, 0..) |*item, index| {
-            const field = object.fields.at(index);
-
-            if (@import("matching.zig").unchanged(self, change.reference, field)) {
-                item.* = 0;
-            } else {
-                item.* = @backingInt(try operand(self, body, field.value, selected));
-            }
-        }
-
-        const program: *const ir.Program = &self.program;
-        const flags = self.plan.flags;
-
-        comptime std.debug.assert(@sizeOf(std.meta.Child(@TypeOf(flags))) == @sizeOf(u8));
+        for (values, plan.positions) |*item, position| item.* = @backingInt(try operand(self, body, object.fields.at(position).value, selected));
 
         changes = .{
-            .expressions = zx.columns.pointer(@FieldType(Changes, "expressions"), &program.expressions),
-            .flags = @as([*]const u8, @ptrCast(flags.ptr))[0..flags.len],
-            .reference = @backingInt(change.reference),
-            .object = @backingInt(change.object.?),
+            .indices = object.fields.indices,
+            .positions = plan.positions,
             .values = values,
         };
     }
@@ -61,7 +48,7 @@ pub fn expression(self: *Lower, change: Change, body: *std.ArrayList(node.Statem
         .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
         .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
         .clear_origin = selected,
-        .changes = if (change.multiple) &changes else null,
+        .changes = if (multiple) &changes else null,
     };
 
     const input: Input = .{ .source = &source, .layout = @backingInt(layout), .initial = @backingInt(initial), .label = label };
