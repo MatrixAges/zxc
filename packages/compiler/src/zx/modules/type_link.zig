@@ -30,9 +30,10 @@ pub fn merge(allocator: std.mem.Allocator, modules: []const Module) Error!Result
     var types = try Types.init(arena.allocator());
     const mappings = try arena.allocator().alloc([]const ir.TypeId, modules.len);
 
-    for (modules, mappings) |module, *mapping| {
+    for (modules, mappings, 0..) |module, *mapping, index| {
         mapping.* = try types.append(temporary.allocator(), module);
-        _ = temporary.reset(.retain_capacity);
+
+        if (index + 1 < modules.len and !temporary.reset(.retain_capacity)) return error.OutOfMemory;
     }
 
     return .{ .arena = arena, .types = types.items.view(), .nominal_types = types.origins.items.view(), .mappings = mappings };

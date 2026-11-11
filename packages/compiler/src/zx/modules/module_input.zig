@@ -9,9 +9,6 @@ pub const Native = struct {
     pub const completes_ownership = module_result.indexed_enabled;
 
     value: parser.Parsed,
-    pub fn source(self: Native) []const u8 {
-        return self.value.source;
-    }
     pub fn header(self: Native) zx.syntax.header.Native {
         return .{ .program = self.value.ast };
     }
@@ -56,14 +53,9 @@ pub const Indexed = if (module_result.indexed_enabled) struct {
     const Self = @This();
     pub const completes_ownership = true;
     value: *const module_result.Indexed,
-    pub fn source(self: Self) []const u8 {
-        return self.value.source;
-    }
-
     pub fn header(self: Self) @import("../frontend/syntax/header.zig").View(@FieldType(module_result.Indexed, "output")) {
         return .{ .source = self.value.source, .storage = self.value.output };
     }
-
     pub fn signature(self: Self, types: *Types, constants: []const zx.ir.Constant) zx.Error!Signature.Result {
         return @import("source_signature/host.zig").analyze(types, self.value.source, self.value.output, constants);
     }

@@ -1,0 +1,22 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+
+export type Shared = {
+    table: Table,
+    modules: Modules,
+    origins: Bindings,
+    names: string[],
+    scalar_count: u64,
+    maximum_count: u64
+}
+
+export enum Admission { Ready, Types, Native, Nominal }
+
+export type Body = {
+    type_only: bool,
+    entry: bool,
+    recursive: bool
+}
+
+export enum Publication { Types, Dependency, Entry, RecursiveDependency, RecursiveEntry }

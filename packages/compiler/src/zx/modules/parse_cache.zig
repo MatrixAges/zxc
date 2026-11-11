@@ -56,6 +56,14 @@ pub fn getModule(self: *Self, source: []const u8, path: []const u8) std.mem.Allo
     return &entry.result;
 }
 
+pub const Version = struct { result: *const ModuleResult, digest: [32]u8 };
+
+pub fn getModuleVersion(self: *Self, source: []const u8, path: []const u8) std.mem.Allocator.Error!Version {
+    const entry = try self.getEntry(false, source, path);
+
+    return .{ .result = &entry.result, .digest = entry.digest };
+}
+
 pub const Request = struct { source: []const u8, path: []const u8 };
 
 /// Parses on all cores the modules `getModule` has no current result for, so a later walk over them only reads. Each

@@ -45,6 +45,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/project/target/package.zx", .name = "project_package_shape" },
     .{ .path = "zx/modules/project/load/admit.zx", .name = "project_load_admission" },
     .{ .path = "zx/modules/project/load/source.rx", .name = "project_load_source" },
+    .{ .path = "zx/modules/project/state/open.rx", .name = "project_state_open" },
+    .{ .path = "zx/modules/project/state/publish.rx", .name = "project_body_publish" },
     .{ .path = "zx/modules/binding/bind.rx", .name = "project_binding" },
     .{ .path = "zx/modules/binding/public_names.rx", .name = "public_names" },
     .{ .path = "zx/analysis/integer/decode.rx", .name = "integer" },

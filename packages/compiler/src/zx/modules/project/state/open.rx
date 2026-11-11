@@ -1,0 +1,46 @@
+<Module>
+    <Type from="model" as="State" />
+
+    <Args in={State.Shared} out={State.Admission} />
+
+    <Call
+        module="../../../analysis/semantic/validate_types"
+        in={{
+            maximum_count: $in.maximum_count,
+            scalar_count: $in.scalar_count,
+            table: $in.table,
+            trusted: $in.table.kinds.length == 0
+        }}
+    />
+
+    <If on={!$ctx.validate_types}>
+        <Return value={State.Admission.Types} />
+    </If>
+
+    <Call
+        module="../../../ir/canonical/native_modules_check"
+        in={{
+            table: $in.table,
+            modules: $in.modules
+        }}
+    />
+
+    <If on={!$ctx.native_modules_check}>
+        <Return value={State.Admission.Native} />
+    </If>
+
+    <Call
+        module="../../../analysis/semantic/origins"
+        in={{
+            table: $in.table,
+            origins: $in.origins,
+            names: $in.names
+        }}
+    />
+
+    <If on={!$ctx.origins}>
+        <Return value={State.Admission.Nominal} />
+    </If>
+
+    <Return value={State.Admission.Ready} />
+</Module>

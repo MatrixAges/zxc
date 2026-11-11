@@ -13,6 +13,7 @@ const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
 const Input = @import("module_input.zig");
 const Loading = @import("project/load/host.zig");
+const State = @import("project/state/host.zig");
 const Target = @import("project/target/host.zig");
 pub const signature_project = @import("signature_project.zig");
 pub const import_binding = @import("binding.zig");
@@ -59,7 +60,6 @@ pub const Options = struct {
 const Unit = struct {
     path: []const u8,
     state: Loading.State = .Fresh,
-    program: ?ir.Program = null,
     signature: ?@import("source_signature.zig").Result = null,
     signature_aliases: []const ir.Export = &.{},
     signature_imports: []const FunctionImport = &.{},
@@ -79,7 +79,7 @@ pub const ImportTarget = Target.Target;
 
 const LoadFrame = struct {
     index: usize,
-    parsed: *const ParseCache.ModuleResult,
+    parsed: ParseCache.Version,
     next_import: usize = 0,
     pending: ?struct { path: []const u8, index: usize } = null,
     aliases: std.ArrayList(ir.Export) = .empty,
@@ -102,6 +102,8 @@ const Project = struct {
     semantic_cache: ?*SemanticCache = null,
     phase: Loading.Phase = .body,
     load_frames: std.ArrayList(LoadFrame) = .empty,
+    entry_program: ?ir.Program = null,
+    empty_context_digest: ?[32]u8 = null,
     units: []Unit,
     /// Each unit path to the first unit with it.
     unit_indices: @import("zx").bytes.Map(usize) = .empty,
@@ -124,7 +126,7 @@ const Project = struct {
     fn load(self: *Project, index: usize) zx.Error!ir.Program {
         try self.loadFrames(index);
 
-        var program = self.units[index].program.?;
+        var program = self.entry_program.?;
         const unit = &self.units[index];
         program.types = self.types.view();
         program.exports = unit.exports;
@@ -158,7 +160,7 @@ const Project = struct {
             const frame = &frames.items[frames.items.len - 1];
             self.current_source = frame.index;
 
-            const dependency = switch (frame.parsed.*) {
+            const dependency = switch (frame.parsed.result.*) {
                 .native => |result| try self.loadInput(frame, Input.Native{ .value = result.value.parsed }),
                 .indexed => |*result| if (ParseCache.indexed_enabled) try self.loadInput(frame, Input.Indexed{ .value = result }) else unreachable,
             };
@@ -166,10 +168,22 @@ const Project = struct {
             if (dependency) |child| {
                 try self.pushFrame(child);
             } else {
+                frame.imported_names.deinit(self.arena.child_allocator);
+
                 _ = frames.pop();
             }
         }
     }
+
+    fn deinitScratch(self: *Project) void {
+        const allocator = self.arena.child_allocator;
+
+        for (self.load_frames.items) |*frame| frame.imported_names.deinit(allocator);
+
+        self.load_frames.deinit(allocator);
+        self.binding_scratch.deinit();
+    }
+
     fn pushFrame(self: *Project, index: usize) zx.Error!void {
         const unit = &self.units[index];
         const frames = &self.load_frames;
@@ -184,9 +198,9 @@ const Project = struct {
         unit.state = .Visiting;
         self.current_source = index;
 
-        const parsed = try self.parse_cache.getModule(self.sources[index].source, unit.path);
+        const parsed = try self.parse_cache.getModuleVersion(self.sources[index].source, unit.path);
 
-        if (parsed.diagnostic()) |diagnostic| {
+        if (parsed.result.diagnostic()) |diagnostic| {
             var issue = diagnostic;
             issue.message = try self.allocator.dupe(u8, issue.message);
             issue.message_allocator = null;
@@ -205,7 +219,6 @@ const Project = struct {
         const imported_names = &frame.imported_names;
         const imports = &frame.imports;
         const constants = &frame.constant_imports;
-        const dependencies = &frame.dependencies;
 
         while (frame.next_import < header.importCount()) : (frame.next_import += 1) {
             const item = @import("import_view.zig").get(header, frame.next_import);
@@ -217,7 +230,7 @@ const Project = struct {
             const target: ImportTarget = if (pending) |resumed| .{ .source = resumed.path } else target_block: {
                 if (!item.exported) for (0..item.nameCount()) |name_index| {
                     const name = item.nameAt(name_index);
-                    const entry = try imported_names.getOrPut(self.allocator, name.text);
+                    const entry = try imported_names.getOrPut(self.arena.child_allocator, name.text);
 
                     if (entry.found_existing) return self.reporter.fail(.name, name.span, "duplicate import binding");
                 };
@@ -234,23 +247,20 @@ const Project = struct {
                             .members = &@import("intrinsic.zig").exports,
                         }, self.reporter, selected_aliases, selected_imports, selected_constants);
 
-                        try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, .intrinsic));
+                        try self.rememberImport(frame, item, .intrinsic, null);
 
                         continue;
                     },
                     .Interface => {
                         if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
-                            var dependency = try ModuleRecord.copyImport(self.allocator, item, .native);
-                            dependency.identity = try self.allocator.dupe(u8, identity);
-
-                            try dependencies.append(self.allocator, dependency);
+                            try self.rememberImport(frame, item, .native, identity);
 
                             continue;
                         }
 
                         if (item.kind != .function or item.nameCount() != 1) return self.reporter.fail(.module, item.span, "external interfaces require a default function import");
                         try self.importExternal(item, imports);
-                        try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, .external));
+                        try self.rememberImport(frame, item, .external, null);
 
                         continue;
                     },
@@ -301,10 +311,10 @@ const Project = struct {
                 .members = imported.members,
             }, self.reporter, selected_aliases, selected_imports, selected_constants);
 
-            try dependencies.append(self.allocator, try ModuleRecord.copyImport(self.allocator, item, switch (target) {
+            try self.rememberImport(frame, item, switch (target) {
                 .source => |path| .{ .source = path },
                 .compiled => |value| .{ .compiled = value },
-            }));
+            }, null);
         }
 
         if (self.phase == .signature) {
@@ -332,6 +342,14 @@ const Project = struct {
         } else try self.finishInput(frame, input);
 
         return null;
+    }
+    fn rememberImport(self: *Project, frame: *LoadFrame, item: anytype, target: ModuleRecord.Target, identity: ?[]const u8) zx.Error!void {
+        if (self.phase == .signature) return;
+
+        var dependency = try ModuleRecord.copyImport(self.allocator, item, target);
+
+        if (identity) |name| dependency.identity = try self.allocator.dupe(u8, name);
+        try frame.dependencies.append(self.allocator, dependency);
     }
     fn bindSignature(self: *Project, frame: *LoadFrame, item: anytype, imported: Imported) zx.Error!void {
         const temporary = self.bindingAllocator();
@@ -409,15 +427,13 @@ const Project = struct {
         const aliases = frame.aliases;
         const imports = frame.imports;
         const dependencies = frame.dependencies;
-        var source_digest: [32]u8 = undefined;
-
-        @import("zx").Sha256.hash(input.source(), &source_digest, .{});
-
+        const source_digest = frame.parsed.digest;
+        const entry = std.mem.eql(u8, unit.path, self.options.entry);
         const first_type = self.types.count();
         var restored: ?ir.Program = null;
 
         if (self.semantic_cache) |cache| {
-            unit.context_digest = try SemanticCache.contextDigest(self.allocator, if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context else .{});
+            unit.context_digest = try self.contextDigest(entry);
 
             if (cache.get(unit.path, source_digest, unit.context_digest)) |cached| {
                 if (try @import("semantic_cache/restore.zig").restore(cached.*, .{
@@ -455,7 +471,7 @@ const Project = struct {
                 .function_imports = imports.items,
                 .constant_imports = frame.constant_imports.items,
                 .functions = self.functions.view(),
-                .store_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.stores else &.{},
+                .store_bindings = if (entry) self.options.context.stores else &.{},
                 .store_type_count = self.options.context.types.count(),
             };
 
@@ -469,11 +485,12 @@ const Project = struct {
         }
 
         const recursive = !program.type_only and input.header().functionName() != null and @import("function_body.zig").calls(program.expressions, unit.function.?);
-        const count = self.functions.count() - @intFromBool(!program.type_only and !recursive);
-
-        program.functions = try self.functions.view().prefix(count).snapshot(self.allocator);
+        const publication = State.publish(program.type_only, entry, recursive);
 
         if (restored == null and !@TypeOf(input).completes_ownership) {
+            const count = self.functions.count() - @intFromBool(!program.type_only and !recursive);
+
+            program.functions = self.functions.view().prefix(count);
             program.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, program, self.reporter);
 
             if (unit.function) |id| self.functions.ownership.items[@backingInt(id)] = switch (program.output_ownership) {
@@ -505,13 +522,35 @@ const Project = struct {
             .imports = dependencies.items,
             .type_imports = aliases.items,
             .function_imports = imports.items,
-            .body = if (program.type_only) .types else if (std.mem.eql(u8, unit.path, self.options.entry)) .entry else .{ .function = unit.function.? },
-            .own_function = if (recursive) unit.function else null,
+            .body = switch (publication) {
+                .Types => .types,
+                .Entry, .RecursiveEntry => .entry,
+                .Dependency, .RecursiveDependency => .{ .function = unit.function.? },
+            },
+            .own_function = switch (publication) {
+                .RecursiveEntry, .RecursiveDependency => unit.function,
+                else => null,
+            },
         });
 
-        unit.program = program;
-        unit.program.?.types = .{};
+        if (entry) {
+            program.types = .{};
+            program.functions = .{};
+            self.entry_program = program;
+        }
+
         unit.state = .Done;
+    }
+
+    fn contextDigest(self: *Project, entry: bool) std.mem.Allocator.Error![32]u8 {
+        if (entry) return SemanticCache.contextDigest(self.allocator, self.options.context);
+        if (self.empty_context_digest) |digest| return digest;
+
+        const digest = try SemanticCache.contextDigest(self.allocator, .{});
+
+        self.empty_context_digest = digest;
+
+        return digest;
     }
     fn loadCompiled(self: *Project, target: compiled.Target, span: zx.Span) zx.Error!Imported {
         var selected: ?usize = null;
@@ -732,26 +771,19 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
 
     const cache = shared orelse &local;
     var reporter: zx.Reporter = .{};
+
+    const state = switch (try State.open(owned, &options.context)) {
+        .state => |state| state,
+        .diagnostic => |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } },
+    };
+
     const units = try owned.alloc(Unit, sources.len);
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(owned, &.{ options.root_dir, source.path }) };
 
-    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
 
-    defer project.binding_scratch.deinit();
-    defer project.load_frames.deinit(allocator);
-
-    if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared type table" } } };
-    if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared native module table" } } };
-
-    project.types = try @import("../analysis/type_table.zig").storage(owned, options.context.types);
-    project.native_modules = try @import("native_context.zig").storage(owned, options.context.native_modules);
-
-    project.nominal_origins.seed(project.types.view(), options.context.nominal_types) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
-
-        return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
-    };
+    defer project.deinitScratch();
 
     if (!try project.indexUnits()) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
 
@@ -815,17 +847,10 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
         .diagnostic => |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } },
     };
 
-    if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{
-        .code = .contract,
-        .span = .{ .start = 0, .end = 0 },
-        .message = "invalid shared type table",
-    } } };
-
-    if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{
-        .code = .contract,
-        .span = .{ .start = 0, .end = 0 },
-        .message = "invalid shared native module table",
-    } } };
+    const state = switch (try State.open(temporary, &options.context)) {
+        .state => |state| state,
+        .diagnostic => |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } },
+    };
 
     const units = try temporary.alloc(Unit, sources.len);
 
@@ -833,19 +858,9 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
-    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
 
-    defer project.binding_scratch.deinit();
-    defer project.load_frames.deinit(allocator);
-
-    project.native_modules = try @import("native_context.zig").storage(temporary, options.context.native_modules);
-    project.types = try @import("../analysis/type_table.zig").storage(temporary, options.context.types);
-
-    project.nominal_origins.seed(project.types.view(), options.context.nominal_types) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
-
-        return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
-    };
+    defer project.deinitScratch();
 
     if (!try project.indexUnits()) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
 
@@ -867,7 +882,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     const recursive = if (own) |id| @import("function_body.zig").calls(program.expressions, id) else false;
     const count = project.functions.count() - @intFromBool(!program.type_only and !recursive);
 
-    program.functions = try project.functions.view().prefix(count).snapshot(temporary);
+    program.functions = project.functions.view().prefix(count);
 
     if (recursive) try @import("function_body.zig").entry(temporary, &program, own.?);
     if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };

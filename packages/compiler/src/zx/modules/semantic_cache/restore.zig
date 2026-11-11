@@ -158,7 +158,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .constant_exports = try nodes.constants(module.constant_exports),
         .stores = stores,
         .store_mode = if (function) |value| value.store_mode else .transaction,
-        .functions = try current.functions.snapshot(allocator),
+        .functions = .{},
         .native_modules = current.native_modules,
         .type_only = function == null,
     } };
