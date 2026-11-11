@@ -1,0 +1,31 @@
+import type { Index } from "core/integer/index/model"
+
+export enum Layout { Plain, Stack, State, Deep }
+
+export type Input = {
+    layout: Layout,
+    condition: u32,
+    step: u32,
+    state: Index,
+    stack: Index
+}
+
+export type Pair = {
+    index: Index,
+    condition: u32,
+    step: u32
+}
+
+export type Missing = {
+    condition: bool,
+    step: bool
+}
+
+export type Output = {
+    add_condition: bool,
+    add_step: bool,
+    remove_state_condition: bool,
+    remove_state_step: bool,
+    remove_stack_condition: bool,
+    remove_stack_step: bool
+}

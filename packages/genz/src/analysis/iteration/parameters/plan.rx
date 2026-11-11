@@ -1,0 +1,44 @@
+<Module>
+    <Type from="model" as="Parameters" />
+
+    <Args in={Parameters.Input} out={Parameters.Output} />
+
+    <If on={$in.layout == Parameters.Layout.State}>
+        <Call fn="state" in={$in} />
+
+        <Return value={$ctx.state} />
+    </If>
+
+    <If on={$in.layout == Parameters.Layout.Stack}>
+        <Call
+            fn="missing"
+            in={{
+                index: $in.stack,
+                condition: $in.condition,
+                step: $in.step
+            }}
+        />
+
+        <Return
+            value={{
+                add_condition: $ctx.missing.condition,
+                add_step: $ctx.missing.step,
+                remove_state_condition: false,
+                remove_state_step: false,
+                remove_stack_condition: $ctx.missing.condition,
+                remove_stack_step: $ctx.missing.step
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            add_condition: $in.layout == Parameters.Layout.Deep,
+            add_step: $in.layout == Parameters.Layout.Deep && $in.condition != $in.step,
+            remove_state_condition: false,
+            remove_state_step: false,
+            remove_stack_condition: false,
+            remove_stack_step: false
+        }}
+    />
+</Module>

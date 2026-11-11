@@ -1,0 +1,26 @@
+import missing from "./missing"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const state = missing({
+        index: in.state,
+        condition: in.condition,
+        step: in.step
+    })
+
+    const stack = missing({
+        index: in.stack,
+        condition: in.condition,
+        step: in.step
+    })
+
+    return {
+        add_condition: state.condition,
+        add_step: state.step,
+        remove_state_condition: state.condition,
+        remove_state_step: state.step,
+        remove_stack_condition: stack.condition,
+        remove_stack_step: stack.step
+    }
+}

@@ -96,46 +96,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const changed_name = if (preparation.track) try self.fresh("state_changed") else "";
     const tracking = if (changed_name.len != 0) changed_name else null;
-    const condition_index = @backingInt(iteration.condition_parameter);
-    const step_index = @backingInt(iteration.parameter);
-    const condition_name = self.names[condition_index];
-    const step_name = self.names[step_index];
+    const parameters = try @import("iteration/parameters.zig").enter(self, iteration, selection.representation, name, &context);
 
-    self.names[condition_index] = name;
-    self.names[step_index] = name;
-    defer self.names[condition_index] = condition_name;
-    defer self.names[step_index] = step_name;
-
-    const condition_stacked = self.stack_symbols.contains(iteration.condition_parameter);
-    const step_stacked = self.stack_symbols.contains(iteration.parameter);
-    const condition_state = self.state_symbols.contains(iteration.condition_parameter);
-    const step_state = self.state_symbols.contains(iteration.parameter);
-
-    if (selected_state) {
-        try self.state_symbols.put(self.allocator, iteration.condition_parameter, {});
-        try self.state_symbols.put(self.allocator, iteration.parameter, {});
-    } else if (layout) {
-        try self.stack_symbols.put(self.allocator, iteration.condition_parameter, {});
-        try self.stack_symbols.put(self.allocator, iteration.parameter, {});
-    }
-
-    defer {
-        if (selected_state and !condition_state) _ = self.state_symbols.remove(iteration.condition_parameter);
-        if (selected_state and !step_state) _ = self.state_symbols.remove(iteration.parameter);
-        if (layout and !condition_stacked) _ = self.stack_symbols.remove(iteration.condition_parameter);
-        if (layout and !step_stacked) _ = self.stack_symbols.remove(iteration.parameter);
-    }
-
-    const previous_context = self.iteration_value;
-
-    defer self.iteration_value = previous_context;
-
-    if (deep) {
-        try context.symbols.put(self.allocator, iteration.condition_parameter, {});
-        try context.symbols.put(self.allocator, iteration.parameter, {});
-
-        self.iteration_value = &context;
-    }
+    defer parameters.restore();
 
     const finish = @import("iteration/result.zig").Result{
         .consumer = consumer,
@@ -180,14 +143,14 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
             .tracking = tracking,
         });
 
-        self.names[condition_index] = seed_name;
-        self.names[step_index] = seed_name;
+        parameters.rename(seed_name);
 
         const first_condition = if (iteration.postcondition) null else try self.expr(iteration.condition);
 
-        self.names[condition_index] = name;
-        self.names[step_index] = name;
+        parameters.rename(name);
+
         self.loop_fields = selected;
+
         const condition = try self.expr(iteration.condition);
         const next = try @import("value_call/root.zig").expression(self, iteration.body);
 
@@ -233,10 +196,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     defer self.deferred_lists = previous_deferred;
     self.deferred_lists = renewals.delayed;
+
     const condition = try self.expr(iteration.condition);
     const next = if (selected_call) |call| try @import("value_call/root.zig").expression(self, call) else if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
 
-    self.iteration_value = previous_context;
+    parameters.restoreContext();
+
     self.deferred_lists = previous_deferred;
 
     const tracker = try state_declaration.declare(self, &body, .{
