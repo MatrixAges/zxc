@@ -364,6 +364,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/forwarding/build.rx", .name = "iteration_forwarding", .owner = .genz },
     .{ .path = "genz/analysis/iteration/abi/build.rx", .name = "iteration_abi", .owner = .genz },
     .{ .path = "genz/analysis/iteration/layout/select.rx", .name = "iteration_layout_selection", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/initial/plan.rx", .name = "iteration_initial", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffers/analyze.rx", .name = "iteration_buffers", .owner = .genz },
     .{ .path = "genz/analysis/iteration/deferred/check.rx", .name = "iteration_renewal_plan", .owner = .genz },
     .{ .path = "genz/analysis/iteration/buffers/owners.zx", .name = "iteration_owners", .owner = .genz },

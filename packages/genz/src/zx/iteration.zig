@@ -49,32 +49,52 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const deep = buffered or selection.representation == .deep;
     const selected_state = selection.representation == .state;
     const layout = selected_state or selection.representation == .stack;
-    const by_value = mode != .reference and layout;
-    const local = layout or deep;
-    const direct_initial = selection.direct_initial;
+
+    const preparation = @import("iteration/initial.zig").plan(.{
+        .layout = layout,
+        .selected_state = selected_state,
+        .state_active = self.state_active,
+        .deep = deep,
+        .buffered = buffered,
+        .direct_initial = selection.direct_initial,
+        .postcondition = iteration.postcondition,
+        .reference = mode == .reference,
+        .discard = mode == .discard,
+        .pure = selection.pure,
+        .forwarded = selected_call != null,
+    });
+
     var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body, .inline_lists = buffered };
 
-    const initial_expression = if (direct_initial) initial: {
-        const previous = self.iteration_value;
-        self.iteration_value = &context;
-        defer self.iteration_value = previous;
+    const initial_expression = switch (preparation.evaluation) {
+        .Reference => try self.expr(iteration.initial),
+        .Value => try @import("value_call/root.zig").expression(self, iteration.initial),
+        .Deep => initial: {
+            const previous = self.iteration_value;
+            self.iteration_value = &context;
+            defer self.iteration_value = previous;
 
-        break :initial try self.expr(iteration.initial);
-    } else if (by_value) try @import("value_call/root.zig").expression(self, iteration.initial) else try self.expr(iteration.initial);
+            break :initial try self.expr(iteration.initial);
+        },
+    };
 
-    const initial = if (local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
-    var initial_guard: ?@import("iteration_value/initial.zig") = if (buffered and !iteration.postcondition) try @import("iteration_value/initial.zig").create(self, &body, iteration, consumer, initial) else null;
-    const state_scope = if (selected_state and !self.state_active) try @import("state_value/root.zig").enter(self) else null;
+    const initial = if (preparation.local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
+    var initial_guard: ?@import("iteration_value/initial.zig") = if (preparation.guard) try @import("iteration_value/initial.zig").create(self, &body, iteration, consumer, initial) else null;
+
+    const state_scope = switch (preparation.storage) {
+        .State, .StateValue => try @import("state_value/root.zig").enter(self),
+        else => null,
+    };
 
     defer if (state_scope) |scope| scope.restore();
 
     const seed = try self.builder.identifier(try self.fresh("loop_seed"));
-    var fields = if (selected_state and selected_call == null and selection.pure) try @import("iteration/fields/prepare.zig").prepare(self, iteration, type_id, &body, seed) else null;
+    var fields = if (preparation.project_fields) try @import("iteration/fields/prepare.zig").prepare(self, iteration, type_id, &body, seed) else null;
     const previous_fields = self.loop_fields;
 
     defer self.loop_fields = previous_fields;
 
-    const changed_name = if (local and !by_value and mode != .discard) try self.fresh("state_changed") else "";
+    const changed_name = if (preparation.track) try self.fresh("state_changed") else "";
     const tracking = if (changed_name.len != 0) changed_name else null;
     const condition_index = @backingInt(iteration.condition_parameter);
     const step_index = @backingInt(iteration.parameter);
@@ -123,16 +143,22 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .context = &context,
         .converted = state_scope != null,
         .type_id = type_id,
-        .by_value = by_value,
-        .local = local,
+        .by_value = preparation.by_value,
+        .local = preparation.local,
         .selected_state = selected_state,
         .initial = initial,
         .changed_name = changed_name,
         .mode = mode,
     };
 
-    const converted_initial = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value or direct_initial) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial;
-    const initial_state = if (selected_state and state_scope == null) try @import("state_value/ownership.zig").clip(self, &body, iteration.initial, converted_initial) else converted_initial;
+    const initial_state = switch (preparation.storage) {
+        .Keep => initial,
+        .Dereference => try @import("access/emit.zig").dereference(self, initial),
+        .Deep => try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false),
+        .State, .StateValue => try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (preparation.storage == .StateValue) .value_layout else .value),
+        .Clip => try @import("state_value/ownership.zig").clip(self, &body, iteration.initial, initial),
+    };
+
     var renewal_scope = std.heap.ArenaAllocator.init(self.workspace);
     var renewal_buffer: [256]u8 = undefined;
     var renewal_memory = std.heap.BufferFirstAllocator.init(&renewal_buffer, renewal_scope.allocator());

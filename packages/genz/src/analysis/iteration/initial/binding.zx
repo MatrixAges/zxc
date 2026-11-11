@@ -1,0 +1,25 @@
+import { Evaluation } from "./model"
+
+import type { Input, Binding as Output } from "./model"
+
+export default function (in: Input): Output {
+    const by_value = in.layout && !in.reference
+    const local = in.layout || in.deep
+
+    const evaluation = match {
+        in.direct_initial => Evaluation.Deep,
+        by_value => Evaluation.Value,
+        _ => Evaluation.Reference
+    }
+
+    const project_fields = in.selected_state && in.pure && !in.forwarded
+    const track = local && !by_value && !in.discard
+
+    return {
+        evaluation,
+        local,
+        by_value,
+        project_fields,
+        track
+    }
+}

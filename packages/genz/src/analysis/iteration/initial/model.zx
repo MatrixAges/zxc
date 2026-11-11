@@ -1,0 +1,44 @@
+export enum Evaluation { Reference, Value, Deep }
+
+export enum Storage { Keep, Dereference, Deep, State, StateValue, Clip }
+
+export type Input = {
+    layout: bool,
+    selected_state: bool,
+    state_active: bool,
+    deep: bool,
+    buffered: bool,
+    direct_initial: bool,
+    postcondition: bool,
+    reference: bool,
+    discard: bool,
+    pure: bool,
+    forwarded: bool
+}
+
+export type Binding = {
+    evaluation: Evaluation,
+    local: bool,
+    by_value: bool,
+    project_fields: bool,
+    track: bool
+}
+
+export type StorageInput = {
+    layout: bool,
+    selected_state: bool,
+    state_active: bool,
+    deep: bool,
+    direct_initial: bool,
+    by_value: bool
+}
+
+export type Output = {
+    evaluation: Evaluation,
+    local: bool,
+    by_value: bool,
+    project_fields: bool,
+    track: bool,
+    guard: bool,
+    storage: Storage
+}

@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Initial" />
+
+    <Args in={Initial.StorageInput} out={Initial.Storage} />
+
+    <If on={$in.selected_state}>
+        <If on={$in.state_active}>
+            <Return value={Initial.Storage.Clip} />
+        </If>
+
+        <If on={$in.by_value}>
+            <Return value={Initial.Storage.StateValue} />
+        </If>
+
+        <Return value={Initial.Storage.State} />
+    </If>
+
+    <If on={$in.by_value || $in.direct_initial}>
+        <Return value={Initial.Storage.Keep} />
+    </If>
+
+    <If on={$in.deep}>
+        <Return value={Initial.Storage.Deep} />
+    </If>
+
+    <If on={$in.layout}>
+        <Return value={Initial.Storage.Dereference} />
+    </If>
+
+    <Return value={Initial.Storage.Keep} />
+</Module>

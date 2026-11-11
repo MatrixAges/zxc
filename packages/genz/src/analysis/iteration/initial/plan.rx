@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Initial" />
+
+    <Args in={Initial.Input} out={Initial.Output} />
+
+    <Call fn="binding" in={$in} />
+
+    <Call
+        module="storage"
+        in={{
+            layout: $in.layout,
+            selected_state: $in.selected_state,
+            state_active: $in.state_active,
+            deep: $in.deep,
+            direct_initial: $in.direct_initial,
+            by_value: $ctx.binding.by_value
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.binding,
+            guard: $in.buffered && !$in.postcondition,
+            storage: $ctx.storage
+        }}
+    />
+</Module>
