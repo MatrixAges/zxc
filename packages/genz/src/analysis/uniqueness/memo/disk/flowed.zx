@@ -2,39 +2,56 @@ import { boolean_limit, byte_width } from "./const"
 import boolean from "./fields/boolean"
 import checked from "./fields/checked"
 
-import type { Record as Input } from "./model"
+import type { Flowed, Record as Input } from "./model"
 
-export type Output = u64
+export type Output = Flowed?
 
 export default function (in: Input): Output {
-    const { source } = in
+    const { source, trusted } = in
 
-    const text_held = checked({
+    const held = checked({
         source,
         start: in.start,
         stride: byte_width,
         limit: boolean_limit,
-        mark: false
+        mark: false,
+        trusted
+    })
+
+    const text_held = checked({
+        source,
+        start: held.end,
+        stride: byte_width,
+        limit: boolean_limit,
+        mark: false,
+        trusted
     })
 
     const written = checked({
         source,
-        start: text_held,
+        start: text_held.end,
         stride: byte_width,
         limit: boolean_limit,
-        mark: false
+        mark: false,
+        trusted
     })
 
-    const used = checked({
+    const end = boolean({
         source,
-        start: written,
-        stride: byte_width,
-        limit: boolean_limit,
-        mark: false
+        start: written.end
     })
 
-    return boolean({
-        source,
-        start: used
-    })
+    if (end == 0) {
+        return null
+    }
+
+    return {
+        end,
+        held_start: held.start,
+        held_end: held.end,
+        text_held_start: text_held.start,
+        text_held_end: text_held.end,
+        written_start: written.start,
+        written_end: written.end
+    }
 }

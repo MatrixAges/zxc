@@ -31,5 +31,49 @@ export type Output = Layout?
 
 export type Record = {
     source: u8[],
-    start: u64
+    start: u64,
+    trusted: bool
+}
+
+export type Settled = {
+    end: u64,
+    passed_start: u64,
+    passed_count: u32,
+    output_start: u64,
+    output_end: u64
+}
+
+export type Demanded = {
+    end: u64,
+    marks_start: u64,
+    marks_count: u32,
+    normalized_start: u64,
+    normalized_count: u32,
+    renewed_start: u64,
+    renewed_count: u32,
+    grew: bool
+}
+
+export type Planned = {
+    end: u64,
+    flags_start: u64,
+    flags_end: u64,
+    keys_start: u64,
+    keys_end: u64,
+    paths_start: u64,
+    paths_count: u32,
+    transfers_start: u64,
+    transfers_end: u64,
+    slot_first_start: u64,
+    slot_first_end: u64
+}
+
+export type Flowed = {
+    end: u64,
+    held_start: u64,
+    held_end: u64,
+    text_held_start: u64,
+    text_held_end: u64,
+    written_start: u64,
+    written_end: u64
 }

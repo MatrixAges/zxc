@@ -1,19 +1,24 @@
 import { boolean_limit, byte_width } from "../const"
 import vector from "./vector"
 
+import type { Span as Output } from "../model"
+
 export type Input = {
     source: u8[],
     start: u64,
     stride: u64,
     limit: u8,
-    mark: bool
+    mark: bool,
+    trusted: bool
 }
-
-export type Output = u64
 
 export default function (in: Input): Output {
     if (in.start == 0) {
-        return 0
+        return {
+            start: 0,
+            end: 0,
+            count: 0
+        }
     }
 
     const span = vector({
@@ -22,7 +27,11 @@ export default function (in: Input): Output {
         width: in.stride
     })
 
-    return loop({
+    if (in.trusted) {
+        return span
+    }
+
+    const valid = loop({
         offset: span.start,
         valid: true
     }, {
@@ -35,6 +44,11 @@ export default function (in: Input): Output {
             state.valid = valid_level && valid_mark
             state.offset = end
         },
-        return: state => state.valid ? span.end : 0
+        return: state => state.valid
     })
+
+    return {
+        ...span,
+        end: valid ? span.end : 0
+    }
 }

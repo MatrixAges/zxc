@@ -6,12 +6,12 @@ import { byte_width, wide_width } from "./const"
 import boolean from "./fields/boolean"
 import vector from "./fields/vector"
 
-import type { Record as Input } from "./model"
+import type { Planned, Record as Input } from "./model"
 
-export type Output = u64
+export type Output = Planned?
 
 export default function (in: Input): Output {
-    const { source, start } = in
+    const { source, start, trusted } = in
 
     const flags = vector({
         source,
@@ -20,7 +20,7 @@ export default function (in: Input): Output {
     })
 
     if (flags.end == 0) {
-        return 0
+        return null
     }
 
     const keys = vector({
@@ -30,7 +30,7 @@ export default function (in: Input): Output {
     })
 
     if (keys.end == 0) {
-        return 0
+        return null
     }
 
     const paths = vector({
@@ -40,7 +40,7 @@ export default function (in: Input): Output {
     })
 
     if (paths.end == 0 || paths.count != keys.count) {
-        return 0
+        return null
     }
 
     const transfers_start = loop({
@@ -50,10 +50,22 @@ export default function (in: Input): Output {
     }, {
         while: state => state.path_offset != 0 && state.key_offset < keys.end,
         next: state => {
-            const low = integers.widen(bytes.readU32(source, state.key_offset, true))
-            const high_offset = state.key_offset + word_width
-            const high = integers.widen(bytes.readU32(source, high_offset, true))
-            const key = high * word_radix + low
+            const key = match trusted {
+                true => state.previous,
+                _ => integers.widen(
+                    bytes.readU32(
+                        source,
+                        state.key_offset + word_width,
+                        true
+                    )
+                ) * word_radix + integers.widen(
+                    bytes.readU32(
+                        source,
+                        state.key_offset,
+                        true
+                    )
+                )
+            }
 
             if (key < state.previous) {
                 state.path_offset = 0
@@ -71,7 +83,7 @@ export default function (in: Input): Output {
     })
 
     if (transfers_start == 0) {
-        return 0
+        return null
     }
 
     const transfers = vector({
@@ -81,7 +93,7 @@ export default function (in: Input): Output {
     })
 
     if (transfers.end == 0) {
-        return 0
+        return null
     }
 
     const slot_first = vector({
@@ -90,8 +102,26 @@ export default function (in: Input): Output {
         width: word_width
     })
 
-    return boolean({
+    const end = boolean({
         source,
         start: slot_first.end
     })
+
+    if (end == 0) {
+        return null
+    }
+
+    return {
+        end,
+        flags_start: flags.start,
+        flags_end: flags.end,
+        keys_start: keys.start,
+        keys_end: keys.end,
+        paths_start: paths.start,
+        paths_count: paths.count,
+        transfers_start: transfers.start,
+        transfers_end: transfers.end,
+        slot_first_start: slot_first.start,
+        slot_first_end: slot_first.end
+    }
 }

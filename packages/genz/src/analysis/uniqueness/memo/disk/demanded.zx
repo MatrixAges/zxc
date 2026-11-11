@@ -1,46 +1,64 @@
 import { level_modulus } from "../../replay/ordered/const"
-import { mark_width, normalized_width, renewed_width } from "./const"
+import { false_byte, mark_width, normalized_width, renewed_width } from "./const"
 import boolean from "./fields/boolean"
 import checked from "./fields/checked"
 
-import type { Record as Input } from "./model"
+import type { Demanded, Record as Input } from "./model"
 
-export type Output = u64
+export type Output = Demanded?
 
 export default function (in: Input): Output {
-    const { source } = in
+    const { source, trusted } = in
 
-    const normalized = checked({
+    const marks = checked({
         source,
         start: in.start,
         stride: mark_width,
         limit: level_modulus,
-        mark: true
+        mark: true,
+        trusted
+    })
+
+    const normalized = checked({
+        source,
+        start: marks.end,
+        stride: normalized_width,
+        limit: level_modulus,
+        mark: false,
+        trusted
     })
 
     const renewed = checked({
         source,
-        start: normalized,
-        stride: normalized_width,
-        limit: level_modulus,
-        mark: false
-    })
-
-    const grew = checked({
-        source,
-        start: renewed,
+        start: normalized.end,
         stride: renewed_width,
         limit: level_modulus,
-        mark: false
+        mark: false,
+        trusted
     })
 
     const used = boolean({
         source,
-        start: grew
+        start: renewed.end
     })
 
-    return boolean({
+    const end = boolean({
         source,
         start: used
     })
+
+    if (end == 0) {
+        return null
+    }
+
+    return {
+        end,
+        marks_start: marks.start,
+        marks_count: marks.count,
+        normalized_start: normalized.start,
+        normalized_count: normalized.count,
+        renewed_start: renewed.start,
+        renewed_count: renewed.count,
+        grew: source[renewed.end] != false_byte
+    }
 }

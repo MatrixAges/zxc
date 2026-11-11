@@ -1,0 +1,17 @@
+import bytes from "std:bytes"
+
+import { byte_width, normalized_width } from "../const"
+
+import type { Input, Normalized as Output } from "./model"
+
+export default function (in: Input): Output {
+    const { source, start } = in
+
+    const end = start + normalized_width
+
+    return {
+        end,
+        id: bytes.readU32(source, start, true),
+        want: source[end - byte_width]
+    }
+}

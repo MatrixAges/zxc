@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import { word_width } from "../../encoding/const"
+import { byte_width } from "../const"
+import vector from "../fields/vector"
+
+import type { Contribution as Output, Input } from "./model"
+
+export default function (in: Input): Output {
+    const { source, start } = in
+
+    const callee = bytes.readU32(source, start, true)
+
+    const levels = vector({
+        source,
+        start: start + word_width,
+        width: byte_width
+    })
+
+    return {
+        end: levels.end,
+        start: levels.start,
+        callee
+    }
+}

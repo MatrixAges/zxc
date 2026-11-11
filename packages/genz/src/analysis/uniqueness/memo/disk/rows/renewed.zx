@@ -1,0 +1,21 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { word_radix, word_width } from "../../encoding/const"
+import { byte_width, renewed_width } from "../const"
+
+import type { Input, Renewed as Output } from "./model"
+
+export default function (in: Input): Output {
+    const { source, start } = in
+
+    const low = integers.widen(bytes.readU32(source, start, true))
+    const high = integers.widen(bytes.readU32(source, start + word_width, true))
+    const end = start + renewed_width
+
+    return {
+        end,
+        key: high * word_radix + low,
+        want: source[end - byte_width]
+    }
+}

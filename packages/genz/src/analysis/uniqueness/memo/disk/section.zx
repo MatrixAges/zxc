@@ -30,14 +30,26 @@ export default function (in: Input): Output {
         next: state => {
             const record = {
                 source: in.source,
-                start: state.offset + digest_width
+                start: state.offset + digest_width,
+                trusted: false
             }
 
-            state.offset = match in.kind {
-                Kind.Settled => settled(record),
-                Kind.Demanded => demanded(record),
-                Kind.Planned => planned(record),
-                _ => flowed(record)
+            if (in.kind == Kind.Settled) {
+                const decoded = settled(record)
+
+                state.offset = decoded == null ? 0 : decoded.end
+            } else if (in.kind == Kind.Demanded) {
+                const decoded = demanded(record)
+
+                state.offset = decoded == null ? 0 : decoded.end
+            } else if (in.kind == Kind.Planned) {
+                const decoded = planned(record)
+
+                state.offset = decoded == null ? 0 : decoded.end
+            } else {
+                const decoded = flowed(record)
+
+                state.offset = decoded == null ? 0 : decoded.end
             }
             state.remaining -= 1
         },

@@ -411,7 +411,7 @@ pub fn save(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.E
 
 /// Takes the records of an earlier `save`; malformed data leaves the memo as it was.
 pub fn load(self: *Self, bytes: []const u8) std.mem.Allocator.Error!void {
-    if (generated_encoding) return self.loadSource(bytes);
+    if (generated_encoding) return @import("memo/loading.zig").load(self, bytes);
 
     var reader: std.Io.Reader = .fixed(bytes);
 
@@ -434,25 +434,10 @@ fn loadSeed(self: *Self, reader: *std.Io.Reader) !void {
     inline for (.{ "settled", "demanded", "planned", "flowed" }, .{ Settled, Demanded, Planned, Flowed }) |field, Value| {
         const count = try reader.takeInt(u32, .little);
 
-        try self.readMap(Value, reader, &@field(self, field), count, false);
+        try self.readMap(Value, reader, &@field(self, field), count);
     }
 
     if (reader.seek != reader.end) return error.InvalidMemo;
-}
-
-fn loadSource(self: *Self, bytes: []const u8) std.mem.Allocator.Error!void {
-    const disk = @import("memo/disk.zig");
-    const layout = (try disk.inspect(self.arena.child_allocator, bytes)) orelse return;
-    var reader: std.Io.Reader = .fixed(bytes);
-
-    inline for (.{ "settled", "demanded", "planned", "flowed" }, .{ Settled, Demanded, Planned, Flowed }) |field, Value| {
-        reader.seek = @intCast(@field(layout, field ++ "_start"));
-
-        self.readMap(Value, &reader, &@field(self, field), @field(layout, field ++ "_count"), true) catch |err| switch (err) {
-            error.OutOfMemory => return error.OutOfMemory,
-            else => unreachable,
-        };
-    }
 }
 
 fn writeMap(comptime Value: type, writer: *std.Io.Writer, map: *const std.AutoHashMapUnmanaged(Digest, Value)) std.mem.Allocator.Error!void {
@@ -473,14 +458,14 @@ fn writeMap(comptime Value: type, writer: *std.Io.Writer, map: *const std.AutoHa
     }
 }
 
-fn readMap(self: *Self, comptime Value: type, reader: *std.Io.Reader, map: *std.AutoHashMapUnmanaged(Digest, Value), count: u32, comptime validated: bool) !void {
+fn readMap(self: *Self, comptime Value: type, reader: *std.Io.Reader, map: *std.AutoHashMapUnmanaged(Digest, Value), count: u32) !void {
     const allocator = self.arena.allocator();
 
     try map.ensureUnusedCapacity(allocator, count);
 
     for (0..count) |_| {
         const key = (try reader.takeArray(32)).*;
-        var value = try readValue(Value, allocator, reader, validated);
+        var value = try readValue(Value, allocator, reader);
 
         value.used = false;
 
@@ -527,29 +512,19 @@ fn Whole(comptime info: std.builtin.Type.Int) type {
     return @Int(info.signedness, (info.bits + 7) / 8 * 8);
 }
 
-fn readValue(comptime T: type, allocator: std.mem.Allocator, reader: *std.Io.Reader, comptime validated: bool) !T {
+fn readValue(comptime T: type, allocator: std.mem.Allocator, reader: *std.Io.Reader) !T {
     switch (@typeInfo(T)) {
         .@"struct" => |info| {
-            if (info.layout == .@"packed") return @bitCast(try readValue(info.backing_integer.?, allocator, reader, validated));
+            if (info.layout == .@"packed") return @bitCast(try readValue(info.backing_integer.?, allocator, reader));
 
             var result: T = undefined;
 
-            inline for (info.field_names) |field| @field(result, field) = try readValue(@FieldType(T, field), allocator, reader, validated);
+            inline for (info.field_names) |field| @field(result, field) = try readValue(@FieldType(T, field), allocator, reader);
 
             return result;
         },
         .pointer => |info| {
             const count = try reader.takeInt(u32, .little);
-
-            if (comptime validated and (Byte(info.child) != null or info.child == bool)) {
-                comptime std.debug.assert(@sizeOf(info.child) == 1 and @alignOf(info.child) == 1);
-
-                const raw = try reader.take(count);
-                const typed: [*]const info.child = @ptrCast(raw.ptr);
-
-                return allocator.dupe(info.child, typed[0..raw.len]);
-            }
-
             const values = try allocator.alloc(info.child, count);
 
             // Level and flag lists make up most of a memo; their elements are single bytes, read in one take.
@@ -559,14 +534,12 @@ fn readValue(comptime T: type, allocator: std.mem.Allocator, reader: *std.Io.Rea
                 return values;
             }
 
-            for (values) |*item| item.* = try readValue(info.child, allocator, reader, validated);
+            for (values) |*item| item.* = try readValue(info.child, allocator, reader);
 
             return values;
         },
         .bool => {
             const byte = try reader.takeByte();
-
-            if (validated) return byte != 0;
 
             return switch (byte) {
                 0 => false,
@@ -577,9 +550,9 @@ fn readValue(comptime T: type, allocator: std.mem.Allocator, reader: *std.Io.Rea
         .int => |info| {
             const value = try reader.takeInt(Whole(info), .little);
 
-            return if (validated) @intCast(value) else std.math.cast(T, value) orelse error.InvalidMemo;
+            return std.math.cast(T, value) orelse error.InvalidMemo;
         },
-        .@"enum" => return @fromBackingInt(try readValue(@typeInfo(T).@"enum".tag_type, allocator, reader, validated)),
+        .@"enum" => return @fromBackingInt(try readValue(@typeInfo(T).@"enum".tag_type, allocator, reader)),
         else => @compileError("unsupported memo field"),
     }
 }

@@ -1,6 +1,9 @@
 import { boolean_limit, byte_width } from "../const"
 
-import type { Record as Input } from "../model"
+export type Input = {
+    source: u8[],
+    start: u64
+}
 
 export type Output = u64
 

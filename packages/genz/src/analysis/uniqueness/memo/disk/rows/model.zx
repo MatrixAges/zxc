@@ -1,0 +1,30 @@
+export type Input = {
+    source: u8[],
+    start: u64
+}
+
+export type Contribution = {
+    end: u64,
+    start: u64,
+    callee: u32
+}
+
+export type Mark = {
+    end: u64,
+    output: bool,
+    function: u32,
+    slot: u32,
+    want: u8
+}
+
+export type Normalized = {
+    end: u64,
+    id: u32,
+    want: u8
+}
+
+export type Renewed = {
+    end: u64,
+    key: u64,
+    want: u8
+}

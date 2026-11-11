@@ -5,12 +5,12 @@ import boolean from "./fields/boolean"
 import checked from "./fields/checked"
 import vector from "./fields/vector"
 
-import type { Record as Input } from "./model"
+import type { Record as Input, Settled } from "./model"
 
-export type Output = u64
+export type Output = Settled?
 
 export default function (in: Input): Output {
-    const { source, start } = in
+    const { source, start, trusted } = in
 
     const passed = vector({
         source,
@@ -19,7 +19,7 @@ export default function (in: Input): Output {
     })
 
     if (passed.end == 0) {
-        return 0
+        return null
     }
 
     const output_start = loop({
@@ -33,23 +33,37 @@ export default function (in: Input): Output {
                 start: state.offset + word_width,
                 stride: byte_width,
                 limit: level_modulus,
-                mark: false
-            })
+                mark: false,
+                trusted
+            }).end
             state.remaining -= 1
         },
         return: state => state.offset
     })
 
-    const used = checked({
+    const output = checked({
         source,
         start: output_start,
         stride: byte_width,
         limit: level_modulus,
-        mark: false
+        mark: false,
+        trusted
     })
 
-    return boolean({
+    const end = boolean({
         source,
-        start: used
+        start: output.end
     })
+
+    if (end == 0) {
+        return null
+    }
+
+    return {
+        end,
+        passed_start: passed.start,
+        passed_count: passed.count,
+        output_start: output.start,
+        output_end: output.end
+    }
 }

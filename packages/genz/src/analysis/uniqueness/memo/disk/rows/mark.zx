@@ -1,0 +1,22 @@
+import bytes from "std:bytes"
+
+import { word_width } from "../../encoding/const"
+import { byte_width, false_byte, mark_width } from "../const"
+
+import type { Input, Mark as Output } from "./model"
+
+export default function (in: Input): Output {
+    const { source, start } = in
+
+    const callee = start + byte_width
+    const slot = callee + word_width
+    const end = start + mark_width
+
+    return {
+        end,
+        output: source[start] != false_byte,
+        function: bytes.readU32(source, callee, true),
+        slot: bytes.readU32(source, slot, true),
+        want: source[end - byte_width]
+    }
+}
