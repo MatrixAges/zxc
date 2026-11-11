@@ -1,0 +1,54 @@
+import integers from "std:integer"
+
+import { Mode } from "../../../construction/model"
+import policy from "../../../construction/policy"
+import { Operation } from "../model"
+import { Requirement } from "./model"
+
+import type { Plan } from "../model"
+import type { Facts } from "./model"
+
+export type Input = {
+    plan: Plan,
+    facts: Facts
+}
+
+export type Output = Requirement[]
+
+export default function (in: Input): Output {
+    const values: Requirement[] = []
+    const facts = in.facts
+
+    return loop({
+        values,
+        index: 0
+    }, {
+        while: state => state.index < in.plan.kinds.length,
+        next: state => {
+            const type_id = integers.widen(in.plan.types[state.index])
+            const kind = in.plan.kinds[state.index]
+            const mode = match {
+                kind == Operation.Object || kind == Operation.Tuple => policy({
+                    active: facts.active,
+                    selected: facts.active && facts.selected[type_id],
+                    borrowed: type_id < facts.borrowed.length && facts
+                        .borrowed[type_id]
+                }),
+                _ => Mode.Value
+            }
+
+            const requirement = match {
+                kind == Operation.Optional => Requirement.OptionalType,
+                kind == Operation.Buffer => Requirement.Unsupported,
+                kind == Operation.Value => Requirement.Layout,
+                mode == Mode.Heap => Requirement.HeapType,
+                mode == Mode.Reference => Requirement.ReferenceLayout,
+                _ => Requirement.Value
+            }
+
+            state.values = state.values.push(requirement)[0]
+            state.index += 1
+        },
+        return: state => state.values
+    })
+}

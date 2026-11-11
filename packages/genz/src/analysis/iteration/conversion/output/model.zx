@@ -1,17 +1,42 @@
 import type { Columns as Statements } from "../../../../ast/statements/model"
-import type { Mode, Ast } from "../../../construction/model"
+import type { Ast } from "../../../construction/model"
 import type {
     Input as Conversion,
     State as Emission,
     Output as Result
 } from "../emit/model"
+import type { Input as PlanInput, Plan } from "../model"
+
+export enum Requirement {
+    Layout,
+    OptionalType,
+    HeapType,
+    ReferenceLayout,
+    Value,
+    Unsupported
+}
+
+export type Facts = {
+    active: bool,
+    selected: bool[],
+    borrowed: bool[]
+}
+
+export type Prepare = {
+    source: PlanInput,
+    facts: Facts
+}
+
+export type Prepared = {
+    plan: Plan,
+    requirements: Requirement[]
+}
 
 export type Input = {
     source: Conversion,
-    modes: Mode[],
+    requirements: Requirement[],
     ast: Ast,
-    type_exprs: u32[],
-    storage_layouts: u32[]
+    operands: u32[]
 }
 
 export type State = {

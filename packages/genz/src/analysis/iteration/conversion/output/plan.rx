@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Conversion" />
+
+    <Args in={Conversion.Prepare} out={Conversion.Prepared} />
+
+    <Call module="../plan" in={$in.source} />
+
+    <Call
+        fn="requirements"
+        in={{
+            plan: $ctx.plan,
+            facts: $in.facts
+        }}
+    />
+
+    <Return
+        value={{
+            plan: $ctx.plan,
+            requirements: $ctx.requirements
+        }}
+    />
+</Module>

@@ -8,8 +8,10 @@ const Lower = @import("../lower.zig");
 pub fn lower(context: *Context, id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     const self = context.lowering;
     const root_layout = try self.layoutExpr(id);
-    const planner = @import("generated_conversion_plan");
-    const PlanInput = std.meta.Child(planner.Input);
+    const planner = @import("generated_conversion_output_plan");
+    const Prepare = std.meta.Child(planner.Input);
+    const PlanInput = std.meta.Child(@FieldType(Prepare, "source"));
+    const Facts = std.meta.Child(@FieldType(Prepare, "facts"));
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(PlanInput, "types")), self.program.types);
 
     const request: PlanInput = .{
@@ -30,50 +32,43 @@ pub fn lower(context: *Context, id: ir.TypeId, value: node.ExpressionId) Lower.E
 
     defer scratch.deinit();
 
-    const plan = planner.executeIn(buffered.allocator(), &request) catch |err| switch (@as(anyerror, err)) {
+    const temporary = buffered.allocator();
+
+    const facts: Facts = .{
+        .active = self.state_active,
+        .selected = self.state_plan.selected,
+        .borrowed = self.state_plan.borrowed,
+    };
+
+    const input_plan: Prepare = .{ .source = &request, .facts = &facts };
+
+    const prepared = planner.executeIn(temporary, &input_plan) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };
 
+    const plan = prepared.plan;
     const generated = @import("generated_conversion_output");
     const Input = std.meta.Child(generated.Input);
     const Source = std.meta.Child(@FieldType(Input, "source"));
-    const layouts = try buffered.allocator().alloc(u32, plan.types.len);
-    const elements = try buffered.allocator().alloc(u32, plan.types.len);
-    const modes = try buffered.allocator().alloc(std.meta.Child(@FieldType(Input, "modes")), plan.types.len);
-    const type_exprs = try buffered.allocator().alloc(u32, plan.types.len);
-    const storage_layouts = try buffered.allocator().alloc(u32, plan.types.len);
-    const policy = @import("generated_construction_policy");
-    const Policy = std.meta.Child(policy.Input);
+    const layouts = try temporary.alloc(u32, plan.types.len);
+    const operands = try temporary.alloc(u32, plan.types.len);
     const serial = self.serial;
     const declarations = context.declarations.items.len;
     const storage = self.reference_storage.items.len;
 
-    for (plan.types, plan.kinds, 0..) |type_id, kind, index| {
-        const selected: ir.TypeId = @fromBackingInt(type_id);
-        const layout = if (index == 0) root_layout else try self.layoutExpr(selected);
+    for (plan.types, prepared.requirements, layouts, operands, 0..) |raw, requirement, *layout, *operand, index| {
+        const selected: ir.TypeId = @fromBackingInt(raw);
+        const regular = if (index == 0) root_layout else try self.layoutExpr(selected);
 
-        if (kind == .Buffer) unreachable;
+        layout.* = @backingInt(if (requirement == .OptionalType) try self.typeExpr(selected) else regular);
 
-        layouts[index] = @backingInt(if (kind == .Optional) try self.typeExpr(selected) else layout);
-        elements[index] = 0;
-        modes[index] = .Heap;
-        type_exprs[index] = 0;
-        storage_layouts[index] = 0;
-
-        if (kind == .Object or kind == .Tuple) {
-            const flags: Policy = .{
-                .active = self.state_active,
-                .selected = if (self.state_active) self.state_plan.selected[type_id] else false,
-                .borrowed = type_id < self.state_plan.borrowed.len and self.state_plan.borrowed[type_id],
-            };
-
-            const mode = zx.columns.invoke(policy.executeValue, fixed.allocator(), &flags) catch unreachable;
-
-            modes[index] = @fromBackingInt(@backingInt(mode));
-            type_exprs[index] = if (mode == .Heap) @backingInt(try self.typeExpr(selected)) else 0;
-            storage_layouts[index] = if (mode == .Reference) @backingInt(try @import("../types.zig").get(self, self.state_layouts, selected)) else 0;
-        }
+        operand.* = switch (requirement) {
+            .HeapType => @backingInt(try self.typeExpr(selected)),
+            .ReferenceLayout => @backingInt(try @import("../types.zig").get(self, self.state_layouts, selected)),
+            .Layout, .OptionalType, .Value => 0,
+            .Unsupported => unreachable,
+        };
     }
 
     std.debug.assert(serial == self.serial and declarations == context.declarations.items.len and storage == self.reference_storage.items.len);
@@ -83,7 +78,7 @@ pub fn lower(context: *Context, id: ir.TypeId, value: node.ExpressionId) Lower.E
     const source: Source = .{
         .plan = plan,
         .layouts = layouts,
-        .elements = elements,
+        .elements = &.{},
         .value = @backingInt(value),
         .capture = if (self.capture) |capture| &.{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) } else null,
         .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
@@ -94,13 +89,12 @@ pub fn lower(context: *Context, id: ir.TypeId, value: node.ExpressionId) Lower.E
 
     const input: Input = .{
         .source = &source,
-        .modes = modes,
+        .requirements = zx.columns.slice(@FieldType(Input, "requirements"), prepared.requirements),
         .ast = &ast,
-        .type_exprs = type_exprs,
-        .storage_layouts = storage_layouts,
+        .operands = operands,
     };
 
-    const output = generated.executeIn(buffered.allocator(), &input) catch |err| switch (@as(anyerror, err)) {
+    const output = generated.executeIn(temporary, &input) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };

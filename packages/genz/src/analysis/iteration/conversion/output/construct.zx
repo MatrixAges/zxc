@@ -1,5 +1,7 @@
 import construct from "../../../construction/apply.rx"
+import { Mode } from "../../../construction/model"
 import { Operation } from "../model"
+import { Requirement } from "./model"
 
 import type { State as Construction } from "../../../construction/model"
 import type { Step as Input, State as Output } from "./model"
@@ -8,15 +10,22 @@ export default function (in: Input): Output {
     const source = in.source.source
     const state = in.state.emitted
     const root = state.nodes[in.node].result
+    const operand = in.source.operands[in.node]
+
+    const mode = match in.source.requirements[in.node] {
+        Requirement.HeapType => Mode.Heap,
+        Requirement.ReferenceLayout => Mode.Reference,
+        _ => Mode.Value
+    }
 
     const input: Construction = {
         source: {
-            mode: in.source.modes[in.node],
+            mode,
             ast: in.source.ast,
             value: root,
             layout: source.layouts[in.node],
-            type_expr: in.source.type_exprs[in.node],
-            storage_layout: in.source.storage_layouts[in.node],
+            type_expr: mode == Mode.Heap ? operand : 0,
+            storage_layout: mode == Mode.Reference ? operand : 0,
             is_tuple: source.plan.kinds[in.node] == Operation.Tuple,
             arity: source.plan.count[in.node],
             capture: source.capture,

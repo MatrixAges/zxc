@@ -340,6 +340,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/conversion/operation.zx", .name = "conversion_operation", .owner = .genz },
     .{ .path = "genz/analysis/iteration/conversion/plan.rx", .name = "conversion_plan", .owner = .genz },
     .{ .path = "genz/analysis/iteration/conversion/emit.rx", .name = "conversion_emit", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/conversion/output/plan.rx", .name = "conversion_output_plan", .owner = .genz },
     .{ .path = "genz/analysis/iteration/conversion/output/build.rx", .name = "conversion_output", .owner = .genz },
     .{ .path = "genz/analysis/construction/policy.zx", .name = "construction_policy", .owner = .genz },
     .{ .path = "genz/analysis/construction/build.rx", .name = "construction", .owner = .genz },
