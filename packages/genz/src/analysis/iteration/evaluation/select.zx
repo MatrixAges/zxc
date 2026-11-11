@@ -1,0 +1,70 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Property } from "../../types/layout/query"
+import query from "../../types/layout/query"
+import buffered from "./buffered"
+import direct from "./direct"
+import { Route } from "./model"
+
+import type { Selection as Input } from "./model"
+
+export type Output = Route
+
+export default function (in: Input): Output {
+    const { source, regular } = in
+
+    const row = integers.widen(source.id)
+
+    if (!regular) {
+        const selected = direct({
+            source,
+            row
+        })
+
+        if (selected != Route.Inspect) {
+            return selected
+        }
+
+        const stored = buffered({
+            source,
+            row
+        })
+
+        if (stored != Route.Inspect) {
+            return stored
+        }
+    }
+
+    const type_id = integers.widen(source.expressions.types[row])
+
+    const represented = query({
+        value: source.layouts[type_id],
+        property: Property.Represented
+    })
+
+    const buffered_list = source.inline_lists &&
+        kind(source.type_kinds[type_id]) == Kind.List
+
+    if (!represented && !buffered_list) {
+        return Route.Fallback
+    }
+
+    if (regular) {
+        return Route.Unpack
+    }
+
+    return match source.expressions.kinds[row] {
+        ExpressionKind.None => Route.None,
+        ExpressionKind.Some => Route.Some,
+        ExpressionKind.Binary => Route.Binary,
+        ExpressionKind.Object => Route.Aggregate,
+        ExpressionKind.Tuple => Route.Aggregate,
+        ExpressionKind.ListOperation => Route.Collection,
+        ExpressionKind.Conditional => Route.Conditional,
+        ExpressionKind.Match => Route.Match,
+        _ => Route.Unpack
+    }
+}

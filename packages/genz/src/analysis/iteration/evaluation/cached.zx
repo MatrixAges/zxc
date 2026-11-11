@@ -1,0 +1,37 @@
+import lookup from "core/integer/map/lookup"
+
+import { Route } from "./model"
+
+import type { Input, Lookup as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.argument == in.id) {
+        return {
+            route: Route.Argument,
+            value: null,
+            regular: false
+        }
+    }
+
+    const local = lookup({
+        ...in.cache.omit(["values"]),
+        key: in.id
+    })
+
+    if (local != null) {
+        return {
+            route: Route.Cached,
+            value: in.cache.values[local],
+            regular: false
+        }
+    }
+
+    return {
+        route: Route.Inspect,
+        value: null,
+        regular: lookup({
+            ...in.regular.omit(["values"]),
+            key: in.id
+        }) != null
+    }
+}

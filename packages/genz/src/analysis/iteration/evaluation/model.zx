@@ -1,0 +1,70 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Index } from "core/integer/index/model"
+import type { State as Cache } from "core/integer/map/model"
+import type { Layout } from "../../types/layout"
+
+export enum Route {
+    Inspect,
+    Argument,
+    Cached,
+    Fallback,
+    Unpack,
+    Reference,
+    Field,
+    Unwrap,
+    TupleField,
+    Scope,
+    Index,
+    Length,
+    Update,
+    Mutation,
+    List,
+    Call,
+    None,
+    Some,
+    Binary,
+    Aggregate,
+    Collection,
+    Conditional,
+    Match
+}
+
+export type Expressions = {
+    kinds: ExpressionKind[],
+    types: u32[],
+    payloads: u32[],
+    references: u32[],
+    index_targets: u32[],
+    lengths: u32[],
+    update_targets: u32[],
+    collection_targets: u32[],
+    call_arguments: u32[]
+}
+
+export type Input = {
+    expressions: Expressions,
+    type_kinds: u8[],
+    layouts: Layout[],
+    inline_lists: bool,
+    cache: Cache,
+    regular: Cache,
+    symbols: Index,
+    argument?: u32,
+    id: u32
+}
+
+export type Output = {
+    route: Route,
+    value?: u32
+}
+
+export type Lookup = {
+    route: Route,
+    value?: u32,
+    regular: bool
+}
+
+export type Selection = {
+    source: Input,
+    regular: bool
+}

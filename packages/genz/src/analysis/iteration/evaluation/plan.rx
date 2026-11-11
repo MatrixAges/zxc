@@ -1,0 +1,26 @@
+<Module>
+    <Type from="model" as="Evaluation" />
+
+    <Args in={Evaluation.Input} out={Evaluation.Output} />
+
+    <Call fn="cached" in={$in} />
+
+    <If on={$ctx.cached.route != Evaluation.Route.Inspect}>
+        <Return value={$ctx.cached.omit(["regular"])} />
+    </If>
+
+    <Call
+        fn="select"
+        in={{
+            source: $in,
+            regular: $ctx.cached.regular
+        }}
+    />
+
+    <Return
+        value={{
+            route: $ctx.select,
+            value: null
+        }}
+    />
+</Module>

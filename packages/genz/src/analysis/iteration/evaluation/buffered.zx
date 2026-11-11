@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Route } from "./model"
+
+import type { Input } from "./direct"
+
+export type Output = Route
+
+export default function (in: Input): Output {
+    const { source, row } = in
+
+    if (!source.inline_lists) {
+        return Route.Inspect
+    }
+
+    const expressions = source.expressions
+    const category = expressions.kinds[row]
+
+    if (category == ExpressionKind.List) {
+        const type_id = integers.widen(expressions.types[row])
+
+        return kind(source.type_kinds[type_id]) == Kind.List ? Route.List : Route.Inspect
+    }
+
+    const payload = integers.widen(expressions.payloads[row])
+
+    const target: u32? = match category {
+        ExpressionKind.Index => expressions.index_targets[payload],
+        ExpressionKind.Length => expressions.lengths[payload],
+        ExpressionKind.ListUpdate => expressions.update_targets[payload],
+        ExpressionKind.ListOperation => expressions.collection_targets[payload],
+        _ => null
+    }
+
+    if (target == null) {
+        return Route.Inspect
+    }
+
+    const type_id = integers.widen(expressions.types[integers.widen(target)])
+
+    if (kind(source.type_kinds[type_id]) != Kind.List) {
+        return Route.Inspect
+    }
+
+    return match category {
+        ExpressionKind.Index => Route.Index,
+        ExpressionKind.Length => Route.Length,
+        ExpressionKind.ListUpdate => Route.Update,
+        _ => Route.Mutation
+    }
+}

@@ -1,0 +1,60 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import member from "core/integer/index/get"
+
+import { Property } from "../../types/layout/query"
+import query from "../../types/layout/query"
+import { Route } from "./model"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    row: u64
+}
+
+export type Output = Route
+
+export default function (in: Input): Output {
+    const { source, row } = in
+
+    const expressions = source.expressions
+    const category = expressions.kinds[row]
+
+    const direct = match category {
+        ExpressionKind.Field => Route.Field,
+        ExpressionKind.OptionalValue => Route.Unwrap,
+        ExpressionKind.TupleField => Route.TupleField,
+        ExpressionKind.Scope => Route.Scope,
+        _ => Route.Inspect
+    }
+
+    if (direct != Route.Inspect) {
+        return direct
+    }
+
+    const payload = integers.widen(expressions.payloads[row])
+
+    if (category == ExpressionKind.Reference) {
+        const local = member({
+            index: source.symbols,
+            key: expressions.references[payload]
+        })
+
+        return local == null ? Route.Inspect : Route.Reference
+    }
+
+    if (category == ExpressionKind.Call) {
+        const argument = integers.widen(expressions.call_arguments[payload])
+        const type_id = integers.widen(expressions.types[argument])
+
+        const represented = query({
+            value: source.layouts[type_id],
+            property: Property.Represented
+        })
+
+        return represented ? Route.Call : Route.Inspect
+    }
+
+    return Route.Inspect
+}
