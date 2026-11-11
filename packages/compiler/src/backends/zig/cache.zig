@@ -36,7 +36,7 @@ pub fn init(allocator: std.mem.Allocator) Self {
 }
 
 pub fn initPersistent(allocator: std.mem.Allocator, io: std.Io, directory: []const u8, compiler_digest: [32]u8) std.mem.Allocator.Error!Self {
-    return .{ .allocator = allocator, .storage = .{ .io = io, .directory = try allocator.dupe(u8, directory), .compiler_digest = compiler_digest } };
+    return .{ .allocator = allocator, .storage = .{ .io = io, .directory = try allocator.dupe(u8, directory), .compiler_hex = std.fmt.bytesToHex(compiler_digest, .lower) } };
 }
 
 pub fn deinit(self: *Self) void {

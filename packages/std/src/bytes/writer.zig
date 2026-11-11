@@ -1,11 +1,9 @@
 const std = @import("std");
 const Error = std.mem.Allocator.Error;
 
-/// Borrows the host's allocating writer for one synchronous encoding call.
+/// Borrows the host's fixed or allocating writer for one synchronous encoding call.
 fn writer(out: *const anyopaque) *std.Io.Writer {
-    const buffer: *std.Io.Writer.Allocating = @ptrCast(@alignCast(@constCast(out)));
-
-    return &buffer.writer;
+    return @ptrCast(@alignCast(@constCast(out)));
 }
 
 pub fn write(out: *const anyopaque, value: []const u8) Error!void {

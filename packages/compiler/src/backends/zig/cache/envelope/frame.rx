@@ -1,0 +1,34 @@
+<Module>
+    <Type from="model" as="Envelope" />
+
+    <Args in={Envelope.Frame} out={Envelope.Layout} />
+
+    <Call
+        fn="layout"
+        in={$in.pick([
+            "size",
+            "reading"
+        ])}
+    />
+
+    <If on={$ctx.layout.accepted}>
+        <Call
+            fn="prefix"
+            in={$in.pick([
+                "writer",
+                "compiler",
+                "key"
+            ])}
+        />
+
+        <Call
+            fn="length"
+            in={{
+                writer: $in.writer,
+                payload_size: $ctx.layout.payload_size
+            }}
+        />
+    </If>
+
+    <Return value={$ctx.layout} />
+</Module>

@@ -1,0 +1,17 @@
+import bytes from "std:bytes"
+
+import { marker, newline } from "./const"
+
+import type { Prefix as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer } = in
+
+    bytes.write(writer, bytes.fromText(marker))
+    bytes.write(writer, in.compiler)
+    bytes.writeByte(writer, newline)
+    bytes.write(writer, in.key)
+    bytes.writeByte(writer, newline)
+}

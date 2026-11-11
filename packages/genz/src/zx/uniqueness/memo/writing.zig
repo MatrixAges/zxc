@@ -12,7 +12,7 @@ pub fn save(memo: *const Memo, allocator: std.mem.Allocator) Error![]u8 {
 
     var empty = std.heap.FixedBufferAllocator.init(&.{});
     const memory = empty.allocator();
-    const writer: *const anyopaque = @ptrCast(&out);
+    const writer: *const anyopaque = @ptrCast(&out.writer);
     var phase = try frame(memory, writer, .Header, 0);
 
     while (phase != .Done) {

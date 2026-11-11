@@ -1,0 +1,30 @@
+import type { Writer } from "std:bytes"
+
+export type Frame = {
+    writer: Writer,
+    compiler: u8[],
+    key: u8[],
+    size: u64,
+    reading: bool
+}
+
+export type Request = {
+    size: u64,
+    reading: bool
+}
+
+export type Layout = {
+    accepted: bool,
+    payload_size: u64
+}
+
+export type Prefix = {
+    writer: Writer,
+    compiler: u8[],
+    key: u8[]
+}
+
+export type Length = {
+    writer: Writer,
+    payload_size: u64
+}

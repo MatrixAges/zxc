@@ -1,6 +1,7 @@
 const Package = @import("generation_manifest.zig").Package;
 
 pub const entries: []const Package = &.{
+    .{ .specifier = "genz/const", .entry = "genz/const.zx" },
     .{ .specifier = "genz/partition_groups", .entry = "genz/analysis/partition/plan.rx" },
     .{ .specifier = "core/integer/wide_index/model", .entry = "core/integer/wide_index/model.zx" },
     .{ .specifier = "core/integer/wide_index/empty", .entry = "core/integer/wide_index/empty.zx" },

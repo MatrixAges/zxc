@@ -1,0 +1,30 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { hexadecimal_radix } from "core/const"
+import { hexadecimal_digits } from "genz/const"
+
+import { byte_radix, word_width } from "./const"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const digits = bytes.fromText(hexadecimal_digits)
+
+    return loop({
+        remaining: in,
+        encoded: 0,
+        index: 0
+    }, {
+        while: state => state.index < word_width,
+        next: state => {
+            const digit = digits[state.remaining % hexadecimal_radix]
+
+            state.encoded = state.encoded * byte_radix + integers.widenByte(digit)
+            state.remaining /= hexadecimal_radix
+            state.index += 1
+        },
+        return: state => state.encoded
+    })
+}
