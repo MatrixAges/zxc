@@ -1,0 +1,23 @@
+import { ContractKind } from "core/contract_table/model"
+
+export type Input = {
+    kinds: ContractKind[],
+    start: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const kinds = in.kinds
+
+    return loop({
+        index: in.start
+    }, {
+        while: state =>
+            state.index < kinds.length && kinds[state.index] != ContractKind.Requires,
+        next: state => {
+            state.index += 1
+        },
+        return: state => state.index < kinds.length ? state.index : null
+    })
+}

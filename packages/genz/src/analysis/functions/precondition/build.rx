@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Precondition" />
+
+    <Args in={Precondition.Input} out={Precondition.Result} />
+
+    <Call fn="../../../ast/context/initialize" in={$in.bases} />
+
+    <Call
+        fn="prepare"
+        in={{
+            context: $ctx.initialize,
+            predicate: $in.predicate
+        }}
+    />
+
+    <Call
+        fn="../../intrinsics/guard/failure"
+        in={{
+            context: $ctx.prepare.context,
+            name: $ctx.prepare.name
+        }}
+    />
+
+    <Call
+        fn="../../intrinsics/guard/publish"
+        in={{
+            failure: $ctx.failure,
+            condition: $ctx.prepare.condition
+        }}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>

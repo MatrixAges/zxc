@@ -19,6 +19,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "compiler/ir_function_check", .entry = "zx/ir/canonical/validation/functions/check.rx" },
     .{ .specifier = "compiler/collection_lower", .entry = "zx/analysis/analyzer/collections/lower.rx" },
     .{ .specifier = "compiler/error_effects", .entry = "core/error_effects/analyze.rx" },
+    .{ .specifier = "core/error_effects/const", .entry = "core/error_effects/const.zx" },
     .{ .specifier = "core/error_effects/functions", .entry = "core/error_effects/functions/analyze.rx" },
     .{ .specifier = "compiler/contract", .entry = "zx/analysis/analyzer/contracts/predicate/analyze.rx" },
     .{ .specifier = "compiler/constant_syntax", .entry = "zx/frontend/parser/constants/parse.rx" },

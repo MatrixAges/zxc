@@ -1,0 +1,32 @@
+import bytes from "std:bytes"
+import { precondition_failed } from "core/error_effects/const"
+
+import unary from "../../../ast/context/unary"
+import { ExpressionsUnaryOperator } from "../../../printer/model/expressions"
+
+import type { State } from "../../../ast/context/model"
+
+export type Input = {
+    context: State,
+    predicate: u32
+}
+
+export type Output = {
+    context: State,
+    condition: u32,
+    name: u8[]
+}
+
+export default function (in: Input): Output {
+    const condition = unary({
+        state: in.context,
+        operator: ExpressionsUnaryOperator.Not,
+        operand: in.predicate
+    })
+
+    return {
+        context: condition.state,
+        condition: condition.id,
+        name: bytes.fromText(precondition_failed)
+    }
+}

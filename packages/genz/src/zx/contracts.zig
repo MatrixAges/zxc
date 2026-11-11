@@ -1,17 +1,23 @@
 const std = @import("std");
+const zx = @import("zx");
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
+const generated = @import("genz_options").generated_analysis;
 
 pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
     var statements: std.ArrayList(node.Statement) = .empty;
+    const contracts = self.program.contracts;
+    var start: usize = 0;
 
-    for (0..self.program.contracts.count()) |contract_index| {
-        const contract = self.program.contracts.at(contract_index);
+    while (start < contracts.count()) {
+        const index = if (generated) next(contracts.kinds, start) orelse break else start;
 
-        if (contract.kind != .requires) continue;
+        start = index + 1;
 
+        if (!generated and contracts.kinds[index] != .Requires) continue;
+
+        const contract = contracts.at(index);
         var predicate = self.*;
-
         predicate.state_symbols = self.state_symbols.inherit();
         predicate.program.symbols = contract.symbols;
         predicate.program.expressions = contract.expressions;
@@ -31,7 +37,11 @@ pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
 
         const value = try predicate.expr(contract.predicate);
 
-        try @import("intrinsics.zig").failIf(self, &statements, try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = value } }), "PreconditionFailed");
+        if (generated) {
+            try @import("intrinsics/guard.zig").precondition(self, &statements, value);
+        } else {
+            try @import("intrinsics.zig").failIf(self, &statements, try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = value } }), "PreconditionFailed");
+        }
 
         self.used[0] = self.used[0] or predicate.used[0];
         self.uses_allocator = self.uses_allocator or predicate.uses_allocator;
@@ -41,4 +51,14 @@ pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
     }
 
     return statements.toOwnedSlice(self.allocator);
+}
+
+fn next(kinds: []const zx.ir.ContractTable.Kind, start: usize) ?usize {
+    const entry = @import("generated_precondition_next");
+    const Input = std.meta.Child(entry.Input);
+    const input: Input = .{ .kinds = zx.columns.slice(@FieldType(Input, "kinds"), kinds), .start = start };
+    var memory = std.heap.FixedBufferAllocator.init(&.{});
+    const index = zx.columns.invoke(entry.executeValue, memory.allocator(), &input) catch unreachable;
+
+    return if (index) |value| @intCast(value) else null;
 }

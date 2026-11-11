@@ -15,13 +15,34 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), condition: node
         .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
     };
 
+    try emit(self, body, generated.executeIn, &input);
+}
+
+pub fn precondition(self: *Lower, body: *std.ArrayList(node.Statement), predicate: node.ExpressionId) Lower.Error!void {
+    const generated = @import("generated_precondition_guard");
+    const Input = std.meta.Child(generated.Input);
+
+    const bases: std.meta.Child(@FieldType(Input, "bases")) = .{
+        .capture = if (self.capture) |capture| &.{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) } else null,
+        .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
+        .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
+        .field_base = @intCast(self.builder.nodes.field_columns.count()),
+        .serial = self.serial,
+    };
+
+    const input: Input = .{ .bases = &bases, .predicate = @backingInt(predicate) };
+
+    try emit(self, body, generated.executeIn, &input);
+}
+
+fn emit(self: *Lower, body: *std.ArrayList(node.Statement), comptime execute: anytype, input: anytype) Lower.Error!void {
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: [std.heap.page_size_min]u8 = undefined;
     var buffered = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
     defer scratch.deinit();
 
-    const output = generated.executeIn(buffered.allocator(), &input) catch |err| switch (err) {
+    const output = execute(buffered.allocator(), input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
         else => unreachable,
     };

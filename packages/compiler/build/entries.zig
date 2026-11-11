@@ -318,6 +318,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/result/analyze.rx", .name = "iteration_result", .owner = .genz },
     .{ .path = "genz/analysis/intrinsics/index/build.rx", .name = "checked_index", .owner = .genz },
     .{ .path = "genz/analysis/intrinsics/guard/build.rx", .name = "failure_branch", .owner = .genz },
+    .{ .path = "genz/analysis/functions/precondition/next.zx", .name = "precondition_next", .owner = .genz },
+    .{ .path = "genz/analysis/functions/precondition/build.rx", .name = "precondition_guard", .owner = .genz },
     .{ .path = "genz/analysis/iteration/projection/plan.rx", .name = "projection_plan", .owner = .genz },
     .{ .path = "genz/analysis/iteration/projection/emit.rx", .name = "projection_emit", .owner = .genz },
     .{ .path = "genz/analysis/iteration/conversion/operation.zx", .name = "conversion_operation", .owner = .genz },
