@@ -68,19 +68,10 @@ pub fn build(b: *std.Build) void {
     rx_options.addOption(bool, "generated_paths", true);
     rx_options.addOption(bool, "generated_graph", true);
     rx_options.addOption(bool, "generated_rules", true);
-    rx.addOptions("rx_options", rx_options);
 
-    inline for (@import("build/entries.zig").main) |entry| {
-        if (entry.owner == .rx) {
-            rx.addImport(entry.importName(), b.createModule(.{
-                .root_source_file = parser_source.main.path(b, entry.name ++ ".zig"),
-                .imports = &.{.{ .name = "generated", .module = natives.generated }},
-                .target = target,
-                .optimize = optimize,
-                .strip = generated_strip,
-            }));
-        }
-    }
+    const rx_options_module = rx_options.createModule();
+
+    rx.addImport("rx_options", rx_options_module);
 
     const rx_analysis = b.addModule("rx_analysis", .{
         .root_source_file = b.path("src/rx/analysis/root.zig"),
@@ -94,6 +85,22 @@ pub fn build(b: *std.Build) void {
             .{ .name = "lint", .module = lint },
         },
     });
+
+    rx_analysis.addImport("rx_options", rx_options_module);
+
+    inline for (@import("build/entries.zig").main) |entry| {
+        if (entry.owner == .rx or entry.owner == .rx_analysis) {
+            const owner = if (entry.owner == .rx) rx else rx_analysis;
+
+            owner.addImport(entry.importName(), b.createModule(.{
+                .root_source_file = parser_source.main.path(b, entry.name ++ ".zig"),
+                .imports = &.{.{ .name = "generated", .module = natives.generated }},
+                .target = target,
+                .optimize = optimize,
+                .strip = generated_strip,
+            }));
+        }
+    }
 
     const bootstrap_tool = b.addExecutable(.{ .name = "zxc-bootstrap", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_parser.zig"),

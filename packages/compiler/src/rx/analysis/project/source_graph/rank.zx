@@ -1,0 +1,78 @@
+export type Input = {
+    order: u64[],
+    depths: u64[],
+    count: u64,
+    first_end: u64
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const counts = loop({
+        first: in.order.map(owner => 0)[0],
+        rest: in.order.map(owner => 0)[0],
+        position: 0,
+        max_depth: 0
+    }, {
+        while: state => state.position < in.count,
+        next: state => {
+            const depth = in.depths[in.order[state.position]]
+
+            if (state.position < in.first_end) {
+                state.first[depth] += 1
+            } else {
+                state.rest[depth] += 1
+            }
+
+            if (depth > state.max_depth) {
+                state.max_depth = depth
+            }
+
+            state.position += 1
+        }
+    })
+
+    const positions = loop({
+        first: counts.first,
+        rest: counts.rest,
+        depth: 0,
+        first_position: 0,
+        rest_position: in.first_end
+    }, {
+        while: state => state.depth <= counts.max_depth,
+        next: state => {
+            const first_count = state.first[state.depth]
+            const rest_count = state.rest[state.depth]
+
+            state.first[state.depth] = state.first_position
+            state.rest[state.depth] = state.rest_position
+            state.first_position += first_count
+            state.rest_position += rest_count
+            state.depth += 1
+        }
+    })
+
+    return loop({
+        first: positions.first,
+        rest: positions.rest,
+        order: in.order.map(owner => 0)[0],
+        position: 0
+    }, {
+        while: state => state.position < in.count,
+        next: state => {
+            const owner = in.order[state.position]
+            const depth = in.depths[owner]
+
+            if (state.position < in.first_end) {
+                state.order[state.first[depth]] = owner
+                state.first[depth] += 1
+            } else {
+                state.order[state.rest[depth]] = owner
+                state.rest[depth] += 1
+            }
+
+            state.position += 1
+        },
+        return: state => state.order
+    })
+}

@@ -1,0 +1,32 @@
+import type { Ranked } from "./model"
+
+export type Input = Ranked
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    if (in.count == 0) {
+        return []
+    }
+
+    const ends: u64[] = []
+
+    return loop({
+        position: 1,
+        depth: in.depths[in.order[0]],
+        ends
+    }, {
+        while: state => state.position < in.count,
+        next: state => {
+            const depth = in.depths[in.order[state.position]]
+
+            if (depth != state.depth) {
+                state.ends = state.ends.push(state.position)[0]
+                state.depth = depth
+            }
+
+            state.position += 1
+        },
+        return: state => state.ends.push(in.count)[0]
+    })
+}

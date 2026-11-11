@@ -17,7 +17,10 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     rx_options.addOption(bool, "generated_paths", false);
     rx_options.addOption(bool, "generated_graph", false);
     rx_options.addOption(bool, "generated_rules", false);
-    rx.addOptions("rx_options", rx_options);
+
+    const rx_options_module = rx_options.createModule();
+
+    rx.addImport("rx_options", rx_options_module);
 
     const analysis = b.createModule(.{
         .root_source_file = b.path("src/rx/analysis/root.zig"),
@@ -31,6 +34,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             .{ .name = "lint", .module = lint },
         },
     });
+
+    analysis.addImport("rx_options", rx_options_module);
 
     return .{ .syntax = rx, .analysis = analysis };
 }

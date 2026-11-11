@@ -1,0 +1,46 @@
+<Module>
+    <Type from="model" as="SourceSchedule" />
+
+    <Args in={SourceSchedule.Input} out={SourceSchedule.Output} />
+
+    <Call fn="walk" in={$in} />
+
+    <If on={$ctx.walk.cycle != null}>
+        <Return
+            value={{
+                order: [],
+                count: 0,
+                batch_ends: [],
+                cycle: $ctx.walk.cycle
+            }}
+        />
+    </If>
+
+    <Call
+        fn="rank"
+        in={{
+            order: $ctx.walk.order,
+            depths: $ctx.walk.depths,
+            count: $ctx.walk.count,
+            first_end: $ctx.walk.first_end
+        }}
+    />
+
+    <Call
+        fn="batches"
+        in={{
+            order: $ctx.rank,
+            depths: $ctx.walk.depths,
+            count: $ctx.walk.count
+        }}
+    />
+
+    <Return
+        value={{
+            order: $ctx.rank,
+            count: $ctx.walk.count,
+            batch_ends: $ctx.batches,
+            cycle: null
+        }}
+    />
+</Module>

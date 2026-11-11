@@ -5,7 +5,7 @@ const std = @import("std");
 pub const Entry = struct {
     path: []const u8,
     name: []const u8,
-    owner: enum { frontend, compiler, rx, lint, genz } = .frontend,
+    owner: enum { frontend, compiler, rx, rx_analysis, lint, genz } = .frontend,
     import_name: ?[]const u8 = null,
     pub fn importName(comptime self: Entry) []const u8 {
         return self.import_name orelse "generated_" ++ self.name;
@@ -33,6 +33,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/syntax/parse.rx", .name = "xml" },
     .{ .path = "rx/path_segments/normalize.rx", .name = "paths", .owner = .rx },
     .{ .path = "rx/dependency_graph/validate.rx", .name = "graph", .owner = .rx },
+    .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
     .{ .path = "rx/schema/attribute/classify.rx", .name = "attribute_role", .owner = .rx },
     .{ .path = "rx/schema/content/validate.rx", .name = "attribute_content", .owner = .rx },
     .{ .path = "rx/schema/call/validate.rx", .name = "call_rule", .owner = .rx },

@@ -57,7 +57,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options
     const cache = options.parse_cache orelse &local;
     const earlier = if (options.history) |record| if (record.bodies_only) if (record.previous) |*value| value.derived else null else null else null;
 
-    const derived = earlier orelse switch (try derive(allocator, options, cache)) {
+    const derived = earlier orelse switch (try derive(allocator, backing, options, cache)) {
         .frame => |frame| frame,
         .diagnostic => |issue| return remap(allocator, options, issue),
     };
@@ -88,7 +88,7 @@ const Derived = union(enum) { frame: @import("project/history.zig").Frame, diagn
 
 /// Everything the module analysis needs besides the ZX function bodies: the source graph, the Store registry, the
 /// signatures and the RX constraints. It lives as long as `allocator`, since a later analysis may reuse it.
-fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!Derived {
+fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!Derived {
     const registered = try allocator.dupe(rx.ModuleSource, options.modules);
 
     for (registered) |*source| {
@@ -134,6 +134,7 @@ fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.proje
         .stores = options.stores,
         .project = options.project,
         .parse_cache = cache,
+        .scratch_allocator = backing,
     });
 
     if (dependencies.value == .diagnostic) return failed(allocator, dependencies.value.diagnostic);

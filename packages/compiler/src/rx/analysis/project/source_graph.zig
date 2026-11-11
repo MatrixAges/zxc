@@ -15,6 +15,7 @@ pub const Options = struct {
     stores: []const rx.ModuleSource = &.{},
     project: frontend.project.Options,
     parse_cache: ?*frontend.project.ParseCache = null,
+    scratch_allocator: ?std.mem.Allocator = null,
 };
 
 pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Result {
@@ -22,12 +23,12 @@ pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
     errdefer arena.deinit();
 
-    const value = try buildIn(arena.allocator(), options);
+    const value = try buildIn(arena.allocator(), options.scratch_allocator orelse allocator, options);
 
     return .{ .arena = arena, .value = value };
 }
 
-fn buildIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!model.Value {
+fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!model.Value {
     const modules = try allocator.alloc(model.Module, options.sources.len + options.modules.len + options.stores.len);
     var paths: @import("zx").bytes.Map(usize) = .empty;
 
@@ -84,8 +85,8 @@ fn buildIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Err
         return .{ .diagnostic = collector.issue.? };
     };
 
-    return switch (try @import("source_graph/order.zig").build(allocator, modules, roots)) {
-        .order => |order| .{ .graph = .{ .modules = modules, .order = order, .entry = entry } },
+    return switch (try @import("source_graph/order.zig").build(allocator, backing, modules, roots)) {
+        .schedule => |schedule| .{ .graph = .{ .modules = modules, .order = schedule.order, .batch_ends = schedule.batch_ends, .entry = entry } },
         .diagnostic => |issue| .{ .diagnostic = issue },
     };
 }

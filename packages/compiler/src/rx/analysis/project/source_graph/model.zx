@@ -1,0 +1,29 @@
+export enum Mark {
+    Unseen,
+    Visiting,
+    Done
+}
+
+export type Input = {
+    offsets: u64[],
+    targets: u64[],
+    roots: u64[]
+}
+
+export type Cycle = {
+    owner: u64,
+    edge: u64
+}
+
+export type Output = {
+    order: u64[],
+    count: u64,
+    batch_ends: u64[],
+    cycle?: Cycle
+}
+
+export type Ranked = {
+    order: u64[],
+    depths: u64[],
+    count: u64
+}
