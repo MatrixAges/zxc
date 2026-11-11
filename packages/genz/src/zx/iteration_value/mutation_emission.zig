@@ -1,5 +1,6 @@
 const std = @import("std");
 const node = @import("../../node.zig");
+const rows = @import("../../node/import_rows.zig");
 const view = @import("../../node/view.zig");
 const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
@@ -50,13 +51,23 @@ pub fn lower(context: *Context, args: Request) Lower.Error!node.ExpressionId {
 
     defer scratch.deinit();
 
-    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
+    const temporary = memory.allocator();
+    const result = entry.executeIn(temporary, &input) catch |err| return failure(err);
 
     if (!result.valid) return error.OutOfMemory;
 
-    const expressions = view.join(result.expressions.*, result.forms.*);
-    @import("../../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
-    @import("../../node/import_selected.zig").appendBorrowingText(self.allocator, &self.builder.nodes.statements, result.statements) catch |err| return failure(err);
+    var expressions = view.join(result.expressions.*, result.forms.*);
+    var statements = result.statements.*;
+    const block_labels = try temporary.dupe([]const u8, expressions.block_label);
+    const break_labels = try temporary.dupe([]const u8, statements.break_value_label);
+    const label = try self.allocator.dupe(u8, block_labels[block_labels.len - 1]);
+    block_labels[block_labels.len - 1] = label;
+    break_labels[break_labels.len - 1] = label;
+    expressions.block_label = block_labels;
+    statements.break_value_label = break_labels;
+
+    rows.appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
+    rows.appendBorrowed(self.allocator, &self.builder.nodes.statements, &statements) catch |err| return failure(err);
 
     try self.builder.nodes.field_columns.reserve(self.allocator, result.fields.len);
 
@@ -67,17 +78,10 @@ pub fn lower(context: *Context, args: Request) Lower.Error!node.ExpressionId {
         .comptime_parameter = field.comptime_parameter,
     });
 
-    var roots = result.statements.*;
-
-    roots.tags = result.body.tags;
-    roots.offsets = result.body.offsets;
-
-    var body: std.ArrayList(node.Statement) = .empty;
-    @import("../../node/import_statements.zig").appendSelectedBorrowingText(self.allocator, &body, &roots) catch |err| return failure(err);
-
     self.uses_allocator = self.uses_allocator or result.uses_allocator;
+    self.serial = result.serial;
 
-    return @import("../aggregate.zig").finish(self, &body, @fromBackingInt(result.root));
+    return @fromBackingInt(result.root);
 }
 
 fn binding(value: Operand) std.meta.Child(@FieldType(Input, "target")) {
