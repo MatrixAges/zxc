@@ -25,12 +25,12 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
     var native_modules: ir.NativeModuleStorage = .{};
     var initializers = Initializers{ .allocator = owned, .scratch = scratch, .types = &types, .functions = &functions };
     const exports = try owned.alloc(model.Export, inputs.len);
-    var names: std.StringHashMapUnmanaged(void) = .empty;
+    var name_buffer: [1024]u8 = undefined;
+    var name_memory = std.heap.BufferFirstAllocator.init(&name_buffer, scratch);
+    var names: @import("index.zig") = .{};
 
-    for (inputs, exports) |input, *exported| {
-        if (input.name.len == 0 or std.mem.indexOfScalar(u8, input.name, 0) != null or !std.unicode.utf8ValidateSlice(input.name)) return error.InvalidModule;
-        if ((try names.getOrPut(scratch, input.name)).found_existing) return error.DuplicateExport;
-        if (input.analysis.value != .ir) return error.InvalidAnalysis;
+    for (inputs, exports, 0..) |input, *exported, row| {
+        try names.admit(name_memory.allocator(), input.name, row, input.analysis.value == .ir);
 
         const program = input.analysis.value.ir;
 
@@ -53,27 +53,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
 
         for (input.initializers) |initial| try initializers.source(initial, input.analysis.nominal_types);
 
-        var function_id: ?ir.FunctionId = null;
-
-        if (input.analysis.entry_function) |id| {
-            function_id = try nodes.functionId(id);
-        } else if (!program.type_only) {
-            function_id = @fromBackingInt(@intCast(functions.count()));
-
-            try functions.append(owned, try nodes.function(.{
-                .file_name = program.file_name,
-                .input_type = program.input_type,
-                .output_type = program.output_type,
-                .output_ownership = program.output_ownership,
-                .symbols = program.symbols,
-                .expressions = program.expressions,
-                .body = program.body,
-                .contracts = program.contracts,
-                .stores = program.stores,
-                .store_mode = program.store_mode,
-            }));
-        }
-
+        const function_id = try @import("entry.zig").bind(&functions, &nodes, program, input.analysis.entry_function);
         const public_types = try @import("interface.zig").complete(owned, allocator, program, nodes.types);
         const constants = try @import("constants.zig").complete(allocator, &nodes, program.constant_exports);
         const members = try @import("members.zig").complete(owned, allocator, input.analysis, program.file_name, &nodes);

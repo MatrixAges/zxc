@@ -1,0 +1,50 @@
+<Module>
+    <Type from="model" as="Admission" />
+
+    <Args in={Admission.Input} out={Admission.Output} />
+
+    <Call fn="name" in={$in.name} />
+
+    <If on={!$ctx.name.valid}>
+        <Return
+            value={{
+                index: $in.index,
+                status: Admission.Status.InvalidName
+            }}
+        />
+    </If>
+
+    <Call
+        module="core/bytes/index/claim"
+        in={{
+            index: $in.index,
+            key: $ctx.name.key,
+            value: $in.row
+        }}
+    />
+
+    <If on={$ctx.claim.previous != null}>
+        <Return
+            value={{
+                index: $ctx.claim.index,
+                status: Admission.Status.Duplicate
+            }}
+        />
+    </If>
+
+    <If on={!$in.analyzed}>
+        <Return
+            value={{
+                index: $ctx.claim.index,
+                status: Admission.Status.InvalidAnalysis
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            index: $ctx.claim.index,
+            status: Admission.Status.Accepted
+        }}
+    />
+</Module>

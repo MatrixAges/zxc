@@ -1,0 +1,78 @@
+import integers from "std:integer"
+
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "./const"
+import grow from "./grow"
+import probe from "./probe"
+
+import type { Index } from "./model"
+
+export type Input = {
+    index: Index,
+    key: u8[],
+    value: u32
+}
+
+export type Output = {
+    index: Index,
+    previous?: u32
+}
+
+export default function (in: Input): Output {
+    const key = in.key
+
+    const prepared = match {
+        in.index.buckets.length == 0 => grow({
+            index: in.index,
+            capacity: initial_capacity
+        }),
+        _ => in.index
+    }
+
+    const slot = probe({
+        index: prepared,
+        key
+    })
+
+    const previous = prepared.buckets[slot]
+
+    if (previous != null) {
+        return {
+            index: prepared,
+            previous: prepared.values[integers.widen(previous)]
+        }
+    }
+
+    const count = prepared.keys.length
+    const capacity = prepared.buckets.length
+    const full = count == capacity * load_numerator / load_denominator
+
+    const index = match {
+        full => grow({
+            index: prepared,
+            capacity: capacity * capacity_growth
+        }),
+        _ => prepared
+    }
+
+    const target = match {
+        full => probe({
+            index,
+            key
+        }),
+        _ => slot
+    }
+
+    return {
+        index: {
+            keys: index.keys.push(key)[0],
+            values: index.values.push(in.value)[0],
+            buckets: index.buckets.with(target, integers.narrow(count))
+        },
+        previous: null
+    }
+}

@@ -9,6 +9,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "core/integer/wide_index/insert", .entry = "core/integer/wide_index/insert.zx" },
     .{ .specifier = "compiler/gateway_state_service", .entry = "backends/zig/gateway/bindings/service.rx" },
     .{ .specifier = "core/bytes/index/const", .entry = "core/bytes/index/const.zx" },
+    .{ .specifier = "core/bytes/index/claim", .entry = "core/bytes/index/claim.zx" },
     .{ .specifier = "core/bytes/index/grow", .entry = "core/bytes/index/grow.zx" },
     .{ .specifier = "core/bytes/index/insert", .entry = "core/bytes/index/insert.zx" },
     .{ .specifier = "compiler/bundle_abi_view", .entry = "backends/zig/bundle_abi/view.rx" },

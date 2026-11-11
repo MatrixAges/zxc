@@ -27,17 +27,19 @@ pub fn append(input: Input, destination: Destination) Error!Nodes {
     if (try @import("../../ir/validate.zig").validate(temporary, program) != null) return error.InvalidIr;
 
     const type_mapping = try destination.types.appendFrom(temporary, program.types, input.nominal_types, 0);
-    const function_mapping = try temporary.alloc(?ir.FunctionId, program.functions.count());
-    const native_mapping = try temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
+    const first = destination.functions.count();
+    const count = program.functions.count();
 
-    for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(destination.functions.count() + index));
+    if (count > std.math.maxInt(u32) - first) return error.OutOfMemory;
+
+    const native_mapping = try temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
 
     @memset(native_mapping, null);
 
     var nodes = Nodes{
         .allocator = allocator,
         .types = .{ .mapped = type_mapping },
-        .functions = .{ .indexed = function_mapping },
+        .functions = .{ .range = .{ .first = @intCast(first), .count = @intCast(count) } },
         .native_modules = .{ .indexed = native_mapping },
     };
 

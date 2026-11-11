@@ -1,0 +1,60 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+export enum Kind {
+    Existing,
+    Body,
+    Declaration,
+    Invalid,
+    Full
+}
+
+export type Input = {
+    requested?: u32,
+    first: u32,
+    count: u32,
+    next: u64,
+    type_only: bool
+}
+
+export type Output = {
+    kind: Kind,
+    id?: u32
+}
+
+export default function (in: Input): Output {
+    const requested = in.requested
+
+    if (requested != null) {
+        if (requested >= in.count) {
+            return {
+                kind: Kind.Invalid,
+                id: null
+            }
+        }
+
+        return {
+            kind: Kind.Existing,
+            id: in.first + requested
+        }
+    }
+
+    if (in.type_only) {
+        return {
+            kind: Kind.Declaration,
+            id: null
+        }
+    }
+
+    if (in.next >= integers.widen(max_u32)) {
+        return {
+            kind: Kind.Full,
+            id: null
+        }
+    }
+
+    return {
+        kind: Kind.Body,
+        id: integers.narrow(in.next)
+    }
+}

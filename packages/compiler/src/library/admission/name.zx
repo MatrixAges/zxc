@@ -1,0 +1,17 @@
+import bytes from "std:bytes"
+
+import valid from "../../zx/ir/canonical/native/text"
+
+export type Input = string
+
+export type Output = {
+    key: u8[],
+    valid: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        key: bytes.fromText(in),
+        valid: valid(in)
+    }
+}

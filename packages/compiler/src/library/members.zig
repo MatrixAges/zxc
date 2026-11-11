@@ -27,8 +27,7 @@ fn append(owned: std.mem.Allocator, temporary: std.mem.Allocator, result: *std.A
     const Input = std.meta.Child(entry.Input);
     const Source = std.meta.Child(@FieldType(Input, "source"));
     const mapping = nodes.types.mapped;
-    const functions = nodes.functions.indexed;
-    const first = if (functions.len == 0) 0 else @backingInt(functions[0].?);
+    const functions = nodes.functions.range;
     var arena = std.heap.ArenaAllocator.init(temporary);
     var buffer: [1024]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
@@ -41,8 +40,8 @@ fn append(owned: std.mem.Allocator, temporary: std.mem.Allocator, result: *std.A
     const input: Input = .{
         .source = &members,
         .mapping = @as([*]const u32, @ptrCast(mapping.ptr))[0..mapping.len],
-        .first = first,
-        .function_count = functions.len,
+        .first = functions.first,
+        .function_count = functions.count,
         .barrel = barrel,
     };
 
