@@ -1,0 +1,11 @@
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Statements = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[],
+    discard: u32[]
+}

@@ -17,7 +17,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
     worker.state_symbols = self.state_symbols.inherit();
     worker.names = try self.allocator.dupe([]const u8, self.names);
     worker.used = try self.allocator.alloc(bool, self.used.len);
-    worker.cache_reads = try self.allocator.alloc(usize, self.cache_reads.len);
+    worker.cache_reads = try self.allocator.alloc(u64, self.cache_reads.len);
     worker.cache = .empty;
     worker.stack_symbols = .empty;
     worker.reference_storage = .empty;

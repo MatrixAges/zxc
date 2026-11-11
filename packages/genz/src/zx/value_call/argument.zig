@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
+const operands = @import("../aggregate/operands.zig");
 
 pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     if (self.cache.contains(id)) return existing(self, body, id);
@@ -53,14 +54,19 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
 fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     const expression = self.program.expression(id);
     const value = expression.value.object;
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: @TypeOf(self.cache).SnapshotBuffer = undefined;
-    var memory = std.heap.BufferFirstAllocator.init(&buffer, self.allocator);
-    const saved = try self.cache.snapshot(memory.allocator(), value.evaluation);
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+
+    defer scratch.deinit();
+
+    const temporary = memory.allocator();
+    const saved = try self.cache.snapshot(temporary, value.evaluation);
 
     defer self.cache.restore(self.allocator, value.evaluation, saved);
 
-    const counts = try self.allocator.alloc(usize, value.evaluation.len);
-    const evaluated = try self.allocator.alloc(node.ExpressionId, value.evaluation.len);
+    const counts = try temporary.alloc(u64, value.evaluation.len);
+    const evaluated = try temporary.alloc(node.ExpressionId, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| {
         evaluated[index] = try aggregate.bind(self, body, try borrow(self, body, item));
@@ -86,9 +92,11 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
         };
     }
 
-    for (value.evaluation, 0..) |item, index| {
-        if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = evaluated[index] });
-    }
+    try operands.retire(self, temporary, body, .{
+        .evaluation = value.evaluation,
+        .prior = counts,
+        .references = evaluated,
+    });
 
     const result = try aggregate.bind(self, body, try self.builder.expression(.{ .object = .{ .type_expr = try @import("../types.zig").get(self, self.abi_layouts, expression.type_id), .fields = fields } }));
 

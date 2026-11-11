@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    evaluation: u32[],
+    prior: u64[],
+    reads: u64[],
+    references: u32[]
+}
+
+export type Output = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    discard: u32[]
+}
+
+export default function (in: Input): Output {
+    const tags: StatementsKind[] = []
+    const offsets: u32[] = []
+    const discard: u32[] = []
+
+    return loop({
+        tags,
+        offsets,
+        discard,
+        index: 0
+    }, {
+        while: current => current.index < in.evaluation.length,
+        next: current => {
+            const index = current.index
+            const key = integers.widen(in.evaluation[index])
+
+            if (in.reads[key] == in.prior[index]) {
+                const offset = integers.narrow(current.discard.length)
+
+                current.tags = current.tags.push(StatementsKind.Discard)[0]
+                current.offsets = current.offsets.push(offset)[0]
+                current.discard = current.discard.push(in.references[index])[0]
+            }
+
+            current.index += 1
+        },
+        return: state => state.omit(["index"])
+    })
+}

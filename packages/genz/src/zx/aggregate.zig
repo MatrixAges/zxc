@@ -2,6 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
+const operands = @import("aggregate/operands.zig");
 
 pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object")) Lower.Error!node.ExpressionId {
     return objectMode(self, id, value, false);
@@ -12,36 +13,56 @@ pub fn objectValue(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
 }
 
 fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object"), layout: bool) Lower.Error!node.ExpressionId {
+    var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: @TypeOf(self.cache).SnapshotBuffer = undefined;
-    var memory = std.heap.BufferFirstAllocator.init(&buffer, self.allocator);
-    const saved = try self.cache.snapshot(memory.allocator(), value.evaluation);
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
+
+    defer scratch.deinit();
+
+    const temporary = memory.allocator();
+    const saved = try self.cache.snapshot(temporary, value.evaluation);
 
     defer self.cache.restore(self.allocator, value.evaluation, saved);
 
     var body: std.ArrayList(node.Statement) = .empty;
-    const counts = try self.allocator.alloc(usize, value.evaluation.len);
-    const names = try self.allocator.alloc([]const u8, value.evaluation.len);
+    const length = value.evaluation.len;
+    const counts = try temporary.alloc(u64, length);
+    const references = try temporary.alloc(node.ExpressionId, length);
+    const names = if (operands.generated) try temporary.alloc([]const u8, length) else &.{};
+    const values = if (operands.generated) try temporary.alloc(u32, length) else &.{};
 
     for (value.evaluation, 0..) |item, index| {
         const name = try self.fresh("operand");
         const expression = try self.expr(item);
 
-        try body.append(self.allocator, .{ .constant = .{ .name = name, .value = expression } });
+        if (operands.generated) {
+            names[index] = name;
+            values[index] = @backingInt(expression);
+        } else try body.append(self.allocator, .{ .constant = .{ .name = name, .value = expression } });
 
-        names[index] = name;
         counts[index] = self.cache_reads[@backingInt(item)];
 
-        try self.cache.put(self.allocator, item, try self.builder.identifier(name));
+        const reference = try self.builder.identifier(name);
+
+        references[index] = reference;
+
+        try self.cache.put(self.allocator, item, reference);
     }
+
+    if (operands.generated) try operands.bind(self, temporary, &body, names, values);
+
+    const observation: operands.Observation = .{
+        .evaluation = value.evaluation,
+        .prior = counts,
+        .references = references,
+    };
 
     const updated = try @import("object_update.zig").lower(self, id, &body);
     const type_id = self.program.expression(id).type_id;
     const plan = @import("aggregate/layout.zig").plan(self, id, type_id, layout, updated != null);
 
     if (updated) |result| {
-        for (value.evaluation, 0..) |item, index| {
-            if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
-        }
+        try operands.retire(self, temporary, &body, observation);
 
         return finish(self, &body, if (plan.construct) try self.construct(type_id, result) else result);
     }
@@ -68,9 +89,7 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         fields[index] = .{ .name = type_fields.at(field.index).name, .value = expression };
     }
 
-    for (value.evaluation, 0..) |item, index| {
-        if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
-    }
+    try operands.retire(self, temporary, &body, observation);
 
     const object_type = if (plan.projection) |projection| projection.layout else try self.layoutExpr(type_id);
     const result = try @import("aggregate/literals.zig").object(self, object_type, fields);

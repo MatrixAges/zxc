@@ -35,7 +35,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
     helper.may_grow = if (index < self.growth_functions.len) self.growth_functions[index] else true;
     helper.names = try self.allocator.alloc([]const u8, function.symbols.count());
     helper.used = try self.allocator.alloc(bool, function.symbols.count());
-    helper.cache_reads = try self.allocator.alloc(usize, function.expressions.count());
+    helper.cache_reads = try self.allocator.alloc(u64, function.expressions.count());
     helper.cache = .empty;
     helper.stack_symbols = .empty;
     helper.state_symbols = .empty;

@@ -26,7 +26,7 @@ pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
 
         predicate.names = try self.allocator.dupe([]const u8, &.{"in"});
         predicate.used = try self.allocator.alloc(bool, 1);
-        predicate.cache_reads = try self.allocator.alloc(usize, contract.expressions.count());
+        predicate.cache_reads = try self.allocator.alloc(u64, contract.expressions.count());
         predicate.cache = .empty;
         predicate.stack_symbols = .empty;
         predicate.uses_allocator = false;

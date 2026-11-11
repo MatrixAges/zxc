@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Statements as Output } from "./model"
+
+export type Input = {
+    names: u8[][],
+    values: u32[]
+}
+
+export default function (in: Input): Output {
+    const tags: StatementsKind[] = []
+    const offsets: u32[] = []
+    const constant_type_expr: u32?[] = []
+    const constant_exported: bool[] = []
+
+    return loop({
+        tags,
+        offsets,
+        constant_type_expr,
+        constant_exported,
+        index: 0
+    }, {
+        while: current => current.index < in.names.length,
+        next: current => {
+            current.tags = current.tags.push(StatementsKind.Constant)[0]
+            current.offsets =
+                current.offsets.push(integers.narrow(current.index))[0]
+            current.constant_type_expr = current.constant_type_expr.push(null)[0]
+            current.constant_exported = current.constant_exported.push(false)[0]
+            current.index += 1
+        },
+        return: state => ({
+            ...state.omit(["index"]),
+            constant_name: in.names,
+            constant_value: in.values,
+            discard: []
+        })
+    })
+}
