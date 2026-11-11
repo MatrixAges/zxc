@@ -1,7 +1,9 @@
 import integers from "std:integer"
-import key from "core/native_module_table/key"
+import compatible from "core/native_module_table/compatible"
+import find from "core/native_module_table/find"
 
-import compatible from "./compatible"
+import remap from "../remap/ids"
+import { accepted, conflicting_interface, out_of_memory } from "./const"
 
 import type { Modules } from "core/native_module_table/model"
 import type { Value, State } from "./model"
@@ -9,6 +11,7 @@ import type { Value, State } from "./model"
 export type Input = {
     base: Modules,
     value: Value,
+    types: u32[],
     state: State,
     maximum: u64
 }
@@ -18,75 +21,68 @@ export type Output = State
 export default function (in: Input): Output {
     const identity = in.value.identity
     const name = identity == null ? in.value.specifier : identity
-    const count = in.base.specifiers.length + in.state.delta.specifiers.length
+    const base_count = in.base.specifiers.length
+    const delta = in.state.delta
+    const count = base_count + delta.specifiers.length
 
-    const index = loop({
-        base: in.base,
-        delta: in.state.delta,
+    const base = find({
+        modules: in.base,
         name,
-        import_name: in.value.import_name,
-        count,
-        index: 0,
-        found: false
-    }, {
-        while: current => !current.found && current.index < current.count,
-        next: current => {
-            const base = current.index < current.base.specifiers.length
-            const table = base ? current.base : current.delta
-            const index = match {
-                base => current.index,
-                _ => current.index - current.base.specifiers.length
-            }
-
-            current.found = key({
-                modules: table,
-                index
-            }) == current.name &&
-                table.import_names[index] == current.import_name
-
-            if (!current.found) {
-                current.index += 1
-            }
-        },
-        return: state => state.index
+        import_name: in.value.import_name
     })
 
-    if (index < count) {
-        const base = index < in.base.specifiers.length
+    const existing = match {
+        base != null => base,
+        _ => find({
+            modules: delta,
+            name,
+            import_name: in.value.import_name
+        })
+    }
+
+    if (existing != null) {
+        const in_base = base != null
 
         const valid = compatible({
-            table: base ? in.base : in.state.delta,
-            index: base ? index : index - in.base.specifiers.length,
-            value: in.value
+            table: in_base ? in.base : delta,
+            index: existing,
+            value: in.value,
+            mapping: in.types
         })
+
+        const index = in_base ? existing : base_count + existing
 
         return {
             ...in.state,
             mapping: in.state.mapping.push(integers.narrow(index))[0],
-            status: valid ? 0 : 5
+            status: valid ? accepted : conflicting_interface
         }
     }
 
     if (count >= in.maximum) {
         return {
             ...in.state,
-            status: 6
+            status: out_of_memory
         }
     }
 
-    const delta = in.state.delta
     const value = in.value
+
+    const ids = remap({
+        values: value.ids,
+        mapping: in.types
+    })
 
     return {
         delta: {
             identities: delta.identities.push(value.identity)[0],
             import_names: delta.import_names.push(value.import_name)[0],
             specifiers: delta.specifiers.push(value.specifier)[0],
-            type_ids: delta.type_ids.push(value.ids)[0],
+            type_ids: delta.type_ids.push(ids)[0],
             type_names: delta.type_names.push(value.names)[0],
             type_namespaces: delta.type_namespaces.push(value.namespace)[0]
         },
         mapping: in.state.mapping.push(integers.narrow(count))[0],
-        status: 0
+        status: accepted
     }
 }

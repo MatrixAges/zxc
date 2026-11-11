@@ -7,6 +7,15 @@ export type Modules = {
     type_namespaces: string[][]
 }
 
+export type Binding = {
+    identity?: string,
+    specifier: string,
+    import_name: string,
+    namespace: string[],
+    names: string[],
+    ids: u32[]
+}
+
 export type Errors = string[]?
 
 export type Functions = {

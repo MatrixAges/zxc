@@ -1,5 +1,7 @@
 import step from "compiler/compiled_native"
 
+import { accepted } from "./const"
+
 import type { Request, State } from "./model"
 
 export type Input = Request
@@ -17,7 +19,7 @@ export default function (in: Input): Output {
             type_namespaces: []
         },
         mapping: [],
-        status: 0
+        status: accepted
     }
 
     return loop({
@@ -26,7 +28,7 @@ export default function (in: Input): Output {
         index: 0
     }, {
         while: current =>
-            current.state.status == 0 &&
+            current.state.status == accepted &&
             current.index < current.request.source.specifiers.length,
         next: current => {
             current.state = step({

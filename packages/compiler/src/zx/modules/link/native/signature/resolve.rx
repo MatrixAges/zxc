@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Signature" />
+
+    <Args in={Signature.Lookup} out={Signature.Decision} />
+
+    <Call fn="find" in={$in} />
+
+    <If on={$ctx.find == null}>
+        <Return
+            value={{
+                status: Signature.Status.Insert,
+                row: $in.signatures.files.length
+            }}
+        />
+    </If>
+
+    <Call
+        fn="check"
+        in={{
+            request: $in,
+            index: $ctx.find ?? 0
+        }}
+    />
+
+    <Return
+        value={{
+            status: $ctx.check ? Signature.Status.Reuse : Signature.Status.Conflict,
+            row: $ctx.find ?? 0
+        }}
+    />
+</Module>

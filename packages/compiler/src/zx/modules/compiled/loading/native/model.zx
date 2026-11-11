@@ -1,13 +1,6 @@
-import type { Modules } from "core/native_module_table/model"
+import type { Binding, Modules } from "core/native_module_table/model"
 
-export type Value = {
-    identity?: string,
-    specifier: string,
-    import_name: string,
-    namespace: string[],
-    names: string[],
-    ids: u32[]
-}
+export type Value = Binding
 
 export type State = {
     delta: Modules,

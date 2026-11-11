@@ -48,9 +48,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         if (signature.external) |external| {
             if (external.member.len == 0) return error.InvalidModule;
 
-            const mapped = try nodes.external(external);
-
-            id.* = try self.importExternal(signature, input, output, mapped);
+            id.* = try self.importExternal(signature, input, output, external, &nodes);
         } else {
             const target = self.find(signature.file_name) orelse return error.InvalidModule;
 
@@ -204,23 +202,62 @@ fn checkExports(values: []const ir.Export, mapping: Nodes.TypeMap) Error!void {
     }
 }
 
-fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, output: ir.TypeId, implementation: ir.External) Error!ir.FunctionId {
+fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, output: ir.TypeId, implementation: ir.External, nodes: *Nodes) Error!ir.FunctionId {
+    if (comptime !@import("parser_options").generated_parser) return self.importExternalSeed(signature, input, output, try nodes.external(implementation));
+
+    var mapped = implementation;
+
+    mapped.module = try nodes.native_modules.get(implementation.module);
+
+    var resolved = signature;
+    resolved.input_type = input;
+    resolved.output_type = output;
+
+    const plan = try @import("native/signature.zig").resolve(self.temporary, self.native_modules.view(), self.functions.view(), resolved, mapped);
+    const id: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(plan.row)));
+
+    switch (plan.status) {
+        .Reuse => return id,
+        .Conflict => return error.ConflictingInterface,
+        .Insert => try self.appendExternal(resolved, try nodes.external(implementation)),
+    }
+
+    return id;
+}
+
+fn importExternalSeed(self: *Self, signature: model.Signature, input: ir.TypeId, output: ir.TypeId, implementation: ir.External) Error!ir.FunctionId {
     for (0..self.functions.count()) |index| {
         const existing = self.functions.at(index);
         const other = existing.external orelse continue;
 
         if (!std.mem.eql(u8, self.native_modules.at(@backingInt(other.module)).key(), self.native_modules.at(@backingInt(implementation.module)).key())) continue;
         if (!std.mem.eql(u8, other.exportName(), implementation.exportName())) continue;
-        if (existing.input_type != input or existing.output_type != output or existing.output_ownership != signature.output_ownership or !native.sameExternal(other, implementation)) return error.ConflictingInterface;
+        if (existing.input_type != input or existing.output_type != output or existing.output_ownership != signature.output_ownership or !native.sameExternalSeed(other, implementation)) return error.ConflictingInterface;
 
         return @fromBackingInt(@intCast(index));
     }
 
     const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
+    var resolved = signature;
+    resolved.input_type = input;
+    resolved.output_type = output;
 
-    try self.functions.append(self.allocator, .{ .file_name = try self.allocator.dupe(u8, signature.file_name), .input_type = input, .output_type = output, .output_ownership = signature.output_ownership, .external = implementation, .symbols = .{}, .expressions = .{}, .body = .{} });
+    try self.appendExternal(resolved, implementation);
 
     return id;
+}
+
+fn appendExternal(self: *Self, signature: model.Signature, implementation: ir.External) Error!void {
+    try self.functions.append(self.allocator, .{
+        .file_name = try self.allocator.dupe(u8, signature.file_name),
+        .input_type = signature.input_type,
+        .output_type = signature.output_type,
+        .output_ownership = signature.output_ownership,
+        .external = implementation,
+        .symbols = .{},
+        .expressions = .{},
+        .body = .{},
+    });
 }
 
 fn find(self: *const Self, path: []const u8) ?usize {

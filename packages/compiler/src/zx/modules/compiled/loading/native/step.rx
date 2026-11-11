@@ -20,21 +20,11 @@
     />
 
     <Call
-        fn="../remap/ids"
-        in={{
-            values: $ctx.rebind.ids,
-            mapping: $in.request.types
-        }}
-    />
-
-    <Call
         fn="intern"
         in={{
             base: $in.request.base,
-            value: {
-                ...$ctx.rebind,
-                ids: $ctx.ids
-            },
+            value: $ctx.rebind,
+            types: $in.request.types,
             state: $in.state,
             maximum: $in.request.maximum
         }}

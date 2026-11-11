@@ -1,0 +1,40 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Names, Table } from "core/signature_table/model"
+import type { Ownership } from "core/symbol_table/model"
+
+export type External = {
+    module_id: u32,
+    member: string[],
+    export_name?: string,
+    input?: Names,
+    allocator_argument: bool,
+    io_argument: bool,
+    process_argument: bool,
+    expand_tuple: bool,
+    fallible: bool
+}
+
+export type Lookup = {
+    modules: Modules,
+    signatures: Table,
+    value: External,
+    input_type: u32,
+    output_type: u32,
+    ownership: Ownership
+}
+
+export type Row = {
+    request: Lookup,
+    index: u64
+}
+
+export enum Status {
+    Insert,
+    Reuse,
+    Conflict
+}
+
+export type Decision = {
+    status: Status,
+    row: u64
+}

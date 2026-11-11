@@ -1,0 +1,24 @@
+import type { Binding, Modules } from "core/native_module_table/model"
+
+export enum Status {
+    Reuse,
+    Insert,
+    Invalid,
+    Conflict,
+    Missing,
+    Full
+}
+
+export type Input = {
+    table: Modules,
+    value: Binding,
+    mapping: u32[],
+    insert: bool,
+    maximum: u64
+}
+
+export type Output = {
+    status: Status,
+    row: u64,
+    ids: u32[]
+}

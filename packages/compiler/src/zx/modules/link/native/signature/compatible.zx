@@ -1,0 +1,52 @@
+import inputEqual from "./input_equal"
+import name from "./name"
+
+import type { External } from "./model"
+
+export type Input = {
+    left: External,
+    right: External
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { left, right } = in
+
+    const same_allocator = left.allocator_argument == right.allocator_argument
+    const same_process = left.process_argument == right.process_argument
+    const same_io = left.io_argument == right.io_argument
+    const same_arguments = same_allocator && same_io && same_process
+    const same_tuple = left.expand_tuple == right.expand_tuple
+    const same_fallible = left.fallible == right.fallible
+    const same_flags = same_tuple && same_fallible && same_arguments
+
+    if (left.module_id != right.module_id || !same_flags) {
+        return false
+    }
+
+    if (left.member.length != right.member.length) {
+        return false
+    }
+
+    if (name(left) != name(right)) {
+        return false
+    }
+
+    const same_member = loop({
+        index: 0,
+        equal: true
+    }, {
+        while: state => state.equal && state.index < left.member.length,
+        next: state => {
+            state.equal = left.member[state.index] == right.member[state.index]
+            state.index += 1
+        },
+        return: state => state.equal
+    })
+
+    return same_member && inputEqual({
+        left: left.input,
+        right: right.input
+    })
+}

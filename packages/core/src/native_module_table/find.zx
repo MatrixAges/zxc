@@ -1,0 +1,34 @@
+import key from "./key"
+
+import type { Modules } from "./model"
+
+export type Input = {
+    modules: Modules,
+    name: string,
+    import_name: string
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.index < in.modules.specifiers.length,
+        next: state => {
+            const name = key({
+                modules: in.modules,
+                index: state.index
+            })
+
+            state.found = name == in.name &&
+                in.modules.import_names[state.index] == in.import_name
+
+            if (!state.found) {
+                state.index += 1
+            }
+        },
+        return: state => state.found ? state.index : null
+    })
+}

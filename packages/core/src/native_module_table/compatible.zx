@@ -1,9 +1,11 @@
-import type { Modules } from "core/native_module_table/model"
-import type { Value } from "./model"
+import integers from "std:integer"
+
+import type { Binding, Modules } from "./model"
 
 export type Input = {
     table: Modules,
-    value: Value,
+    value: Binding,
+    mapping: u32[],
     index: u64
 }
 
@@ -47,15 +49,18 @@ export default function (in: Input): Output {
         names,
         ids,
         value: in.value,
+        mapping: in.mapping,
         index: 0,
         valid: same_namespace
     }, {
         while: current => current.valid && current.index < current.names.length,
         next: current => {
+            const candidate = integers.widen(current.value.ids[current.index])
+
             current.valid =
                 current.names[current.index] ==
                 current.value.names[current.index] &&
-                current.ids[current.index] == current.value.ids[current.index]
+                current.ids[current.index] == current.mapping[candidate]
             current.index += 1
         },
         return: state => state.valid

@@ -84,25 +84,11 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     for (0..module.native_modules.count(), native_mapping) |previous_row, *id| {
         const previous = module.native_modules.at(previous_row);
 
-        for (0..current.native_modules.count()) |index| {
-            const candidate = current.native_modules.at(index);
+        id.* = if (comptime @import("parser_options").generated_parser)
+            try native.restore(allocator, current.native_modules, previous, mapping)
 
-            if (!std.mem.eql(u8, previous.key(), candidate.key()) or !std.mem.eql(u8, previous.import_name, candidate.import_name)) continue;
-            if (!native.stringsEqual(previous.type_namespace, candidate.type_namespace) or previous.types.count() != candidate.types.count()) return error.InvalidModule;
-
-            for (0..previous.types.count()) |binding_index| {
-                const a = previous.types.at(binding_index);
-                const b = candidate.types.at(binding_index);
-
-                if (!std.mem.eql(u8, a.name, b.name) or try nodes.types.include(a.type_id) != b.type_id) return error.InvalidModule;
-            }
-
-            id.* = @fromBackingInt(@intCast(index));
-
-            break;
-        }
-
-        if (id.* == null) return error.InvalidModule;
+        else
+            try restoreNativeSeed(current.native_modules, previous, nodes.types);
     }
 
     for (module.function_imports, current.imports) |previous, binding| {
@@ -132,9 +118,18 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
             if (external.member.len == 0) return error.InvalidModule;
 
             const implementation = function.external orelse return error.InvalidModule;
-            const mapped = try nodes.external(external);
 
-            if (!std.mem.eql(u8, mapped.exportName(), implementation.exportName()) or !native.sameExternal(mapped, implementation)) return error.InvalidModule;
+            if (comptime @import("parser_options").generated_parser) {
+                var mapped = external;
+
+                mapped.module = try nodes.native_modules.get(external.module);
+
+                if (!try @import("../link/native/signature.zig").compatible(allocator, mapped, implementation)) return error.InvalidModule;
+            } else {
+                const mapped = try nodes.external(external);
+
+                if (!std.mem.eql(u8, mapped.exportName(), implementation.exportName()) or !native.sameExternalSeed(mapped, implementation)) return error.InvalidModule;
+            }
         } else if (function.external != null) return error.InvalidModule;
     }
 
@@ -172,6 +167,26 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     if (try @import("../../ir/validate.zig").validate(allocator, result.program) != null) return error.InvalidIr;
 
     return result;
+}
+
+fn restoreNativeSeed(modules: ir.NativeModuleTable, previous: ir.NativeModule, types: Nodes.TypeMap) Error!ir.NativeModuleId {
+    for (0..modules.count()) |index| {
+        const candidate = modules.at(index);
+
+        if (!std.mem.eql(u8, previous.key(), candidate.key()) or !std.mem.eql(u8, previous.import_name, candidate.import_name)) continue;
+        if (!native.stringsEqual(previous.type_namespace, candidate.type_namespace) or previous.types.count() != candidate.types.count()) return error.InvalidModule;
+
+        for (0..previous.types.count()) |binding_index| {
+            const a = previous.types.at(binding_index);
+            const b = candidate.types.at(binding_index);
+
+            if (!std.mem.eql(u8, a.name, b.name) or try types.include(a.type_id) != b.type_id) return error.InvalidModule;
+        }
+
+        return @fromBackingInt(@intCast(index));
+    }
+
+    return error.InvalidModule;
 }
 
 fn optionalName(left: ?[]const u8, right: ?[]const u8) bool {

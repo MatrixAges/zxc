@@ -1,0 +1,12 @@
+import integers from "std:integer"
+
+export type Input = {
+    ids: u32[],
+    count: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return in.ids.every(id => integers.widen(id) < in.count)
+}

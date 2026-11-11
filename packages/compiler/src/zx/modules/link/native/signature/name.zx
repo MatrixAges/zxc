@@ -1,0 +1,9 @@
+import type { External } from "./model"
+
+export type Input = External
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return in.export_name ?? in.member[in.member.length - 1]
+}

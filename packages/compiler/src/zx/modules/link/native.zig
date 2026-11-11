@@ -1,9 +1,69 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const columns = @import("zx").columns;
 const Nodes = @import("../artifact/nodes.zig");
 const Error = @import("../artifact/model.zig").Error || error{ConflictingInterface};
 
 pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir.NativeModule, nodes: *Nodes) Error!ir.NativeModuleId {
+    if (!@import("parser_options").generated_parser) return appendSeed(allocator, modules, value, nodes);
+
+    const plan = try bindingPlan(allocator, modules.view(), value, nodes.types.mapped, true);
+
+    switch (plan.status) {
+        .Invalid, .Missing => return error.InvalidModule,
+        .Conflict => return error.ConflictingInterface,
+        .Full => return error.OutOfMemory,
+        .Reuse => {},
+        .Insert => try own(allocator, modules, value, nodes, try nodes.strings(value.types.names), plan.ids),
+    }
+
+    return @fromBackingInt(@as(u32, @intCast(plan.row)));
+}
+
+pub fn restore(allocator: std.mem.Allocator, modules: ir.NativeModuleTable, value: ir.NativeModule, mapping: []const ir.TypeId) @import("../artifact/model.zig").Error!ir.NativeModuleId {
+    const plan = try bindingPlan(allocator, modules, value, mapping, false);
+
+    if (plan.status != .Reuse) return error.InvalidModule;
+
+    return @fromBackingInt(@as(u32, @intCast(plan.row)));
+}
+
+fn bindingPlan(
+    allocator: std.mem.Allocator,
+    modules: ir.NativeModuleTable,
+    value: ir.NativeModule,
+    mapping: []const ir.TypeId,
+    insert: bool,
+) @import("../artifact/model.zig").Error!@typeInfo(@TypeOf(@import("generated_native_link_binding").executeValue(undefined, undefined))).error_union.payload {
+    const entry = @import("generated_native_link_binding");
+    const Input = std.meta.Child(entry.Input);
+    const Binding = std.meta.Child(@FieldType(Input, "value"));
+    const table = columns.columns(std.meta.Child(@FieldType(Input, "table")), modules);
+
+    const binding: Binding = .{
+        .identity = value.identity,
+        .specifier = value.specifier,
+        .import_name = value.import_name,
+        .namespace = value.type_namespace,
+        .names = value.types.names,
+        .ids = value.types.type_ids,
+    };
+
+    const input: Input = .{
+        .table = &table,
+        .value = &binding,
+        .mapping = @as([*]const u32, @ptrCast(mapping.ptr))[0..mapping.len],
+        .insert = insert,
+        .maximum = std.math.maxInt(u32),
+    };
+
+    return columns.invoke(entry.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
+        else => return error.InvalidModule,
+    };
+}
+
+fn appendSeed(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir.NativeModule, nodes: *Nodes) Error!ir.NativeModuleId {
     const names = try allocator.alloc([]const u8, value.types.count());
     const ids = try allocator.alloc(u32, value.types.count());
 
@@ -27,6 +87,12 @@ pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, va
 
     const id: ir.NativeModuleId = @fromBackingInt(@intCast(modules.count()));
 
+    try own(allocator, modules, value, nodes, names, ids);
+
+    return id;
+}
+
+fn own(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir.NativeModule, nodes: *Nodes, names: []const []const u8, ids: []const u32) Error!void {
     try modules.append(allocator, .{
         .specifier = try allocator.dupe(u8, value.specifier),
         .identity = if (value.identity) |key| try allocator.dupe(u8, key) else null,
@@ -34,11 +100,9 @@ pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, va
         .type_namespace = try nodes.strings(value.type_namespace),
         .types = .{ .names = names, .type_ids = ids },
     });
-
-    return id;
 }
 
-pub fn sameExternal(left: ir.External, right: ir.External) bool {
+pub fn sameExternalSeed(left: ir.External, right: ir.External) bool {
     if (left.module != right.module or left.allocator_argument != right.allocator_argument or left.io_argument != right.io_argument or left.process_argument != right.process_argument or left.expand_tuple != right.expand_tuple or left.fallible != right.fallible) return false;
     if (!stringsEqual(left.member, right.member)) return false;
     if (left.input) |input| return sameType(input, right.input orelse return false);

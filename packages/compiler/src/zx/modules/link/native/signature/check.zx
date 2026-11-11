@@ -1,0 +1,44 @@
+import compatible from "./compatible"
+
+import type { External, Row } from "./model"
+
+export type Input = Row
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { index, request } = in
+    const { signatures, value } = request
+
+    const same_input = signatures.input_types[index] == request.input_type
+    const same_output = signatures.output_types[index] == request.output_type
+    const same_ownership = signatures.ownership[index] == request.ownership
+    const same_signature = same_input && same_output && same_ownership
+
+    if (!same_signature) {
+        return false
+    }
+
+    const module_id = signatures.native_modules[index]
+
+    if (module_id == null) {
+        return false
+    }
+
+    const existing: External = {
+        module_id,
+        member: signatures.native_members[index],
+        export_name: signatures.native_exports[index],
+        input: signatures.native_inputs[index],
+        allocator_argument: signatures.native_allocators[index],
+        io_argument: signatures.native_io[index],
+        process_argument: signatures.native_process[index],
+        expand_tuple: signatures.native_tuples[index],
+        fallible: signatures.native_fallible[index]
+    }
+
+    return compatible({
+        left: existing,
+        right: value
+    })
+}

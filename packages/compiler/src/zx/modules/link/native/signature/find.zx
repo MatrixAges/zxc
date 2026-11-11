@@ -1,0 +1,52 @@
+import integers from "std:integer"
+import key from "core/native_module_table/key"
+
+import name from "./name"
+
+import type { Lookup } from "./model"
+
+export type Input = Lookup
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const { signatures, modules } = in
+
+    const target = key({
+        modules,
+        index: integers.widen(in.value.module_id)
+    })
+
+    const target_name = name(in.value)
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.index < signatures.files.length,
+        next: state => {
+            const index = state.index
+            const native_id = signatures.native_modules[index]
+
+            if (native_id != null) {
+                const module_key = key({
+                    modules,
+                    index: integers.widen(native_id)
+                })
+
+                if (module_key == target) {
+                    const members = signatures.native_members[index]
+                    const export_name = signatures.native_exports[index]
+
+                    state.found =
+                        (export_name ?? members[members.length - 1]) == target_name
+                }
+            }
+
+            if (!state.found) {
+                state.index += 1
+            }
+        },
+        return: state => state.found ? state.index : null
+    })
+}
