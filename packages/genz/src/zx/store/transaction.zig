@@ -96,13 +96,30 @@ pub fn initialize(self: *Lower, body: *std.ArrayList(node.Statement)) Lower.Erro
     @import("../../node/import_statements.zig").appendBorrowingText(self.allocator, body, result.statements) catch |err| return failure(err);
 }
 
-pub fn commit(self: *Lower) Lower.Error!node.ExpressionId {
-    if (!generated) return seed.commit(self);
+pub fn finish(self: *Lower, statements: *std.ArrayList(node.Statement)) Lower.Error!void {
+    const body = self.program.body;
 
-    const entry = @import("generated_store_commit");
+    if (!generated) {
+        if (seed.active(self) and !zx.ir.terminates(body.block())) try statements.append(self.allocator, .{ .expression = try seed.commit(self) });
+
+        return;
+    }
+
+    const entry = @import("generated_store_fallthrough");
     const Input = std.meta.Child(entry.Input);
+    const Block = std.meta.Child(@FieldType(Input, "body"));
 
-    const input: Input = .{
+    const block: Block = .{
+        .control = zx.columns.pointer(@FieldType(Block, "control"), body.control),
+        .block = if (body.root) |root| @backingInt(root) else null,
+    };
+
+    const transaction: std.meta.Child(@FieldType(Input, "transaction")) = .{
+        .mode = @fromBackingInt(@backingInt(self.program.store_mode)),
+        .count = self.program.stores.count(),
+    };
+
+    const bases: std.meta.Child(@FieldType(Input, "bases")) = .{
         .capture = if (self.capture) |capture| &.{ .name = capture.name, .label = capture.label, .failure = @backingInt(capture.failure) } else null,
         .expression_base = @intCast(self.builder.nodes.expressions.tags.items.len),
         .statement_base = @intCast(self.builder.nodes.statements.tags.items.len),
@@ -110,19 +127,19 @@ pub fn commit(self: *Lower) Lower.Error!node.ExpressionId {
         .serial = self.serial,
     };
 
+    const input: Input = .{ .transaction = &transaction, .body = &block, .bases = &bases };
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
     var buffer: [std.heap.page_size_min]u8 = undefined;
     var memory = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
     defer scratch.deinit();
 
-    const result = entry.executeIn(memory.allocator(), &input) catch |err| return failure(err);
+    const result = (entry.executeIn(memory.allocator(), &input) catch |err| return failure(err)) orelse return;
 
     if (!result.valid) return error.OutOfMemory;
 
     @import("../../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, result.expressions) catch |err| return failure(err);
-
-    return @fromBackingInt(result.root);
+    try statements.append(self.allocator, .{ .expression = @fromBackingInt(result.root) });
 }
 
 fn failure(err: anyerror) Lower.Error {

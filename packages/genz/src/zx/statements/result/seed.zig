@@ -32,7 +32,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Statement), values: ir.B
             returned = try self.builder.identifier(name);
         }
 
-        try output.append(self.allocator, .{ .expression = try self.commit() });
+        try output.append(self.allocator, .{ .expression = try @import("../../store/transaction_seed.zig").commit(self) });
     }
 
     try output.append(self.allocator, .{ .result = returned });

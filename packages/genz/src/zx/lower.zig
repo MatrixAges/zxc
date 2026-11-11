@@ -165,13 +165,15 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     const body_statements = try self.statements(self.program.body.block());
     const preconditions = try @import("contracts.zig").preconditions(self);
     var body: std.ArrayList(node.Statement) = .empty;
+    const has_stores = self.program.stores.count() != 0;
+    const store_transaction = @import("store/transaction.zig");
 
     try @import("functions/prelude/build.zig").append(self, &body, .{ .exported = exported, .io = needs_io, .process = needs_process });
-    try @import("store/transaction.zig").initialize(self, &body);
+    if (has_stores) try store_transaction.initialize(self, &body);
     try body.appendSlice(self.allocator, self.reference_storage.items);
     try body.appendSlice(self.allocator, preconditions);
     try body.appendSlice(self.allocator, body_statements);
-    if (self.transaction() and !ir.terminates(self.program.body.block())) try body.append(self.allocator, .{ .expression = try self.commit() });
+    if (has_stores) try store_transaction.finish(self, &body);
 
     var declaration = try self.prototypeWithErrors(name, exported, errors);
 
@@ -392,8 +394,4 @@ pub fn statements(self: *Self, values: ir.Block) Error![]const node.Statement {
 
 pub fn transaction(self: *const Self) bool {
     return @import("store/transaction.zig").active(self);
-}
-
-pub fn commit(self: *Self) Error!node.ExpressionId {
-    return @import("store/transaction.zig").commit(self);
 }

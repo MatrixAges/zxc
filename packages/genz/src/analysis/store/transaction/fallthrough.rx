@@ -1,0 +1,21 @@
+<Module>
+    <Type from="fallthrough" as="Fallthrough" />
+
+    <Args in={Fallthrough.Input} out={Fallthrough.Output} />
+
+    <Call fn="policy" in={$in.transaction} />
+
+    <If on={!$ctx.policy}>
+        <Return value={null} />
+    </If>
+
+    <Call fn="../../control/block_terminates" in={$in.body} />
+
+    <If on={$ctx.block_terminates}>
+        <Return value={null} />
+    </If>
+
+    <Call fn="commit" in={$in.bases} />
+
+    <Return value={$ctx.commit} />
+</Module>

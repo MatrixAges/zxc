@@ -1,0 +1,11 @@
+import type { Input as Block } from "../../control/block_terminates"
+import type { Input as Bases, Output as Commit } from "./commit"
+import type { Input as Policy } from "./policy"
+
+export type Input = {
+    transaction: Policy,
+    body: Block,
+    bases: Bases
+}
+
+export type Output = Commit?

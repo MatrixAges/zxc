@@ -1,0 +1,72 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+
+import type { Control } from "core/control_table/model"
+
+export type Input = {
+    control: Control,
+    block?: u32
+}
+
+export type Output = bool
+
+export default function blockTerminates(in: Input): Output {
+    const root = in.block
+
+    if (root == null) {
+        return false
+    }
+
+    const control = in.control
+    const block = integers.widen(root)
+    const count = integers.widen(control.block_count[block])
+
+    if (count == 0) {
+        return false
+    }
+
+    const index = integers.widen(control.block_first[block]) + count - 1
+    const kind = control.statement_kinds[index]
+    const payload = integers.widen(control.statement_payloads[index])
+
+    if (kind == StatementKind.Result) {
+        return true
+    }
+
+    if (kind == StatementKind.Branch) {
+        return blockTerminates({
+            control,
+            block: control.branch_yes[payload]
+        }) && blockTerminates({
+            control,
+            block: control.branch_no[payload]
+        })
+    }
+
+    if (kind != StatementKind.Switch) {
+        return false
+    }
+
+    if (!control.selection_exhaustive[payload]) {
+        return false
+    }
+
+    const start = integers.widen(control.selection_first[payload])
+    const end = start + integers.widen(control.selection_count[payload])
+
+    return loop({
+        index: start,
+        terminated: true
+    }, {
+        while: state => state.terminated && state.index < end,
+        next: state => {
+            state.terminated = blockTerminates({
+                control,
+                block: control.case_bodies[state.index]
+            })
+
+            state.index += 1
+        },
+        return: state => state.terminated
+    })
+}
