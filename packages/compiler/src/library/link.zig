@@ -75,25 +75,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
             }));
         }
 
-        var public_types: std.ArrayList(ir.Export) = .empty;
-
-        for (program.exports) |item| try public_types.append(owned, .{ .name = try owned.dupe(u8, item.name), .type_id = try nodes.types.include(item.type_id) });
-
-        if (!program.type_only) {
-            for ([_]ir.Export{ .{ .name = "Input", .type_id = program.input_type }, .{ .name = "Output", .type_id = program.output_type } }) |signature| {
-                const type_id = try nodes.types.include(signature.type_id);
-                var found = false;
-
-                for (public_types.items) |item| if (std.mem.eql(u8, item.name, signature.name)) {
-                    if (item.type_id != type_id) return error.ConflictingInterface;
-
-                    found = true;
-                };
-
-                if (!found) try public_types.append(owned, .{ .name = try owned.dupe(u8, signature.name), .type_id = type_id });
-            }
-        }
-
+        const public_types = try @import("interface.zig").complete(owned, allocator, program, nodes.types);
         const constants = try owned.alloc(ir.Constant, program.constant_exports.len);
 
         for (program.constant_exports, constants) |source, *constant| {
@@ -135,7 +117,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
             }
         }
 
-        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items, .constants = constants, .members = members.items };
+        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types, .constants = constants, .members = members.items };
     }
 
     for (0..functions.count()) |function_row| {

@@ -1,0 +1,43 @@
+<Module>
+    <Type from="model" as="Interface" />
+
+    <Args in={Interface.Input} out={Interface.Output} />
+
+    <Call
+        fn="../../zx/modules/compiled/loading/remap/ids"
+        in={{
+            values: $in.ids,
+            mapping: $in.mapping
+        }}
+    />
+
+    <If on={$in.executable}>
+        <Call
+            fn="ports"
+            in={{
+                names: $in.names,
+                ids: $ctx.ids,
+                input_type: $in.input_type,
+                output_type: $in.output_type
+            }}
+        />
+
+        <Return
+            value={{
+                ids: $ctx.ids,
+                ports: $ctx.ports
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            ids: $ctx.ids,
+            ports: {
+                compatible: true,
+                input_name: null,
+                output_name: null
+            }
+        }}
+    />
+</Module>

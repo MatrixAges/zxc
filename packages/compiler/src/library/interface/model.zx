@@ -1,0 +1,19 @@
+export type Input = {
+    names: string[],
+    ids: u32[],
+    mapping: u32[],
+    input_type: u32,
+    output_type: u32,
+    executable: bool
+}
+
+export type Ports = {
+    compatible: bool,
+    input_name?: string,
+    output_name?: string
+}
+
+export type Output = {
+    ids: u32[],
+    ports: Ports
+}

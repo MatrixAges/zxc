@@ -1,0 +1,43 @@
+import {
+    input_type_name,
+    output_type_name
+} from "../../zx/modules/compiled/const"
+
+import type { Ports as Output } from "./model"
+
+export type Input = {
+    names: string[],
+    ids: u32[],
+    input_type: u32,
+    output_type: u32
+}
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        compatible: true,
+        has_input: false,
+        has_output: false
+    }, {
+        while: current => current.compatible && current.index < in.names.length,
+        next: current => {
+            const id = in.ids[current.index]
+            const name = in.names[current.index]
+
+            if (name == input_type_name) {
+                current.has_input = true
+                current.compatible = id == in.input_type
+            } else if (name == output_type_name) {
+                current.has_output = true
+                current.compatible = id == in.output_type
+            }
+
+            current.index += 1
+        },
+        return: current => ({
+            compatible: current.compatible,
+            input_name: current.has_input ? null : input_type_name,
+            output_name: current.has_output ? null : output_type_name
+        })
+    })
+}

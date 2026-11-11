@@ -1,6 +1,7 @@
 import integers from "std:integer"
 
 import text from "../../../../ir/canonical/native/text"
+import { input_type_name, output_type_name } from "../../const"
 import unique from "../unique"
 
 import type { Complete } from "core/function_table/complete"
@@ -33,13 +34,13 @@ export default function (in: Input): Output {
                 const index = integers.widen(function_id)
 
                 const input_matches = match {
-                    name != "Input" => true,
+                    name != input_type_name => true,
                     _ => id == current.input.functions.input_types[index]
                 }
 
                 current.valid = match {
                     !input_matches => false,
-                    name != "Output" => true,
+                    name != output_type_name => true,
                     _ => id == current.input.functions.output_types[index]
                 }
             }
