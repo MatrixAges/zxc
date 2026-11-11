@@ -6,9 +6,15 @@
     <Call fn="available" in={$in} />
 
     <If on={$ctx.available}>
-        <Call fn="layout" in={$in} />
+        <Call
+            fn="../../state/queries/function_layout"
+            in={{
+                input: $in.input,
+                output: $in.output
+            }}
+        />
 
-        <Return value={$ctx.layout} />
+        <Return value={$ctx.function_layout.enter} />
     </If>
 
     <Return value={false} />

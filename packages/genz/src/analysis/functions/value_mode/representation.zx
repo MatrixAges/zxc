@@ -1,0 +1,41 @@
+import integers from "std:integer"
+import {
+    kind_native_reference,
+    kind_object,
+    kind_optional,
+    kind_tuple
+} from "core/type_table/const"
+
+export type Input = {
+    kinds: u8[],
+    first: u32[],
+    output_type: u32,
+    unrepresented_state: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.output_type)
+    const kinds = in.kinds
+    const first = in.first
+    const kind = kinds[index]
+
+    const payload = loop({
+        index,
+        kind
+    }, {
+        while: current => current.kind == kind_optional,
+        next: current => {
+            current.index = integers.widen(first[current.index])
+            current.kind = kinds[current.index]
+        },
+        return: current => current.kind
+    })
+
+    if (payload == kind_native_reference) {
+        return false
+    }
+
+    return !in.unrepresented_state || (kind != kind_object && kind != kind_tuple)
+}

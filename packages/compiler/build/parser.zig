@@ -348,7 +348,7 @@ fn cachedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sour
     const tool = b.addExecutable(.{ .name = "partition-objects", .root_module = b.createModule(.{
         .root_source_file = b.path("build/partition/compile.zig"),
         .target = b.graph.host,
-        .optimize = .ReleaseFast,
+        .optimize = .small,
     }) });
 
     const run = b.addRunArtifact(tool);

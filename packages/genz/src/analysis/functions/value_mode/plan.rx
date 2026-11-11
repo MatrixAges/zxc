@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="ValueMode" />
+
+    <Args in={ValueMode.Input} out={ValueMode.Output} />
+
+    <Call
+        fn="../../state/queries/function_layout"
+        in={{
+            input: $in.input,
+            output: $in.output
+        }}
+    />
+
+    <Call
+        fn="representation"
+        in={{
+            kinds: $in.kinds,
+            first: $in.first,
+            output_type: $in.output_type,
+            unrepresented_state:
+                $ctx.function_layout.enter && !$ctx.function_layout.represented_output
+        }}
+    />
+
+    <Return
+        value={{
+            enter: $ctx.function_layout.enter,
+            bind_input:
+                ($ctx.function_layout.enter || $in.state_active) && !$in.public_value,
+            value_output: $ctx.representation
+        }}
+    />
+</Module>

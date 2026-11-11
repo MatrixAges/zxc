@@ -1,0 +1,17 @@
+import type { Query } from "../../state/queries/model"
+
+export type Input = {
+    input: Query,
+    output: Query,
+    kinds: u8[],
+    first: u32[],
+    output_type: u32,
+    state_active: bool,
+    public_value: bool
+}
+
+export type Output = {
+    enter: bool,
+    bind_input: bool,
+    value_output: bool
+}

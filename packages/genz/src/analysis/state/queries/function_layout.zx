@@ -1,0 +1,34 @@
+import { Property } from "./model"
+import read from "./read"
+
+import type { Query } from "./model"
+
+export type Input = {
+    input: Query,
+    output: Query
+}
+
+export type Output = {
+    enter: bool,
+    represented_output: bool
+}
+
+export default function (in: Input): Output {
+    const represented_output = read({
+        value: in.output,
+        property: Property.Represented
+    })
+
+    const enter = represented_output || read({
+        value: in.input,
+        property: Property.Represented
+    }) || read({
+        value: in.input,
+        property: Property.InlineRows
+    })
+
+    return {
+        enter,
+        represented_output
+    }
+}
