@@ -73,7 +73,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         var program = initial.program;
         const validation = @import("store_initializers/validation.zig");
 
-        if (!try validation.validate(bundle.arena.child_allocator, program)) return error.InvalidInitializer;
+        if (!try validation.validate(bundle.arena.child_allocator, program, .allowed)) return error.InvalidInitializer;
 
         const own = try names.create(allocator, bundle.arena.child_allocator, program, options.analysis.nominal_types);
 

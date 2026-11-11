@@ -1,9 +1,12 @@
 import type { Eligibility as Input, Result as Output } from "./model"
 
 export default function (in: Input): Output {
+    const native_allowed = !in.forbid_native || in.native_count == 0
+
     const condition = (
         - !in.type_only
         - and in.function_count == 0
+        - and native_allowed
         - and in.store_count == 0
         - and in.contract_count == 0
     )
