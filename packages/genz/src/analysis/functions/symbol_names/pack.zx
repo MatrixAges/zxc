@@ -1,0 +1,33 @@
+import { ascii_null } from "core/ascii/const"
+
+import integer from "../../../printer/text/integer"
+import { input_name, local_prefix } from "./const"
+
+export type Input = u64
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const output: u8[] = []
+
+    return loop({
+        output,
+        index: 0
+    }, {
+        while: current => current.index < in,
+        next: current => {
+            if (current.index == 0) {
+                current.output = current.output.concatText(input_name)[0]
+            } else {
+                current.output = integer({
+                    output: current.output.concatText(local_prefix)[0],
+                    value: current.index
+                })
+            }
+
+            current.output = current.output.push(ascii_null)[0]
+            current.index += 1
+        },
+        return: state => state.output
+    })
+}

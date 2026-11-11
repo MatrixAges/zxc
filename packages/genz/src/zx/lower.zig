@@ -146,13 +146,12 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_process = false;
 
     const errors = try @import("error_effects.zig").program(self);
-
     self.allows_allocation = @import("functions/policy.zig").allowsAllocation(errors);
 
     const needs_io = self.entry_flags.io;
     const needs_process = self.entry_flags.process;
 
-    for (self.names, 0..) |*item, index| item.* = if (index == 0) "in" else try std.fmt.allocPrint(self.allocator, "value_{d}", .{index});
+    try @import("functions/symbol_names.zig").initialize(self.allocator, self.names);
 
     @memset(self.used, false);
     @memset(self.cache_reads, 0);

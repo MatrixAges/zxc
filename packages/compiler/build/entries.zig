@@ -236,6 +236,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/functions/prelude/build.rx", .name = "function_prelude", .owner = .genz },
     .{ .path = "genz/analysis/functions/value_mode/plan.rx", .name = "function_value_mode", .owner = .genz },
     .{ .path = "genz/analysis/functions/allocation.zx", .name = "function_allocation", .owner = .genz },
+    .{ .path = "genz/analysis/functions/symbol_names/build.rx", .name = "function_symbol_names", .owner = .genz },
     .{ .path = "genz/analysis/functions/prelude/task_required.zx", .name = "function_task_allocator", .owner = .genz },
     .{ .path = "genz/analysis/allocator/build.rx", .name = "allocator_type", .owner = .genz },
     .{ .path = "genz/analysis/parallel/worker/build.rx", .name = "parallel_worker", .owner = .genz },
