@@ -1,0 +1,28 @@
+import { slot_stride } from "./const"
+
+export type Input = {
+    keys: u64[],
+    first: u64,
+    group: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        first: in.first,
+        end: in.keys.length
+    }, {
+        while: state => state.first < state.end,
+        next: state => {
+            const middle = state.first + (state.end - state.first) / 2
+
+            if (in.keys[middle] / slot_stride < in.group) {
+                state.first = middle + 1
+            } else {
+                state.end = middle
+            }
+        },
+        return: state => state.first
+    })
+}

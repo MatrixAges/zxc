@@ -9,33 +9,43 @@ export default function (in: Input): Output {
     return loop({
         growth: in.growth,
         applied: false,
-        index: 0
+        index: 0,
+        skip_index: 0
     }, {
         while: state => state.index < source.paths.length,
         next: state => {
-            const path = source.paths[state.index]
+            const index = state.index
             const type_id = source.type_id
             const types = source.types
 
-            if (!buffered({
-                types,
-                type_id,
-                path,
-                inline_lists: source.inline_lists
-            })) {
-                state.growth = append({
-                    source: {
-                        types,
-                        type_id,
-                        path,
+            const skip = state.skip_index < source.skipped.length &&
+                source.skipped[state.skip_index] == index
+
+            if (skip) {
+                state.skip_index += 1
+            } else {
+                const path = source.paths[index]
+
+                if (!buffered({
+                    types,
+                    type_id,
+                    path,
+                    inline_lists: source.inline_lists
+                })) {
+                    state.growth = append({
                         source: {
-                            ...source.source,
-                            value: in.value
-                        }
-                    },
-                    growth: state.growth
-                })
-                state.applied = true
+                            types,
+                            type_id,
+                            path,
+                            source: {
+                                ...source.source,
+                                value: in.value
+                            }
+                        },
+                        growth: state.growth
+                    })
+                    state.applied = true
+                }
             }
 
             state.index += 1

@@ -4,19 +4,23 @@
     <Args in={Deferred.Input} out={Deferred.Output} />
 
     <Call
-        fn="select"
-        in={$in.pick([
-            "records",
-            "owner"
-        ])}
+        fn="../../uniqueness/renewals/range"
+        in={{
+            keys: $in.records.keys,
+            owner: $in.owner,
+            value: false
+        }}
     />
 
-    <If on={$ctx.select.length == 0}>
+    <If
+        on={$ctx.range.first == $ctx.range.end ||
+            (!$in.classify && !$in.inline_lists)}
+    >
         <Return
             value={{
-                entries: false,
+                ...$ctx.range,
                 delayed: false,
-                immediate: []
+                skipped: []
             }}
         />
     </If>
@@ -28,7 +32,8 @@
             fn="schedule"
             in={{
                 facts: $in.facts,
-                paths: $ctx.select,
+                paths: $in.records.paths,
+                range: $ctx.range,
                 classify: $ctx.eligible,
                 inline_lists: $in.inline_lists
             }}
@@ -41,7 +46,8 @@
         fn="schedule"
         in={{
             facts: $in.facts,
-            paths: $ctx.select,
+            paths: $in.records.paths,
+            range: $ctx.range,
             classify: false,
             inline_lists: $in.inline_lists
         }}

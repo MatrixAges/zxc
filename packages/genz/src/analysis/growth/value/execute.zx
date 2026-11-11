@@ -1,25 +1,30 @@
 import append from "../renew/append.rx"
 import buffered from "../renew/buffered"
 
-import type { State as Input, State as Output } from "./model"
+import type { Output as Range } from "../../uniqueness/renewals/range"
+import type { State as Output } from "./model"
+
+export type Input = {
+    initial: Output,
+    range: Range
+}
 
 export default function (in: Input): Output {
-    const source = in.source
+    const source = in.initial.source
 
     const result = loop({
-        growth: in.growth,
+        growth: in.initial.growth,
         applied: false,
-        index: 0
+        index: in.range.first
     }, {
-        while: state => state.index < source.records.length,
+        while: state => state.index < in.range.end,
         next: state => {
-            const record = source.records[state.index]
-            const selected = record.owner == source.owner && record.value
+            const path = source.records.paths[state.index]
 
-            if (selected && !buffered({
+            if (!buffered({
                 types: source.types,
                 type_id: source.type_id,
-                path: record.path,
+                path,
                 inline_lists: source.inline_lists
             })) {
                 state.growth = append({
@@ -29,7 +34,7 @@ export default function (in: Input): Output {
                             "type_id"
                         ]),
                         source: source.source,
-                        path: record.path
+                        path
                     },
                     growth: state.growth
                 })
@@ -41,7 +46,7 @@ export default function (in: Input): Output {
     })
 
     return {
-        ...in,
+        ...in.initial,
         growth: result.growth,
         applied: result.applied
     }

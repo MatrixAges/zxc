@@ -4,8 +4,24 @@
 
     <Args in={Value.Input} out={Growth.Output} />
 
+    <Call
+        fn="../../uniqueness/renewals/range"
+        in={{
+            keys: $in.records.keys,
+            owner: $in.owner,
+            value: true
+        }}
+    />
+
     <Call fn="initialize" in={$in} />
-    <Call fn="execute" in={$ctx.initialize} />
+
+    <Call
+        fn="execute"
+        in={{
+            initial: $ctx.initialize,
+            range: $ctx.range
+        }}
+    />
 
     <Call
         fn="../renew/publish"

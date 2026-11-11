@@ -1,0 +1,42 @@
+import integers from "std:integer"
+
+import bound from "./bound"
+import { slot_stride, sort_owner_stride } from "./const"
+
+export type Input = {
+    keys: u64[],
+    owner: u32,
+    value: bool
+}
+
+export type Output = {
+    first: u64,
+    end: u64
+}
+
+export default function (in: Input): Output {
+    const group = integers.widen(in.owner) * (sort_owner_stride / slot_stride) +
+        (in.value ? 1 : 0)
+
+    const first = bound({
+        keys: in.keys,
+        first: 0,
+        group
+    })
+
+    if (first == in.keys.length || in.keys[first] / slot_stride != group) {
+        return {
+            first,
+            end: first
+        }
+    }
+
+    return {
+        first,
+        end: bound({
+            keys: in.keys,
+            first: first + 1,
+            group: group + 1
+        })
+    }
+}

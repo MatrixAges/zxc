@@ -75,6 +75,6 @@ pub fn owned(allocator: std.mem.Allocator, value: ir.Program) !void {
     try std.testing.expectEqual(@as(usize, 2), summary.value.uniqueness.entry.flags.len);
     for (summary.value.uniqueness.functions[0].flags) |flags| try std.testing.expectEqual(f.checks.summary.Uniqueness.Flags{}, flags);
     for (summary.value.uniqueness.entry.flags) |flags| try std.testing.expectEqual(f.checks.summary.Uniqueness.Flags{}, flags);
-    try std.testing.expectEqual(@as(usize, 0), summary.value.uniqueness.functions[0].renewals.len);
-    try std.testing.expectEqual(@as(usize, 0), summary.value.uniqueness.entry.renewals.len);
+    try std.testing.expectEqual(@as(usize, 0), summary.value.uniqueness.functions[0].renewalCount());
+    try std.testing.expectEqual(@as(usize, 0), summary.value.uniqueness.entry.renewalCount());
 }

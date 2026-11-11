@@ -1,5 +1,5 @@
 import type { Table } from "core/type_table/model"
-import type { Renewal } from "../../uniqueness/function/plan/model"
+import type { Renewals } from "../../uniqueness/renewals/model"
 import type { Input as GrowthInput, State as Growth } from "../model"
 
 export type Input = {
@@ -7,7 +7,7 @@ export type Input = {
     types: Table,
     type_id: u32,
     owner: u32,
-    records: Renewal[],
+    records: Renewals,
     inline_lists: bool
 }
 

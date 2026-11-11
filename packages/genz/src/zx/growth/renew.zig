@@ -9,9 +9,7 @@ const Input = std.meta.Child(generated.Input);
 const Source = std.meta.Child(@FieldType(Input, "source"));
 pub const Target = union(enum) { reference: node.ExpressionId, name: []const u8 };
 
-pub fn appendEntry(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: Target, paths: []const []const u32) Lower.Error!void {
-    if (paths.len == 0) return;
-
+pub fn appendEntry(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: Target, paths: []const []const u32, skipped: []const u64) Lower.Error!void {
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);
 
     var source = calls.prepare(self, .Renew, .{
@@ -33,6 +31,7 @@ pub fn appendEntry(self: *Lower, body: *std.ArrayList(node.Statement), type_id: 
         .types = &types,
         .type_id = @backingInt(type_id),
         .paths = paths,
+        .skipped = skipped,
         .name = if (target == .name) target.name else null,
         .inline_lists = if (self.iteration_value) |context| context.inline_lists else false,
     };
@@ -61,6 +60,7 @@ pub fn appendValue(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.Ex
     const Query = if (indirect) std.meta.Child(Parameter) else Parameter;
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Abi, "types")), self.program.types);
     const ValueSource = std.meta.Child(@FieldType(Abi, "source"));
+    const Records = std.meta.Child(@FieldType(Abi, "records"));
 
     var source = zx.columns.view(ValueSource, calls.prepare(self, .Renew, .{
         .element = @fromBackingInt(0),
@@ -76,12 +76,14 @@ pub fn appendValue(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.Ex
         source.capture = &boundary;
     }
 
+    const records = zx.columns.view(Records, self.plan.renewals);
+
     const input = zx.columns.view(Query, .{
         .source = @as(*const @TypeOf(source), &source),
         .types = &types,
         .type_id = @backingInt(self.program.expression(id).type_id),
         .owner = @backingInt(id),
-        .records = self.plan.renewals,
+        .records = @as(*const Records, &records),
         .inline_lists = if (self.iteration_value) |context| context.inline_lists else false,
     });
 

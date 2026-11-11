@@ -4,22 +4,14 @@ import path from "./path"
 import type { Schedule as Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    if (!in.classify && !in.inline_lists) {
-        return {
-            entries: true,
-            delayed: false,
-            immediate: in.paths
-        }
-    }
-
-    const immediate: u32[][] = []
+    const skipped: u64[] = []
 
     return loop({
-        index: 0,
+        index: in.range.first,
         delayed: false,
-        immediate
+        skipped
     }, {
-        while: state => state.index < in.paths.length,
+        while: state => state.index < in.range.end,
         next: state => {
             const selected = in.paths[state.index]
             const delay = in.classify && path({
@@ -27,23 +19,24 @@ export default function (in: Input): Output {
                 path: selected
             })
 
-            if (delay) {
-                state.delayed = true
-            } else if (!buffered({
+            const skip = delay || buffered({
                 types: in.facts.types,
                 type_id: in.facts.state_type,
                 path: selected,
                 inline_lists: in.inline_lists
-            })) {
-                state.immediate = state.immediate.push(selected)[0]
+            })
+
+            if (skip) {
+                state.skipped = state.skipped.push(state.index - in.range.first)[0]
             }
 
+            state.delayed = state.delayed || delay
             state.index += 1
         },
         return: state => ({
-            entries: true,
+            ...in.range,
             delayed: state.delayed,
-            immediate: state.immediate
+            skipped: state.skipped
         })
     })
 }

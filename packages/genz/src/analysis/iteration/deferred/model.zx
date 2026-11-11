@@ -1,6 +1,7 @@
 import type { Expressions } from "core/expression_table/model"
 import type { Table } from "core/type_table/model"
-import type { Renewal } from "../../uniqueness/function/plan/model"
+import type { Renewals } from "../../uniqueness/renewals/model"
+import type { Output as Range } from "../../uniqueness/renewals/range"
 
 export type Facts = {
     expressions: Expressions,
@@ -11,14 +12,9 @@ export type Facts = {
     state_type: u32,
 }
 
-export type Selection = {
-    records: Renewal[],
-    owner: u32
-}
-
 export type Input = {
     facts: Facts,
-    records: Renewal[],
+    records: Renewals,
     owner: u32,
     classify: bool,
     inline_lists: bool
@@ -27,12 +23,14 @@ export type Input = {
 export type Schedule = {
     facts: Facts,
     paths: u32[][],
+    range: Range,
     classify: bool,
     inline_lists: bool
 }
 
 export type Output = {
-    entries: bool,
+    first: u64,
+    end: u64,
     delayed: bool,
-    immediate: u32[][]
+    skipped: u64[]
 }

@@ -3,13 +3,12 @@ import { max_u32 } from "core/const"
 import { ExpressionKind } from "core/expression_table/kinds"
 
 import lacks from "../../level/lacks"
-import { slot_stride, value_renewal } from "../levels/const"
+import { slot_stride, sort_owner_stride } from "../../renewals/const"
+import { value_renewal } from "../levels/const"
 import query from "../levels/query"
 import value from "../levels/value"
-import { sort_owner_stride } from "./const"
-import renewal from "./renewal"
 
-import type { Stage as Input, Output, Renewal } from "./model"
+import type { Stage as Input, Selected as Output } from "./model"
 
 export default function (in: Input): Output {
     const keys: u64[] = []
@@ -77,33 +76,8 @@ export default function (in: Input): Output {
         }
     })
 
-    const renewals: Renewal[] = []
-
-    const ordered_initial = {
-        index: 0,
-        renewals
-    }
-
-    const ordered_scope = {
-        source: in.source,
-        keys: selected.keys.sort()[0]
-    }
-
-    const ordered = loop(ordered_initial, {
-        while: state => state.index < ordered_scope.keys.length,
-        next: state => {
-            state.renewals = state.renewals.push(renewal({
-                source: ordered_scope.source,
-                key: ordered_scope.keys[state.index]
-            }))[0]
-            state.index += 1
-        },
-        return: state => state.renewals
-    })
-
     return {
-        ...selected.working,
-        renewals: ordered,
-        transfers: []
+        working: selected.working,
+        keys: selected.keys.sort()[0]
     }
 }

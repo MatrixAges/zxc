@@ -44,10 +44,13 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
         const project = manifest.Project{
             .roots = switch (set) {
-                .ordered => &.{.{
+                .ordered => &.{ .{
                     .path = b.fmt("{s}/analysis/uniqueness/replay/ordered", .{directories[3]}),
                     .prefix = "genz/analysis/uniqueness/replay/ordered/",
-                }},
+                }, .{
+                    .path = b.fmt("{s}/analysis/uniqueness/renewals", .{directories[3]}),
+                    .prefix = "genz/analysis/uniqueness/renewals/",
+                } },
                 .collections => &.{ manifest_roots[2], .{
                     .path = b.fmt("{s}/analysis/state/locals", .{directories[3]}),
                     .prefix = "genz/analysis/state/locals/",
@@ -89,7 +92,12 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
             trackSources(b, run, genz_dependency.path(relative), directory) catch @panic("unable to track comparison sources");
 
-            if (set == .collections) {
+            if (set == .ordered) {
+                const renewals = "src/analysis/uniqueness/renewals";
+                const renewal_directory = genz_dependency.builder.root.joinString(b.allocator, renewals) catch @panic("out of memory");
+
+                trackSources(b, run, genz_dependency.path(renewals), renewal_directory) catch @panic("unable to track renewal sources");
+            } else {
                 trackSources(b, run, roots[2], directories[2]) catch @panic("unable to track index sources");
 
                 inline for (.{ "src/analysis/state/locals", "src/analysis/state/queries" }) |relative_state| {

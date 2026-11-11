@@ -9,11 +9,12 @@ pub const Target = renewal.Target;
 
 pub const Plan = struct {
     owner: ir.ExprId,
-    entries: bool = false,
+    first: usize = 0,
+    end: usize = 0,
     delayed: bool = false,
-    immediate: []const []const u32 = &.{},
+    skipped: []const u64 = &.{},
     pub fn needsEntries(self: Plan, lowering: *const Lower) bool {
-        if (generated) return self.entries;
+        if (generated) return self.first != self.end;
 
         for (lowering.plan.renewals) |record| {
             if (record.owner == @backingInt(self.owner) and !record.value) return true;
@@ -22,7 +23,11 @@ pub const Plan = struct {
         return false;
     }
     pub fn emit(self: Plan, lowering: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: Target) Lower.Error!void {
-        if (generated) return renewal.appendEntry(lowering, body, type_id, target, self.immediate);
+        if (generated) {
+            if (self.end - self.first == self.skipped.len) return;
+
+            return renewal.appendEntry(lowering, body, type_id, target, lowering.plan.renewals.paths[self.first..self.end], self.skipped);
+        }
 
         for (lowering.plan.renewals) |record| {
             if (record.owner == @backingInt(self.owner) and !record.value) try renew(lowering, body, type_id, target, record.path);
@@ -38,13 +43,14 @@ pub const Request = struct {
 };
 
 pub fn plan(self: *const Lower, temporary: std.mem.Allocator, request: Request) Lower.Error!Plan {
-    if (!generated or self.plan.renewals.len == 0) return .{ .owner = request.owner };
+    if (!generated or self.plan.renewals.keys.len == 0) return .{ .owner = request.owner };
 
     const entry = @import("generated_iteration_renewal_plan");
     const Parameter = @typeInfo(@TypeOf(entry.executeValue)).@"fn".param_types[1].?;
     const indirect = @typeInfo(Parameter) == .pointer;
     const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
     const Facts = std.meta.Child(@FieldType(Input, "facts"));
+    const Records = std.meta.Child(@FieldType(Input, "records"));
     const program = &self.program;
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Facts, "types")), program.types);
     const roots = if (request.classify) |iteration| [2]u32{ @backingInt(iteration.condition), @backingInt(iteration.body) } else undefined;
@@ -64,16 +70,11 @@ pub fn plan(self: *const Lower, temporary: std.mem.Allocator, request: Request) 
 
     defer scratch.deinit();
 
-    const Records = @FieldType(Input, "records");
-
-    const records = if (@typeInfo(std.meta.Child(Records)) == .pointer)
-        try zx.columns.pointers(Records, memory.allocator(), self.plan.renewals)
-    else
-        zx.columns.slice(Records, self.plan.renewals);
+    const records = zx.columns.view(Records, self.plan.renewals);
 
     const input = zx.columns.view(Input, .{
         .facts = &facts,
-        .records = records,
+        .records = @as(*const Records, &records),
         .owner = @backingInt(request.owner),
         .classify = request.classify != null,
         .inline_lists = request.inline_lists,
@@ -86,9 +87,10 @@ pub fn plan(self: *const Lower, temporary: std.mem.Allocator, request: Request) 
 
     return .{
         .owner = request.owner,
-        .entries = output.entries,
+        .first = @intCast(output.first),
+        .end = @intCast(output.end),
         .delayed = output.delayed,
-        .immediate = if (output.immediate.len == 0) &.{} else try temporary.dupe([]const u32, output.immediate),
+        .skipped = if (output.skipped.len == 0) &.{} else try temporary.dupe(u64, output.skipped),
     };
 }
 

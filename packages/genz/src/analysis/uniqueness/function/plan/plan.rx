@@ -46,7 +46,7 @@
     />
 
     <Call
-        fn="renewals"
+        fn="renewal_keys"
         in={{
             source: $in,
             working: $ctx.buffers
@@ -54,16 +54,28 @@
     />
 
     <Call
+        fn="renewal_paths"
+        in={{
+            source: $in,
+            keys: $ctx.renewal_keys.keys
+        }}
+    />
+
+    <Call
         fn="../transfer/build"
         in={{
             source: $in,
-            flags: $ctx.renewals.flags
+            flags: $ctx.renewal_keys.working.flags
         }}
     />
 
     <Return
         value={{
-            ...$ctx.renewals,
+            ...$ctx.renewal_keys.working,
+            renewals: {
+                keys: $ctx.renewal_keys.keys,
+                paths: $ctx.renewal_paths
+            },
             transfers: $ctx.build
         }}
     />

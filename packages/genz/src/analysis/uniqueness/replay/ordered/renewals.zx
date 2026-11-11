@@ -1,16 +1,17 @@
+import { slot_stride } from "../../renewals/const"
 import integers from "./integers"
 
-import type { Renewal } from "./model"
+import type { Renewals } from "../../renewals/model"
 
 export type Input = {
-    left: Renewal[],
-    right: Renewal[]
+    left: Renewals,
+    right: Renewals
 }
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (in.left.length != in.right.length) {
+    if (in.left.keys.length != in.right.keys.length) {
         return false
     }
 
@@ -18,15 +19,16 @@ export default function (in: Input): Output {
         index: 0,
         equal: true
     }, {
-        while: state => state.equal && state.index < in.left.length,
+        while: state => state.equal && state.index < in.left.keys.length,
         next: state => {
-            const left = in.left[state.index]
-            const right = in.right[state.index]
+            const index = state.index
+            const left = in.left.keys[index] / slot_stride
+            const right = in.right.keys[index] / slot_stride
 
-            state.equal = left.owner == right.owner && integers({
-                left: left.path,
-                right: right.path
-            }) && left.value == right.value
+            state.equal = left == right && integers({
+                left: in.left.paths[index],
+                right: in.right.paths[index]
+            })
             state.index += 1
         },
         return: state => state.equal

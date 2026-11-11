@@ -10,6 +10,7 @@ const Sites = @import("sites.zig");
 const Pool = @import("pool.zig");
 const Ahead = @import("ahead.zig");
 const Topology = @import("topology.zig");
+const renewals = @import("renewals.zig");
 pub const Basis = @import("basis.zig");
 pub const Slots = @import("slots.zig");
 pub const Summaries = @import("summaries.zig");
@@ -23,13 +24,19 @@ pub const Renewals = Function.Renewals;
 
 pub const Plan = struct {
     flags: []const Flags,
-    renewals: Renewals = &.{},
+    renewals: Renewals = renewals.empty,
     transfers: []const u64 = &.{},
     slot_first: []const u32 = &.{},
     pub fn get(self: Plan, id: ir.ExprId) Flags {
         const index = @backingInt(id);
 
         return if (index < self.flags.len) self.flags[index] else .{};
+    }
+    pub fn renewalCount(self: Plan) usize {
+        return renewals.count(self.renewals);
+    }
+    pub fn renewalAt(self: Plan, index: usize) Renewal {
+        return renewals.at(self.renewals, index);
     }
 };
 
