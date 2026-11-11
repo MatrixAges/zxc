@@ -21,6 +21,18 @@
         }}
     />
 
+    <If on={$in.mode == Result.Mode.Buffered && $ctx.traverse.valid}>
+        <Call
+            fn="schedule"
+            in={{
+                source: $in,
+                state: $ctx.traverse
+            }}
+        />
+
+        <Return value={$ctx.schedule} />
+    </If>
+
     <Call
         fn="publish"
         in={{

@@ -57,7 +57,9 @@ export default function (in: Input): Output {
         }
     }
 
-    if (in.mode == Mode.Plan && is_primitive) {
+    const returning = in.mode == Mode.Plan || in.mode == Mode.Buffered
+
+    if (returning && is_primitive) {
         return {
             traverse: false,
             primitive: true,

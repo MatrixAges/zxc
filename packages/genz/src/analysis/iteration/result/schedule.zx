@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import { kind_list } from "core/type_table/const"
+
+import reuse from "./reuse"
+
+import type { Step as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const { source, state } = in
+
+    const transfers: u32[] = []
+    const reuses: u64?[] = []
+    const reads: u32[] = []
+    const owners: u64[] = []
+
+    return loop({
+        transfers,
+        reuses,
+        reads,
+        owners,
+        position: 0
+    }, {
+        while: current => current.position < state.projections.length,
+        next: current => {
+            const id = state.projections[current.position]
+            const type_id = source.table.types[integers.widen(id)]
+
+            if (source.types.kinds[integers.widen(type_id)] == kind_list) {
+                const prior = reuse({
+                    paths: state,
+                    owners: current.owners,
+                    position: current.position
+                })
+
+                current.transfers = current.transfers.push(id)[0]
+                current.reuses = current.reuses.push(prior)[0]
+
+                if (prior == null) {
+                    current.owners = current.owners.push(current.position)[0]
+                }
+            } else {
+                current.reads = current.reads.push(id)[0]
+            }
+
+            current.position += 1
+        },
+        return: current => ({
+            ...current.pick([
+                "transfers",
+                "reuses",
+                "reads"
+            ]),
+            projections: state.projections,
+            transfer_count: current.owners.length,
+            primitive: false,
+            valid: state.valid
+        })
+    })
+}

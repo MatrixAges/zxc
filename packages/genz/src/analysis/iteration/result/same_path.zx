@@ -1,0 +1,25 @@
+export type Input = {
+    steps: u32[],
+    first: u64,
+    other: u64,
+    count: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        equal: true
+    }, {
+        while: current => current.equal && current.index < in.count,
+        next: current => {
+            const left = in.steps[in.first + current.index]
+            const right = in.steps[in.other + current.index]
+
+            current.equal = left == right
+            current.index += 1
+        },
+        return: current => current.equal
+    })
+}

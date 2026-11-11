@@ -70,8 +70,10 @@ pub fn buffered(context: *@import("root.zig"), body: *std.ArrayList(node.Stateme
     var buffered_allocator = std.heap.BufferFirstAllocator.init(&buffer, scratch.allocator());
 
     defer scratch.deinit();
+    std.debug.assert(context.inline_lists);
 
-    const plan = try planning.analyze(buffered_allocator.allocator(), &lowering.program, &lowering.cache, selected, .Plan, false);
+    const temporary = buffered_allocator.allocator();
+    const plan = try planning.analyze(temporary, &lowering.program, &lowering.cache, selected, .Buffered, false);
 
     if (plan.primitive) return projection.read(context, selected, selected.result, state);
 
@@ -83,31 +85,28 @@ pub fn buffered(context: *@import("root.zig"), body: *std.ArrayList(node.Stateme
         _ = lowering.cache.remove(id);
     };
 
-    const Transfer = struct { path: []const u32, value: node.ExpressionId };
-    var transferred: std.ArrayList(Transfer) = .empty;
+    const transferred = try temporary.alloc(node.ExpressionId, @intCast(plan.transfer_count));
+    var count: usize = 0;
 
-    for (projections, 0..) |id, position| {
-        const type_id = lowering.program.expression(id).type_id;
-
-        if (!context.buffered(type_id)) continue;
-
+    for (plan.transfers, plan.reuses) |raw, reuse| {
+        const id: ir.ExprId = @fromBackingInt(raw);
         const value = try projection.read(context, selected, id, state);
-        const first: usize = @intCast(plan.path_first[position]);
-        const count: usize = @intCast(plan.path_count[position]);
-        const path = plan.path_steps[first..][0..count];
 
-        const shared = for (transferred.items) |previous| {
-            if (std.mem.eql(u32, previous.path, path)) break previous.value;
-        } else null;
+        const result = if (reuse) |slot| transferred[@intCast(slot)] else first: {
+            const type_id = lowering.program.expression(id).type_id;
+            const result = try @import("transfer.zig").lower(context, body, type_id, value);
+            transferred[count] = context.transfers.at(context.transfers.len() - 1).value;
+            count += 1;
 
-        const result = shared orelse try @import("transfer.zig").lower(context, body, type_id, value);
+            break :first result;
+        };
 
-        if (shared == null) try transferred.append(lowering.allocator, .{ .path = path, .value = context.transfers.at(context.transfers.len() - 1).value });
         try lowering.cache.put(lowering.allocator, id, result);
     }
 
-    for (projections) |id| {
-        if (context.buffered(lowering.program.expression(id).type_id)) continue;
+    for (plan.reads) |raw| {
+        const id: ir.ExprId = @fromBackingInt(raw);
+
         try lowering.cache.put(lowering.allocator, id, try projection.read(context, selected, id, state));
     }
 

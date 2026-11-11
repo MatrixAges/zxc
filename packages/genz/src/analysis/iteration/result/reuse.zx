@@ -1,0 +1,40 @@
+import samePath from "./same_path"
+
+import type { Walk } from "./model"
+
+export type Input = {
+    paths: Walk,
+    owners: u64[],
+    position: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const found: u64? = null
+    const paths = in.paths
+    const first = paths.path_first[in.position]
+    const count = paths.path_count[in.position]
+
+    return loop({
+        index: 0,
+        found
+    }, {
+        while: current => current.found == null && current.index < in.owners.length,
+        next: current => {
+            const owner = in.owners[current.index]
+
+            if (paths.path_count[owner] == count && samePath({
+                steps: paths.path_steps,
+                first,
+                other: paths.path_first[owner],
+                count
+            })) {
+                current.found = current.index
+            }
+
+            current.index += 1
+        },
+        return: current => current.found
+    })
+}

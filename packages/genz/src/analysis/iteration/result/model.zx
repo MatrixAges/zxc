@@ -3,7 +3,7 @@ import type { Index } from "core/integer/index/model"
 import type { State as Cache } from "core/integer/map/model"
 import type { Table } from "core/type_table/model"
 
-export enum Mode { Eligible, Candidate, Plan }
+export enum Mode { Eligible, Candidate, Plan, Buffered }
 
 export type Input = {
     types: Table,
@@ -25,9 +25,10 @@ export type Output = {
     primitive: bool,
     valid: bool,
     projections: u32[],
-    path_first: u64[],
-    path_count: u64[],
-    path_steps: u32[]
+    transfers: u32[],
+    reuses: u64?[],
+    reads: u32[],
+    transfer_count: u64
 }
 
 export type Walk = {

@@ -4,8 +4,9 @@ export default function (in: Input): Output {
     return {
         ...in.omit(["traverse"]),
         projections: [],
-        path_first: [],
-        path_count: [],
-        path_steps: []
+        transfers: [],
+        reuses: [],
+        reads: [],
+        transfer_count: 0
     }
 }
