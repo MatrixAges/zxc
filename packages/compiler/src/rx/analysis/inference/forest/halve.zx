@@ -1,0 +1,24 @@
+import integers from "std:integer"
+
+export type Input = {
+    parents: u32[],
+    item: u32,
+    parent: u32
+}
+
+export type Output = Input
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.item != state.parent,
+        next: state => {
+            const index = integers.widen(state.item)
+            const grandparent = state.parents[integers.widen(state.parent)]
+
+            state.parents[index] = grandparent
+            state.item = grandparent
+            state.parent = state.parents[integers.widen(grandparent)]
+        },
+        return: state => state
+    })
+}

@@ -1,0 +1,20 @@
+import integers from "std:integer"
+
+export type Input = {
+    parents: u32[],
+    parent: u32,
+    child: u32
+}
+
+export type Output = Input
+
+export default function (in: Input): Output {
+    if (in.parent == in.child) {
+        return in
+    }
+
+    return {
+        ...in,
+        parents: in.parents.with(integers.widen(in.child), in.parent)
+    }
+}

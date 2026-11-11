@@ -10,7 +10,7 @@ pub const Mask = Scalar.Mask;
 pub const Fields = @import("fields.zig");
 pub const Field = Fields.Field;
 pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: Fields, list: Id, optional: Id, tuple: []const Id };
-pub const Node = struct { parent: Id, shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
+pub const Node = struct { shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
 
 const Projection = struct { target: Id, value: Id, span: zx.Span };
 const ValueUse = struct { value: Id, span: zx.Span };
@@ -22,6 +22,7 @@ scratch: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
 nodes: std.ArrayList(Node) = .empty,
+forest: @import("forest.zig") = .{},
 lengths: std.ArrayList(Projection) = .empty,
 indexes: std.ArrayList(@import("index.zig").Projection) = .empty,
 value_uses: std.ArrayList(ValueUse) = .empty,
@@ -51,7 +52,10 @@ pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, reporter: 
 pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
     const id: Id = @fromBackingInt(@intCast(self.nodes.items.len));
 
-    try self.nodes.append(self.allocator, .{ .parent = id, .shape = initial_shape, .span = span });
+    try self.nodes.ensureUnusedCapacity(self.allocator, 1);
+    try self.forest.append(self.allocator, id);
+
+    self.nodes.appendAssumeCapacity(.{ .shape = initial_shape, .span = span });
 
     return id;
 }
@@ -70,22 +74,8 @@ pub fn scalar(self: *Self, value: zx.ir.Scalar, span: zx.Span) zx.Error!Id {
     return self.known(Types.scalarId(value), span);
 }
 
-/// Path halving keeps union-find chains short; parent links are a cache, so a const receiver may rewrite them.
 pub fn root(self: *const Self, id: Id) Id {
-    const nodes = self.nodes.items;
-    var current = id;
-
-    while (true) {
-        const parent = nodes[@backingInt(current)].parent;
-
-        if (parent == current) return current;
-
-        const grandparent = nodes[@backingInt(parent)].parent;
-
-        nodes[@backingInt(current)].parent = grandparent;
-
-        current = grandparent;
-    }
+    return self.forest.root(id);
 }
 
 pub fn shape(self: *const Self, id: Id) Shape {

@@ -24,7 +24,7 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
 
     self.nodes.items[@backingInt(a)].shape = shape;
     self.nodes.items[@backingInt(a)].fallback = constraints.fallback;
-    self.nodes.items[@backingInt(b)].parent = a;
+    self.forest.connect(a, b);
 
     self.revision += 1;
     self.object_revision += 1;

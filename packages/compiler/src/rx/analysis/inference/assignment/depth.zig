@@ -26,7 +26,9 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
             .optional => {
                 depth.* = 1;
                 fact.* = .Optional;
-                optional_count += @intFromBool(@backingInt(node.parent) == index);
+
+                const id: Graph.Id = @fromBackingInt(@intCast(index));
+                optional_count += @intFromBool(graph.forest.parent(id) == id);
             },
             .unknown => if (node.allowed == null) {
                 fact.* = .Open;
@@ -47,7 +49,11 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     var position: usize = 0;
 
     for (nodes, 0..) |node, index| {
-        if (node.shape != .optional or @backingInt(node.parent) != index) continue;
+        if (node.shape != .optional) continue;
+
+        const id: Graph.Id = @fromBackingInt(@intCast(index));
+
+        if (graph.forest.parent(id) != id) continue;
 
         left[position] = @backingInt(graph.root(node.shape.optional));
         right[position] = @intCast(index);
