@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Envelope" />
+
+    <Args in={Envelope.Seal} out={void} />
+
+    <Call
+        fn="digest"
+        in={{
+            source: $in.payload,
+            start: 0
+        }}
+    />
+
+    <Call
+        fn="header"
+        in={{
+            ...$in.pick([
+                "writer",
+                "compiler"
+            ]),
+            digest: $ctx.digest
+        }}
+    />
+</Module>

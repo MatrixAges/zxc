@@ -1,0 +1,40 @@
+import type { Writer } from "std:bytes"
+
+export type Layout = {
+    compiler_start: u64,
+    digest_start: u64,
+    payload_start: u64
+}
+
+export type Open = {
+    source: string,
+    compiler: u8[]
+}
+
+export type Inspect = {
+    source: string,
+    compiler: u8[],
+    layout: Layout
+}
+
+export type Digest = {
+    source: string,
+    start: u64
+}
+
+export type Content = {
+    source: string,
+    layout: Layout
+}
+
+export type Seal = {
+    writer: Writer,
+    compiler: u8[],
+    payload: string
+}
+
+export type Header = {
+    writer: Writer,
+    compiler: u8[],
+    digest: string
+}

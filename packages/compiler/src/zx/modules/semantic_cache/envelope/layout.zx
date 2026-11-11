@@ -1,0 +1,17 @@
+import { digest_width, marker, newline_width } from "./const"
+
+import type { Layout as Output } from "./model"
+
+export type Input = u64
+
+export default function (in: Input): Output {
+    const compiler_start = marker.length
+    const digest_start = compiler_start + in + newline_width
+    const payload_start = digest_start + digest_width + newline_width
+
+    return {
+        compiler_start,
+        digest_start,
+        payload_start
+    }
+}

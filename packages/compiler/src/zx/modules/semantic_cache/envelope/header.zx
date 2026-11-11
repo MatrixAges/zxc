@@ -1,0 +1,17 @@
+import bytes from "std:bytes"
+
+import { marker, newline } from "./const"
+
+import type { Header as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, compiler, digest } = in
+
+    bytes.write(writer, bytes.fromText(marker))
+    bytes.write(writer, compiler)
+    bytes.writeByte(writer, newline)
+    bytes.write(writer, bytes.fromText(digest))
+    bytes.writeByte(writer, newline)
+}

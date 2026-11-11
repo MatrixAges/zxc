@@ -1,0 +1,14 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+import encoding from "std:encoding"
+
+import type { Digest as Input } from "./model"
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const payload = encoding.sliceBytes(in.source, in.start, in.source.length)
+    const digest = crypto.sha256(bytes.fromText(payload))
+
+    return encoding.encodeHex(digest)
+}

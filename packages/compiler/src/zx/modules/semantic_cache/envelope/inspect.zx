@@ -1,0 +1,28 @@
+import bytes from "std:bytes"
+
+import { marker, newline, newline_width } from "./const"
+
+import type { Inspect as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { layout } = in
+
+    const source = bytes.fromText(in.source)
+
+    if (source.length < layout.payload_start) {
+        return false
+    }
+
+    const version_ok = bytes.startsWithText(source, 0, marker)
+    const compiler_ok = bytes.startsWith(source, layout.compiler_start, in.compiler)
+    const compiler_end = layout.digest_start - newline_width
+    const digest_end = layout.payload_start - newline_width
+    const compiler_separator = source[compiler_end]
+    const digest_separator = source[digest_end]
+
+    const separators_ok = compiler_separator == newline && digest_separator == newline
+
+    return version_ok && compiler_ok && separators_ok
+}

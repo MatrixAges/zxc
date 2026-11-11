@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Envelope" />
+
+    <Args in={Envelope.Open} out={u64?} />
+
+    <Call fn="layout" in={$in.compiler.length} />
+
+    <Call
+        fn="inspect"
+        in={{
+            ...$in,
+            layout: $ctx.layout
+        }}
+    />
+
+    <If on={!$ctx.inspect}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="content"
+        in={{
+            source: $in.source,
+            layout: $ctx.layout
+        }}
+    />
+
+    <If on={!$ctx.content}>
+        <Return value={null} />
+    </If>
+
+    <Return value={$ctx.layout.payload_start} />
+</Module>
