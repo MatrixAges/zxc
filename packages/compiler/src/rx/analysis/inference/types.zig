@@ -13,6 +13,7 @@ const ValueUse = struct { value: Id, span: zx.Span };
 const Assignment = @import("assignment.zig");
 
 allocator: std.mem.Allocator,
+scratch: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
 nodes: std.ArrayList(Node) = .empty,
@@ -29,7 +30,7 @@ sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.ArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
 revision: usize = 0,
-pub fn init(allocator: std.mem.Allocator, reporter: *zx.Reporter, existing: zx.ir.TypeTable) zx.Error!Self {
+pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, reporter: *zx.Reporter, existing: zx.ir.TypeTable) zx.Error!Self {
     if (existing.count() != 0 and !@import("frontend").validateTypes(existing)) return reporter.fail(.contract, .{ .start = 0, .end = 0 }, "invalid inference type table");
 
     var types = Types{ .allocator = allocator, .reporter = reporter, .declarations = &.{} };
@@ -37,7 +38,7 @@ pub fn init(allocator: std.mem.Allocator, reporter: *zx.Reporter, existing: zx.i
     try types.items.appendDelta(allocator, try @import("frontend").type_table.copy(allocator, existing));
     try types.initialize();
 
-    return .{ .allocator = allocator, .reporter = reporter, .types = types };
+    return .{ .allocator = allocator, .scratch = scratch, .reporter = reporter, .types = types };
 }
 
 pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
@@ -213,6 +214,10 @@ pub fn payload(self: *Self, id: Id, kind: enum { list, optional }, span: zx.Span
 }
 
 pub fn finish(self: *Self) zx.Error!void {
+    var workspace = std.heap.ArenaAllocator.init(self.scratch);
+
+    defer workspace.deinit();
+
     while (true) {
         const revision = self.revision;
 
@@ -238,14 +243,15 @@ pub fn finish(self: *Self) zx.Error!void {
 
         if (revision != self.revision) continue;
 
-        const base = try Assignment.Base.init(self);
-
-        defer base.deinit(self.allocator);
+        _ = workspace.reset(.retain_capacity);
+        const scratch = workspace.allocator();
+        const base = try Assignment.Base.init(self, scratch);
 
         try base.propagate(self);
+
         if (revision != self.revision) continue;
         if (try @import("sequences.zig").defaultLists(self, base)) continue;
-        try Assignment.materialize(self, base);
+        try Assignment.materialize(self, base, scratch);
         if (revision != self.revision) continue;
         if (try @import("index.zig").defaultLists(self)) continue;
         try @import("non_null.zig").propagate(self, true);

@@ -1,0 +1,39 @@
+export enum Fact {
+    Open,
+    Optional,
+    Exact
+}
+
+export enum Issue {
+    None,
+    Bounds,
+    OptionalToRequired,
+    Recursive
+}
+
+export enum Stage {
+    Minimum,
+    PinPreferred,
+    Maximum,
+    PinKnown,
+    Final,
+    Done
+}
+
+export type Edges = {
+    left: u32[],
+    right: u32[],
+    assignments: u64
+}
+
+export type Input = {
+    facts: Fact[],
+    depths: u64[],
+    edges: Edges
+}
+
+export type Output = {
+    depths: u64[],
+    issue: Issue,
+    position: u64
+}

@@ -1,0 +1,42 @@
+import root from "./root"
+
+import type { Output as Classes } from "./model"
+
+export type Input = {
+    parents: u64[],
+    payloads: u64[],
+    candidates: bool[]
+}
+
+export type Output = Classes
+
+export default function (in: Input): Output {
+    const parents = in.parents.map((item, index) => root({
+        parents: in.parents,
+        item: index
+    }))[0]
+
+    const empty: u64? = null
+
+    const representatives = loop({
+        values: in.parents.map(item => empty)[0],
+        index: 0
+    }, {
+        while: state => state.index < in.payloads.length,
+        next: state => {
+            if (in.candidates[state.index]) {
+                const payload = in.payloads[state.index]
+
+                state.values[parents[payload]] = payload
+            }
+
+            state.index += 1
+        },
+        return: state => state.values
+    })
+
+    return {
+        parents,
+        representatives
+    }
+}

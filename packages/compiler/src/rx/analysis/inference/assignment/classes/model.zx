@@ -1,0 +1,15 @@
+export type Edges = {
+    left: u64[],
+    right: u64[]
+}
+
+export type Input = {
+    payloads: u64[],
+    candidates: bool[],
+    edges: Edges
+}
+
+export type Output = {
+    parents: u64[],
+    representatives: u64?[]
+}

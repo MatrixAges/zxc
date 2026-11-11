@@ -1,0 +1,147 @@
+import integers from "std:integer"
+import { max_u64 } from "core/const"
+
+import { Fact, Issue, Stage } from "./model"
+
+import type { Input as Problem, Output as Solution } from "./model"
+
+export type Input = Problem
+
+export type Output = Solution
+
+export default function (in: Input): Output {
+    return loop({
+        lower: in.depths.map(depth => depth)[0],
+        upper: in.depths.map(
+            (depth, index) =>
+                in.facts[index] == Fact.Exact ? depth : max_u64
+        )[0],
+        prefer_lower: in.facts.map(fact => fact != Fact.Open)[0],
+        stage: Stage.Minimum,
+        issue: Issue.None,
+        position: 0,
+        rounds: 0,
+        forward: true,
+        changed: false
+    }, {
+        while: state => state.stage != Stage.Done && state.issue == Issue.None,
+        next: state => {
+            const pin_preferred = state.stage == Stage.PinPreferred
+            const pin_known = state.stage == Stage.PinKnown
+
+            if (pin_preferred || pin_known) {
+                if (state.position == state.lower.length) {
+                    state.position = 0
+                    state.stage = pin_preferred ? Stage.Maximum : Stage.Final
+                } else {
+                    const index = state.position
+
+                    if (pin_preferred && state.prefer_lower[index]) {
+                        const lower = state.lower[index]
+
+                        state.upper[index] = lower
+                    }
+
+                    if (pin_known && state.upper[index] != max_u64) {
+                        const upper = state.upper[index]
+
+                        state.lower[index] = upper
+                    }
+
+                    state.position += 1
+                }
+            } else {
+                if (state.position == in.edges.left.length) {
+                    if (state.changed) {
+                        state.rounds += 1
+
+                        if (state.rounds > state.lower.length) {
+                            state.issue = Issue.Recursive
+                        }
+                    } else {
+                        state.rounds = 0
+                        state.stage = match state.stage {
+                            Stage.Minimum => Stage.PinPreferred,
+                            Stage.Maximum => Stage.PinKnown,
+                            _ => Stage.Done
+                        }
+                    }
+
+                    state.position = 0
+                    state.changed = false
+                } else {
+                    const left = integers.widen(in.edges.left[state.position])
+                    const right = integers.widen(in.edges.right[state.position])
+                    const optional = state.position >= in.edges.assignments
+                    const forward = state.forward
+                    const owner = forward ? right : left
+                    const neighbor = forward ? left : right
+                    const other_lower = state.lower[neighbor]
+                    const other_upper = state.upper[neighbor]
+                    const cannot_fit = (
+                        - !forward
+                        - and optional
+                        - and other_upper == 0
+                    )
+
+                    if (cannot_fit) {
+                        state.issue = Issue.OptionalToRequired
+                    } else {
+                        const minimum = match {
+                            forward && optional => other_lower + 1,
+                            forward => other_lower,
+                            optional => other_lower - 1,
+                            _ => 0
+                        }
+                        const maximum = match {
+                            other_upper == max_u64 => max_u64,
+                            forward && optional => other_upper + 1,
+                            forward => max_u64,
+                            optional => other_upper - 1,
+                            _ => other_upper
+                        }
+
+                        if (state.lower[owner] < minimum) {
+                            state.lower[owner] = minimum
+                            state.changed = true
+                        }
+
+                        if (state.upper[owner] > maximum) {
+                            state.upper[owner] = maximum
+                            state.changed = true
+                        }
+
+                        const preferred = forward || optional
+
+                        if (preferred && state.prefer_lower[neighbor]) {
+                            if (!state.prefer_lower[owner]) {
+                                state.prefer_lower[owner] = true
+                                state.changed = true
+                            }
+                        }
+
+                        state.forward = !forward
+
+                        if (!forward) {
+                            const left_conflict =
+                                state.lower[left] > state.upper[left]
+                            const right_conflict =
+                                state.lower[right] > state.upper[right]
+
+                            if (left_conflict || right_conflict) {
+                                state.issue = Issue.Bounds
+                            } else {
+                                state.position += 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        return: state => ({
+            depths: state.lower,
+            issue: state.issue,
+            position: state.position
+        })
+    })
+}

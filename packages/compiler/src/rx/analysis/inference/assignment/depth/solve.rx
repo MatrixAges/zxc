@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="OptionalDepth" />
+
+    <Args in={OptionalDepth.Input} out={OptionalDepth.Output} />
+
+    <If on={$in.edges.left.length == 0}>
+        <Return
+            value={{
+                depths: $in.depths,
+                issue: OptionalDepth.Issue.None,
+                position: 0
+            }}
+        />
+    </If>
+
+    <Call fn="settle" in={$in} />
+
+    <Return value={$ctx.settle} />
+</Module>

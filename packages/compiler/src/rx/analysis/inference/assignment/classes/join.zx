@@ -1,0 +1,48 @@
+import root from "./root"
+
+import type { Edges } from "./model"
+
+export type Input = {
+    payloads: u64[],
+    edges: Edges
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    return loop({
+        parents: in.payloads.map((item, index) => index)[0],
+        ranks: in.payloads.map(item => 0)[0],
+        edge: 0
+    }, {
+        while: state => state.edge < in.edges.left.length,
+        next: state => {
+            const left = root({
+                parents: state.parents,
+                item: in.payloads[in.edges.left[state.edge]]
+            })
+            const right = root({
+                parents: state.parents,
+                item: in.payloads[in.edges.right[state.edge]]
+            })
+
+            if (left != right) {
+                const left_rank = state.ranks[left]
+                const right_rank = state.ranks[right]
+
+                if (left_rank < right_rank) {
+                    state.parents[left] = right
+                } else {
+                    state.parents[right] = left
+
+                    if (left_rank == right_rank) {
+                        state.ranks[left] += 1
+                    }
+                }
+            }
+
+            state.edge += 1
+        },
+        return: state => state.parents
+    })
+}

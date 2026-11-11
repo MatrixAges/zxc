@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="AssignmentClasses" />
+
+    <Args in={AssignmentClasses.Input} out={AssignmentClasses.Output} />
+
+    <Call
+        fn="join"
+        in={{
+            payloads: $in.payloads,
+            edges: $in.edges
+        }}
+    />
+
+    <Call
+        fn="representatives"
+        in={{
+            parents: $ctx.join,
+            payloads: $in.payloads,
+            candidates: $in.candidates
+        }}
+    />
+
+    <Return value={$ctx.representatives} />
+</Module>

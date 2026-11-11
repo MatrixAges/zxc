@@ -1,15 +1,14 @@
+const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
 pub const Base = @import("assignment/base.zig");
 pub const Edge = struct { value: Graph.Id, expected: Graph.Id, span: zx.Span };
 
-pub fn materialize(graph: *Graph, base: Base) zx.Error!void {
-    const depths = try @import("assignment/depth.zig").solve(graph);
-
-    defer graph.allocator.free(depths);
+pub fn materialize(graph: *Graph, base: Base, scratch: std.mem.Allocator) zx.Error!void {
+    const depths = try @import("assignment/depth.zig").solve(graph, scratch);
 
     for (0..depths.len) |index| {
-        const id: Graph.Id = @enumFromInt(index);
+        const id: Graph.Id = @fromBackingInt(@intCast(index));
 
         if (graph.root(id) != id) continue;
 
@@ -19,8 +18,9 @@ pub fn materialize(graph: *Graph, base: Base) zx.Error!void {
         if (@import("index.zig").isResult(graph, id)) continue;
 
         var value = (try base.representative(graph, id)) orelse continue;
+        const depth: usize = @intCast(depths[index]);
 
-        for (0..depths[index]) |_| value = try graph.add(.{ .optional = value }, node.span);
+        for (0..depth) |_| value = try graph.add(.{ .optional = value }, node.span);
         try graph.unify(id, value, node.span);
     }
 }

@@ -1,123 +1,82 @@
+const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("../types.zig");
-const Bound = struct { lower: usize = 0, upper: ?usize = null, prefer_lower: bool = false };
 
-pub fn solve(graph: *Graph) zx.Error![]usize {
-    const bounds = try graph.allocator.alloc(Bound, graph.nodes.items.len);
+pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
+    if (!@import("rx_options").generated_graph) return @import("depth/seed.zig").solve(graph, scratch);
 
-    defer graph.allocator.free(bounds);
-    @memset(bounds, .{});
+    const generated = @import("generated_assignment_depth");
+    const Input = @typeInfo(generated.Input).pointer.child;
+    const Fact = std.meta.Elem(@FieldType(Input, "facts"));
+    const nodes = graph.nodes.items;
+    const depths = try scratch.alloc(u64, nodes.len);
+    const facts = try scratch.alloc(Fact, nodes.len);
+    var optional_count: usize = 0;
 
-    for (graph.nodes.items, bounds) |node, *bound| {
+    for (nodes, depths, facts, 0..) |node, *depth, *fact, index| {
+        depth.* = 0;
+        fact.* = .Exact;
+
         switch (node.shape) {
             .known => |id| {
-                var current = id;
-                var depth: usize = 0;
+                var current = graph.types.get(id);
 
-                while (graph.types.get(current) == .optional) : (depth += 1) current = graph.types.get(current).optional;
-
-                bound.* = .{ .lower = depth, .upper = depth, .prefer_lower = true };
+                while (current == .optional) : (depth.* += 1) current = graph.types.get(current.optional);
             },
-            .optional => bound.* = .{ .lower = 1, .prefer_lower = true },
-            .unknown => if (node.allowed != null) {
-                bound.* = .{ .upper = 0, .prefer_lower = true };
+            .optional => {
+                depth.* = 1;
+                fact.* = .Optional;
+                optional_count += @intFromBool(@backingInt(node.parent) == index);
             },
-            else => bound.* = .{ .upper = 0, .prefer_lower = true },
+            .unknown => if (node.allowed == null) {
+                fact.* = .Open;
+            },
+            else => {},
         }
     }
 
-    try propagate(graph, bounds);
+    const assignments = graph.assignments.items;
+    const left = try scratch.alloc(u32, assignments.len + optional_count);
+    const right = try scratch.alloc(u32, left.len);
 
-    for (bounds) |*bound| {
-        if (bound.prefer_lower) bound.upper = bound.lower;
+    for (assignments, left[0..assignments.len], right[0..assignments.len]) |edge, *value, *expected| {
+        value.* = @backingInt(graph.root(edge.value));
+        expected.* = @backingInt(graph.root(edge.expected));
     }
 
-    try propagate(graph, bounds);
+    var position = assignments.len;
 
-    for (bounds) |*bound| {
-        if (bound.upper) |upper| bound.lower = upper;
+    for (nodes, 0..) |node, index| {
+        if (node.shape != .optional or @backingInt(node.parent) != index) continue;
+
+        left[position] = @backingInt(graph.root(node.shape.optional));
+        right[position] = @intCast(index);
+        position += 1;
     }
 
-    try propagate(graph, bounds);
+    const solution = generated.executeValue(scratch, &.{
+        .facts = facts,
+        .depths = depths,
+        .edges = &.{ .left = left, .right = right, .assignments = assignments.len },
+    }) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+        error.IndexOutOfBounds => unreachable,
+    };
 
-    const result = try graph.allocator.alloc(usize, bounds.len);
-
-    for (result, bounds) |*value, bound| value.* = bound.lower;
-
-    return result;
+    return switch (solution.issue) {
+        .None => solution.depths,
+        .Bounds, .OptionalToRequired => failure(graph, right, @intCast(solution.position), switch (solution.issue) {
+            .Bounds => "incompatible optional input requirements",
+            .OptionalToRequired => "optional input cannot satisfy a non-optional requirement",
+            else => unreachable,
+        }),
+        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments[0].span else nodes[0].span, "inference would require a recursive optional type"),
+    };
 }
 
-fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
-    for (0..bounds.len + 1) |_| {
-        var changed = false;
+fn failure(graph: *Graph, parents: []const u32, position: usize, message: []const u8) zx.Error {
+    const assignments = graph.assignments.items;
+    const span = if (position < assignments.len) assignments[position].span else graph.nodes.items[parents[position]].span;
 
-        for (graph.assignments.items) |edge| {
-            const actual = &bounds[@intFromEnum(graph.root(edge.value))];
-            const expected = &bounds[@intFromEnum(graph.root(edge.expected))];
-            changed = raise(expected, actual.lower) or changed;
-            changed = lower(actual, expected.upper) or changed;
-
-            if (actual.prefer_lower and !expected.prefer_lower) {
-                expected.prefer_lower = true;
-                changed = true;
-            }
-
-            try check(graph, actual.*, edge.span);
-            try check(graph, expected.*, edge.span);
-        }
-
-        for (graph.nodes.items, 0..) |node, index| {
-            if (graph.root(@enumFromInt(index)) != @as(Graph.Id, @enumFromInt(index)) or node.shape != .optional) continue;
-
-            const parent = &bounds[index];
-            const child = &bounds[@intFromEnum(graph.root(node.shape.optional))];
-            changed = raise(parent, child.lower + 1) or changed;
-            changed = raise(child, parent.lower - 1) or changed;
-
-            if (child.upper) |upper| changed = lower(parent, upper + 1) or changed;
-
-            if (parent.upper) |upper| {
-                if (upper == 0) return graph.reporter.fail(.type_mismatch, node.span, "optional input cannot satisfy a non-optional requirement");
-
-                changed = lower(child, upper - 1) or changed;
-            }
-
-            if (parent.prefer_lower != child.prefer_lower) {
-                parent.prefer_lower = true;
-                child.prefer_lower = true;
-                changed = true;
-            }
-
-            try check(graph, parent.*, node.span);
-            try check(graph, child.*, node.span);
-        }
-
-        if (!changed) return;
-    }
-
-    const span = if (graph.assignments.items.len != 0) graph.assignments.items[0].span else graph.nodes.items[0].span;
-
-    return graph.reporter.fail(.type_mismatch, span, "inference would require a recursive optional type");
-}
-
-fn raise(bound: *Bound, value: usize) bool {
-    if (value <= bound.lower) return false;
-
-    bound.lower = value;
-
-    return true;
-}
-
-fn lower(bound: *Bound, value: ?usize) bool {
-    const limit = value orelse return false;
-
-    if (bound.upper != null and bound.upper.? <= limit) return false;
-
-    bound.upper = limit;
-
-    return true;
-}
-
-fn check(graph: *Graph, bound: Bound, span: zx.Span) zx.Error!void {
-    if (bound.upper != null and bound.lower > bound.upper.?) return graph.reporter.fail(.type_mismatch, span, "incompatible optional input requirements");
+    return graph.reporter.fail(.type_mismatch, span, message);
 }

@@ -192,7 +192,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Opt
     };
 
     var reporter: zx.Reporter = .{};
-    var graph = Graph.init(allocator, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
+    var graph = Graph.init(allocator, backing, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
     const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map) catch |err| return reported(allocator, source_map, reporter, err);
 
     graph.finish() catch |err| return reported(allocator, source_map, reporter, err);

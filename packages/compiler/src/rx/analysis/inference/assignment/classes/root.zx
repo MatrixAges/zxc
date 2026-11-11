@@ -1,0 +1,16 @@
+export type Input = {
+    parents: u64[],
+    item: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop(in.item, {
+        while: item => in.parents[item] != item,
+        next: item => {
+            item = in.parents[item]
+        },
+        return: item => item
+    })
+}
