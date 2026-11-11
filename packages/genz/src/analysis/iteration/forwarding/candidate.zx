@@ -1,0 +1,69 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import scope from "./scope"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const table = in.source.expressions
+
+    const resolved = loop({
+        id: in.body,
+        valid: true
+    }, {
+        while: state => state.valid &&
+            table.kinds[integers.widen(state.id)] == ExpressionKind.Scope,
+        next: state => {
+            const payload = integers.widen(table.payloads[integers.widen(state.id)])
+
+            const next = scope({
+                table,
+                payload
+            })
+
+            if (next == null) {
+                state.valid = false
+            } else {
+                state.id = next
+            }
+        }
+    })
+
+    if (!resolved.valid) {
+        return null
+    }
+
+    const candidate = resolved.id
+    const index = integers.widen(candidate)
+
+    if (table.kinds[index] != ExpressionKind.Call) {
+        return null
+    }
+
+    const payload = integers.widen(table.payloads[index])
+    const callee = integers.widen(table.call_functions[payload])
+    const output = in.source.function_outputs[callee]
+
+    if (
+        !in.value_functions[callee] || in.source.function_inputs[callee] != output
+    ) {
+        return null
+    }
+
+    if (kind(in.source.types.kinds[integers.widen(output)]) != Kind.Object) {
+        return null
+    }
+
+    const argument = integers.widen(table.call_arguments[payload])
+
+    if (table.kinds[argument] != ExpressionKind.Reference) {
+        return null
+    }
+
+    const reference = integers.widen(table.payloads[argument])
+
+    return table.references[reference] == in.parameter ? candidate : null
+}

@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Forwarding" />
+
+    <Args in={Forwarding.Input} out={Forwarding.Output} />
+
+    <Call fn="candidate" in={$in} />
+
+    <If on={$ctx.candidate == null}>
+        <Return value={null} />
+    </If>
+
+    <Call module="../analyze" in={$in.source} />
+
+    <If on={$ctx.analyze}>
+        <Return value={$ctx.candidate} />
+    </If>
+
+    <Return value={null} />
+</Module>

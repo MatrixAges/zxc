@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Abi" />
+
+    <Args in={Abi.Input} out={bool} />
+
+    <Call fn="scalar_product" in={$in} />
+
+    <If on={!$ctx.scalar_product}>
+        <Return value={false} />
+    </If>
+
+    <Call module="../analyze" in={$in.source} />
+
+    <Return value={$ctx.analyze} />
+</Module>

@@ -1,5 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const Lower = @import("lower.zig");
 
 pub fn flat(lowering: *const @import("lower.zig"), id: ir.TypeId) bool {
     if (!@import("genz_options").generated_analysis) return @import("iteration_layout/types_seed.zig").flat(lowering.program, id);
@@ -31,6 +32,21 @@ pub fn shallow(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.
 
 pub fn condition(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
     return analyze(allocator, program, &.{iteration.condition}, functions, false, null);
+}
+
+pub fn forwarded(lowering: *const Lower, iteration: ir.Iteration) std.mem.Allocator.Error!?ir.ExprId {
+    if (!@import("genz_options").generated_analysis) return @import("iteration_layout/forwarded_seed.zig").select(lowering, iteration);
+
+    return @import("iteration_layout/generated.zig").forwarded(lowering.allocator, &lowering.program, iteration, lowering.pure_functions, lowering.value_functions);
+}
+
+pub fn abi(lowering: *const Lower, iteration: ir.Iteration, type_id: ir.TypeId) std.mem.Allocator.Error!bool {
+    if (!@import("genz_options").generated_analysis) {
+        return @import("iteration_layout/types_seed.zig").scalarProduct(lowering.program, type_id) and
+            try deep(lowering.allocator, lowering.program, iteration, lowering.identity_free_functions);
+    }
+
+    return @import("iteration_layout/generated.zig").abi(lowering.allocator, &lowering.program, iteration, type_id, lowering.identity_free_functions);
 }
 
 /// `safe` holds the `identity_free.functions` of the program.

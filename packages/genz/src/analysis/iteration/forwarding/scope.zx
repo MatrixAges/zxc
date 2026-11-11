@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = {
+    table: Expressions,
+    payload: u64
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const table = in.table
+    const result = table.scope_results[in.payload]
+    const count = table.scope_count[in.payload]
+
+    if (count == 0) {
+        return result
+    }
+
+    if (count != 1) {
+        return null
+    }
+
+    const first = integers.widen(table.scope_first[in.payload])
+    const symbol = table.scope_symbols[first]
+    const index = integers.widen(result)
+
+    if (symbol == null || table.kinds[index] != ExpressionKind.Reference) {
+        return null
+    }
+
+    const payload = integers.widen(table.payloads[index])
+
+    return table.references[payload] == symbol ? table.scope_values[first] : null
+}

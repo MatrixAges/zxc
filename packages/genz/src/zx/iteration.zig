@@ -38,17 +38,13 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const layout_analysis = @import("iteration_layout.zig");
     const pure = try layout_analysis.eligible(self.allocator, self.program, iteration, self.pure_functions);
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
-    const selected_call = try forwarded(self, iteration);
+    const selected_call = try layout_analysis.forwarded(self, iteration);
     const type_id = self.program.expression(id).type_id;
     const deep_candidate = !self.state_active and (projected_output or mode == .discard) and pure and !layout_analysis.flat(self, type_id) and layout_analysis.represented(self, type_id);
     const buffered = deep_candidate and self.plan.get(id).buffered and try layout_analysis.buffers(self.allocator, self.program, iteration, self.identity_free_functions, self.plan.flags);
     const deep = buffered or (deep_candidate and try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions));
     const scalar_result = if (consumer) |selected| @import("types/scalar.zig").check(self.program.types, self.program.expression(selected.result).type_id) else false;
-
-    const abi_state = !self.state_active and scalar_result and
-        @import("iteration_layout/types_seed.zig").scalarProduct(self.program, type_id) and
-        try layout_analysis.deep(self.allocator, self.program, iteration, self.identity_free_functions);
-
+    const abi_state = !self.state_active and scalar_result and try layout_analysis.abi(self, iteration, type_id);
     const selected_state = !deep and !abi_state and self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or local_calls);
     const layout = !deep and (selected_state or selected_call != null or ((local_calls or try layout_analysis.shallow(self.allocator, self.program, iteration)) and layout_analysis.aggregate(self, type_id)));
     const by_value = mode != .reference and layout;
@@ -250,44 +246,4 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     if (initial_guard) |*guard| return try guard.finish(self, result);
 
     return result;
-}
-
-/// A loop whose body only forwards its state to a value function of the same type, which then runs on the state layout.
-fn forwarded(self: *Lower, iteration: ir.Iteration) Lower.Error!?ir.ExprId {
-    const id = forwardedCall(self.program, iteration.body) orelse return null;
-    const call = self.program.expression(id).value.call;
-    const function = self.program.functions.at(@backingInt(call.function));
-    const argument = self.program.expression(call.argument);
-
-    if (!self.value_functions[@backingInt(call.function)]) return null;
-    if (self.program.typeOf(function.output_type) != .object) return null;
-    if (function.input_type != function.output_type or argument.value != .reference or argument.value.reference != iteration.parameter) return null;
-    if (!try @import("iteration_layout.zig").condition(self.allocator, self.program, iteration, self.pure_functions)) return null;
-
-    return id;
-}
-
-fn forwardedCall(program: ir.Program, root: ir.ExprId) ?ir.ExprId {
-    var id = root;
-
-    while (true) switch (program.expression(id).value) {
-        .call => return id,
-        .scope => |scope| {
-            if (scope.bindings.len == 0) {
-                id = scope.result;
-
-                continue;
-            }
-
-            if (scope.bindings.len != 1) return null;
-
-            const symbol = scope.bindings.at(0).symbol orelse return null;
-            const result = program.expression(scope.result).value;
-
-            if (result != .reference or result.reference != symbol) return null;
-
-            id = scope.bindings.at(0).value;
-        },
-        else => return null,
-    };
 }
