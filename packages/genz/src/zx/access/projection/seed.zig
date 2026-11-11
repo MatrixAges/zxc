@@ -1,3 +1,4 @@
+const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
@@ -70,4 +71,18 @@ pub fn result(self: *const Lower, id: ir.TypeId, target: ir.TypeId, raw_value: b
     if (self.program.typeOf(id) == .list and !@import("../../state_value/elements.zig").inlineStored(self, id)) return .Borrowed;
 
     return .Value;
+}
+
+pub fn borrowed(self: *const Lower, target: ir.ExprId, name: []const u8) bool {
+    const context = self.loop_fields orelse return false;
+
+    if (!context.expression(target)) return false;
+
+    const fields = self.program.typeOf(context.type_id).object;
+
+    for (0..fields.len) |index| {
+        if (std.mem.eql(u8, fields.at(index).name, name)) return context.borrowed[index];
+    }
+
+    unreachable;
 }

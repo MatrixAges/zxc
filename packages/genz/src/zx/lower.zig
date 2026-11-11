@@ -3,6 +3,7 @@ const zx = @import("zx");
 const node = @import("../node.zig");
 const Builder = @import("../builder.zig");
 const projection_path = @import("access/projection/path.zig");
+const projection_read = @import("access/projection/read.zig");
 const ir = zx.ir;
 const Self = @This();
 pub const Error = std.mem.Allocator.Error;
@@ -220,29 +221,9 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .some => |child| self.cast(value_type, try self.expr(child)),
         .store_get => |slot| @import("access/store.zig").lower(self, slot, value.type_id),
         .reference => |symbol| @import("access/reference.zig").lower(self, symbol, value.type_id),
-        .field => |item| self.projectedField(item.target, value.type_id, self.program.typeOf(self.program.expression(item.target).type_id).object.at(item.index).name),
-        .tuple_field => |item| blk: {
-            if (try @import("collections.zig").projection(self, item.target, item.index)) |selected| break :blk selected;
-
-            break :blk self.projectedField(item.target, value.type_id, try std.fmt.allocPrint(self.allocator, "{d}", .{item.index}));
-        },
-        .index => |item| blk: {
-            const raw = try projection_path.nested(self, item.target);
-            const source = raw orelse try @import("state_value/list.zig").expression(self, item.target);
-            const indexed = try @import("intrinsics.zig").index(self, source, try self.expr(item.index));
-            const route = @import("access/projection/rules.zig").result(self, value.type_id, self.program.expression(item.target).type_id, raw != null, false);
-
-            if (route == .Direct) break :blk indexed;
-
-            var body: std.ArrayList(node.Statement) = .empty;
-
-            const converted = if (route == .Value)
-                try @import("state_value/conversion.zig").convert(self, &body, value.type_id, try @import("aggregate.zig").bind(self, &body, indexed), .value)
-            else
-                try @import("state_value/elements.zig").read(self, &body, self.program.expression(item.target).type_id, indexed);
-
-            break :blk @import("aggregate.zig").finish(self, &body, converted);
-        },
+        .field => |item| projection_read.field(self, value.type_id, item),
+        .tuple_field => |item| projection_read.tuple(self, value.type_id, item),
+        .index => |item| projection_read.index(self, value.type_id, item.target, item.index),
         .length => |child| blk: {
             const raw = try projection_path.nested(self, child);
             const source = raw orelse try @import("state_value/list.zig").expression(self, child);
@@ -262,27 +243,6 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .list_update => @import("list_update.zig").lower(self, id),
         .call => |invocation| @import("regular_call/root.zig").lower(self, invocation),
     };
-}
-
-fn projectedField(self: *Self, target: ir.ExprId, id: ir.TypeId, name: []const u8) Error!node.ExpressionId {
-    const target_type = self.program.expression(target).type_id;
-    const eligible = @import("access/projection/rules.zig").raw(self, target_type, false);
-    const raw = if (eligible) try projection_path.lower(self, target) else null;
-    var value = try self.field(raw orelse try projection_path.anchor(self, target), name);
-
-    if (self.loop_fields) |context| {
-        if (context.field(self, target, name)) value = try @import("access/emit.zig").dereference(self, value);
-    }
-
-    const route = @import("access/projection/rules.zig").result(self, id, target_type, raw != null, true);
-
-    if (route == .Direct) return value;
-    if (route == .Borrowed) return @import("state_value/list.zig").borrowed(self, id, value);
-
-    var body: std.ArrayList(node.Statement) = .empty;
-    const bound = try @import("aggregate.zig").bind(self, &body, value);
-
-    return @import("aggregate.zig").finish(self, &body, try @import("state_value/conversion.zig").convert(self, &body, id, bound, .value));
 }
 
 pub fn functionReference(self: *Self, id: ir.FunctionId) Error!node.ExpressionId {

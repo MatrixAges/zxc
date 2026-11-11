@@ -1,0 +1,31 @@
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+export type Input = {
+    target: u32,
+    name: u8[],
+    base: u32
+}
+
+export type Output = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    field_target: u32[],
+    field_name: u8[][],
+    dereference: u32[]
+}
+
+export default function (in: Input): Output {
+    return {
+        tags: [
+            ExpressionsKind.Field,
+            ExpressionsKind.Dereference
+        ],
+        offsets: [
+            0,
+            0
+        ],
+        field_target: [in.target],
+        field_name: [in.name],
+        dereference: [in.base]
+    }
+}

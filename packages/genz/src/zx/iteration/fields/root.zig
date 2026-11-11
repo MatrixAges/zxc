@@ -1,4 +1,3 @@
-const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
@@ -23,18 +22,6 @@ pub fn expression(self: *const Self, id: ir.ExprId) bool {
 
 pub fn symbol(self: *const Self, id: ir.SymbolId) bool {
     return self.symbols[@backingInt(id)];
-}
-
-pub fn field(self: *const Self, lowering: *const Lower, target: ir.ExprId, name: []const u8) bool {
-    if (!self.expression(target)) return false;
-
-    const fields = lowering.program.typeOf(self.type_id).object;
-
-    for (0..fields.len) |index| {
-        if (std.mem.eql(u8, fields.at(index).name, name)) return self.borrowed[index];
-    }
-
-    unreachable;
 }
 
 pub fn initial(self: *const Self, lowering: *Lower) Lower.Error!node.ExpressionId {

@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Read" />
+
+    <Args in={Read.Input} out={Read.Output} />
+
+    <Call fn="../result" in={$in.value} />
+
+    <If on={$in.projection != null}>
+        <Call fn="borrowed" in={$in.projection} />
+
+        <Return
+            value={{
+                result: $ctx.result,
+                dereference: $ctx.borrowed
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            result: $ctx.result,
+            dereference: false
+        }}
+    />
+</Module>

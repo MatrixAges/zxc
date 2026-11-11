@@ -1,0 +1,10 @@
+import integers from "std:integer"
+
+import type { Borrow as Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return in.states[integers.widen(in.target)] &&
+        in.borrowed[integers.widen(in.member)]
+}

@@ -39,6 +39,25 @@ pub fn dereference(self: *Lower, value: node.ExpressionId) Lower.Error!node.Expr
     return @fromBackingInt(@intCast(root));
 }
 
+pub fn borrowedField(self: *Lower, target: node.ExpressionId, name: []const u8) Lower.Error!node.ExpressionId {
+    if (!generated) return dereference(self, try field(self, target, name));
+
+    const entry = @import("generated_borrowed_field_access");
+    const Input = std.meta.Child(entry.Input);
+    const base = self.builder.nodes.expressions.tags.items.len;
+
+    if (base > std.math.maxInt(u32) - 2) return error.OutOfMemory;
+
+    const input: Input = .{ .target = @backingInt(target), .name = name, .base = @intCast(base) };
+    var buffer: [std.heap.page_size_min]u8 = undefined;
+    var memory = std.heap.FixedBufferAllocator.init(&buffer);
+    const output = try zx.columns.invoke(entry.executeValue, memory.allocator(), &input);
+    const rows = zx.columns.view(std.meta.Child(entry.Output), output);
+    @import("../../node/import_rows.zig").appendBorrowed(self.allocator, &self.builder.nodes.expressions, &rows) catch |err| return failure(err);
+
+    return @fromBackingInt(@intCast(base + 1));
+}
+
 pub fn length(self: *Lower, source: node.ExpressionId, type_expr: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!generated) return self.cast(type_expr, try self.field(source, "len"));
 

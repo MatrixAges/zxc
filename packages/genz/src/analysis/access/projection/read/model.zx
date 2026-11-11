@@ -1,0 +1,19 @@
+import type { Result } from "../model"
+import type { Input as Value } from "../result"
+
+export type Borrow = {
+    states: bool[],
+    borrowed: bool[],
+    target: u32,
+    member: u32
+}
+
+export type Input = {
+    value: Value,
+    projection?: Borrow
+}
+
+export type Output = {
+    result: Result,
+    dereference: bool
+}
