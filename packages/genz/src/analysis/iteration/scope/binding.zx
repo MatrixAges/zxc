@@ -1,0 +1,24 @@
+import { Action, Phase } from "./model"
+
+export type Input = {
+    phase: Phase,
+    named: bool,
+    used: bool,
+    reference: bool
+}
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    if (in.phase == Phase.Before) {
+        const skip = in.named && !in.used && in.reference
+
+        return skip ? Action.Skip : Action.Evaluate
+    }
+
+    if (!in.named) {
+        return Action.Expression
+    }
+
+    return in.used ? Action.Constant : Action.Discard
+}

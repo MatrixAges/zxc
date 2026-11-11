@@ -1,0 +1,43 @@
+import integers from "std:integer"
+import kind from "core/type_table/kind"
+import { Kind } from "core/type_table/model"
+
+import { Property } from "../../types/layout/query"
+import query from "../../types/layout/query"
+
+import type { Locals as Input } from "./model"
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const symbols: u32[] = []
+
+    return loop({
+        symbols,
+        position: 0
+    }, {
+        while: state => state.position < in.symbols.length,
+        next: state => {
+            const symbol = in.symbols[state.position]
+
+            if (symbol != null) {
+                const type_id =
+                    integers.widen(in.symbol_types[integers.widen(symbol)])
+                const represented = query({
+                    value: in.layouts[type_id],
+                    property: Property.Represented
+                })
+
+                const buffered = in.inline_lists &&
+                    kind(in.type_kinds[type_id]) == Kind.List
+
+                if (represented || buffered) {
+                    state.symbols = state.symbols.push(symbol)[0]
+                }
+            }
+
+            state.position += 1
+        },
+        return: state => state.symbols
+    })
+}

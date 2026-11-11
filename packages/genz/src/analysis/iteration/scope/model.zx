@@ -1,0 +1,46 @@
+import type { StatementsKind } from "../../../printer/model/statements"
+import type { Output as Block } from "../../aggregate/binding/model"
+import type { Layout } from "../../types/layout"
+
+export enum Phase { Before, After }
+
+export enum Action { Skip, Evaluate, Expression, Discard, Constant }
+
+export type Locals = {
+    symbols: u32?[],
+    symbol_types: u32[],
+    type_kinds: u8[],
+    layouts: Layout[],
+    inline_lists: bool
+}
+
+export type Bindings = {
+    actions: Action[],
+    values: u32[],
+    types: u32?[],
+    names: u8[][]
+}
+
+export type Input = {
+    bindings: Bindings,
+    result: u32,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type Rows = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    expression: u32[],
+    discard: u32[],
+    constant_name: u8[][],
+    constant_type_expr: u32?[],
+    constant_value: u32[],
+    constant_exported: bool[]
+}
+
+export type Output = {
+    rows: Rows,
+    block: Block
+}

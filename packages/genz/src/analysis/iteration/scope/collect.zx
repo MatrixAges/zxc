@@ -1,0 +1,69 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+import { Action } from "./model"
+
+import type { Input, Rows as Output } from "./model"
+
+export default function (in: Input): Output {
+    const rows: Output = {
+        tags: [],
+        offsets: [],
+        expression: [],
+        discard: [],
+        constant_name: [],
+        constant_type_expr: [],
+        constant_value: [],
+        constant_exported: []
+    }
+
+    const bindings = in.bindings
+
+    return loop({
+        rows,
+        index: 0
+    }, {
+        while: state => state.index < bindings.actions.length,
+        next: state => {
+            const index = state.index
+            const action = bindings.actions[index]
+
+            if (action != Action.Skip) {
+                const tag = match action {
+                    Action.Expression => StatementsKind.Expression,
+                    Action.Discard => StatementsKind.Discard,
+                    _ => StatementsKind.Constant
+                }
+                const count = match tag {
+                    StatementsKind.Expression => state.rows.expression.length,
+                    StatementsKind.Discard => state.rows.discard.length,
+                    _ => state.rows.constant_name.length
+                }
+
+                state.rows.tags = state.rows.tags.push(tag)[0]
+                state.rows.offsets =
+                    state.rows.offsets.push(integers.narrow(count))[0]
+
+                const value = bindings.values[index]
+
+                if (action == Action.Expression) {
+                    state.rows.expression = state.rows.expression.push(value)[0]
+                } else if (action == Action.Discard) {
+                    state.rows.discard = state.rows.discard.push(value)[0]
+                } else {
+                    state.rows.constant_name =
+                        state.rows.constant_name.push(bindings.names[index])[0]
+                    state.rows.constant_type_expr =
+                        state.rows.constant_type_expr.push(bindings.types[index])[0]
+                    state.rows.constant_value =
+                        state.rows.constant_value.push(value)[0]
+                    state.rows.constant_exported =
+                        state.rows.constant_exported.push(false)[0]
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.rows
+    })
+}

@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Scope" />
+
+    <Args in={Scope.Input} out={Scope.Output} />
+
+    <Call fn="collect" in={$in} />
+
+    <Call
+        fn="../../aggregate/binding/finish"
+        in={{
+            ...$in.pick([
+                "expression_base",
+                "statement_base",
+                "serial"
+            ]),
+            value: $in.result,
+            body_count: $ctx.collect.tags.length
+        }}
+    />
+
+    <Return
+        value={{
+            rows: $ctx.collect,
+            block: $ctx.finish
+        }}
+    />
+</Module>
