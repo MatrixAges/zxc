@@ -315,6 +315,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/predicates/build.rx", .name = "predicate_emit", .owner = .genz },
     .{ .path = "genz/analysis/transform/reduce/build.rx", .name = "reduce_emit", .owner = .genz },
     .{ .path = "genz/analysis/iteration/frame/build.rx", .name = "iteration_frame", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/state/build.rx", .name = "iteration_state_declaration", .owner = .genz },
     .{ .path = "genz/analysis/scope/reads/collect.rx", .name = "scope_reads", .owner = .genz },
     .{ .path = "genz/analysis/scope/reads/get.zx", .name = "scope_reads_get", .owner = .genz },
     .{ .path = "genz/analysis/scope/reuse/enabled.zx", .name = "scope_reuse_enabled", .owner = .genz },

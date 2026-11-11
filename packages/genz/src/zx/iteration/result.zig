@@ -48,9 +48,17 @@ pub const Result = struct {
             else => {},
         }
 
-        var converted_body: std.ArrayList(node.Statement) = .empty;
-        const converted_state = if (config.converted) try @import("../state_value/conversion.zig").convert(self, &converted_body, config.type_id, state, if (selected == .Value) .layout else .pointer) else state;
-        const boundary = try aggregate.finish(self, &converted_body, converted_state);
+        const boundary = if (!generated or config.converted or selected == .Value) converted: {
+            var converted_body: std.ArrayList(node.Statement) = .empty;
+            const converted_state = if (config.converted) try @import("../state_value/conversion.zig").convert(self, &converted_body, config.type_id, state, if (selected == .Value) .layout else .pointer) else state;
+
+            break :converted try aggregate.finish(self, &converted_body, converted_state);
+        } else unused: {
+            // Preserve later label numbers without storing an unreachable result block.
+            self.serial = std.math.add(usize, self.serial, 1) catch return error.OutOfMemory;
+
+            break :unused state;
+        };
 
         switch (selected) {
             .Value => return aggregate.finish(self, body, boundary),

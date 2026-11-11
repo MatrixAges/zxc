@@ -5,6 +5,7 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const frame = @import("iteration/frame.zig");
 const renewal = @import("iteration/renewal.zig");
+const state_declaration = @import("iteration/state.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!node.ExpressionId {
     return (try lowerMode(self, id, iteration, .reference, null)).?;
@@ -81,6 +82,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     defer self.loop_fields = previous_fields;
 
     const changed_name = if (local and !by_value and mode != .discard) try self.fresh("state_changed") else "";
+    const tracking = if (changed_name.len != 0) changed_name else null;
     const condition_index = @backingInt(iteration.condition_parameter);
     const step_index = @backingInt(iteration.parameter);
     const condition_name = self.names[condition_index];
@@ -150,11 +152,14 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         const renewals = try renewal.plan(self, temporary, .{ .owner = id, .type_id = type_id });
         const renewed = renewals.needsEntries(self);
         const seed_name = self.builder.nodes.get(seed).identifier;
-        const declaration = node.Constant{ .name = seed_name, .type_expr = try self.layoutExpr(type_id), .value = initial_state };
 
-        try body.append(self.allocator, if (renewed) .{ .variable = declaration } else .{ .constant = declaration });
-
-        if (local and !by_value and mode != .discard) try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = false }) } });
+        const tracker = try state_declaration.declare(self, &body, .{
+            .name = seed_name,
+            .layout = try self.layoutExpr(type_id),
+            .initial = initial_state,
+            .mutable = renewed,
+            .tracking = tracking,
+        });
 
         self.names[condition_index] = seed_name;
         self.names[step_index] = seed_name;
@@ -173,12 +178,17 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         try renewals.emit(self, &entered, type_id, .{ .reference = seed });
         try selected.maskBorrowed(self, &entered);
-        try entered.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = selected.layout, .value = try selected.initial(self) } });
+
+        _ = try state_declaration.declare(self, &entered, .{
+            .name = name,
+            .layout = selected.layout,
+            .initial = try selected.initial(self),
+        });
 
         const qualified = try selected.qualify(self, &loop, iteration.body, next);
 
         try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = qualified } });
-        if (local and !by_value and mode != .discard) try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
+        if (tracker) |value| try value.mark(self, &loop);
         try frame.append(self, &entered, &loop, .{ .condition = condition, .after_step = true });
 
         const restored = if (mode == .discard) state else try aggregate.bind(self, &entered, try selected.restore(self, state));
@@ -210,11 +220,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     self.iteration_value = previous_context;
     self.deferred_lists = previous_deferred;
 
-    try body.append(self.allocator, .{ .variable = .{
+    const tracker = try state_declaration.declare(self, &body, .{
         .name = name,
-        .type_expr = if (deep) try @import("iteration_value/types.zig").get(&context, type_id) else if (layout) try self.layoutExpr(type_id) else try self.typeExpr(type_id),
-        .value = initial_state,
-    } });
+        .layout = if (deep) try @import("iteration_value/types.zig").get(&context, type_id) else if (layout) try self.layoutExpr(type_id) else try self.typeExpr(type_id),
+        .initial = initial_state,
+        .tracking = tracking,
+    });
 
     var entered: std.ArrayList(node.Statement) = .empty;
 
@@ -228,10 +239,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         try @import("iteration/assignment.zig").append(self, &loop, type_id, state, qualified);
     } else try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
 
-    if (local and !by_value and mode != .discard) {
-        try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = false }) } });
-        try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
-    }
+    if (tracker) |value| try value.mark(self, &loop);
 
     try frame.append(self, &entered, &loop, .{
         .condition = condition,

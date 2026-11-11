@@ -1,0 +1,14 @@
+import { StatementsKind } from "../../../printer/model/statements"
+import binding from "../../binding/emit"
+
+import type { Output } from "../../binding/emit"
+import type { Declaration as Input } from "./model"
+
+export default function (in: Input): Output {
+    return binding({
+        kind: in.mutable ? StatementsKind.Variable : StatementsKind.Constant,
+        name: in.name,
+        type_expr: in.layout,
+        value: in.initial
+    })
+}

@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+import binding from "../../binding/emit"
+
+import type { Tracking as Input, Tracker as Output } from "./model"
+
+export default function (in: Input): Output {
+    const base = integers.widen(in.expression_base)
+
+    const declaration = binding({
+        kind: StatementsKind.Variable,
+        name: in.name,
+        type_expr: null,
+        value: in.expression_base
+    })
+
+    return {
+        declaration,
+        expressions: {
+            tags: [
+                ExpressionsKind.Boolean,
+                ExpressionsKind.Identifier,
+                ExpressionsKind.Boolean
+            ],
+            offsets: [
+                0,
+                0,
+                1
+            ],
+            identifier: [in.name],
+            boolean: [
+                false,
+                true
+            ]
+        },
+        target: integers.narrow(base + 1),
+        value: integers.narrow(base + 2)
+    }
+}

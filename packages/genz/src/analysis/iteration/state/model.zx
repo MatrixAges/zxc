@@ -1,0 +1,39 @@
+import type { ExpressionsKind } from "../../../printer/model/expressions"
+import type { Output as Binding } from "../../binding/emit"
+
+export type Declaration = {
+    name: u8[],
+    layout: u32,
+    initial: u32,
+    mutable: bool
+}
+
+export type Input = {
+    declaration: Declaration,
+    tracking?: u8[],
+    expression_base: u32
+}
+
+export type Tracking = {
+    name: u8[],
+    expression_base: u32
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    identifier: u8[][],
+    boolean: bool[]
+}
+
+export type Tracker = {
+    declaration: Binding,
+    expressions: Expressions,
+    target: u32,
+    value: u32
+}
+
+export type Output = {
+    declaration: Binding,
+    tracker?: Tracker
+}

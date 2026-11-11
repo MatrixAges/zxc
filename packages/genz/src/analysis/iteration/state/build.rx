@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="State" />
+
+    <Args in={State.Input} out={State.Output} />
+
+    <Call fn="declare" in={$in.declaration} />
+
+    <If on={$in.tracking != null}>
+        <Call
+            fn="track"
+            in={{
+                name: $in.tracking,
+                expression_base: $in.expression_base
+            }}
+        />
+
+        <Return
+            value={{
+                declaration: $ctx.declare,
+                tracker: $ctx.track
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            declaration: $ctx.declare,
+            tracker: null
+        }}
+    />
+</Module>
