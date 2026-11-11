@@ -46,3 +46,4 @@ pub const artifact_json = struct {
 pub const analyzeOwnership = @import("ownership/check.zig").analyze;
 pub const storesOwnValues = @import("ownership/stores.zig").check;
 pub const constants = @import("analysis/constants/host.zig");
+pub const copyConstant = @import("analysis/constants/copy.zig").copy;

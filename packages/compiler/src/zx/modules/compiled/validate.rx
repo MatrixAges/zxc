@@ -46,7 +46,12 @@
         <Return value={false} />
     </If>
 
-    <Call fn="validation/stores" in={$in.program.context.functions.stores} />
+    <Call
+        fn="validation/stores"
+        in={{
+            tables: $in.program.context.functions.stores
+        }}
+    />
 
     <If on={!$ctx.stores}>
         <Return value={false} />

@@ -26,7 +26,6 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
     var initializers = Initializers{ .allocator = owned, .scratch = scratch, .types = &types, .functions = &functions };
     const exports = try owned.alloc(model.Export, inputs.len);
     var names: std.StringHashMapUnmanaged(void) = .empty;
-    var stores: std.StringHashMapUnmanaged(ir.TypeId) = .empty;
 
     for (inputs, exports) |input, *exported| {
         if (input.name.len == 0 or std.mem.indexOfScalar(u8, input.name, 0) != null or !std.unicode.utf8ValidateSlice(input.name)) return error.InvalidModule;
@@ -76,33 +75,14 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         }
 
         const public_types = try @import("interface.zig").complete(owned, allocator, program, nodes.types);
-        const constants = try owned.alloc(ir.Constant, program.constant_exports.len);
-
-        for (program.constant_exports, constants) |source, *constant| {
-            constant.* = source;
-            constant.name = try owned.dupe(u8, source.name);
-
-            if (source.value == .string) constant.value.string = try owned.dupe(u8, source.value.string);
-
-            constant.type_id = try nodes.types.include(source.type_id);
-        }
-
+        const constants = try @import("constants.zig").complete(allocator, &nodes, program.constant_exports);
         const members = try @import("members.zig").complete(owned, allocator, input.analysis, program.file_name, &nodes);
         exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types, .constants = constants, .members = members };
     }
 
-    for (0..functions.count()) |function_row| {
-        const function = functions.at(function_row);
+    const linked_functions = functions.view();
 
-        for (0..function.stores.count()) |store_index| {
-            const slot = function.stores.at(store_index);
-            const entry = try stores.getOrPut(scratch, slot.path);
-
-            if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.ConflictingStore;
-
-            entry.value_ptr.* = slot.type_id;
-        }
-    }
+    try @import("stores.zig").validate(allocator, linked_functions.stores);
 
     const program = ir.Program{
         .file_name = "library",
@@ -112,7 +92,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         .symbols = .{},
         .expressions = .{},
         .body = .{},
-        .functions = functions.view(),
+        .functions = linked_functions,
         .native_modules = native_modules.view(),
         .type_only = true,
     };

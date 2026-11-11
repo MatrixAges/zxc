@@ -1,55 +1,95 @@
-import sort from "../../../analysis/semantic/constructing/fields/sort"
+import bytes from "std:bytes"
+import integers from "std:integer"
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "core/bytes/index/const"
+import grow from "core/bytes/index/grow"
+import probe from "core/bytes/index/probe"
 
+import type { Index } from "core/bytes/index/model"
 import type { Stores } from "core/store_table/model"
 
-export type Input = Stores[]
+export type Input = {
+    tables: Stores[]
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const names: string[] = []
-    const types: u32[] = []
-
-    const collected = loop({
-        stores: in,
-        names,
-        types,
-        index: 0
-    }, {
-        while: current => current.index < current.stores.length,
-        next: current => {
-            current.names =
-                current.names.concat(
-                    current.stores[current.index].paths
-                )[0]
-            current.types =
-                current.types.concat(
-                    current.stores[current.index].types
-                )[0]
-            current.index += 1
-        }
-    })
-
-    const ordered = sort({
-        names: collected.names,
-        types: collected.types
-    })
+    const empty: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
 
     return loop({
-        fields: ordered,
-        index: 1,
-        valid: true
+        index: empty,
+        table: 0,
+        row: 0,
+        compatible: true
     }, {
-        while: current =>
-            current.valid && current.index < current.fields.names.length,
-        next: current => {
-            const index = current.index
+        while: state => state.compatible && state.table < in.tables.length,
+        next: state => {
+            const stores = in.tables[state.table]
 
-            current.valid =
-                current.fields.names[index - 1] != current.fields.names[index] ||
-                current.fields.types[index - 1] == current.fields.types[index]
-            current.index += 1
+            if (state.row == stores.paths.length) {
+                state.table += 1
+                state.row = 0
+            } else {
+                const key = bytes.fromText(stores.paths[state.row])
+                const type_id = stores.types[state.row]
+
+                if (state.index.buckets.length == 0) {
+                    state.index = grow({
+                        index: state.index,
+                        capacity: initial_capacity
+                    })
+                }
+
+                const slot = probe({
+                    index: state.index,
+                    key
+                })
+                const previous = state.index.buckets[slot]
+
+                if (previous != null) {
+                    state.compatible = state.index.values[integers.widen(previous)] ==
+                        type_id
+                } else {
+                    const count = state.index.keys.length
+                    const capacity = state.index.buckets.length
+                    const limit = capacity * load_numerator / load_denominator
+                    const full = count == limit
+
+                    if (full) {
+                        state.index = grow({
+                            index: state.index,
+                            capacity: capacity * capacity_growth
+                        })
+                    }
+
+                    const target = match {
+                        full => probe({
+                            index: state.index,
+                            key
+                        }),
+                        _ => slot
+                    }
+
+                    state.index.keys = state.index.keys.push(key)[0]
+                    state.index.values = state.index.values.push(type_id)[0]
+                    state.index.buckets = state.index.buckets.with(
+                        target,
+                        integers.narrow(count)
+                    )
+                }
+
+                state.row += 1
+            }
         },
-        return: state => state.valid
+        return: state => state.compatible
     })
 }
