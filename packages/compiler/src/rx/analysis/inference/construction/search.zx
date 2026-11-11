@@ -1,0 +1,73 @@
+import { Kind } from "./model"
+
+import type { Candidate, Parts } from "./model"
+
+export type Input = {
+    parts: Parts,
+    name: string
+}
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    return loop({
+        cursor: in.parts.explicit.length,
+        part: 0,
+        field: 0,
+        kind: Kind.Absent,
+        done: false
+    }, {
+        while: state => !state.done && state.cursor != 0,
+        next: state => {
+            const part = state.cursor - 1
+            const explicit = in.parts.explicit[part]
+            const aliases = explicit == null && in.parts.aliases[part]
+
+            const names: string[] = match {
+                explicit == null => in.parts.fields[part],
+                _ => []
+            }
+
+            const field = loop({
+                index: 0
+            }, {
+                while: position =>
+                    position.index < names.length &&
+                    names[position.index] != in.name,
+                next: position => {
+                    position.index += 1
+                },
+                return: position => position.index
+            })
+
+            const listed = field < names.length
+            const named = explicit == in.name || aliases || listed
+
+            if (named) {
+                const clear = state.kind == Kind.Absent
+
+                state.part = part
+                state.field = field
+                state.kind = clear ? Kind.Named : Kind.AmbiguousNamed
+                state.done = true
+            } else if (explicit == null && in.parts.open[part]) {
+                const previous = state.kind != Kind.Absent
+                const root = in.parts.roots[part]
+                const earlier = in.parts.roots[state.part]
+                const repeated = previous && root == earlier
+
+                if (!repeated) {
+                    state.kind = previous ? Kind.AmbiguousOpen : Kind.Open
+                    state.part = part
+                }
+            }
+
+            state.cursor -= 1
+        },
+        return: state => ({
+            part: state.part,
+            field: state.field,
+            kind: state.kind
+        })
+    })
+}

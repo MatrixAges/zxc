@@ -1,0 +1,22 @@
+import { Action, Kind } from "./model"
+
+export type Input = {
+    kind: Kind,
+    optional: bool,
+    unrestricted: bool,
+    final: bool
+}
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    const infer = !in.optional && (in.final || !in.unrestricted)
+    const required = in.final && !in.optional
+
+    return match in.kind {
+        Kind.Named => Action.Bind,
+        Kind.Open => infer ? Action.Infer : Action.Skip,
+        Kind.Absent => required ? Action.Missing : Action.Skip,
+        _ => in.final ? Action.Ambiguous : Action.Skip
+    }
+}

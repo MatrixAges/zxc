@@ -1,0 +1,30 @@
+<Module>
+    <Type from="model" as="Construction" />
+
+    <Args in={Construction.Input} out={Construction.Output} />
+
+    <Call
+        fn="search"
+        in={{
+            parts: $in.parts,
+            name: $in.name
+        }}
+    />
+
+    <Call
+        fn="admit"
+        in={{
+            kind: $ctx.search.kind,
+            optional: $in.optional,
+            unrestricted: $in.unrestricted,
+            final: $in.final
+        }}
+    />
+
+    <Return
+        value={{
+            candidate: $ctx.search,
+            action: $ctx.admit
+        }}
+    />
+</Module>

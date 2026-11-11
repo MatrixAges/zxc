@@ -37,6 +37,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/depth/solve.rx", .name = "assignment_depth", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/object_closure/prove.rx", .name = "object_closure", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/construction/resolve.rx", .name = "object_construction_resolve", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/selection/project.rx", .name = "object_selection_project", .owner = .rx_analysis },
     .{ .path = "zx/analysis/selection/covers.zx", .name = "object_selection_covers", .owner = .rx_analysis },
     .{ .path = "rx/schema/attribute/classify.rx", .name = "attribute_role", .owner = .rx },

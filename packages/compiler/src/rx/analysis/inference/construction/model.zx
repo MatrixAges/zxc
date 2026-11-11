@@ -1,0 +1,42 @@
+export enum Kind {
+    Absent,
+    Named,
+    Open,
+    AmbiguousNamed,
+    AmbiguousOpen
+}
+
+export enum Action {
+    Skip,
+    Bind,
+    Infer,
+    Ambiguous,
+    Missing
+}
+
+export type Parts = {
+    explicit: string?[],
+    fields: string[][],
+    roots: u64[],
+    open: bool[],
+    aliases: bool[]
+}
+
+export type Candidate = {
+    part: u64,
+    field: u64,
+    kind: Kind
+}
+
+export type Input = {
+    parts: Parts,
+    name: string,
+    optional: bool,
+    unrestricted: bool,
+    final: bool
+}
+
+export type Output = {
+    candidate: Candidate,
+    action: Action
+}
