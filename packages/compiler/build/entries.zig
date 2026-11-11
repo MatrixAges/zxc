@@ -446,6 +446,8 @@ pub const collections = [_]Entry{
     .{ .path = "core/integer/map/remove.zx", .name = "cache_remove", .owner = .genz },
     .{ .path = "core/integer/map/next.zx", .name = "cache_next", .owner = .genz },
     .{ .path = "core/integer/map/overwrite.zx", .name = "cache_overwrite", .owner = .genz },
+    .{ .path = "core/integer/map/snapshot.zx", .name = "cache_snapshot", .owner = .genz },
+    .{ .path = "core/integer/map/restore.zx", .name = "cache_restore", .owner = .genz },
     .{ .path = "genz/analysis/members/add.zx", .name = "members_add", .owner = .genz },
     .{ .path = "core/integer/index/get.zx", .name = "members_get", .owner = .genz },
     .{ .path = "core/integer/index/remove.zx", .name = "members_remove", .owner = .genz },

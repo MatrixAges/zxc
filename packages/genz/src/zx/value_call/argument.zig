@@ -53,15 +53,11 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
 fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
     const expression = self.program.expression(id);
     const value = expression.value.object;
-    const saved = try self.allocator.alloc(?node.ExpressionId, value.evaluation.len);
+    var buffer: @TypeOf(self.cache).SnapshotBuffer = undefined;
+    var memory = std.heap.BufferFirstAllocator.init(&buffer, self.allocator);
+    const saved = try self.cache.snapshot(memory.allocator(), value.evaluation);
 
-    for (value.evaluation, 0..) |item, index| saved[index] = self.cache.get(item);
-
-    defer {
-        for (value.evaluation, 0..) |item, index| {
-            if (saved[index]) |previous| self.cache.put(self.allocator, item, previous) catch unreachable else _ = self.cache.remove(item);
-        }
-    }
+    defer self.cache.restore(self.allocator, value.evaluation, saved);
 
     const counts = try self.allocator.alloc(usize, value.evaluation.len);
     const evaluated = try self.allocator.alloc(node.ExpressionId, value.evaluation.len);

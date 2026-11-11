@@ -29,15 +29,11 @@ pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!node.ExpressionId {
     }
 
     const object = expression.value.object;
-    const saved = try allocator.alloc(?node.ExpressionId, object.evaluation.len);
+    const saved = try self.cache.snapshot(allocator, object.evaluation);
     const counts = try allocator.alloc(u64, object.evaluation.len);
     const bindings = try emitting.Bindings.init(allocator, object.evaluation.len);
 
-    for (object.evaluation, saved) |item, *previous| previous.* = self.cache.get(item);
-
-    defer for (object.evaluation, saved) |item, previous| {
-        if (previous) |value| self.cache.put(lowering.allocator, item, value) catch unreachable else _ = self.cache.remove(item);
-    };
+    defer self.cache.restore(lowering.allocator, object.evaluation, saved);
 
     for (object.evaluation, counts, 0..) |item, *count, index| {
         const value = try Operand.lower(lowering, item);

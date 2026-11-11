@@ -1,0 +1,58 @@
+import lookup from "./lookup"
+import put from "./put"
+import remove from "./remove"
+
+import type { State } from "./model"
+
+export type Input = {
+    state: State,
+    keys: u32[],
+    previous: u32?[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    if (in.state.metadata.length == 0) {
+        return in.state
+    }
+
+    const keys = in.keys
+    const previous = in.previous
+
+    return loop({
+        state: in.state,
+        index: 0
+    }, {
+        while: current => current.index < keys.length,
+        next: current => {
+            const key = keys[current.index]
+            const value = previous[current.index]
+
+            if (value == null) {
+                current.state = remove({
+                    state: current.state,
+                    key
+                }).state
+            } else {
+                const slot = lookup({
+                    ...current.state.omit(["values"]),
+                    key
+                })
+
+                if (slot == null) {
+                    current.state = put({
+                        state: current.state,
+                        key,
+                        value
+                    })
+                } else {
+                    current.state.values = current.state.values.with(slot, value)
+                }
+            }
+
+            current.index += 1
+        },
+        return: state => state.state
+    })
+}

@@ -22,6 +22,7 @@ pub fn Map(comptime Key: type) type {
             .values = .{ .items = &.{}, .storage = .plain },
         } else .empty,
         pub const empty: Self = .{};
+        pub const SnapshotBuffer = [256]u8;
 
         pub fn put(self: *Self, allocator: std.mem.Allocator, key: Key, value: node.ExpressionId) std.mem.Allocator.Error!void {
             if (!generated) return self.state.put(allocator, key, value);
@@ -67,6 +68,50 @@ pub fn Map(comptime Key: type) type {
             self.state = result.state;
 
             return result.removed;
+        }
+        pub fn snapshot(self: *const Self, allocator: std.mem.Allocator, keys: []const Key) std.mem.Allocator.Error![]const ?u32 {
+            if (keys.len == 0) return &.{};
+
+            if (!generated) {
+                const values = try allocator.alloc(?u32, keys.len);
+
+                for (keys, values) |key, *value| value.* = if (self.get(key)) |prior| @backingInt(prior) else null;
+
+                return values;
+            }
+
+            const entry = @import("generated_cache_snapshot");
+            const Input = std.meta.Child(entry.Input);
+            const state = self.view(std.meta.Child(@FieldType(Input, "state")));
+            const input: Input = .{ .state = &state, .keys = rawKeys(keys) };
+
+            return zx.columns.invoke(entry.executeValue, allocator, &input) catch |err| switch (err) {
+                error.OutOfMemory => return error.OutOfMemory,
+                else => unreachable,
+            };
+        }
+        pub fn restore(self: *Self, allocator: std.mem.Allocator, keys: []const Key, values: []const ?u32) void {
+            if (keys.len == 0) return;
+
+            if (!generated) {
+                for (keys, values) |key, value| {
+                    if (value) |prior| self.put(allocator, key, @fromBackingInt(prior)) catch unreachable else _ = self.remove(key);
+                }
+
+                return;
+            }
+
+            const entry = @import("generated_cache_restore");
+
+            self.state = entry.executeState(allocator, .{
+                .state = self.state,
+                .keys = .{ .items = rawKeys(keys), .storage = .plain },
+                .previous = .{ .items = values, .storage = .plain },
+            }) catch unreachable;
+        }
+
+        fn rawKeys(keys: []const Key) []const u32 {
+            return @as([*]const u32, @ptrCast(keys.ptr))[0..keys.len];
         }
         pub fn view(self: *const Self, comptime Target: type) Target {
             return .{
