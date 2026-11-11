@@ -1,0 +1,24 @@
+import { Action } from "../layout/model"
+import { Layout } from "../parameters/model"
+
+import type { Shape as Output } from "./model"
+
+export type Input = Action
+
+export default function (in: Input): Output {
+    const parameters = match in {
+        Action.State => Layout.State,
+        Action.Stack => Layout.Stack,
+        Action.Deep => Layout.Deep,
+        Action.Buffered => Layout.Deep,
+        _ => Layout.Plain
+    }
+
+    return {
+        parameters,
+        layout: parameters == Layout.State || parameters == Layout.Stack,
+        selected_state: parameters == Layout.State,
+        deep: parameters == Layout.Deep,
+        buffered: in == Action.Buffered
+    }
+}

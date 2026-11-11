@@ -3,11 +3,10 @@ const zx = @import("zx");
 const ir = zx.ir;
 const Lower = @import("../lower.zig");
 const Context = @import("../iteration_value/root.zig");
-const Representation = @import("../iteration_layout/select.zig").Representation;
 const generated = @import("genz_options").generated_analysis;
 const entry = if (generated) @import("generated_iteration_parameters") else struct {};
 const Input = if (generated) std.meta.Child(entry.Input) else void;
-const Layout = if (generated) @FieldType(Input, "layout") else enum { Plain, Stack, State, Deep };
+pub const Layout = if (generated) @FieldType(Input, "layout") else enum { Plain, Stack, State, Deep };
 
 const Plan = if (generated) std.meta.Child(entry.Output) else struct {
     add_condition: bool,
@@ -27,15 +26,7 @@ condition_name: []const u8,
 step_name: []const u8,
 previous_context: ?*Context,
 plan: Plan,
-pub fn enter(lowering: *Lower, iteration: ir.Iteration, representation: Representation, name: []const u8, context: *Context) Lower.Error!Self {
-    const layout: Layout = switch (representation) {
-        .plain => .Plain,
-        .stack => .Stack,
-        .state => .State,
-        .deep, .buffered => .Deep,
-        .dereference, .reject => unreachable,
-    };
-
+pub fn enter(lowering: *Lower, iteration: ir.Iteration, layout: Layout, name: []const u8, context: *Context) Lower.Error!Self {
     const condition = iteration.condition_parameter;
     const step = iteration.parameter;
     const plan = decide(lowering, layout, condition, step);

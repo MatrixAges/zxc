@@ -3,24 +3,53 @@
 
     <Args in={Initial.Input} out={Initial.Output} />
 
-    <Call fn="binding" in={$in} />
+    <Call fn="shape" in={$in.representation} />
+
+    <Call
+        fn="binding"
+        in={{
+            ...$in.pick([
+                "mode",
+                "direct_initial",
+                "pure",
+                "forwarded"
+            ]),
+            ...$ctx.shape.pick([
+                "layout",
+                "selected_state",
+                "deep"
+            ])
+        }}
+    />
 
     <Call
         module="storage"
         in={{
-            layout: $in.layout,
-            selected_state: $in.selected_state,
+            layout: $ctx.shape.layout,
+            selected_state: $ctx.shape.selected_state,
             state_active: $in.state_active,
-            deep: $in.deep,
+            deep: $ctx.shape.deep,
             direct_initial: $in.direct_initial,
             by_value: $ctx.binding.by_value
         }}
     />
 
+    <Call
+        fn="guard"
+        in={{
+            buffered: $ctx.shape.buffered,
+            postcondition: $in.postcondition,
+            consumer: $in.consumer
+        }}
+    />
+
     <Return
         value={{
+            ...$ctx.shape,
             ...$ctx.binding,
-            guard: $in.buffered && !$in.postcondition,
+            guard: $ctx.guard,
+            state_scope: $ctx.storage == Initial.Storage.State ||
+                $ctx.storage == Initial.Storage.StateValue,
             storage: $ctx.storage
         }}
     />

@@ -46,26 +46,19 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const selected_call = selection.forwarded;
     const type_id = self.program.expression(id).type_id;
-    const buffered = selection.representation == .buffered;
-    const deep = buffered or selection.representation == .deep;
-    const selected_state = selection.representation == .state;
-    const layout = selected_state or selection.representation == .stack;
 
     const preparation = @import("iteration/initial.zig").plan(.{
-        .layout = layout,
-        .selected_state = selected_state,
+        .representation = selection.representation,
+        .mode = mode,
         .state_active = self.state_active,
-        .deep = deep,
-        .buffered = buffered,
         .direct_initial = selection.direct_initial,
         .postcondition = iteration.postcondition,
-        .reference = mode == .reference,
-        .discard = mode == .discard,
+        .consumer = consumer != null,
         .pure = selection.pure,
         .forwarded = selected_call != null,
     });
 
-    var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body, .inline_lists = buffered };
+    var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body, .inline_lists = preparation.buffered };
 
     const initial_expression = switch (preparation.evaluation) {
         .Reference => try self.expr(iteration.initial),
@@ -80,12 +73,13 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     };
 
     const initial = if (preparation.local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
-    var initial_guard: ?@import("iteration_value/initial.zig") = if (preparation.guard) try @import("iteration_value/initial.zig").create(self, &body, iteration, consumer, initial) else null;
 
-    const state_scope = switch (preparation.storage) {
-        .State, .StateValue => try @import("state_value/root.zig").enter(self),
-        else => null,
-    };
+    var initial_guard: ?@import("iteration_value/initial.zig") = if (preparation.guard != .None)
+        try @import("iteration_value/initial.zig").create(self, &body, iteration, consumer, initial, preparation.guard)
+    else
+        null;
+
+    const state_scope = if (preparation.state_scope) try @import("state_value/root.zig").enter(self) else null;
 
     defer if (state_scope) |scope| scope.restore();
 
@@ -97,19 +91,19 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const changed_name = if (preparation.track) try self.fresh("state_changed") else "";
     const tracking = if (changed_name.len != 0) changed_name else null;
-    const parameters = try @import("iteration/parameters.zig").enter(self, iteration, selection.representation, name, &context);
+    const parameters = try @import("iteration/parameters.zig").enter(self, iteration, preparation.parameters, name, &context);
 
     defer parameters.restore();
 
     const finish = @import("iteration/result.zig").Result{
         .consumer = consumer,
-        .deep = deep,
+        .deep = preparation.deep,
         .context = &context,
         .converted = state_scope != null,
         .type_id = type_id,
         .by_value = preparation.by_value,
         .local = preparation.local,
-        .selected_state = selected_state,
+        .selected_state = preparation.selected_state,
         .initial = initial,
         .changed_name = changed_name,
         .mode = mode,
@@ -136,9 +130,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .forwarded = if (selected_call) |call| @backingInt(call) else null,
         .postcondition = iteration.postcondition,
         .projected = fields != null,
-        .selected_state = selected_state,
-        .layout = layout,
-        .buffered = buffered,
+        .selected_state = preparation.selected_state,
+        .layout = preparation.layout,
+        .buffered = preparation.buffered,
     });
 
     const renewals = try renewal.plan(self, temporary, .{
@@ -221,7 +215,11 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const tracker = try state_declaration.declare(self, &body, .{
         .name = name,
-        .layout = if (deep) try @import("iteration_value/types.zig").get(&context, type_id) else if (layout) try self.layoutExpr(type_id) else try self.typeExpr(type_id),
+        .layout = switch (preparation.parameters) {
+            .Plain => try self.typeExpr(type_id),
+            .Stack, .State => try self.layoutExpr(type_id),
+            .Deep => try @import("iteration_value/types.zig").get(&context, type_id),
+        },
         .initial = initial_state,
         .tracking = tracking,
     });

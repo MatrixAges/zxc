@@ -1,9 +1,10 @@
+import { Mode } from "../layout/model"
 import { Evaluation } from "./model"
 
-import type { Input, Binding as Output } from "./model"
+import type { BindingInput as Input, Binding as Output } from "./model"
 
 export default function (in: Input): Output {
-    const by_value = in.layout && !in.reference
+    const by_value = in.layout && in.mode != Mode.Reference
     const local = in.layout || in.deep
 
     const evaluation = match {
@@ -13,7 +14,7 @@ export default function (in: Input): Output {
     }
 
     const project_fields = in.selected_state && in.pure && !in.forwarded
-    const track = local && !by_value && !in.discard
+    const track = local && !by_value && in.mode != Mode.Discard
 
     return {
         evaluation,

@@ -1,0 +1,17 @@
+import { Guard } from "./model"
+
+export type Input = {
+    buffered: bool,
+    postcondition: bool,
+    consumer: bool
+}
+
+export type Output = Guard
+
+export default function (in: Input): Output {
+    if (!in.buffered || in.postcondition) {
+        return Guard.None
+    }
+
+    return in.consumer ? Guard.Consumer : Guard.Unit
+}

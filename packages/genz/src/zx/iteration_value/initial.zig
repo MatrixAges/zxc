@@ -4,12 +4,13 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 const consumer = @import("../iteration_consumer.zig");
+const Guard = @import("../iteration/initial.zig").Guard;
 const Self = @This();
 
 body: std.ArrayList(node.Statement),
 condition: node.ExpressionId,
 result: node.ExpressionId,
-pub fn create(lowering: *Lower, body: *std.ArrayList(node.Statement), iteration: ir.Iteration, selected: ?consumer.Consumer, initial: node.ExpressionId) Lower.Error!Self {
+pub fn create(lowering: *Lower, body: *std.ArrayList(node.Statement), iteration: ir.Iteration, selected: ?consumer.Consumer, initial: node.ExpressionId, guard: Guard) Lower.Error!Self {
     const outer = body.*;
     body.* = .empty;
     const name = lowering.builder.nodes.get(initial).identifier;
@@ -20,8 +21,14 @@ pub fn create(lowering: *Lower, body: *std.ArrayList(node.Statement), iteration:
     lowering.iteration_value = null;
     defer lowering.names[index] = previous_name;
     defer lowering.iteration_value = previous_context;
+
     const condition = try lowering.expr(iteration.condition);
-    const result = if (selected) |value| try @import("result.zig").lower(lowering, value, initial) else try lowering.builder.expression(.unit);
+
+    const result = switch (guard) {
+        .Consumer => try @import("result.zig").lower(lowering, selected.?, initial),
+        .Unit => try lowering.builder.expression(.unit),
+        .None => unreachable,
+    };
 
     return .{ .body = outer, .condition = condition, .result = result };
 }

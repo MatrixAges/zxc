@@ -1,17 +1,37 @@
+import type { Action, Mode } from "../layout/model"
+import type { Layout } from "../parameters/model"
+
 export enum Evaluation { Reference, Value, Deep }
 
 export enum Storage { Keep, Dereference, Deep, State, StateValue, Clip }
 
+export enum Guard { None, Unit, Consumer }
+
 export type Input = {
-    layout: bool,
-    selected_state: bool,
+    representation: Action,
+    mode: Mode,
     state_active: bool,
-    deep: bool,
-    buffered: bool,
     direct_initial: bool,
     postcondition: bool,
-    reference: bool,
-    discard: bool,
+    consumer: bool,
+    pure: bool,
+    forwarded: bool
+}
+
+export type Shape = {
+    parameters: Layout,
+    layout: bool,
+    selected_state: bool,
+    deep: bool,
+    buffered: bool
+}
+
+export type BindingInput = {
+    layout: bool,
+    selected_state: bool,
+    deep: bool,
+    mode: Mode,
+    direct_initial: bool,
     pure: bool,
     forwarded: bool
 }
@@ -34,11 +54,17 @@ export type StorageInput = {
 }
 
 export type Output = {
+    parameters: Layout,
+    layout: bool,
+    selected_state: bool,
+    deep: bool,
+    buffered: bool,
     evaluation: Evaluation,
     local: bool,
     by_value: bool,
     project_fields: bool,
     track: bool,
-    guard: bool,
+    guard: Guard,
+    state_scope: bool,
     storage: Storage
 }
