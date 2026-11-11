@@ -3,23 +3,35 @@ const ir = @import("zx").ir;
 const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 const Context = @import("root.zig");
-const Mode = if (@import("genz_options").generated_analysis) @FieldType(std.meta.Child(@import("generated_loop_fields_projection").Input), "mode") else enum { Initial, Restore, Minimum };
+const Mode = if (@import("genz_options").generated_analysis) @FieldType(std.meta.Child(@import("generated_loop_fields_projection").Input), "mode") else enum { Initial, Restore, Minimum, Rebuild };
+
+const Request = struct {
+    mode: Mode,
+    value: node.ExpressionId,
+    layout: node.ExpressionId = @fromBackingInt(0),
+    operation: ir.ExprId = @fromBackingInt(0),
+    values: []const u32 = &.{},
+};
 
 pub fn initial(context: *const Context, lowering: *Lower) Lower.Error!node.ExpressionId {
-    return (try build(context, lowering, .Initial, context.seed, context.layout, @fromBackingInt(0))).?;
+    return (try build(context, lowering, .{ .mode = .Initial, .value = context.seed, .layout = context.layout })).?;
 }
 
 pub fn restore(context: *const Context, lowering: *Lower, state: node.ExpressionId) Lower.Error!node.ExpressionId {
     const layout = try lowering.layoutExpr(context.type_id);
 
-    return (try build(context, lowering, .Restore, state, layout, @fromBackingInt(0))).?;
+    return (try build(context, lowering, .{ .mode = .Restore, .value = state, .layout = layout })).?;
 }
 
 pub fn minimum(context: *const Context, lowering: *Lower, operation: ir.ExprId) Lower.Error!?node.ExpressionId {
-    return build(context, lowering, .Minimum, context.seed, @fromBackingInt(0), operation);
+    return build(context, lowering, .{ .mode = .Minimum, .value = context.seed, .operation = operation });
 }
 
-fn build(context: *const Context, lowering: *Lower, mode: Mode, value: node.ExpressionId, layout: node.ExpressionId, operation: ir.ExprId) Lower.Error!?node.ExpressionId {
+pub fn rebuild(context: *const Context, lowering: *Lower, source: node.ExpressionId, layout: node.ExpressionId, values: []const u32) Lower.Error!node.ExpressionId {
+    return (try build(context, lowering, .{ .mode = .Rebuild, .value = source, .layout = layout, .values = values })).?;
+}
+
+fn build(context: *const Context, lowering: *Lower, request: Request) Lower.Error!?node.ExpressionId {
     const entry = @import("generated_loop_fields_projection");
     const Input = std.meta.Child(entry.Input);
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), lowering.program.types);
@@ -28,13 +40,14 @@ fn build(context: *const Context, lowering: *Lower, mode: Mode, value: node.Expr
         .types = &types,
         .type_id = @backingInt(context.type_id),
         .borrowed = context.borrowed,
-        .value = @backingInt(value),
-        .layout = @backingInt(layout),
-        .mode = mode,
+        .value = @backingInt(request.value),
+        .layout = @backingInt(request.layout),
+        .mode = request.mode,
         .capacity = if (context.capacity) |capacity| &.{ .operation = @backingInt(capacity.operation), .source = capacity.source } else null,
-        .operation = @backingInt(operation),
+        .operation = @backingInt(request.operation),
         .active = lowering.state_active,
         .selected = lowering.state_plan.selected,
+        .values = request.values,
         .expression_base = @intCast(lowering.builder.nodes.expressions.tags.items.len),
         .field_base = @intCast(lowering.builder.nodes.field_columns.count()),
     };

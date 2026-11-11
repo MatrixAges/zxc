@@ -3,7 +3,7 @@ import type { Columns as Fields } from "../../../../ast/fields/model"
 import type { ExpressionsKind } from "../../../../printer/model/expressions"
 import type { Capacity } from "../model"
 
-export enum Mode { Initial, Restore, Minimum }
+export enum Mode { Initial, Restore, Minimum, Rebuild }
 
 export type Input = {
     types: Table,
@@ -16,6 +16,7 @@ export type Input = {
     operation: u32,
     active: bool,
     selected: bool[],
+    values: u32[],
     expression_base: u32,
     field_base: u32
 }

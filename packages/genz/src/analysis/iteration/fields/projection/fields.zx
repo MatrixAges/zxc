@@ -3,9 +3,10 @@ import integers from "std:integer"
 
 import append from "../../../../ast/fields/append"
 import field from "./field"
+import { Mode } from "./model"
 import wrap from "./wrap"
 
-import type { State as Input, State as Output } from "./model"
+import type { State as Input, State as Output, Node } from "./model"
 
 export default function (in: Input): Output {
     const source = in.source
@@ -22,16 +23,20 @@ export default function (in: Input): Output {
             const name =
                 bytes.fromText(source.types.field_names[first + current.index])
 
-            const projected = field({
-                state: current.state,
-                target: source.value,
-                name
-            })
-
-            const value = wrap({
-                node: projected,
-                borrowed: source.borrowed[current.index]
-            })
+            const value: Node = match {
+                source.mode == Mode.Rebuild => {
+                    state: current.state,
+                    id: source.values[current.index]
+                },
+                _ => wrap({
+                    node: field({
+                        state: current.state,
+                        target: source.value,
+                        name
+                    }),
+                    borrowed: source.borrowed[current.index]
+                })
+            }
 
             current.state = {
                 ...value.state,

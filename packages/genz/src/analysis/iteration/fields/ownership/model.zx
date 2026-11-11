@@ -1,3 +1,4 @@
+import type { ExpressionsKind } from "../../../../printer/model/expressions"
 import type { Facts } from "../../../state/ownership/model"
 
 export type Input = {
@@ -8,3 +9,32 @@ export type Input = {
 }
 
 export type Output = u32?[]
+
+export type Prepare = {
+    facts: Facts,
+    type_id: u32,
+    borrowed: bool[],
+    origin?: u32,
+    value: u32,
+    expression_base: u32
+}
+
+export type Read = {
+    source: Prepare,
+    slots: Output
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    field_target: u32[],
+    field_name: u8[][]
+}
+
+export type Prepared = {
+    expressions: Expressions,
+    values: u32[],
+    slots: Output,
+    origin: u32,
+    valid: bool
+}

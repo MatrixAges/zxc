@@ -15,6 +15,7 @@ pub const Input = if (generated) std.meta.Child(entry.Input) else struct {
     selected_state: bool,
     layout: bool,
     buffered: bool,
+    discard: bool,
 };
 
 const Plan = if (generated) std.meta.Child(entry.Output) else struct {
@@ -24,6 +25,7 @@ const Plan = if (generated) std.meta.Child(entry.Output) else struct {
     after_step: bool,
     classify_renewals: bool,
     inline_lists: bool,
+    restore_projected: bool,
     assignment: enum { Direct, State, Projected },
 };
 
@@ -40,6 +42,7 @@ pub fn plan(input: Input) Plan {
         .after_step = result.after_step,
         .classify_renewals = result.classify_renewals,
         .inline_lists = result.inline_lists,
+        .restore_projected = result.restore_projected,
         .assignment = result.assignment,
     };
 }
@@ -88,6 +91,7 @@ fn seed(input: Input) Plan {
         .after_step = input.projected or input.postcondition,
         .classify_renewals = !input.projected and input.selected_state and input.forwarded == null,
         .inline_lists = !input.projected and input.buffered,
+        .restore_projected = input.projected and !input.discard,
         .assignment = if (input.projected) .Projected else if (input.selected_state) .State else .Direct,
     };
 }

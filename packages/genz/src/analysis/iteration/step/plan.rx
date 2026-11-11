@@ -12,6 +12,7 @@
                 after_step: true,
                 classify_renewals: false,
                 inline_lists: false,
+                restore_projected: !$in.discard,
                 assignment: Step.Assignment.Projected
             }}
         />
@@ -25,7 +26,8 @@
             first_test: false,
             after_step: $in.postcondition,
             classify_renewals: $in.selected_state && $in.forwarded == null,
-            inline_lists: $in.buffered
+            inline_lists: $in.buffered,
+            restore_projected: false
         }}
     />
 </Module>

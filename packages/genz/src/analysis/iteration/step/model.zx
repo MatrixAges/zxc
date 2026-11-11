@@ -7,7 +7,8 @@ export type Input = {
     projected: bool,
     selected_state: bool,
     layout: bool,
-    buffered: bool
+    buffered: bool,
+    discard: bool
 }
 
 export type Evaluation = {
@@ -23,5 +24,6 @@ export type Output = {
     after_step: bool,
     classify_renewals: bool,
     inline_lists: bool,
+    restore_projected: bool,
     assignment: Assignment
 }

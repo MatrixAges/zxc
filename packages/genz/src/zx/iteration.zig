@@ -133,6 +133,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         .selected_state = preparation.selected_state,
         .layout = preparation.layout,
         .buffered = preparation.buffered,
+        .discard = mode == .discard,
     });
 
     const renewals = try renewal.plan(self, temporary, .{
@@ -190,7 +191,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         try frame.append(self, &entered, null, &loop, .{ .condition = next.condition, .after_step = schedule.after_step });
 
-        const restored = if (mode == .discard) state else try aggregate.bind(self, &entered, try selected.restore(self, state));
+        const restored = if (schedule.restore_projected) try aggregate.bind(self, &entered, try selected.restore(self, state)) else state;
         const result = try finish.lower(self, &entered, restored);
 
         if (first_condition) |first| {

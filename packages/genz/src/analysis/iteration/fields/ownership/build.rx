@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Ownership" />
+
+    <Args in={Ownership.Prepare} out={Ownership.Prepared?} />
+
+    <Call
+        module="plan"
+        in={{
+            ...$in.pick([
+                "facts",
+                "type_id",
+                "borrowed"
+            ]),
+            mask: $in.origin == null
+        }}
+    />
+
+    <If on={$ctx.plan.length == 0}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="read"
+        in={{
+            source: $in,
+            slots: $ctx.plan
+        }}
+    />
+
+    <Return value={$ctx.read} />
+</Module>
