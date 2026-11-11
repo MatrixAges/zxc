@@ -1,0 +1,63 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import emptyConstants from "../../../../ast/declarations/empty"
+import emptyFunctions from "../../../../ast/declarations/empty_functions"
+import { regular_member, value_member } from "../../requests/const"
+import append from "./append"
+import { variant_declarations, variant_expressions } from "./const"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const regular: u64 = in.regular == null ? 0 : 1
+    const value: u64 = in.value == null ? 0 : 1
+    const count = regular + value
+    const limit = integers.widen(max_u32)
+
+    const expression_end =
+        integers.widen(in.expression_base) +
+        count * integers.widen(variant_expressions) + 1
+
+    const declaration_end =
+        integers.widen(in.declaration_base) +
+        count * integers.widen(variant_declarations)
+
+    const valid_statements = in.statement_base < max_u32
+    const valid_expressions = expression_end <= limit
+    const valid_declarations = declaration_end <= limit
+
+    const state: Output = {
+        source: in,
+        expressions: {
+            tags: [],
+            offsets: [],
+            namespace_type_start: [],
+            namespace_type_len: [],
+            field_target: [],
+            field_name: [],
+            builtin_name: [],
+            builtin_arguments: []
+        },
+        functions: emptyFunctions({}),
+        aliases: emptyConstants({}),
+        valid: valid_statements && valid_expressions && valid_declarations
+    }
+
+    if (!state.valid) {
+        return state
+    }
+
+    const with_regular = append({
+        state,
+        prototype: in.regular,
+        name: bytes.fromText(regular_member)
+    })
+
+    return append({
+        state: with_regular,
+        prototype: in.value,
+        name: bytes.fromText(value_member)
+    })
+}

@@ -1,0 +1,23 @@
+import { unnamed_parameter } from "./const"
+
+export type Input = {
+    external: bool,
+    value_function: bool,
+    pointer_variant: bool
+}
+
+export type Output = {
+    regular: bool,
+    value: bool,
+    parameter_name: string
+}
+
+export default function (in: Input): Output {
+    const value = !in.external && in.value_function
+
+    return {
+        regular: !value || in.pointer_variant,
+        value,
+        parameter_name: unnamed_parameter
+    }
+}

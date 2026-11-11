@@ -1,0 +1,95 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import constant from "../../../../ast/declarations/append_constant"
+import appendFunction from "../../../../ast/declarations/append_function"
+import {
+    ExpressionsKind,
+    ExpressionsBuiltinName
+} from "../../../../printer/model/expressions"
+import { signature_name } from "./const"
+
+import type { Prototype, State } from "./model"
+
+export type Input = {
+    state: State,
+    prototype?: Prototype,
+    name: u8[]
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const prototype = in.prototype
+
+    if (prototype == null) {
+        return in.state
+    }
+
+    const state = in.state
+    const offset = integers.narrow(state.functions.tags.length)
+    const declaration = state.source.declaration_base + offset
+    const expressions = state.expressions
+
+    const container =
+        state.source.expression_base + integers.narrow(expressions.tags.length)
+
+    const member = container + 1
+    const type_expr = member + 1
+    const arguments = [member]
+
+    const function_type = appendFunction({
+        table: state.functions,
+        value: {
+            base: declaration,
+            name: bytes.fromText(signature_name),
+            parameters_start: prototype.parameters_start,
+            parameters_count: prototype.parameters_count,
+            return_type: prototype.return_type,
+            body_start: state.source.statement_base,
+            body_count: 1,
+            exported: false,
+            abi_export: prototype.abi_export,
+            inlined: false,
+            calling_convention: prototype.calling_convention
+        }
+    })
+
+    const alias = constant({
+        table: state.aliases,
+        value: {
+            name: in.name,
+            type_expr: null,
+            value: type_expr,
+            exported: true
+        }
+    })
+
+    return {
+        ...state,
+        functions: function_type.table,
+        aliases: alias.table,
+        valid: function_type.valid && alias.valid,
+        expressions: {
+            tags: expressions.tags.concat([
+                ExpressionsKind.NamespaceType,
+                ExpressionsKind.Field,
+                ExpressionsKind.Builtin
+            ])[0],
+            offsets: expressions.offsets.concat([
+                offset,
+                offset,
+                offset
+            ])[0],
+            namespace_type_start:
+                expressions.namespace_type_start.push(declaration)[0],
+            namespace_type_len: expressions.namespace_type_len.push(1)[0],
+            field_target: expressions.field_target.push(container)[0],
+            field_name:
+                expressions.field_name.push(bytes.fromText(signature_name))[0],
+            builtin_name:
+                expressions.builtin_name.push(ExpressionsBuiltinName.TypeOf)[0],
+            builtin_arguments: expressions.builtin_arguments.push(arguments)[0]
+        }
+    }
+}

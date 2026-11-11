@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import constants from "../../../../ast/declarations/constants"
+import namespace from "../../../../ast/expressions/namespace"
+import { StatementsKind } from "../../../../printer/model/statements"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const count = integers.narrow(in.functions.tags.length)
+
+    const module_type = namespace({
+        table: in.expressions.pick([
+            "tags",
+            "offsets",
+            "namespace_type_start",
+            "namespace_type_len"
+        ]),
+        base: in.source.expression_base,
+        start: in.source.declaration_base + count,
+        count
+    })
+
+    const root = constants({
+        base: 0,
+        values: [{
+            name: in.source.name,
+            type_expr: null,
+            value: module_type.id,
+            exported: true
+        }]
+    })
+
+    return {
+        expressions: {
+            ...in.expressions,
+            ...module_type.table
+        },
+        functions: in.functions,
+        aliases: in.aliases,
+        roots: root.table,
+        statements: {
+            tags: [StatementsKind.UnreachableStmt],
+            offsets: [0]
+        },
+        valid: in.valid && module_type.valid && root.valid
+    }
+}

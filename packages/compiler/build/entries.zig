@@ -424,6 +424,8 @@ pub const growth = [_]Entry{
     .{ .path = "genz/analysis/collections/update/build.rx", .name = "list_update", .owner = .genz },
     .{ .path = "genz/analysis/functions/adapter/eligible.rx", .name = "function_adapter_eligible", .owner = .genz },
     .{ .path = "genz/analysis/functions/adapter/argument.rx", .name = "function_adapter_argument", .owner = .genz },
+    .{ .path = "genz/analysis/functions/signature/module/select.zx", .name = "signature_module_select", .owner = .genz },
+    .{ .path = "genz/analysis/functions/signature/module/build.rx", .name = "signature_module_build", .owner = .genz },
 };
 
 pub const collections = [_]Entry{

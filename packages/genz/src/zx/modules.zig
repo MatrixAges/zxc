@@ -41,14 +41,29 @@ pub fn signatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, prog
 
         var selected = lower;
         const function_value = try selectFunction(&selected, id);
+
+        if (comptime @import("genz_options").generated_analysis) {
+            const signature_module = @import("modules/signature.zig");
+            const variants = signature_module.select(function_value.external != null, selected.value_functions[@backingInt(id)], unit == .regular);
+            const regular = if (variants.regular) try regularPrototype(&selected, id, function_value) else null;
+            const value = if (variants.value) try selected.valuePrototype("signature") else null;
+
+            try signature_module.append(&selected, &output, .{
+                .name = name,
+                .parameter_name = variants.parameter_name,
+                .regular = regular,
+                .value = value,
+            });
+
+            continue;
+        }
+
         const value = function_value.external == null and selected.value_functions[@backingInt(id)];
         var variants: std.ArrayList(node.Declaration) = .empty;
 
         if (!value or unit == .regular) {
-            const prototype = if (function_value.external != null)
-                try @import("external.zig").prototype(&selected, function_value, @backingInt(id))
-            else
-                try selected.prototype("signature", false);
+            const prototype = try regularPrototype(&selected, id, function_value);
+
             try variants.append(temporary, try signatureType(&selected, "call", prototype));
         }
 
@@ -57,6 +72,12 @@ pub fn signatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, prog
     }
 
     return render(allocator, lower.builder.nodes, output.items);
+}
+
+fn regularPrototype(lower: *Lower, id: ir.FunctionId, function_value: ir.Function) Error!node.Function {
+    if (function_value.external != null) return @import("external.zig").prototype(lower, function_value, @backingInt(id));
+
+    return lower.prototype("signature", false);
 }
 
 fn signatureType(lower: *Lower, name: []const u8, prototype: node.Function) Error!node.Declaration {

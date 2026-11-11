@@ -1,0 +1,10 @@
+<Module>
+    <Type from="model" as="Signature" />
+
+    <Args in={Signature.Input} out={Signature.Output} />
+
+    <Call fn="members" in={$in} />
+    <Call fn="publish" in={$ctx.members} />
+
+    <Return value={$ctx.publish} />
+</Module>
