@@ -1,47 +1,66 @@
+import integers from "std:integer"
+
 import root from "./root"
 
-import type { Edges } from "./model"
+import type { Edges } from "../model"
 
 export type Input = {
-    payloads: u64[],
+    payloads: u32[],
     edges: Edges
 }
 
-export type Output = u64[]
+export type Output = u32[]
 
 export default function (in: Input): Output {
+    const empty_rank: u8 = 0
+
     return loop({
-        parents: in.payloads.map((item, index) => index)[0],
-        ranks: in.payloads.map(item => 0)[0],
-        edge: 0
+        parents: in.payloads.map((item, index) => integers.narrow(index))[0],
+        ranks: in.payloads.map(item => empty_rank)[0],
+        edge: 0,
+        index: 0
     }, {
-        while: state => state.edge < in.edges.left.length,
+        while: state => state.edge < in.edges.left.length ||
+            state.index < state.parents.length,
         next: state => {
-            const left = root({
-                parents: state.parents,
-                item: in.payloads[in.edges.left[state.edge]]
-            })
-            const right = root({
-                parents: state.parents,
-                item: in.payloads[in.edges.right[state.edge]]
-            })
+            if (state.edge == in.edges.left.length) {
+                state.parents[state.index] = root({
+                    parents: state.parents,
+                    item: integers.narrow(state.index)
+                })
+                state.index += 1
+            } else {
+                const source = in.edges.left[state.edge]
+                const target = in.edges.right[state.edge]
+                const left_root = root({
+                    parents: state.parents,
+                    item: in.payloads[integers.widen(source)]
+                })
+                const right_root = root({
+                    parents: state.parents,
+                    item: in.payloads[integers.widen(target)]
+                })
 
-            if (left != right) {
-                const left_rank = state.ranks[left]
-                const right_rank = state.ranks[right]
+                const left = integers.widen(left_root)
+                const right = integers.widen(right_root)
 
-                if (left_rank < right_rank) {
-                    state.parents[left] = right
-                } else {
-                    state.parents[right] = left
+                if (left != right) {
+                    const left_rank = state.ranks[left]
+                    const right_rank = state.ranks[right]
 
-                    if (left_rank == right_rank) {
-                        state.ranks[left] += 1
+                    if (left_rank < right_rank) {
+                        state.parents[left] = right_root
+                    } else {
+                        state.parents[right] = left_root
+
+                        if (left_rank == right_rank) {
+                            state.ranks[left] += 1
+                        }
                     }
                 }
-            }
 
-            state.edge += 1
+                state.edge += 1
+            }
         },
         return: state => state.parents
     })

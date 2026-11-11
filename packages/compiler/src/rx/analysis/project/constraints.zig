@@ -77,14 +77,16 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
         state.tasks = walker.tasks.items;
     }
 
+    const assignments = graph.assignments.slice();
+
     for (states) |state| {
         if (state.input_declared or state.input_used) continue;
 
-        var referenced = false;
+        const input_root = graph.root(state.input);
 
-        for (graph.assignments.items) |edge| {
-            if (graph.root(edge.value) == graph.root(state.input) or graph.root(edge.expected) == graph.root(state.input)) referenced = true;
-        }
+        const referenced = for (assignments.items(.value), assignments.items(.expected)) |value, expected| {
+            if (graph.root(value) == input_root or graph.root(expected) == input_root) break true;
+        } else false;
 
         if (referenced) continue;
 

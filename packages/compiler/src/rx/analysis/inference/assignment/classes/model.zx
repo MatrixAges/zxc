@@ -1,15 +1,12 @@
-export type Edges = {
-    left: u64[],
-    right: u64[]
-}
+import type { Edges } from "../model"
 
 export type Input = {
-    payloads: u64[],
+    payloads: u32[],
     candidates: bool[],
     edges: Edges
 }
 
 export type Output = {
-    parents: u64[],
-    representatives: u64?[]
+    parents: u32[],
+    representatives: u32?[]
 }

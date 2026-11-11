@@ -48,12 +48,14 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
 }
 
 fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
+    const assignments = graph.assignments.slice();
+
     for (0..bounds.len + 1) |_| {
         var changed = false;
 
-        for (graph.assignments.items) |edge| {
-            const actual = &bounds[@backingInt(graph.root(edge.value))];
-            const expected = &bounds[@backingInt(graph.root(edge.expected))];
+        for (assignments.items(.value), assignments.items(.expected), assignments.items(.span)) |value, target, span| {
+            const actual = &bounds[@backingInt(graph.root(value))];
+            const expected = &bounds[@backingInt(graph.root(target))];
             changed = raise(expected, actual.lower) or changed;
             changed = lower(actual, expected.upper) or changed;
 
@@ -62,8 +64,8 @@ fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
                 changed = true;
             }
 
-            try check(graph, actual.*, edge.span);
-            try check(graph, expected.*, edge.span);
+            try check(graph, actual.*, span);
+            try check(graph, expected.*, span);
         }
 
         for (graph.nodes.items, 0..) |node, index| {
@@ -95,7 +97,7 @@ fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
         if (!changed) return;
     }
 
-    const span = if (graph.assignments.items.len != 0) graph.assignments.items[0].span else graph.nodes.items[0].span;
+    const span = if (assignments.len != 0) assignments.items(.span)[0] else graph.nodes.items[0].span;
 
     return graph.reporter.fail(.type_mismatch, span, "inference would require a recursive optional type");
 }

@@ -1,15 +1,17 @@
+import integers from "std:integer"
+
 export type Input = {
-    parents: u64[],
-    item: u64
+    parents: u32[],
+    item: u32
 }
 
-export type Output = u64
+export type Output = u32
 
 export default function (in: Input): Output {
     return loop(in.item, {
-        while: item => in.parents[item] != item,
+        while: item => in.parents[integers.widen(item)] != item,
         next: item => {
-            item = in.parents[item]
+            item = in.parents[integers.widen(item)]
         },
         return: item => item
     })

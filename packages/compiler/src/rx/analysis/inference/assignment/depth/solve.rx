@@ -3,7 +3,7 @@
 
     <Args in={OptionalDepth.Input} out={OptionalDepth.Output} />
 
-    <If on={$in.edges.left.length == 0}>
+    <If on={$in.assignments.left.length == 0 && $in.optionals.left.length == 0}>
         <Return
             value={{
                 depths: $in.depths,

@@ -26,14 +26,16 @@ pub fn materialize(graph: *Graph, base: Base, scratch: std.mem.Allocator) zx.Err
 }
 
 pub fn validate(graph: *Graph) zx.Error!void {
-    for (graph.assignments.items) |edge| {
-        const actual = try graph.resolve(edge.value);
-        var expected = try graph.resolve(edge.expected);
+    const edges = graph.assignments.slice();
+
+    for (edges.items(.value), edges.items(.expected), edges.items(.span)) |source, target, span| {
+        const actual = try graph.resolve(source);
+        var expected = try graph.resolve(target);
 
         while (actual != expected) {
             const value = graph.types.get(expected);
 
-            if (value != .optional) return graph.reporter.fail(.type_mismatch, edge.span, "inferred value cannot be passed to the required type");
+            if (value != .optional) return graph.reporter.fail(.type_mismatch, span, "inferred value cannot be passed to the required type");
 
             expected = value.optional;
         }

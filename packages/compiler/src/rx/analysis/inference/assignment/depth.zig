@@ -35,16 +35,16 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
         }
     }
 
-    const assignments = graph.assignments.items;
-    const left = try scratch.alloc(u32, assignments.len + optional_count);
-    const right = try scratch.alloc(u32, left.len);
+    const assignments = graph.assignments.slice();
 
-    for (assignments, left[0..assignments.len], right[0..assignments.len]) |edge, *value, *expected| {
-        value.* = @backingInt(graph.root(edge.value));
-        expected.* = @backingInt(graph.root(edge.expected));
+    for (assignments.items(.value), assignments.items(.expected)) |*value, *expected| {
+        value.* = graph.root(value.*);
+        expected.* = graph.root(expected.*);
     }
 
-    var position = assignments.len;
+    const left = try scratch.alloc(u32, optional_count);
+    const right = try scratch.alloc(u32, optional_count);
+    var position: usize = 0;
 
     for (nodes, 0..) |node, index| {
         if (node.shape != .optional or @backingInt(node.parent) != index) continue;
@@ -57,7 +57,8 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     const solution = generated.executeValue(scratch, &.{
         .facts = facts,
         .depths = depths,
-        .edges = &.{ .left = left, .right = right, .assignments = assignments.len },
+        .assignments = &.{ .left = @ptrCast(assignments.items(.value)), .right = @ptrCast(assignments.items(.expected)) },
+        .optionals = &.{ .left = left, .right = right },
     }) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         error.IndexOutOfBounds => unreachable,
@@ -70,13 +71,13 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
             .OptionalToRequired => "optional input cannot satisfy a non-optional requirement",
             else => unreachable,
         }),
-        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments[0].span else nodes[0].span, "inference would require a recursive optional type"),
+        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments.items(.span)[0] else nodes[0].span, "inference would require a recursive optional type"),
     };
 }
 
 fn failure(graph: *Graph, parents: []const u32, position: usize, message: []const u8) zx.Error {
-    const assignments = graph.assignments.items;
-    const span = if (position < assignments.len) assignments[position].span else graph.nodes.items[parents[position]].span;
+    const assignments = graph.assignments.items(.span);
+    const span = if (position < assignments.len) assignments[position] else graph.nodes.items[parents[position - assignments.len]].span;
 
     return graph.reporter.fail(.type_mismatch, span, message);
 }

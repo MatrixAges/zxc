@@ -10,6 +10,9 @@ export type Input = Problem
 export type Output = Solution
 
 export default function (in: Input): Output {
+    const assignment_count = in.assignments.left.length
+    const edge_count = assignment_count + in.optionals.left.length
+
     return loop({
         lower: in.depths.map(depth => depth)[0],
         upper: in.depths.map(
@@ -51,7 +54,7 @@ export default function (in: Input): Output {
                     state.position += 1
                 }
             } else {
-                if (state.position == in.edges.left.length) {
+                if (state.position == edge_count) {
                     if (state.changed) {
                         state.rounds += 1
 
@@ -70,9 +73,12 @@ export default function (in: Input): Output {
                     state.position = 0
                     state.changed = false
                 } else {
-                    const left = integers.widen(in.edges.left[state.position])
-                    const right = integers.widen(in.edges.right[state.position])
-                    const optional = state.position >= in.edges.assignments
+                    const optional = state.position >= assignment_count
+                    const edges = optional ? in.optionals : in.assignments
+                    const cursor = state.position
+                    const position = optional ? cursor - assignment_count : cursor
+                    const left = integers.widen(edges.left[position])
+                    const right = integers.widen(edges.right[position])
                     const forward = state.forward
                     const owner = forward ? right : left
                     const neighbor = forward ? left : right

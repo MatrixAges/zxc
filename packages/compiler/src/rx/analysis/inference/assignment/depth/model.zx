@@ -1,3 +1,5 @@
+import type { Edges } from "../model"
+
 export enum Fact {
     Open,
     Optional,
@@ -20,16 +22,11 @@ export enum Stage {
     Done
 }
 
-export type Edges = {
-    left: u32[],
-    right: u32[],
-    assignments: u64
-}
-
 export type Input = {
     facts: Fact[],
     depths: u64[],
-    edges: Edges
+    assignments: Edges,
+    optionals: Edges
 }
 
 export type Output = {

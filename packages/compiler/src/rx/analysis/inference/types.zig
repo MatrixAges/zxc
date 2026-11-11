@@ -24,7 +24,7 @@ indexes: std.ArrayList(@import("index.zig").Projection) = .empty,
 value_uses: std.ArrayList(ValueUse) = .empty,
 binding_collisions: std.ArrayList(@import("bindings.zig").Collision) = .empty,
 binding_lookups: std.ArrayList(@import("bindings.zig").Lookup) = .empty,
-assignments: std.ArrayList(Assignment.Edge) = .empty,
+assignments: std.MultiArrayList(Assignment.Edge) = .empty,
 assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
 selections: std.ArrayList(@import("selection.zig").Selection) = .empty,
@@ -99,7 +99,7 @@ pub fn expect(self: *Self, value: Id, expected: Id, span: zx.Span) zx.Error!void
 
     if (key[0] == key[1]) return;
     if ((try self.assignment_keys.getOrPut(self.allocator, key)).found_existing) return;
-    try self.assignments.append(self.allocator, .{ .value = value, .expected = expected, .span = span });
+    try self.assignments.append(self.allocator, .{ .value = key[0], .expected = key[1], .span = span });
 
     self.revision += 1;
 }

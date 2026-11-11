@@ -3,10 +3,10 @@ const zx = @import("zx");
 const Graph = @import("../types.zig");
 const Self = @This();
 
-parents: []const u64,
-representatives: []const ?u64,
+parents: []const u32,
+representatives: []const ?u32,
 
-payloads: []const u64 = &.{},
+payloads: []const u32 = &.{},
 pub fn init(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     return if (@import("rx_options").generated_graph)
         build(graph, allocator)
@@ -16,7 +16,7 @@ pub fn init(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
 
 fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     const generated = @import("generated_assignment_classes");
-    var payloads = try std.ArrayList(u64).initCapacity(allocator, graph.nodes.items.len);
+    var payloads = try std.ArrayList(u32).initCapacity(allocator, graph.nodes.items.len);
     var index: usize = 0;
 
     while (index < graph.nodes.items.len) : (index += 1) {
@@ -31,20 +31,14 @@ fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         candidate.* = node.shape != .unknown or node.allowed != null;
     }
 
-    const left = try allocator.alloc(u64, graph.assignments.items.len);
-    const right = try allocator.alloc(u64, left.len);
-
-    for (graph.assignments.items, left, right) |edge, *value, *expected| {
-        value.* = @backingInt(edge.value);
-        expected.* = @backingInt(edge.expected);
-    }
+    const edges = graph.assignments.slice();
 
     const classes = generated.executeValue(allocator, &.{
         .payloads = payloads.items,
         .candidates = candidates,
-        .edges = &.{ .left = left, .right = right },
+        .edges = &.{ .left = @ptrCast(edges.items(.value)), .right = @ptrCast(edges.items(.expected)) },
     }) catch |err| switch (err) {
-        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
         error.IndexOutOfBounds => unreachable,
     };
 
@@ -56,16 +50,18 @@ fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
 
     while (index < graph.nodes.items.len) : (index += 1) _ = try payload(graph, @fromBackingInt(@intCast(index)));
 
-    const parents = try allocator.alloc(u64, graph.nodes.items.len);
-    const representatives = try allocator.alloc(?u64, parents.len);
+    const parents = try allocator.alloc(u32, graph.nodes.items.len);
+    const representatives = try allocator.alloc(?u32, parents.len);
 
-    for (parents, 0..) |*parent, item| parent.* = item;
+    for (parents, 0..) |*parent, item| parent.* = @intCast(item);
 
     @memset(representatives, null);
 
-    for (graph.assignments.items) |edge| {
-        const left = root(parents, @backingInt(try payload(graph, edge.value)));
-        const right = root(parents, @backingInt(try payload(graph, edge.expected)));
+    const edges = graph.assignments.slice();
+
+    for (edges.items(.value), edges.items(.expected)) |value, expected| {
+        const left = root(parents, @backingInt(try payload(graph, value)));
+        const right = root(parents, @backingInt(try payload(graph, expected)));
 
         parents[right] = left;
     }
@@ -80,19 +76,19 @@ fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         representatives[root(parents, @backingInt(base))] = @backingInt(base);
     }
 
-    for (parents, 0..) |*parent, item| parent.* = root(parents, item);
+    for (parents, 0..) |*parent, item| parent.* = root(parents, @intCast(item));
 
     return .{ .parents = parents, .representatives = representatives };
 }
 
-fn root(parents: []u64, index: usize) usize {
+fn root(parents: []u32, index: u32) u32 {
     var current = index;
 
     while (parents[current] != current) {
-        const grandparent = parents[@intCast(parents[current])];
+        const grandparent = parents[parents[current]];
 
         parents[current] = grandparent;
-        current = @intCast(grandparent);
+        current = grandparent;
     }
 
     return current;
@@ -104,13 +100,13 @@ pub fn representative(self: Self, graph: *Graph, id: Graph.Id) zx.Error!?Graph.I
 
 /// Available to the Source solver while the graph revision still matches this assignment base.
 pub fn stableRoot(self: Self, graph: *const Graph, id: Graph.Id) Graph.Id {
-    return self.lookup(@intCast(self.payloads[@backingInt(id)])) orelse graph.root(id);
+    return self.lookup(self.payloads[@backingInt(id)]) orelse graph.root(id);
 }
 
 fn lookup(self: Self, index: usize) ?Graph.Id {
-    const value = self.representatives[@intCast(self.parents[index])] orelse return null;
+    const value = self.representatives[self.parents[index]] orelse return null;
 
-    return @fromBackingInt(@intCast(value));
+    return @fromBackingInt(value);
 }
 
 /// Unifies every root with its class representative in one pass instead of one pair per rebuilt base. A

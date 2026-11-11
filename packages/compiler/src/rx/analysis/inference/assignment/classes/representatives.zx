@@ -1,22 +1,18 @@
-import root from "./root"
+import integers from "std:integer"
 
 import type { Output as Classes } from "./model"
 
 export type Input = {
-    parents: u64[],
-    payloads: u64[],
+    parents: u32[],
+    payloads: u32[],
     candidates: bool[]
 }
 
 export type Output = Classes
 
 export default function (in: Input): Output {
-    const parents = in.parents.map((item, index) => root({
-        parents: in.parents,
-        item: index
-    }))[0]
-
-    const empty: u64? = null
+    const parents = in.parents
+    const empty: u32? = null
 
     const representatives = loop({
         values: in.parents.map(item => empty)[0],
@@ -27,7 +23,9 @@ export default function (in: Input): Output {
             if (in.candidates[state.index]) {
                 const payload = in.payloads[state.index]
 
-                state.values[parents[payload]] = payload
+                const parent = parents[integers.widen(payload)]
+
+                state.values[integers.widen(parent)] = payload
             }
 
             state.index += 1
