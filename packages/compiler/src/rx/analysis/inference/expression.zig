@@ -181,7 +181,7 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
     defer candidates.deinit(self.graph.allocator);
 
     for (self.bindings.items) |binding| {
-        if (!@import("../condition.zig").matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
+        if (!@import("frontend").binding_path.matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
 
         if (selected) |previous| {
             if (candidates.items.len == 0) try candidates.append(self.graph.allocator, previous);
@@ -197,22 +197,22 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
 }
 
 pub fn assumeNonNull(self: *Self, expression: anytype) zx.Error!void {
-    const condition = @import("../condition.zig");
+    const paths = @import("frontend").binding_path;
 
-    const visible = condition.rooted(expression, "$in") or (for (self.bindings.items) |binding| {
-        if (condition.rooted(expression, binding.name)) break true;
+    const visible = paths.rooted(expression, "$in") or (for (self.bindings.items) |binding| {
+        if (paths.rooted(expression, binding.name)) break true;
     } else false);
 
     if (!visible) return;
 
-    const name = try condition.path(self.graph.allocator, expression) orelse return;
+    const name = try paths.path(self.graph.allocator, expression) orelse return;
 
     try self.nonnull.append(self.graph.allocator, name);
 }
 
 fn refined(self: *Self, expression: anytype, value: Graph.Id) zx.Error!Graph.Id {
     for (self.nonnull.items) |name| {
-        if (@import("../condition.zig").matches(expression, name)) return @import("non_null.zig").read(self.graph, value, self.sourceSpan(expression.span));
+        if (@import("frontend").binding_path.matches(expression, name)) return @import("non_null.zig").read(self.graph, value, self.sourceSpan(expression.span));
     }
 
     return value;
@@ -222,14 +222,14 @@ fn enumMember(self: *Self, owner: anytype, name: zx.ast.Name, span: zx.Span) zx.
     const value = syntax.value(owner);
 
     if (value != .field or syntax.value(value.field.target) != .identifier or self.aliases.len == 0) return null;
-    if (@import("../condition.zig").rooted(owner, "$in")) return null;
+    if (@import("frontend").binding_path.rooted(owner, "$in")) return null;
 
     for (self.bindings.items) |binding| {
-        if (@import("../condition.zig").rooted(owner, binding.name)) return null;
+        if (@import("frontend").binding_path.rooted(owner, binding.name)) return null;
     }
 
     for (self.aliases) |alias| {
-        if (!@import("../condition.zig").matches(owner, alias.name)) continue;
+        if (!@import("frontend").binding_path.matches(owner, alias.name)) continue;
 
         const target = self.graph.types.get(alias.type_id);
 

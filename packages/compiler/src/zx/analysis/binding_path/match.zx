@@ -1,0 +1,77 @@
+import bytes from "std:bytes"
+import { ascii_dot } from "core/ascii/const"
+
+import { ExprKind } from "../../frontend/parser/expressions/state/model"
+import prefix from "./prefix"
+
+import type { ExprNode } from "../../frontend/parser/expressions/state/model"
+
+export type Input = {
+    source: u8[],
+    nodes: ExprNode[],
+    native_names?: string[],
+    node: u64,
+    path: string,
+    rooted: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const path = bytes.fromText(in.path)
+
+    const start: u64? = match {
+        in.rooted => prefix({
+            nodes: in.nodes,
+            node: in.node,
+            fields: bytes.count(path, ascii_dot)
+        }),
+        _ => in.node
+    }
+
+    if (start == null) {
+        return false
+    }
+
+    return loop({
+        index: start,
+        end: path.length,
+        done: false,
+        matches: false
+    }, {
+        while: state => !state.done,
+        next: state => {
+            const node = in.nodes[state.index]
+
+            if (node.kind != ExprKind.Field && node.kind != ExprKind.Identifier) {
+                state.done = true
+            } else {
+                const native = in.native_names
+                const span = node.name
+                const name = match {
+                    native != null => bytes.fromText(native[state.index]),
+                    _ => in.source.splice(span.start, span.end - span.start, [])[1]
+                }
+
+                if (name.length > state.end) {
+                    state.done = true
+                } else {
+                    const offset = state.end - name.length
+
+                    if (!bytes.startsWith(path, offset, name)) {
+                        state.done = true
+                    } else if (node.kind == ExprKind.Identifier) {
+                        state.matches = offset == 0
+                        state.done = true
+                    } else if (offset == 0 || path[offset - 1] != ascii_dot) {
+                        state.done = true
+                    } else {
+                        state.index = node.first
+                        state.end = offset - 1
+                    }
+                }
+            }
+        },
+        return: state => state.matches
+    })
+}

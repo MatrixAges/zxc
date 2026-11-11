@@ -1,4 +1,14 @@
 import encoding from "std:encoding"
+import { ascii_dollar, ascii_dot } from "core/ascii/const"
+import {
+    ascii_digit_first,
+    ascii_digit_last,
+    ascii_lower_first,
+    ascii_lower_last,
+    ascii_underscore,
+    ascii_upper_first,
+    ascii_upper_last
+} from "core/const"
 
 import keyword from "../../../../frontend/lexer/is_keyword"
 import transition from "../../../../frontend/lexer/keyword_transition"
@@ -22,7 +32,7 @@ export default function (in: Input): Output {
         next: current => {
             const byte = current.bytes[current.index]
 
-            if (byte == 46) {
+            if (byte == ascii_dot) {
                 current.valid = !current.start && !keyword(
                     value(
                         current.keyword
@@ -31,18 +41,14 @@ export default function (in: Input): Output {
                 current.start = true
                 current.keyword = 0
             } else {
-                const letter =
-                    (
-                        - byte >= 65
-                        - and byte <= 90
-                        - or (byte >= 97 && byte <= 122)
-                    )
+                const upper = byte >= ascii_upper_first && byte <= ascii_upper_last
+                const lower = byte >= ascii_lower_first && byte <= ascii_lower_last
+                const letter = upper || lower
+                const digit = byte >= ascii_digit_first && byte <= ascii_digit_last
 
-                current.valid =
-                    letter || byte == 95 ||
-                    (
-                        current.start ? byte == 36 : byte >= 48 && byte <= 57
-                    )
+                const position = current.start ? byte == ascii_dollar : digit
+
+                current.valid = letter || byte == ascii_underscore || position
                 current.keyword = transition({
                     state: current.keyword,
                     byte

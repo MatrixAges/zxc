@@ -1,0 +1,37 @@
+import { ExprKind } from "../../frontend/parser/expressions/state/model"
+
+import type { ExprNode } from "../../frontend/parser/expressions/state/model"
+
+export type Input = {
+    nodes: ExprNode[],
+    node: u64,
+    fields: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const root = loop({
+        index: in.node,
+        candidate: in.node,
+        fields: in.fields
+    }, {
+        while: state => in.nodes[state.index].kind == ExprKind.Field,
+        next: state => {
+            state.index = in.nodes[state.index].first
+
+            if (state.fields == 0) {
+                state.candidate = in.nodes[state.candidate].first
+            } else {
+                state.fields -= 1
+            }
+        },
+        return: state => state
+    })
+
+    return match {
+        root.fields != 0 => null,
+        in.nodes[root.index].kind != ExprKind.Identifier => null,
+        _ => root.candidate
+    }
+}

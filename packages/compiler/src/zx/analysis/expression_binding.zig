@@ -33,14 +33,7 @@ pub fn lookup(self: *const Analyzer, expression: anytype) ?zx.ir.SymbolId {
     return null;
 }
 
-pub fn matches(expression: anytype, path: []const u8) bool {
-    if (syntax.value(expression) == .identifier) return std.mem.eql(u8, syntax.value(expression).identifier.text, path);
-    if (syntax.value(expression) != .field) return false;
-
-    const separator = std.mem.lastIndexOfScalar(u8, path, '.') orelse return false;
-
-    return std.mem.eql(u8, syntax.value(expression).field.name.text, path[separator + 1 ..]) and matches(syntax.value(expression).field.target, path[0..separator]);
-}
+pub const matches = @import("binding_path.zig").matches;
 
 pub fn bindUnit(self: *Analyzer, name: zx.ast.Name) zx.Error!void {
     try validateName(self, name);

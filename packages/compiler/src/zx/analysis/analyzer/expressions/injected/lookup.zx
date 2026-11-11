@@ -1,10 +1,10 @@
 import integers from "std:integer"
 
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import matches from "../../../binding_path/match"
 import lookup from "../../bindings/lookup"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
-import matches from "./matches"
 
 import type { Local } from "../../local"
 import type { Source } from "../request"
@@ -54,9 +54,17 @@ export default function (in: Input): Output {
     })
 
     const missing: u32? = null
+    const native = in.source.native
+
+    const native_names: string[]? = match {
+        native != null => native.text.expression_names,
+        _ => null
+    }
 
     const result = loop({
-        source: in.source,
+        source: in.source.bytes,
+        nodes: in.source.tree.nodes,
+        native_names,
         node: in.node,
         local,
         bindings: in.local.expression_bindings,
@@ -72,8 +80,11 @@ export default function (in: Input): Output {
         next: current => {
             current.unit = matches({
                 source: current.source,
+                nodes: current.nodes,
+                native_names: current.native_names,
                 node: current.node,
-                path: current.units[current.index]
+                path: current.units[current.index],
+                rooted: false
             })
             current.index += 1
         }
@@ -103,8 +114,11 @@ export default function (in: Input): Output {
             const condition = match {
                 local_matches => matches({
                     source: current.source,
+                    nodes: current.nodes,
+                    native_names: current.native_names,
                     node: current.node,
-                    path: current.names[integers.widen(symbol)]
+                    path: current.names[integers.widen(symbol)],
+                    rooted: false
                 }),
                 _ => false
             }

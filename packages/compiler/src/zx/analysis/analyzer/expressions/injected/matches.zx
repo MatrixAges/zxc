@@ -1,8 +1,4 @@
-import encoding from "std:encoding"
-
-import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
-import { NameKind } from "../../source/model"
-import readName from "../../source/name"
+import matches from "../../../binding_path/match"
 
 import type { Source } from "../request"
 
@@ -15,62 +11,17 @@ export type Input = {
 export type Output = bool
 
 export default function (in: Input): Output {
-    const path = encoding.encodeUtf8(in.path)
+    const native = in.source.native
 
-    return loop({
-        source: in.source,
-        node: in.node,
-        path,
-        end: path.length,
-        done: false,
-        matches: false
-    }, {
-        while: current => !current.done,
-        next: current => {
-            const node = current.source.tree.nodes[current.node]
-
-            if (node.kind != ExprKind.Field && node.kind != ExprKind.Identifier) {
-                current.done = true
-            } else {
-                const name = readName({
-                    source: current.source,
-                    kind: NameKind.Expression,
-                    index: current.node
-                }).text
-                const size = name.length
-                const compared = loop({
-                    name,
-                    path: current.path,
-                    end: current.end,
-                    size,
-                    index: 0,
-                    equal: size <= current.end
-                }, {
-                    while: item => item.equal && item.index < item.size,
-                    next: item => {
-                        item.equal =
-                            item.name[item.index] ==
-                            item.path[item.end - item.size + item.index]
-                        item.index += 1
-                    }
-                })
-
-                if (!compared.equal) {
-                    current.done = true
-                } else if (node.kind == ExprKind.Identifier) {
-                    current.matches = current.end == size
-                    current.done = true
-                } else if (
-                    current.end <= size ||
-                        current.path[current.end - size - 1] != 46
-                ) {
-                    current.done = true
-                } else {
-                    current.end -= size + 1
-                    current.node = node.first
-                }
-            }
+    return matches({
+        source: in.source.bytes,
+        nodes: in.source.tree.nodes,
+        native_names: match {
+            native != null => native.text.expression_names,
+            _ => null
         },
-        return: state => state.matches
+        node: in.node,
+        path: in.path,
+        rooted: false
     })
 }

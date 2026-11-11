@@ -1,0 +1,49 @@
+import { ExprKind } from "../../frontend/parser/expressions/state/model"
+
+import type { ExprNode } from "../../frontend/parser/expressions/state/model"
+
+export type Input = {
+    nodes: ExprNode[],
+    node: u64
+}
+
+export type Path = {
+    start: u64,
+    length: u64,
+    contiguous: bool
+}
+
+export type Output = Path?
+
+export default function (in: Input): Output {
+    const name = in.nodes[in.node].name
+
+    const result = loop({
+        index: in.node,
+        start: name.start,
+        length: name.end - name.start,
+        contiguous: true
+    }, {
+        while: state => in.nodes[state.index].kind == ExprKind.Field,
+        next: state => {
+            const parent = in.nodes[state.index].first
+            const name = in.nodes[parent].name
+
+            state.contiguous = state.contiguous && name.end + 1 == state.start
+            state.length += name.end - name.start + 1
+            state.start = name.start
+            state.index = parent
+        },
+        return: state => state
+    })
+
+    if (in.nodes[result.index].kind != ExprKind.Identifier) {
+        return null
+    }
+
+    return {
+        start: result.start,
+        length: result.length,
+        contiguous: result.contiguous
+    }
+}

@@ -213,15 +213,15 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 }
 
 pub fn assumeNonNull(self: *Self, expression_value: anytype) zx.Error!void {
-    const condition = @import("condition.zig");
+    const paths = frontend.binding_path;
 
     const visible = for (self.bindings.items) |binding| {
-        if (condition.rooted(expression_value, binding.name)) break true;
+        if (paths.rooted(expression_value, binding.name)) break true;
     } else false;
 
     if (!visible) return;
 
-    const name = try condition.path(self.allocator, expression_value) orelse return;
+    const name = try paths.path(self.allocator, expression_value) orelse return;
 
     try self.nonnull.append(self.allocator, name);
 }
