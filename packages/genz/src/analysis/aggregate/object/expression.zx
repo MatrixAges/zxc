@@ -1,14 +1,14 @@
-import { ExpressionsKind } from "../../printer/model/expressions"
+import integers from "std:integer"
 
-import type { Columns } from "../../ast/expressions/object"
+import { ExpressionsKind } from "../../../printer/model/expressions"
+
+import type { Columns as Output } from "../../../ast/expressions/object"
 
 export type Input = {
     type_expr: u32,
     first: u32,
-    count: u32
+    count: u64
 }
-
-export type Output = Columns
 
 export default function (in: Input): Output {
     return {
@@ -16,6 +16,6 @@ export default function (in: Input): Output {
         offsets: [0],
         object_type_expr: [in.type_expr],
         object_fields_start: [in.first],
-        object_fields_len: [in.count]
+        object_fields_len: [integers.narrow(in.count)]
     }
 }

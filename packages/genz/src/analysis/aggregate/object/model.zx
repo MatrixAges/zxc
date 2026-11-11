@@ -1,0 +1,24 @@
+import type { Columns as Expression } from "../../../ast/expressions/object"
+
+export type Selection = {
+    names: string[],
+    first: u32,
+    indices: u32[],
+    values: u32[]
+}
+
+export type Fields = {
+    name: string[],
+    value: u32[]
+}
+
+export type Input = {
+    type_expr: u32,
+    first: u32,
+    selection: Selection
+}
+
+export type Output = {
+    fields: Fields,
+    expression: Expression
+}

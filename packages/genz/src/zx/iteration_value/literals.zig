@@ -88,9 +88,9 @@ pub fn lower(context: *Context, args: Request) Lower.Error!node.ExpressionId {
     if (!output.valid) return error.OutOfMemory;
 
     const expressions = view.join(output.expressions.*, output.forms.*);
-
     @import("../../node/import_rows.zig").appendBorrowingText(self.allocator, &self.builder.nodes.expressions, &expressions) catch |err| return failure(err);
-    _ = @import("../../node/import_fields.zig").appendBorrowingText(self.allocator, &self.builder.nodes.field_columns, output.fields) catch |err| return failure(err);
+
+    try @import("../../node/import_fields.zig").appendObject(self.allocator, &self.builder.nodes.field_columns, output.fields);
 
     var body: std.ArrayList(node.Statement) = .empty;
     @import("../../node/import_statements.zig").appendBorrowingText(self.allocator, &body, output.statements) catch |err| return failure(err);

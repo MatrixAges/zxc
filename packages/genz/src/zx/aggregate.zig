@@ -2,6 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
+const object_fields = @import("aggregate/object.zig");
 const operands = @import("aggregate/operands.zig");
 
 pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object")) Lower.Error!node.ExpressionId {
@@ -67,17 +68,17 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         return finish(self, &body, if (plan.construct) try self.construct(type_id, result) else result);
     }
 
-    const type_fields = self.program.typeOf(type_id).object;
-    const fields = try self.allocator.alloc(node.Field, value.fields.len);
+    const field_names = self.program.typeOf(type_id).object.names;
+    const fields = try object_fields.allocate(self, temporary, value.fields.len);
 
     for (0..value.fields.len) |index| {
         const field = value.fields.at(index);
 
         if (plan.projection) |projection| if (projection.borrowed[field.index]) {
-            const name = type_fields.at(field.index).name;
+            const name = field_names[field.index];
             const expression = try self.expr(field.value);
-
-            fields[index] = .{ .name = name, .value = try @import("aggregate/borrowed.zig").field(self, expression, projection.seed, name) };
+            const borrowed = try @import("aggregate/borrowed.zig").field(self, expression, projection.seed, name);
+            fields[index] = object_fields.operand(field_names, field.index, borrowed);
 
             continue;
         };
@@ -86,13 +87,19 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
 
         if (plan.convert_fields) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(field.value).type_id, try bind(self, &body, expression), .pointer);
 
-        fields[index] = .{ .name = type_fields.at(field.index).name, .value = expression };
+        fields[index] = object_fields.operand(field_names, field.index, expression);
     }
 
     try operands.retire(self, temporary, &body, observation);
 
     const object_type = if (plan.projection) |projection| projection.layout else try self.layoutExpr(type_id);
-    const result = try @import("aggregate/literals.zig").object(self, object_type, fields);
+
+    const result = try object_fields.lower(self, temporary, .{
+        .type_expr = object_type,
+        .names = field_names,
+        .indices = value.fields.indices,
+        .fields = fields,
+    });
 
     return finish(self, &body, if (plan.construct) try self.construct(type_id, result) else result);
 }

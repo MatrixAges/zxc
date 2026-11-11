@@ -1,5 +1,4 @@
 import initialize from "../../../ast/context/initialize"
-import fields from "../../../ast/fields/empty"
 
 import type { Input, State as Output } from "./model"
 
@@ -16,7 +15,10 @@ export default function (in: Input): Output {
             constant_exported: [],
             discard: []
         },
-        fields: fields({}),
+        fields: {
+            name: [],
+            value: []
+        },
         root: 0
     }
 }

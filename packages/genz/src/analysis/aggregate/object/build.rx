@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Object" />
+
+    <Args in={Object.Input} out={Object.Output} />
+
+    <Call fn="fields" in={$in.selection} />
+
+    <Call
+        fn="expression"
+        in={{
+            ...$in.pick([
+                "type_expr",
+                "first"
+            ]),
+            count: $ctx.fields.name.length
+        }}
+    />
+
+    <Return
+        value={{
+            fields: $ctx.fields,
+            expression: $ctx.expression
+        }}
+    />
+</Module>

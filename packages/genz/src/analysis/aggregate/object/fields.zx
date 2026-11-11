@@ -1,0 +1,13 @@
+import integers from "std:integer"
+
+import type { Selection as Input, Fields as Output } from "./model"
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.first)
+    const names = in.names
+
+    return {
+        name: in.indices.map(index => names[first + integers.widen(index)])[0],
+        value: in.values
+    }
+}

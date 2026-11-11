@@ -13,6 +13,18 @@ pub fn appendBorrowingText(allocator: std.mem.Allocator, target: anytype, source
     return appendFields(allocator, target, source, true);
 }
 
+pub fn appendObject(allocator: std.mem.Allocator, target: anytype, source: anytype) std.mem.Allocator.Error!void {
+    std.debug.assert(source.name.len == source.value.len);
+
+    if (source.name.len > std.math.maxInt(u32) - target.count()) return error.OutOfMemory;
+    try target.reserve(allocator, source.name.len);
+
+    for (source.name, source.value) |name, value| target.append(node.Field{
+        .name = name,
+        .value = @fromBackingInt(value),
+    });
+}
+
 /// Materializes standalone fields; borrowed text must outlive the returned descriptors.
 pub fn materializeBorrowingText(allocator: std.mem.Allocator, source: anytype) Error![]const node.Field {
     const count = source.name.len;

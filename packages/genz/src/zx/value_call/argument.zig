@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
+const object_fields = @import("../aggregate/object.zig");
 const operands = @import("../aggregate/operands.zig");
 
 pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Lower.Error!node.ExpressionId {
@@ -80,16 +81,13 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
         try self.cache.put(self.allocator, item, cached);
     }
 
-    const type_fields = self.program.typeOf(expression.type_id).object;
-    const fields = try self.allocator.alloc(node.Field, value.fields.len);
+    const field_names = self.program.typeOf(expression.type_id).object.names;
+    const fields = try object_fields.allocate(self, temporary, value.fields.len);
 
     for (0..value.fields.len) |index| {
         const field = value.fields.at(index);
 
-        fields[index] = .{
-            .name = type_fields.at(field.index).name,
-            .value = try existing(self, body, field.value),
-        };
+        fields[index] = object_fields.operand(field_names, field.index, try existing(self, body, field.value));
     }
 
     try operands.retire(self, temporary, body, .{
@@ -98,7 +96,16 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
         .references = evaluated,
     });
 
-    const result = try aggregate.bind(self, body, try self.builder.expression(.{ .object = .{ .type_expr = try @import("../types.zig").get(self, self.abi_layouts, expression.type_id), .fields = fields } }));
+    const object_type = try @import("../types.zig").get(self, self.abi_layouts, expression.type_id);
+
+    const value_expr = try object_fields.lower(self, temporary, .{
+        .type_expr = object_type,
+        .names = field_names,
+        .indices = value.fields.indices,
+        .fields = fields,
+    });
+
+    const result = try aggregate.bind(self, body, value_expr);
 
     return self.builder.expression(.{ .address_of = result });
 }
