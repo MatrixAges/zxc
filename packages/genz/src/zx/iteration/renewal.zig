@@ -4,7 +4,8 @@ const ir = zx.ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const generated = @import("genz_options").generated_analysis;
-pub const Target = union(enum) { reference: node.ExpressionId, name: []const u8 };
+const renewal = @import("../growth/renew.zig");
+pub const Target = renewal.Target;
 
 pub const Plan = struct {
     owner: ir.ExprId,
@@ -21,11 +22,7 @@ pub const Plan = struct {
         return false;
     }
     pub fn emit(self: Plan, lowering: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: Target) Lower.Error!void {
-        if (generated) {
-            for (self.immediate) |path| try renew(lowering, body, type_id, target, path);
-
-            return;
-        }
+        if (generated) return renewal.appendEntry(lowering, body, type_id, target, self.immediate);
 
         for (lowering.plan.renewals) |record| {
             if (record.owner == @backingInt(self.owner) and !record.value) try renew(lowering, body, type_id, target, record.path);
@@ -101,5 +98,5 @@ fn renew(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId,
         .name => |name| try self.builder.identifier(name),
     };
 
-    return @import("../growth.zig").renew(self, body, type_id, reference, path);
+    return @import("../growth/renew_seed.zig").renew(self, body, type_id, reference, path);
 }

@@ -11,7 +11,7 @@ pub fn renewValue(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.E
     const source = if (self.state_active) try @import("../state_value/ownership.zig").clip(self, &body, id, value) else value;
 
     try body.append(self.allocator, .{ .variable = .{ .name = name, .value = source } });
-    for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and renewal.value) try @import("../growth.zig").renew(self, &body, self.program.expression(id).type_id, renewed, renewal.path);
+    for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and renewal.value) try @import("renew_seed.zig").renew(self, &body, self.program.expression(id).type_id, renewed, renewal.path);
 
     return aggregate.finish(self, &body, renewed);
 }

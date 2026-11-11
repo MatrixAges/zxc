@@ -6,7 +6,17 @@
 
     <Call fn="initialize" in={$in} />
     <Call fn="execute" in={$ctx.initialize} />
-    <Call fn="publish" in={$ctx.execute} />
+
+    <Call
+        fn="../renew/publish"
+        in={{
+            ...$ctx.execute.pick([
+                "growth",
+                "applied"
+            ]),
+            value: $in.source.value
+        }}
+    />
 
     <Return value={$ctx.publish} />
 </Module>

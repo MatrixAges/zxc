@@ -1,0 +1,33 @@
+import identifier from "../../../../ast/context/identifier"
+import initialize from "../../initialize"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const growth = initialize(in.source)
+    const name = in.name
+
+    if (name == null) {
+        return {
+            source: in,
+            growth,
+            value: in.source.value,
+            applied: false
+        }
+    }
+
+    const target = identifier({
+        state: growth.context,
+        name
+    })
+
+    return {
+        source: in,
+        growth: {
+            ...growth,
+            context: target.state
+        },
+        value: target.id,
+        applied: false
+    }
+}

@@ -4,16 +4,19 @@ const ir = zx.ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const calls = @import("call.zig");
-const generated = @import("generated_growth_renew");
+const generated = @import("generated_growth_renew_entry");
 const Input = std.meta.Child(generated.Input);
 const Source = std.meta.Child(@FieldType(Input, "source"));
+pub const Target = union(enum) { reference: node.ExpressionId, name: []const u8 };
 
-pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, value: node.ExpressionId, path: []const u32) Lower.Error!void {
+pub fn appendEntry(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, target: Target, paths: []const []const u32) Lower.Error!void {
+    if (paths.len == 0) return;
+
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), self.program.types);
 
     var source = calls.prepare(self, .Renew, .{
         .element = @fromBackingInt(0),
-        .value = value,
+        .value = if (target == .reference) target.reference else @fromBackingInt(0),
         .flag = !self.may_grow,
     });
 
@@ -29,7 +32,9 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.Typ
         .source = &source,
         .types = &types,
         .type_id = @backingInt(type_id),
-        .path = path,
+        .paths = paths,
+        .name = if (target == .name) target.name else null,
+        .inline_lists = if (self.iteration_value) |context| context.inline_lists else false,
     };
 
     var scratch = std.heap.ArenaAllocator.init(self.workspace);
@@ -46,23 +51,6 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.Typ
     std.debug.assert(output.serial == self.serial);
 
     _ = try calls.publish(self, body, output);
-}
-
-pub fn bufferedPath(self: *const Lower, type_id: ir.TypeId, path: []const u32, inline_lists: bool) bool {
-    const module = @import("generated_growth_renew_buffered");
-    const Query = std.meta.Child(module.Input);
-    const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Query, "types")), self.program.types);
-
-    const input: Query = .{
-        .types = &types,
-        .type_id = @backingInt(type_id),
-        .path = path,
-        .inline_lists = inline_lists,
-    };
-
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    return zx.columns.invoke(module.executeValue, empty.allocator(), &input) catch unreachable;
 }
 
 pub fn appendValue(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId, reference: node.ExpressionId) Lower.Error!void {

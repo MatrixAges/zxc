@@ -15,15 +15,6 @@ pub fn declarations(self: *Lower, exported: bool) Lower.Error![6]node.Declaratio
     return @import("growth/declarations.zig").lower(self, exported);
 }
 
-/// Gives the list at `path` of a loop state variable its own growth buffer: `try zxRenew(allocator, &state, &.{...})`
-/// with one field name and record origin name per record on the way.
-pub fn renew(self: *Lower, body: *std.ArrayList(node.Statement), type_id: ir.TypeId, state: node.ExpressionId, path: []const u32) Lower.Error!void {
-    if (!@import("genz_options").generated_analysis) return @import("growth/renew_seed.zig").renew(self, body, type_id, state, path);
-    if (self.iteration_value) |context| if (context.bufferedPath(type_id, path)) return;
-
-    return @import("growth/renew.zig").lower(self, body, type_id, state, path);
-}
-
 /// The value of `id` with the lists the plan renews in it moved to growth buffers of their own, where a value read out of
 /// a list or another opaque source enters the values that later appends extend.
 pub fn renewValue(self: *Lower, id: ir.ExprId, value: node.ExpressionId) Lower.Error!node.ExpressionId {

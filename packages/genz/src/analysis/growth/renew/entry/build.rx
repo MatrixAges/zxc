@@ -1,0 +1,20 @@
+<Module>
+    <Type from="model" as="Renew" />
+    <Type from="../../model" as="Growth" />
+
+    <Args in={Renew.Input} out={Growth.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="execute" in={$ctx.initialize} />
+
+    <Call
+        fn="../publish"
+        in={$ctx.execute.pick([
+            "growth",
+            "applied",
+            "value"
+        ])}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>

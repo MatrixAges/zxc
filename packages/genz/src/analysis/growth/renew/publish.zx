@@ -1,5 +1,10 @@
-import type { Output } from "../model"
-import type { State as Input } from "./model"
+import type { State as Growth, Output } from "../model"
+
+export type Input = {
+    growth: Growth,
+    value: u32,
+    applied: bool
+}
 
 export default function (in: Input): Output {
     return {
@@ -7,7 +12,7 @@ export default function (in: Input): Output {
         forms: in.growth.context.forms,
         statements: in.growth.context.statements,
         body: in.growth.body,
-        root: in.source.source.value,
+        root: in.value,
         serial: in.growth.context.serial,
         uses_allocator: in.applied,
         valid: in.growth.context.valid
