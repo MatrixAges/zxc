@@ -1,0 +1,40 @@
+<Module>
+    <Type from="model" as="Borrowed" />
+
+    <Args in={Borrowed.Input} out={Borrowed.Output} />
+
+    <Call
+        fn="pointer"
+        in={{
+            seed: $in.seed,
+            name: $in.name,
+            base: $in.expression_base
+        }}
+    />
+
+    <Call
+        fn="../../../statements/basic/discard"
+        in={{
+            value: $in.evaluated
+        }}
+    />
+
+    <Call
+        fn="../../binding/finish"
+        in={{
+            value: $ctx.pointer.root,
+            expression_base: $ctx.pointer.next,
+            statement_base: $in.statement_base,
+            body_count: $ctx.discard.tags.length,
+            serial: $in.serial
+        }}
+    />
+
+    <Return
+        value={{
+            pointer: $ctx.pointer.nodes,
+            discard: $ctx.discard,
+            block: $ctx.finish
+        }}
+    />
+</Module>

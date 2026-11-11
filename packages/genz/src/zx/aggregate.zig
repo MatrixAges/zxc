@@ -34,38 +34,36 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         try self.cache.put(self.allocator, item, try self.builder.identifier(name));
     }
 
-    if (try @import("object_update.zig").lower(self, id, &body)) |updated| {
+    const updated = try @import("object_update.zig").lower(self, id, &body);
+    const type_id = self.program.expression(id).type_id;
+    const plan = @import("aggregate/layout.zig").plan(self, id, type_id, layout, updated != null);
+
+    if (updated) |result| {
         for (value.evaluation, 0..) |item, index| {
             if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
         }
 
-        const selected = self.state_plan.selected[@backingInt(self.program.expression(id).type_id)];
-
-        return finish(self, &body, if (layout or selected) updated else try self.construct(self.program.expression(id).type_id, updated));
+        return finish(self, &body, if (plan.construct) try self.construct(type_id, result) else result);
     }
 
-    const type_id = self.program.expression(id).type_id;
     const type_fields = self.program.typeOf(type_id).object;
     const fields = try self.allocator.alloc(node.Field, value.fields.len);
-    const context = if (self.loop_fields) |selected| (if (selected.expression(id)) selected else null) else null;
 
     for (0..value.fields.len) |index| {
         const field = value.fields.at(index);
 
-        if (context) |selected| if (selected.borrowed[field.index]) {
-            var evaluation: std.ArrayList(node.Statement) = .empty;
+        if (plan.projection) |projection| if (projection.borrowed[field.index]) {
+            const name = type_fields.at(field.index).name;
+            const expression = try self.expr(field.value);
 
-            try evaluation.append(self.allocator, .{ .discard = try self.expr(field.value) });
-
-            const pointer = try self.builder.expression(.{ .address_of = try self.field(selected.seed, type_fields.at(field.index).name) });
-            fields[index] = .{ .name = type_fields.at(field.index).name, .value = try finish(self, &evaluation, pointer) };
+            fields[index] = .{ .name = name, .value = try @import("aggregate/borrowed.zig").field(self, expression, projection.seed, name) };
 
             continue;
         };
 
         var expression = try self.expr(field.value);
 
-        if (self.state_active and !self.state_plan.selected[@backingInt(type_id)]) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(field.value).type_id, try bind(self, &body, expression), .pointer);
+        if (plan.convert_fields) expression = try @import("state_value/conversion.zig").convert(self, &body, self.program.expression(field.value).type_id, try bind(self, &body, expression), .pointer);
 
         fields[index] = .{ .name = type_fields.at(field.index).name, .value = expression };
     }
@@ -74,10 +72,10 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
     }
 
-    const object_type = if (context) |selected| selected.layout else try self.layoutExpr(type_id);
+    const object_type = if (plan.projection) |projection| projection.layout else try self.layoutExpr(type_id);
     const result = try @import("aggregate/literals.zig").object(self, object_type, fields);
 
-    return finish(self, &body, if (layout or context != null) result else try self.construct(type_id, result));
+    return finish(self, &body, if (plan.construct) try self.construct(type_id, result) else result);
 }
 
 pub fn sequence(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!node.ExpressionId {

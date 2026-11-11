@@ -1,0 +1,46 @@
+import integers from "std:integer"
+
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+export type Input = {
+    seed: u32,
+    name: u8[],
+    base: u32
+}
+
+export type Nodes = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    field_target: u32[],
+    field_name: u8[][],
+    address_of: u32[]
+}
+
+export type Output = {
+    nodes: Nodes,
+    root: u32,
+    next: u32
+}
+
+export default function (in: Input): Output {
+    const base = integers.widen(in.base)
+    const next = integers.narrow(base + 2)
+
+    return {
+        nodes: {
+            tags: [
+                ExpressionsKind.Field,
+                ExpressionsKind.AddressOf
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            field_target: [in.seed],
+            field_name: [in.name],
+            address_of: [in.base]
+        },
+        root: next - 1,
+        next
+    }
+}

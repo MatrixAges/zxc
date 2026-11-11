@@ -1,0 +1,18 @@
+import type { Output as Discard } from "../../../statements/basic/discard"
+import type { Output as Block } from "../../binding/model"
+import type { Nodes as Pointer } from "./pointer"
+
+export type Input = {
+    seed: u32,
+    name: u8[],
+    evaluated: u32,
+    expression_base: u32,
+    statement_base: u32,
+    serial: u64
+}
+
+export type Output = {
+    pointer: Pointer,
+    discard: Discard,
+    block: Block
+}

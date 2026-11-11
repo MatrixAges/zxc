@@ -1,0 +1,37 @@
+export type Input = {
+    expression: u64,
+    loop_states?: bool[],
+    state_active: bool,
+    selected: bool,
+    layout_only: bool,
+    updated: bool
+}
+
+export type Output = {
+    project: bool,
+    convert_fields: bool,
+    construct: bool
+}
+
+export default function (in: Input): Output {
+    if (in.updated) {
+        return {
+            project: false,
+            convert_fields: false,
+            construct: !in.layout_only && !in.selected
+        }
+    }
+
+    const states = in.loop_states
+
+    const project = match {
+        states == null => false,
+        _ => states[in.expression]
+    }
+
+    return {
+        project,
+        convert_fields: in.state_active && !in.selected,
+        construct: !in.layout_only && !project
+    }
+}

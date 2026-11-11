@@ -224,6 +224,8 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/aggregate/tuple.zx", .name = "aggregate_tuple", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/list/build.rx", .name = "aggregate_list", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/object.zx", .name = "aggregate_object", .owner = .genz },
+    .{ .path = "genz/analysis/aggregate/layout/plan.zx", .name = "object_layout_plan", .owner = .genz },
+    .{ .path = "genz/analysis/aggregate/layout/borrowed/build.rx", .name = "object_borrowed_field", .owner = .genz },
     .{ .path = "genz/analysis/store/adapter/build.rx", .name = "store_adapter", .owner = .genz },
     .{ .path = "genz/analysis/store/begin/build.rx", .name = "store_begin", .owner = .genz },
     .{ .path = "genz/analysis/store/transaction/policy.zx", .name = "store_transaction", .owner = .genz },
