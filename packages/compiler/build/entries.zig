@@ -39,6 +39,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/object_closure/prove.rx", .name = "object_closure", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/decide.rx", .name = "rx_unification", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/find_field.zx", .name = "rx_unification_field", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/fields/access.zx", .name = "rx_field_access", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/scalar/domain.zx", .name = "rx_scalar_domain", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/scalar/literal.zx", .name = "rx_scalar_literal", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/scalar/operator.zx", .name = "rx_scalar_operator", .owner = .rx_analysis },

@@ -90,7 +90,7 @@ const View = struct {
             switch (self.graph.nodes.items[@backingInt(root)].shape) {
                 .list, .optional => |child| try self.append(child),
                 .tuple => |children| for (children) |child| try self.append(child),
-                .object => |fields| for (fields) |field| try self.append(field.value),
+                .object => |fields| for (fields.values()) |value| try self.append(value),
                 else => {},
             }
 

@@ -46,8 +46,8 @@ fn contains(graph: *Graph, base: Base, value: Graph.Id, target: Graph.Id, span: 
         .tuple => |children| for (children) |child| {
             if (try contains(graph, base, child, target, span, depth + 1)) return true;
         },
-        .object => |fields| for (fields) |field| {
-            if (try contains(graph, base, field.value, target, span, depth + 1)) return true;
+        .object => |fields| for (fields.values()) |child| {
+            if (try contains(graph, base, child, target, span, depth + 1)) return true;
         },
         else => {},
     }

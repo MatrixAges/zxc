@@ -24,7 +24,7 @@ pub fn infer(self: *Expression, expression: anytype) zx.Error!Graph.Id {
     const field = syntax.value(syntax.value(expression).call.callee).field;
     const source = try self.infer(field.target, null);
     const span = self.sourceSpan(expression.span);
-    const result = try self.graph.add(.{ .object = &.{} }, span);
+    const result = try self.graph.add(.{ .object = .{} }, span);
 
     try self.graph.selections.append(self.graph.allocator, .{ .source = source, .result = result, .keys = keys, .omit = std.mem.eql(u8, field.name.text, "omit"), .span = span });
 

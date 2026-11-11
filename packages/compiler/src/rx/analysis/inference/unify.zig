@@ -114,8 +114,8 @@ fn contains(self: *const Graph, parent: Graph.Id, child: Graph.Id, span: zx.Span
         .tuple => |items| for (items) |item| {
             if (try contains(self, item, child, span, depth + 1)) return true;
         },
-        .object => |fields| for (fields) |field| {
-            if (try contains(self, field.value, child, span, depth + 1)) return true;
+        .object => |fields| for (fields.values()) |value| {
+            if (try contains(self, value, child, span, depth + 1)) return true;
         },
         else => {},
     }

@@ -6,24 +6,17 @@ const generated = @import("generated_object_selection_project");
 const covers = @import("generated_object_selection_covers");
 
 const Fields = union(enum) {
-    inferred: []const Graph.Field,
+    inferred: Graph.Fields,
     known: zx.ir.TypeFields,
-    fn names(self: Fields, allocator: std.mem.Allocator) std.mem.Allocator.Error![]const []const u8 {
+    fn names(self: Fields) []const []const u8 {
         return switch (self) {
             .known => |fields| fields.names[0..fields.len],
-            .inferred => |fields| projected: {
-                const result = try allocator.alloc([]const u8, fields.len);
-
-                for (result, fields) |*name, field| name.* = field.name;
-
-                break :projected result;
-            },
+            .inferred => |fields| fields.names(),
         };
     }
-
     fn id(self: Fields, graph: *const Graph, index: usize) Graph.Id {
         return switch (self) {
-            .inferred => |fields| fields[index].value,
+            .inferred => |fields| fields.values()[index],
             .known => |fields| graph.known_types.get(@fromBackingInt(@intCast(fields.types[index]))).?,
         };
     }
@@ -44,7 +37,7 @@ pub fn apply(graph: *Graph, value: Selection, final: bool) zx.Error!void {
     defer arena.deinit();
 
     const allocator = scratch.allocator();
-    const names = try source.names(allocator);
+    const names = source.names();
 
     const plan = generated.executeValue(allocator, &.{
         .fields = &.{ .names = names, .first = 0, .count = names.len, .keys = value.keys, .omit = value.omit },
@@ -75,7 +68,7 @@ pub fn apply(graph: *Graph, value: Selection, final: bool) zx.Error!void {
 
     const valid = covers.executeValue(allocator, &.{
         .source = names,
-        .result = try result.names(allocator),
+        .result = result.names(),
         .indices = plan.indices,
         .all = plan.all,
     }) catch |err| return failure(err);

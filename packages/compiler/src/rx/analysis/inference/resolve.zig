@@ -19,11 +19,13 @@ pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeI
             break :block Types.scalarId(numeric_default);
         } else return self.reporter.fail(.type_mismatch, node.span, "input type cannot be inferred from the available constraints"),
         .object => |fields| block: {
-            const output = try Types.Fields.init(self.allocator, fields.len);
+            const output = try self.scratch.alloc(u32, fields.len);
 
-            for (fields, 0..) |field, field_index| output.set(field_index, field.name, try resolve(self, field.value, depth + 1));
+            defer self.scratch.free(output);
 
-            break :block try self.types.object(output);
+            for (fields.values(), output) |field, *type_id| type_id.* = @backingInt(try resolve(self, field, depth + 1));
+
+            break :block try self.types.objectWithNames(fields.names(), output);
         },
         .list => |child| try self.types.wrap(.list, try resolve(self, child, depth + 1)),
         .optional => |child| try self.types.wrap(.optional, try resolve(self, child, depth + 1)),

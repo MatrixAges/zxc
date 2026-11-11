@@ -9,7 +9,9 @@ pub fn apply(graph: *Graph, value: Selection, final: bool) zx.Error!void {
     defer fields.deinit(graph.allocator);
 
     switch (graph.shape(value.source)) {
-        .object => |items| try fields.appendSlice(graph.allocator, items),
+        .object => |items| for (items.names(), items.values()) |name, field| {
+            try fields.append(graph.allocator, .{ .name = name, .value = field });
+        },
         .known => |id| {
             const target = graph.types.get(id);
 
@@ -41,8 +43,8 @@ pub fn apply(graph: *Graph, value: Selection, final: bool) zx.Error!void {
     }
 
     if (final) switch (graph.shape(value.result)) {
-        .object => |items| for (items) |field| {
-            if (!selected(value, fields.items, field.name)) return graph.reporter.fail(.name, value.span, "field is outside the object selection result");
+        .object => |items| for (items.names()) |name| {
+            if (!selected(value, fields.items, name)) return graph.reporter.fail(.name, value.span, "field is outside the object selection result");
         },
         .known => |id| {
             const target = graph.types.get(id);

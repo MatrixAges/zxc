@@ -1,0 +1,24 @@
+import { length_name } from "./const"
+import { Receiver, Route } from "./model"
+
+import type { Input as Access, Output as Decision } from "./model"
+
+export type Input = Access
+
+export type Output = Decision
+
+export default function (in: Input): Output {
+    const length = in.name == length_name
+
+    return match in.receiver {
+        Receiver.Unknown => length ? Route.DeferLength : Route.Open,
+        Receiver.Sequence => length ? Route.RequireList : Route.InvalidInferred,
+        Receiver.Object => Route.Open,
+        Receiver.List => length ? Route.Length : Route.InvalidInferred,
+        Receiver.DeclaredObject => Route.Declared,
+        Receiver.DeclaredList => length ? Route.Length : Route.InvalidDeclared,
+        Receiver.String => length ? Route.Length : Route.InvalidDeclared,
+        Receiver.OtherDeclared => Route.InvalidDeclared,
+        _ => Route.InvalidInferred
+    }
+}

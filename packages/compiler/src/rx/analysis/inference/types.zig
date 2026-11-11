@@ -2,11 +2,14 @@ const std = @import("std");
 const zx = @import("zx");
 const Types = @import("frontend").types;
 const Scalar = @import("scalar.zig");
+const FieldAccess = @import("fields/access.zig");
+const Unification = @import("unification/plan.zig");
 const Self = @This();
 pub const Id = enum(u32) { _ };
 pub const Mask = Scalar.Mask;
-pub const Field = struct { name: []const u8, value: Id };
-pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: []const Field, list: Id, optional: Id, tuple: []const Id };
+pub const Fields = @import("fields.zig");
+pub const Field = Fields.Field;
+pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: Fields, list: Id, optional: Id, tuple: []const Id };
 pub const Node = struct { parent: Id, shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
 
 const Projection = struct { target: Id, value: Id, span: zx.Span };
@@ -160,53 +163,47 @@ pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.E
 pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
     const index = @backingInt(self.root(id));
     const value = self.nodes.items[index].shape;
+    const declared = if (value == .known) self.types.get(value.known) else null;
 
-    if (value == .known) {
-        const resolved = self.types.get(value.known);
+    switch (FieldAccess.route(value, declared, name)) {
+        .Declared => {
+            const object = declared.?.object;
 
-        if (std.mem.eql(u8, name, "length") and (resolved == .list or (resolved == .scalar and resolved.scalar == .string))) return self.scalar(.u64, span);
-        if (resolved != .object) return self.reporter.fail(.type_mismatch, span, "field access requires an object");
+            const position = Unification.position(object.names[0..object.len], name) orelse
+                return self.reporter.fail(.type_mismatch, span, "the complete input type does not contain this field");
 
-        for (0..resolved.object.len) |view_index| {
-            const item = resolved.object.at(view_index);
+            return self.known(object.at(position).type_id, span);
+        },
+        .Length => return self.scalar(.u64, span),
+        .RequireList => {
+            _ = try self.payload(id, .list, span);
 
-            if (std.mem.eql(u8, item.name, name)) return self.known(item.type_id, span);
-        }
+            return self.scalar(.u64, span);
+        },
+        .DeferLength => {
+            const result = try self.add(.unknown, span);
 
-        return self.reporter.fail(.type_mismatch, span, "the complete input type does not contain this field");
+            try self.lengths.append(self.allocator, .{ .target = id, .value = result, .span = span });
+
+            return result;
+        },
+        .InvalidDeclared => return self.reporter.fail(.type_mismatch, span, "field access requires an object"),
+        .InvalidInferred => return self.reporter.fail(.type_mismatch, span, "field requirements conflict with the inferred input type"),
+        .Open => {},
     }
 
-    if (value == .sequence and std.mem.eql(u8, name, "length")) {
-        _ = try self.payload(id, .list, span);
-
-        return self.scalar(.u64, span);
-    }
-
-    if (value == .list and std.mem.eql(u8, name, "length")) return self.scalar(.u64, span);
-
-    if (value == .unknown and std.mem.eql(u8, name, "length")) {
-        const result = try self.add(.unknown, span);
-
-        try self.lengths.append(self.allocator, .{ .target = id, .value = result, .span = span });
-
-        return result;
-    }
-
-    if (value != .unknown and value != .object) return self.reporter.fail(.type_mismatch, span, "field requirements conflict with the inferred input type");
     if (self.nodes.items[index].allowed != null) return self.reporter.fail(.type_mismatch, span, "object fields conflict with scalar requirements");
 
-    const fields = if (value == .object) value.object else &.{};
+    const fields: Fields = if (value == .object) value.object else .{};
 
-    for (fields) |item| {
-        if (std.mem.eql(u8, item.name, name)) return item.value;
-    }
+    if (Unification.position(fields.names(), name)) |position| return fields.values()[position];
 
     const result = try self.add(.unknown, span);
-    const extended = try self.allocator.alloc(Field, fields.len + 1);
+    const extended = try Fields.init(self.allocator, fields.len + 1);
 
-    @memcpy(extended[0..fields.len], fields);
+    fields.copyTo(extended);
+    extended.set(fields.len, try self.allocator.dupe(u8, name), result);
 
-    extended[fields.len] = .{ .name = try self.allocator.dupe(u8, name), .value = result };
     self.nodes.items[index].shape = .{ .object = extended };
     self.revision += 1;
 

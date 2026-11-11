@@ -1,0 +1,28 @@
+export enum Receiver {
+    Unknown,
+    Sequence,
+    Object,
+    List,
+    DeclaredObject,
+    DeclaredList,
+    String,
+    OtherDeclared,
+    Other
+}
+
+export enum Route {
+    Declared,
+    Open,
+    Length,
+    RequireList,
+    DeferLength,
+    InvalidDeclared,
+    InvalidInferred
+}
+
+export type Input = {
+    receiver: Receiver,
+    name: string
+}
+
+export type Output = Route

@@ -33,11 +33,11 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
         };
 
         if (field.spread and self.graph.shape(part.value) == .unknown) {
-            try self.graph.unify(part.value, try self.graph.add(.{ .object = &.{} }, part.span), part.span);
+            try self.graph.unify(part.value, try self.graph.add(.{ .object = .{} }, part.span), part.span);
         }
     }
 
-    const result = try self.graph.add(.{ .object = &.{} }, span);
+    const result = try self.graph.add(.{ .object = .{} }, span);
 
     if (expected) |target| try self.graph.expect(result, target, span);
 

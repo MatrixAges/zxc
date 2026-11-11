@@ -104,7 +104,7 @@ fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator,
         aliases[index] = alias;
         open[index] = !closed;
 
-        if (!alias) fields[index] = try source.names(allocator);
+        if (!alias) fields[index] = source.names();
     }
 
     return .{ .explicit = explicit, .fields = fields, .roots = roots, .open = open, .aliases = aliases };
@@ -117,18 +117,18 @@ fn concrete(graph: *Graph, object: Object, target: Graph.Id, parts: Parts, part_
     if (parts.aliases[part_index]) return target;
 
     return switch (graph.shape(part.value)) {
-        .object => |fields| fields[field_index].value,
+        .object => |fields| fields.values()[field_index],
         .known => |id| graph.known(graph.types.get(id).object.at(field_index).type_id, part.span),
         else => unreachable,
     };
 }
 
 const Fields = union(enum) {
-    inferred: []const Graph.Field,
+    inferred: Graph.Fields,
     known: zx.ir.TypeFields,
     fn from(graph: *Graph, shape: Graph.Shape, span: zx.Span) zx.Error!Fields {
         return switch (shape) {
-            .unknown => .{ .inferred = &.{} },
+            .unknown => .{ .inferred = .{} },
             .object => |items| .{ .inferred = items },
             .known => |id| switch (graph.types.get(id)) {
                 .object => |value| .{ .known = value },
@@ -143,23 +143,13 @@ const Fields = union(enum) {
             .known => |items| items.len == 0,
         };
     }
-
     fn register(self: Fields, allocator: std.mem.Allocator, set: *NameSet) std.mem.Allocator.Error!void {
-        switch (self) {
-            .known => |items| for (items.names[0..items.len]) |name| try set.put(allocator, name, {}),
-            .inferred => |items| for (items) |item| try set.put(allocator, item.name, {}),
-        }
+        for (self.names()) |name| try set.put(allocator, name, {});
     }
-    fn names(self: Fields, allocator: std.mem.Allocator) std.mem.Allocator.Error![]const []const u8 {
+    fn names(self: Fields) []const []const u8 {
         return switch (self) {
             .known => |items| items.names[0..items.len],
-            .inferred => |items| list: {
-                const values = try allocator.alloc([]const u8, items.len);
-
-                for (values, items) |*value, item| value.* = item.name;
-
-                break :list values;
-            },
+            .inferred => |items| items.names(),
         };
     }
 };

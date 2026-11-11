@@ -79,3 +79,17 @@ pub fn object(self: *Self, fields: Fields) zx.Error!ir.TypeId {
 
     return construction.create(self, .{ .object = fields.view() });
 }
+
+pub fn objectWithNames(self: *Self, names: []const []const u8, type_ids: []u32) zx.Error!ir.TypeId {
+    if (@import("parser_options").generated_parser) return construction.create(self, .{ .object = .{
+        .names = names,
+        .types = type_ids,
+        .len = names.len,
+    } });
+
+    const copy = try self.allocator.dupe([]const u8, names);
+
+    defer self.allocator.free(copy);
+
+    return seed.object(self, .{ .names = copy, .types = type_ids });
+}

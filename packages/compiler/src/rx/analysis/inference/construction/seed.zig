@@ -83,8 +83,8 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
 fn collect(graph: *Graph, value: Graph.Id, names: *std.StringHashMapUnmanaged(void), span: zx.Span) zx.Error!void {
     switch (graph.shape(value)) {
         .unknown => {},
-        .object => |fields| for (fields) |field| {
-            try names.put(graph.allocator, field.name, {});
+        .object => |fields| for (fields.names()) |name| {
+            try names.put(graph.allocator, name, {});
         },
         .known => |id| {
             const shape = graph.types.get(id);
@@ -103,8 +103,8 @@ fn collect(graph: *Graph, value: Graph.Id, names: *std.StringHashMapUnmanaged(vo
 
 fn lookup(graph: *Graph, value: Graph.Id, name: []const u8, span: zx.Span) zx.Error!?Graph.Id {
     switch (graph.shape(value)) {
-        .object => |fields| for (fields) |field| {
-            if (std.mem.eql(u8, field.name, name)) return field.value;
+        .object => |fields| for (fields.names(), fields.values()) |candidate, field| {
+            if (std.mem.eql(u8, candidate, name)) return field;
         },
         .known => |id| {
             const shape = graph.types.get(id);
