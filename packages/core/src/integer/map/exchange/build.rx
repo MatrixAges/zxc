@@ -1,0 +1,20 @@
+<Module>
+    <Type from="../model" as="Map" />
+
+    <Args in={Map.Put} out={Map.Exchange} />
+
+    <Call fn="../capacity" in={$in.state} />
+
+    <Call
+        fn="apply"
+        in={{
+            ...$in.pick([
+                "key",
+                "value"
+            ]),
+            state: $ctx.capacity
+        }}
+    />
+
+    <Return value={$ctx.apply} />
+</Module>

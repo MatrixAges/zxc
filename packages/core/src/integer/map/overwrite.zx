@@ -15,7 +15,9 @@ export default function (in: Input): Output {
     }
 
     return {
-        ...in.state,
+        count: in.state.count,
+        metadata: in.state.metadata,
+        keys: in.state.keys,
         values: in.state.values.with(slot, in.value)
     }
 }

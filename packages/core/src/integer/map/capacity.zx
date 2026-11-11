@@ -1,0 +1,25 @@
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "./const"
+import grow from "./grow"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const capacity = in.metadata.length
+    const limit = capacity * load_numerator / load_denominator
+
+    if (in.count + 1 <= limit) {
+        return in
+    }
+
+    const next = capacity == 0 ? initial_capacity : capacity * capacity_growth
+
+    return grow({
+        state: in,
+        capacity: next
+    })
+}

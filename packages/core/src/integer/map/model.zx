@@ -23,6 +23,17 @@ export type Put = {
     value: u32
 }
 
+export type Exchange = {
+    state: State,
+    previous?: u32
+}
+
+export type Restore = {
+    state: State,
+    key: u32,
+    previous?: u32
+}
+
 export type Search = {
     slot: u64,
     found: bool,

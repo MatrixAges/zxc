@@ -28,23 +28,74 @@ pub fn Map(comptime Key: type) type {
             if (!generated) return self.state.put(allocator, key, value);
 
             self.state = writing.executeState(allocator, .{ .state = self.state, .key = @backingInt(key), .value = @backingInt(value) }) catch |err| {
+                if (err == error.OutOfMemory and self.overwrite(key, value)) return;
+                if (err == error.OutOfMemory or err == error.IntegerOverflow) return error.OutOfMemory;
+
+                unreachable;
+            };
+        }
+        pub fn exchange(self: *Self, allocator: std.mem.Allocator, key: Key, value: node.ExpressionId) std.mem.Allocator.Error!?node.ExpressionId {
+            if (!generated) {
+                const previous = self.get(key);
+
+                try self.put(allocator, key, value);
+
+                return previous;
+            }
+
+            const entry = @import("generated_cache_exchange");
+            const Parameter = @typeInfo(@TypeOf(entry.executeState)).@"fn".param_types[1].?;
+            const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
+            const input: Input = .{ .state = self.state, .key = @backingInt(key), .value = @backingInt(value) };
+
+            const result = entry.executeState(allocator, if (@typeInfo(Parameter) == .pointer) &input else input) catch |err| {
                 if (err == error.OutOfMemory) {
-                    var fixed = std.heap.FixedBufferAllocator.init(&.{});
-                    const result = @import("generated_cache_overwrite").executeState(fixed.allocator(), .{ .state = self.state, .key = @backingInt(key), .value = @backingInt(value) }) catch unreachable;
+                    const previous = self.get(key) orelse return error.OutOfMemory;
 
-                    if (result) |state| {
-                        self.state = state;
-
-                        return;
-                    }
+                    if (self.overwrite(key, value)) return previous;
                 }
 
                 if (err == error.OutOfMemory or err == error.IntegerOverflow) return error.OutOfMemory;
 
                 unreachable;
             };
-        }
 
+            self.state = result.state;
+
+            return if (result.previous) |previous| @fromBackingInt(previous) else null;
+        }
+        pub fn restoreEntry(self: *Self, allocator: std.mem.Allocator, key: Key, previous: ?node.ExpressionId) void {
+            if (!generated) {
+                if (previous) |value| self.put(allocator, key, value) catch unreachable else _ = self.remove(key);
+
+                return;
+            }
+
+            self.state = @import("generated_cache_restore_entry").executeState(allocator, .{
+                .state = self.state,
+                .key = @backingInt(key),
+                .previous = if (previous) |value| @backingInt(value) else null,
+            }) catch |err| {
+                if (err == error.OutOfMemory) if (previous) |value| {
+                    if (self.overwrite(key, value)) return;
+                };
+
+                unreachable;
+            };
+        }
+        fn overwrite(self: *Self, key: Key, value: node.ExpressionId) bool {
+            var fixed = std.heap.FixedBufferAllocator.init(&.{});
+
+            const result = @import("generated_cache_overwrite").executeState(fixed.allocator(), .{
+                .state = self.state,
+                .key = @backingInt(key),
+                .value = @backingInt(value),
+            }) catch unreachable;
+
+            self.state = result orelse return false;
+
+            return true;
+        }
         pub fn get(self: *const Self, key: Key) ?node.ExpressionId {
             if (!generated) return self.state.get(key);
 

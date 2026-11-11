@@ -463,6 +463,8 @@ pub const collections = [_]Entry{
     .{ .path = "core/integer/counter/increment.zx", .name = "counter_increment", .owner = .genz },
     .{ .path = "core/integer/counter/get.zx", .name = "counter_get", .owner = .genz },
     .{ .path = "core/integer/map/put.zx", .name = "cache_put", .owner = .genz },
+    .{ .path = "core/integer/map/exchange/build.rx", .name = "cache_exchange", .owner = .genz },
+    .{ .path = "core/integer/map/restore_entry.zx", .name = "cache_restore_entry", .owner = .genz },
     .{ .path = "core/integer/map/lookup.zx", .name = "cache_lookup", .owner = .genz },
     .{ .path = "core/integer/map/remove.zx", .name = "cache_remove", .owner = .genz },
     .{ .path = "core/integer/map/next.zx", .name = "cache_next", .owner = .genz },

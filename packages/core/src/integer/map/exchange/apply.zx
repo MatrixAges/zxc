@@ -1,0 +1,27 @@
+import find from "../find"
+import write from "../write"
+
+import type { Put as Input, Exchange as Output } from "../model"
+
+export default function (in: Input): Output {
+    const position = find({
+        ...in.state.pick([
+            "metadata",
+            "keys"
+        ]),
+        key: in.key
+    })
+
+    const previous: u32? = match {
+        position.found => in.state.values[position.slot],
+        _ => null
+    }
+
+    return {
+        state: write({
+            source: in,
+            position
+        }),
+        previous
+    }
+}

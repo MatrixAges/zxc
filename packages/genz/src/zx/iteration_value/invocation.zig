@@ -11,16 +11,13 @@ pub fn lower(self: *Context, id: ir.ExprId, argument: ir.ExprId) Lower.Error!nod
     const input = try aggregate.bind(lowering, &body, try lowering.expr(argument));
     const view = try @import("borrow.zig").lower(self, &body, lowering.program.expression(argument).type_id, input);
     const previous = self.argument;
-    const cached = lowering.cache.get(argument);
 
     self.argument = .{ .id = argument, .value = view };
     defer self.argument = previous;
 
-    try lowering.cache.put(lowering.allocator, argument, view);
+    const cached = try lowering.cache.exchange(lowering.allocator, argument, view);
 
-    defer {
-        if (cached) |value| lowering.cache.put(lowering.allocator, argument, value) catch unreachable else _ = lowering.cache.remove(argument);
-    }
+    defer lowering.cache.restoreEntry(lowering.allocator, argument, cached);
 
     const call = lowering.program.expression(id).value.call;
 

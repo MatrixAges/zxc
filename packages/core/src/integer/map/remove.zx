@@ -18,8 +18,9 @@ export default function (in: Input): Output {
 
     return {
         state: {
-            ...in.state,
             count: in.state.count - 1,
+            keys: in.state.keys,
+            values: in.state.values,
             metadata: in.state.metadata.with(slot, tombstone)
         },
         removed: true

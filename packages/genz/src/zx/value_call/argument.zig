@@ -27,7 +27,6 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
             if (!self.value_functions[@backingInt(invocation.function)] or !self.constructed_outputs[@backingInt(invocation.function)]) return existing(self, body, id);
 
             const argument = try borrow(self, body, invocation.argument);
-            const cached = self.cache.get(invocation.argument);
             const active = self.state_active;
             const types = self.types;
             const layouts = self.layouts;
@@ -41,11 +40,9 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
                 self.layouts = layouts;
             }
 
-            try self.cache.put(self.allocator, invocation.argument, argument);
+            const cached = try self.cache.exchange(self.allocator, invocation.argument, argument);
 
-            defer {
-                if (cached) |value| self.cache.put(self.allocator, invocation.argument, value) catch unreachable else _ = self.cache.remove(invocation.argument);
-            }
+            defer self.cache.restoreEntry(self.allocator, invocation.argument, cached);
 
             return @import("root.zig").borrowInvocation(self, body, invocation);
         },

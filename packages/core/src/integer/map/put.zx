@@ -1,31 +1,14 @@
-import {
-    initial_capacity,
-    capacity_growth,
-    load_numerator,
-    load_denominator
-} from "./const"
-import grow from "./grow"
+import capacity from "./capacity"
 import place from "./place"
 
 import type { Put as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    const capacity = in.state.metadata.length
-    const limit = capacity * load_numerator / load_denominator
-
-    const state = match {
-        in.state.count + 1 > limit => grow({
-            state: in.state,
-            capacity: match {
-                capacity == 0 => initial_capacity,
-                _ => capacity * capacity_growth
-            }
-        }),
-        _ => in.state
-    }
+    const { state, key, value } = in
 
     return place({
-        ...in,
-        state
+        state: capacity(state),
+        key,
+        value
     })
 }

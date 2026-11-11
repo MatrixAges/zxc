@@ -1,0 +1,33 @@
+import type { Put, Search, State as Output } from "./model"
+
+export type Input = {
+    source: Put,
+    position: Search
+}
+
+export default function (in: Input): Output {
+    const { source, position } = in
+    const { state, key, value } = source
+
+    const slot = position.slot
+
+    if (position.found) {
+        return {
+            count: state.count,
+            metadata: state.metadata,
+            keys: state.keys,
+            values: state.values.with(slot, value)
+        }
+    }
+
+    const values = state.values.with(slot, value)
+    const keys = state.keys.with(slot, key)
+    const metadata = state.metadata.with(slot, position.tag)
+
+    return {
+        count: state.count + 1,
+        metadata,
+        keys,
+        values
+    }
+}

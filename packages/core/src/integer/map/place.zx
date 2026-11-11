@@ -1,9 +1,10 @@
 import find from "./find"
+import write from "./write"
 
 import type { Put as Input, State as Output } from "./model"
 
 export default function (in: Input): Output {
-    const result = find({
+    const position = find({
         ...in.state.pick([
             "metadata",
             "keys"
@@ -11,17 +12,8 @@ export default function (in: Input): Output {
         key: in.key
     })
 
-    if (result.found) {
-        return {
-            ...in.state,
-            values: in.state.values.with(result.slot, in.value)
-        }
-    }
-
-    return {
-        count: in.state.count + 1,
-        metadata: in.state.metadata.with(result.slot, result.tag),
-        keys: in.state.keys.with(result.slot, in.key),
-        values: in.state.values.with(result.slot, in.value)
-    }
+    return write({
+        source: in,
+        position
+    })
 }

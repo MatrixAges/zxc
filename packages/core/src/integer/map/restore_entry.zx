@@ -1,0 +1,15 @@
+import put from "./put"
+import remove from "./remove"
+
+import type { Restore as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.previous == null) {
+        return remove(in.omit(["previous"])).state
+    }
+
+    return put({
+        ...in.omit(["previous"]),
+        value: in.previous
+    })
+}
