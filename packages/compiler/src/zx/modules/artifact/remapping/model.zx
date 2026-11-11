@@ -1,0 +1,11 @@
+export enum Kind { Dense, Sparse, Planned, Range }
+
+export type Mapping = {
+    kind: Kind,
+    dense: u32[],
+    sparse: u32?[],
+    planned: u64[],
+    first: u64,
+    prefix: u64,
+    count: u64
+}

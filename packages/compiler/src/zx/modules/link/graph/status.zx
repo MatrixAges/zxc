@@ -1,0 +1,17 @@
+import { Issue } from "../../../../rx/dependency_graph/model"
+import { Status } from "./model"
+
+import type { Output as Walked } from "../../../../rx/dependency_graph/walk"
+
+export type Input = Walked
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    return match in.issue {
+        Issue.None => Status.Ready,
+        Issue.InvalidPath => Status.Invalid,
+        Issue.Missing => Status.Missing,
+        _ => Status.Cycle
+    }
+}

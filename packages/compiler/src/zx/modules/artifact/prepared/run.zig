@@ -36,7 +36,20 @@ pub fn execute(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
     const imports: Imports = .{ .ids = projected.function_ids, .inputs = projected.function_inputs, .outputs = projected.function_outputs };
     const dependencies: Dependencies = .{ .kinds = borrow.slice(@FieldType(Dependencies, "kinds"), projected.import_kinds), .keys = keys };
     const request: Request = .{ .table = &table, .origins = &origins, .names = analysis.nominal_types.names, .roots = roots, .scalar_count = std.enums.values(ir.Scalar).len, .maximum_count = std.math.maxInt(u32) };
-    const fields = .{ .own_function = if (record.own_function) |id| @as(?u32, @backingInt(id)) else null, .declarations = &declarations, .request = &request, .modules = borrow.pointer(@FieldType(Input, "modules"), &program.native_modules), .type_imports = projected.type_imports, .dependencies = &dependencies, .signatures = &signatures, .function_imports = &imports };
+    const own_function = if (record.own_function) |id| @as(?u32, @backingInt(id)) else null;
+    const Body = std.meta.Child(@FieldType(Input, "body"));
+
+    const body: Body = .{
+        .kind = switch (record.body) {
+            .types => .Types,
+            .entry => .Entry,
+            .function => .Function,
+        },
+        .function_id = if (record.body == .function) @backingInt(record.body.function) else null,
+        .own_function = own_function,
+    };
+
+    const fields = .{ .body = &body, .own_function = own_function, .declarations = &declarations, .request = &request, .modules = borrow.pointer(@FieldType(Input, "modules"), &program.native_modules), .type_imports = projected.type_imports, .dependencies = &dependencies, .signatures = &signatures, .function_imports = &imports };
 
     var input: Input = undefined;
 

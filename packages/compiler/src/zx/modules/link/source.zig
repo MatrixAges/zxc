@@ -43,20 +43,19 @@ pub fn appendBody(input: Input, destination: program_link.Destination) program_l
     if (@import("../../ir/validate.zig").internal and try @import("../../ir/validate.zig").validateExtending(destination.temporary, program, input.verified_functions) != null) return error.InvalidIr;
 
     const mapping = try destination.types.appendAnalyzed(destination.temporary, program.types, input.nominal_types, input.base_types orelse destination.types.items.count());
-    const functions = try destination.temporary.alloc(?ir.FunctionId, program.functions.count());
-    const native_modules = try destination.temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
+    const first = destination.functions.count();
+    const count = program.functions.count();
+    const prefix = base.count();
+    const limit = std.math.maxInt(u32);
 
-    defer destination.temporary.free(functions);
-    defer destination.temporary.free(native_modules);
-
-    for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(if (index < base.count()) index else destination.functions.count() + index - base.count()));
-    for (native_modules, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
+    if (first > limit or count > limit or count - prefix > limit - first) return error.OutOfMemory;
+    if (program.native_modules.count() > limit) return error.OutOfMemory;
 
     var nodes = Nodes{
         .allocator = destination.allocator,
         .types = .{ .mapped = mapping },
-        .functions = .{ .indexed = functions },
-        .native_modules = .{ .indexed = native_modules },
+        .functions = .{ .range = .{ .first = @intCast(first), .count = @intCast(count), .prefix = @intCast(prefix) } },
+        .native_modules = .{ .range = .{ .first = 0, .count = @intCast(program.native_modules.count()) } },
     };
 
     for (base.count()..program.functions.count()) |index| {

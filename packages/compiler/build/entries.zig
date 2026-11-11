@@ -70,6 +70,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/artifact/roots.rx", .name = "artifact_roots" },
     .{ .path = "zx/modules/artifact/planning/materialize.rx", .name = "artifact_prepare" },
     .{ .path = "zx/modules/artifact/remapping/columns.rx", .name = "artifact_remap" },
+    .{ .path = "zx/modules/link/graph/order.rx", .name = "artifact_graph" },
     .{ .path = "zx/ir/canonical/refinement/facts/mark.rx", .name = "refinement_mark" },
     .{ .path = "zx/ir/canonical/refinement/facts/restore.rx", .name = "refinement_restore" },
     .{ .path = "zx/ir/canonical/refinement/facts/add.rx", .name = "refinement_add" },

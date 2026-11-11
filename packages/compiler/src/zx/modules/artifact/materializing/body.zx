@@ -1,0 +1,30 @@
+export enum BodyKind { Types, Entry, Function }
+
+export type Input = {
+    kind: BodyKind,
+    function_id?: u32,
+    own_function?: u32
+}
+
+export type Output = {
+    function_id?: u32,
+    use_entry: bool,
+    copy_entry_stores: bool
+}
+
+export default function (in: Input): Output {
+    const entry = in.kind == BodyKind.Entry
+    const separate_body = in.own_function != null
+
+    const function_id = match in.kind {
+        BodyKind.Entry => in.own_function,
+        BodyKind.Function => in.function_id,
+        _ => null
+    }
+
+    return {
+        function_id,
+        use_entry: entry && !separate_body,
+        copy_entry_stores: entry && separate_body
+    }
+}

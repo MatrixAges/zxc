@@ -1,4 +1,4 @@
-import { Issue } from "./model"
+import { Issue, Mark } from "./model"
 
 import type { Graph, State } from "./model"
 
@@ -7,13 +7,17 @@ export type Input = Graph
 export type Output = State
 
 export default function (in: Input): Output {
+    const root = in.root
+    const limit = root == null ? in.offsets.length - 1 : root + 1
+
     return {
         graph: in,
-        marks: in.offsets.map(offset => 0)[0].pop()[0],
+        marks: in.offsets.map(offset => Mark.Unseen)[0].pop()[0],
         cursors: in.offsets.map(offset => offset)[0].pop()[0],
         frames: in.offsets.map(offset => 0)[0].pop()[0],
         order: in.offsets.map(offset => 0)[0].pop()[0],
-        root: 0,
+        root: root ?? 0,
+        limit,
         depth: 0,
         count: 0,
         issue: Issue.None,

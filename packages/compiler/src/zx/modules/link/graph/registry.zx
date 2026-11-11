@@ -1,0 +1,49 @@
+import integers from "std:integer"
+import initialize from "core/bytes/index/initialize"
+import probe from "core/bytes/index/probe"
+
+import type { Registry } from "./model"
+
+export type Input = u8[][]
+
+export type Output = Registry
+
+export default function (in: Input): Output {
+    const empty = initialize(in.length)
+
+    return loop({
+        index: {
+            keys: in,
+            values: empty.values,
+            buckets: empty.buckets
+        },
+        row: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.row < in.length,
+        next: state => {
+            const path = in[state.row]
+
+            if (path.length == 0) {
+                state.valid = false
+            } else {
+                const slot = probe({
+                    index: state.index,
+                    key: path
+                })
+
+                if (state.index.buckets[slot] == null) {
+                    state.index.buckets[slot] = integers.narrow(state.row)
+                } else {
+                    state.valid = false
+                }
+            }
+
+            state.row += 1
+        },
+        return: state => ({
+            index: state.index,
+            valid: state.valid
+        })
+    })
+}

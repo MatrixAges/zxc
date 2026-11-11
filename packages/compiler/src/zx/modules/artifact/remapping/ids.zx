@@ -1,42 +1,49 @@
 import integers from "std:integer"
 
+import { first_invalid_id } from "./const"
+import { Kind } from "./model"
+
+import type { Mapping } from "./model"
+
 export type Input = {
     values: u32[],
-    mapping: u64[]
+    mapping: Mapping
 }
 
-export type Output = u32[]?
+export type Output = u32[]
 
 export default function (in: Input): Output {
-    const values: u32[] = []
+    const { values, mapping } = in
 
-    const result = loop({
-        source: in.values,
-        mapping: in.mapping,
-        values,
-        index: 0,
-        valid: true
-    }, {
-        while: current => current.valid && current.index < current.source.length,
-        next: current => {
-            const id = integers.widen(current.source[current.index])
+    return match mapping.kind {
+        Kind.Dense => values.map(id => mapping.dense[integers.widen(id)])[0],
+        Kind.Sparse => values.map(
+            id => {
+                const target = mapping.sparse[integers.widen(id)]
+                const value = target == null ? first_invalid_id : integers.widen(target)
 
-            if (id >= current.mapping.length) {
-                current.valid = false
-            } else if (current.mapping[id] == 0) {
-                current.valid = false
-            } else {
-                current.values =
-                    current.values.push(
-                        integers.narrow(
-                            current.mapping[id] - 1
-                        )
-                    )[0]
+                return integers.narrow(value)
             }
+        )[0],
+        Kind.Planned => values.map(
+            id => {
+                const target = mapping.planned[integers.widen(id)]
+                const value = target == 0 ? first_invalid_id : target - 1
 
-            current.index += 1
-        }
-    })
+                return integers.narrow(value)
+            }
+        )[0],
+        _ => values.map(
+            id => {
+                const offset = integers.widen(id)
+                const value = match {
+                    offset >= mapping.count => first_invalid_id,
+                    offset < mapping.prefix => offset,
+                    _ => mapping.first + (offset - mapping.prefix)
+                }
 
-    return result.valid ? result.values : null
+                return integers.narrow(value)
+            }
+        )[0]
+    }
 }

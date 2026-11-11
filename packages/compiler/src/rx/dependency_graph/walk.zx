@@ -1,5 +1,5 @@
 import initial from "./initial"
-import { Issue } from "./model"
+import { Issue, Mark } from "./model"
 
 import type { Graph } from "./model"
 
@@ -17,14 +17,14 @@ export default function (in: Input): Output {
         while: value =>
             value.issue == Issue.None &&
             (
-                value.root + 1 < value.graph.offsets.length || value.depth != 0
+                value.root < value.limit || value.depth != 0
             ),
         next: value => {
             if (value.depth == 0) {
                 const root = value.root
 
-                if (value.marks[root] == 0) {
-                    value.marks[root] = 1
+                if (value.marks[root] == Mark.Unseen) {
+                    value.marks[root] = Mark.Visiting
                     value.frames[0] = root
                     value.depth = 1
                 }
@@ -35,13 +35,17 @@ export default function (in: Input): Output {
                 const cursor = value.cursors[owner]
 
                 if (cursor == value.graph.offsets[owner + 1]) {
-                    value.marks[owner] = 2
+                    value.marks[owner] = Mark.Done
                     value.order[value.count] = owner
                     value.count += 1
                     value.depth -= 1
                 } else {
-                    const issue = value.graph.issues[cursor]
                     const target = value.graph.targets[cursor]
+                    const issue = match {
+                        value.graph.issues.length != 0 => value.graph.issues[cursor],
+                        target >= value.marks.length => Issue.Missing,
+                        _ => Issue.None
+                    }
 
                     value.cursors[owner] = cursor + 1
 
@@ -49,12 +53,12 @@ export default function (in: Input): Output {
                         value.issue = issue
                         value.edge = cursor
                     } else {
-                        if (value.marks[target] == 1) {
+                        if (value.marks[target] == Mark.Visiting) {
                             value.issue = Issue.Cycle
                             value.edge = cursor
                         } else {
-                            if (value.marks[target] == 0) {
-                                value.marks[target] = 1
+                            if (value.marks[target] == Mark.Unseen) {
+                                value.marks[target] = Mark.Visiting
                                 value.frames[value.depth] = target
                                 value.depth += 1
                             }

@@ -1,0 +1,17 @@
+import integers from "std:integer"
+import probe from "core/bytes/index/probe"
+
+import type { Index } from "core/bytes/index/model"
+
+export type Input = {
+    index: Index,
+    key: u8[]
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const row = in.index.buckets[probe(in)]
+
+    return row == null ? null : integers.widen(row)
+}

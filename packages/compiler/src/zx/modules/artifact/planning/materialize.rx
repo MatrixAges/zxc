@@ -11,6 +11,7 @@
 
     <Type from="../materializing/natives" as="Natives" />
     <Type from="../materializing/signatures" as="Signatures" />
+    <Type from="../materializing/body" as="Body" />
 
     <Type
         from="../../../analysis/semantic/extracting/materializing/nominal"
@@ -21,6 +22,7 @@
 
     <Args
         in={{
+            body: Body.Input,
             declarations: Model.Signatures,
             dependencies: PlanningModel.Dependencies,
             function_imports: FunctionsModel.Imports,
@@ -31,6 +33,7 @@
             type_imports: u32[]
         }}
         out={{
+            body: Body.Output?,
             natives: Natives.Output,
             plan: FunctionsModel.Plan,
             signatures: Signatures.Output,
@@ -41,7 +44,7 @@
         }}
     />
 
-    <Call module="plan" in={$in} />
+    <Call module="plan" in={$in.omit(["body"])} />
 
     <Call
         fn="../../../analysis/semantic/extracting/planning/ready"
@@ -68,6 +71,8 @@
         />
 
         <If on={$ctx.natives != null}>
+            <Call fn="../materializing/body" in={$in.body} />
+
             <Call
                 fn="../materializing/signatures"
                 in={{
@@ -80,6 +85,7 @@
 
             <Return
                 value={{
+                    body: $ctx.body,
                     plan: $ctx.plan,
                     value: $ctx.materialize,
                     natives: $ctx.natives,
@@ -90,6 +96,7 @@
             <Else>
                 <Return
                     value={{
+                        body: null,
                         plan: $ctx.plan,
                         value: null,
                         natives: null,
@@ -102,6 +109,7 @@
         <Else>
             <Return
                 value={{
+                    body: null,
                     plan: $ctx.plan,
                     value: null,
                     natives: null,

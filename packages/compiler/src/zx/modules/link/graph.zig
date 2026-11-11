@@ -1,72 +1,50 @@
 const std = @import("std");
+const zx = @import("zx");
 const Module = @import("../artifact/model.zig").Module;
-pub const Error = std.mem.Allocator.Error || error{ InvalidModule, MissingModule, CyclicDependency };
+
+pub const Error = @import("graph/seed.zig").Error;
 
 pub fn order(allocator: std.mem.Allocator, modules: []const Module, entry: []const u8) Error![]const usize {
-    var paths: std.StringHashMapUnmanaged(usize) = .empty;
+    if (comptime !@import("parser_options").generated_parser) return @import("graph/seed.zig").order(allocator, modules, entry);
 
-    defer paths.deinit(allocator);
+    const paths = try allocator.alloc([]const u8, modules.len);
+    const offsets = try allocator.alloc(u64, modules.len + 1);
+    var targets: std.ArrayList([]const u8) = .empty;
 
-    for (modules, 0..) |module, index| {
-        if (module.path.len == 0) return error.InvalidModule;
+    for (modules, paths, offsets[0..modules.len]) |*module, *path, *offset| {
+        path.* = module.path;
+        offset.* = targets.items.len;
 
-        const found = try paths.getOrPut(allocator, module.path);
-
-        if (found.found_existing) return error.InvalidModule;
-
-        found.value_ptr.* = index;
-    }
-
-    const root = paths.get(entry) orelse return error.MissingModule;
-    const State = enum { unseen, visiting, done };
-    const states = try allocator.alloc(State, modules.len);
-
-    defer allocator.free(states);
-
-    @memset(states, .unseen);
-
-    const Frame = struct { index: usize, dependency: usize = 0 };
-    var pending: std.ArrayList(Frame) = .empty;
-    var result: std.ArrayList(usize) = .empty;
-
-    defer pending.deinit(allocator);
-    errdefer result.deinit(allocator);
-
-    try pending.append(allocator, .{ .index = root });
-
-    states[root] = .visiting;
-
-    while (pending.items.len != 0) {
-        const frame = &pending.items[pending.items.len - 1];
-        const dependencies = modules[frame.index].dependencies;
-
-        if (frame.dependency == dependencies.len) {
-            try result.append(allocator, frame.index);
-
-            states[frame.index] = .done;
-            _ = pending.pop();
-
-            continue;
-        }
-
-        const dependency = dependencies[frame.dependency];
-
-        frame.dependency += 1;
-
-        if (dependency.target != .source) continue;
-
-        const index = paths.get(dependency.target.source) orelse return error.MissingModule;
-
-        switch (states[index]) {
-            .done => {},
-            .visiting => return error.CyclicDependency,
-            .unseen => {
-                states[index] = .visiting;
-
-                try pending.append(allocator, .{ .index = index });
-            },
+        for (module.dependencies) |dependency| {
+            if (dependency.target == .source) try targets.append(allocator, dependency.target.source);
         }
     }
 
-    return result.toOwnedSlice(allocator);
+    offsets[modules.len] = targets.items.len;
+
+    const generated = @import("generated_artifact_graph");
+    const Input = std.meta.Child(generated.Input);
+    const input: Input = .{ .paths = paths, .targets = targets.items, .offsets = offsets, .entry = entry };
+
+    const plan = zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => return error.InvalidModule,
+    };
+
+    switch (plan.status) {
+        .Invalid => return error.InvalidModule,
+        .Missing => return error.MissingModule,
+        .Cycle => return error.CyclicDependency,
+        .Ready => {},
+    }
+
+    const rows = plan.order[0..@intCast(plan.count)];
+
+    if (comptime @sizeOf(usize) == @sizeOf(u64)) return @ptrCast(rows);
+
+    const result = try allocator.alloc(usize, rows.len);
+
+    for (rows, result) |row, *index| index.* = @intCast(row);
+
+    return result;
 }

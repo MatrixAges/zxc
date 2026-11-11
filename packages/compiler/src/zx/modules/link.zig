@@ -31,7 +31,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     const owned = arena.allocator();
     const scratch = temporary.allocator();
     const order = try graph.order(scratch, modules, entry);
-    const sorted = try scratch.alloc(model.Module, order.len);
+    const sorted = try scratch.alloc(*const model.Module, order.len);
     const mappings = try scratch.alloc([]const ir.TypeId, order.len);
     const function_ids = try scratch.alloc(?ir.FunctionId, order.len);
     var types = try Types.init(owned);
@@ -39,8 +39,10 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     @memset(function_ids, null);
 
     for (order, sorted, mappings) |index, *module, *mapping| {
-        module.* = modules[index];
-        mapping.* = try types.append(scratch, module.*);
+        const source = &modules[index];
+
+        module.* = source;
+        mapping.* = try types.appendFrom(scratch, source.types, source.nominal_types, 0);
     }
 
     var builder = Builder{ .allocator = owned, .temporary = scratch, .modules = sorted, .type_mappings = mappings, .module_functions = function_ids };

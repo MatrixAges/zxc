@@ -8,7 +8,7 @@ pub const Error = model.Error || error{ConflictingInterface};
 
 allocator: std.mem.Allocator,
 temporary: std.mem.Allocator,
-modules: []const model.Module,
+modules: []const *const model.Module,
 type_mappings: []const []const ir.TypeId,
 functions: ir.FunctionStorage = .{},
 native_modules: ir.NativeModuleStorage = .{},
@@ -268,7 +268,7 @@ fn find(self: *const Self, path: []const u8) ?usize {
     return null;
 }
 
-fn sourceDependency(self: *Self, value: model.Module, path: []const u8) bool {
+fn sourceDependency(self: *Self, value: *const model.Module, path: []const u8) bool {
     for (value.dependencies) |dependency| {
         if (dependency.target != .source or dependency.kind == .type_only) continue;
         if (dependency.kind == .function and std.mem.eql(u8, dependency.target.source, path)) return true;

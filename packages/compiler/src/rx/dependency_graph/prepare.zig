@@ -62,7 +62,7 @@ pub fn build(allocator: std.mem.Allocator, sources: []const modules.Source, entr
 
     try offsets.append(allocator, targets.items.len);
 
-    return .{ .input = .{ .offsets = offsets.items, .targets = targets.items, .issues = issues.items }, .links = links.items };
+    return .{ .input = .{ .offsets = offsets.items, .targets = targets.items, .issues = issues.items, .root = null }, .links = links.items };
 }
 
 fn resolve(allocator: std.mem.Allocator, registered: std.StringHashMapUnmanaged(usize), owner: []const u8, reference: []const u8) std.mem.Allocator.Error!struct { index: u64 = 0, issue: Issue = .None } {

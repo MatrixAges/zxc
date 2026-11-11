@@ -1,9 +1,11 @@
 import integers from "std:integer"
 
 import ids from "../remapping/ids"
+import { Kind } from "../remapping/model"
 
 import type { Modules } from "core/native_module_table/model"
 import type { NativePlan } from "../planning/model"
+import type { Mapping } from "../remapping/model"
 
 export type Input = {
     modules: Modules,
@@ -23,10 +25,20 @@ export default function (in: Input): Output {
         type_namespaces: []
     }
 
+    const mapping: Mapping = {
+        kind: Kind.Planned,
+        dense: [],
+        sparse: [],
+        planned: in.mapping,
+        first: 0,
+        prefix: 0,
+        count: 0
+    }
+
     const result = loop({
         source: in.modules,
         plan: in.plan,
-        mapping: in.mapping,
+        mapping,
         identities: empty.identities,
         import_names: empty.import_names,
         specifiers: empty.specifiers,
@@ -48,31 +60,27 @@ export default function (in: Input): Output {
                     mapping: current.mapping
                 })
 
-                if (mapped == null) {
-                    current.valid = false
-                } else {
-                    current.identities =
-                        current.identities.push(
-                            current.source.identities[selected]
-                        )[0]
-                    current.import_names =
-                        current.import_names.push(
-                            current.source.import_names[selected]
-                        )[0]
-                    current.specifiers =
-                        current.specifiers.push(
-                            current.source.specifiers[selected]
-                        )[0]
-                    current.type_ids = current.type_ids.push(mapped)[0]
-                    current.type_names =
-                        current.type_names.push(
-                            current.source.type_names[selected]
-                        )[0]
-                    current.type_namespaces =
-                        current.type_namespaces.push(
-                            current.source.type_namespaces[selected]
-                        )[0]
-                }
+                current.identities =
+                    current.identities.push(
+                        current.source.identities[selected]
+                    )[0]
+                current.import_names =
+                    current.import_names.push(
+                        current.source.import_names[selected]
+                    )[0]
+                current.specifiers =
+                    current.specifiers.push(
+                        current.source.specifiers[selected]
+                    )[0]
+                current.type_ids = current.type_ids.push(mapped)[0]
+                current.type_names =
+                    current.type_names.push(
+                        current.source.type_names[selected]
+                    )[0]
+                current.type_namespaces =
+                    current.type_namespaces.push(
+                        current.source.type_namespaces[selected]
+                    )[0]
             }
 
             current.index += 1

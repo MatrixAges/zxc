@@ -1,0 +1,56 @@
+<Module>
+    <Type from="model" as="LinkGraph" />
+
+    <Args in={LinkGraph.Input} out={LinkGraph.Output} />
+
+    <Call fn="registry" in={$in.paths} />
+
+    <If on={!$ctx.registry.valid}>
+        <Return
+            value={{
+                status: LinkGraph.Status.Invalid,
+                order: [],
+                count: 0
+            }}
+        />
+    </If>
+
+    <Call
+        fn="locate"
+        in={{
+            index: $ctx.registry.index,
+            key: $in.entry
+        }}
+    />
+
+    <If on={$ctx.locate == null}>
+        <Return
+            value={{
+                status: LinkGraph.Status.Missing,
+                order: [],
+                count: 0
+            }}
+        />
+    </If>
+
+    <Call
+        fn="edges"
+        in={{
+            index: $ctx.registry.index,
+            targets: $in.targets,
+            offsets: $in.offsets,
+            root: $ctx.locate ?? 0
+        }}
+    />
+
+    <Call fn="../../../../rx/dependency_graph/walk" in={$ctx.edges} />
+    <Call fn="status" in={$ctx.walk} />
+
+    <Return
+        value={{
+            status: $ctx.status,
+            order: $ctx.walk.order,
+            count: $ctx.walk.count
+        }}
+    />
+</Module>

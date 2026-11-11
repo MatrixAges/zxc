@@ -19,13 +19,20 @@ pub fn extract(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
         .types = .{ .planned = prepared.plan.state.mapping },
         .functions = .{ .planned = prepared.plan.functions.mapping },
         .native_modules = .{ .planned = prepared.plan.natives.mapping },
-        .arena = arena,
     };
 
     const native_modules = try owned.natives(allocator, prepared.natives orelse return error.InvalidModule);
     const functions = try owned.signatures(allocator, prepared.signatures orelse return error.InvalidModule);
-    const function = try contents.function(&nodes, program, record);
-    const stores = try nodes.stores(if (record.body == .entry) program.stores else if (record.body == .function) program.functions.at(@backingInt(record.body.function)).stores else .{});
+    const body = prepared.body orelse return error.InvalidModule;
+    const function = try contents.function(&nodes, program, body);
+
+    const stores: @import("zx").ir.StoreTable = if (body.copy_entry_stores)
+        try nodes.stores(program.stores)
+
+    else if (function) |value|
+        value.stores
+    else
+        .{};
 
     return .{
         .path = try allocator.dupe(u8, record.path),

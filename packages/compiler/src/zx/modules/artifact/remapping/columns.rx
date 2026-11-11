@@ -1,14 +1,17 @@
 <Module>
-    <Type from="pack" as="Pack" />
+    <Type from="model" as="References" />
 
     <Args
         in={{
-            function_mapping: u64[],
+            function_mapping: References.Mapping,
             functions: u32[],
-            type_mapping: u64[],
+            type_mapping: References.Mapping,
             types: u32[]
         }}
-        out={Pack.Output}
+        out={{
+            functions: u32[],
+            types: u32[]
+        }}
     />
 
     <Task name="types" out={$ctx.ids}>
@@ -21,29 +24,20 @@
         />
     </Task>
 
-    <If on={$ctx.task.types != null}>
-        <Task name="functions" out={$ctx.ids}>
-            <Call
-                fn="ids"
-                in={{
-                    values: $in.functions,
-                    mapping: $in.function_mapping
-                }}
-            />
-        </Task>
-
+    <Task name="functions" out={$ctx.ids}>
         <Call
-            fn="pack"
+            fn="ids"
             in={{
-                types: $ctx.task.types,
-                functions: $ctx.task.functions
+                values: $in.functions,
+                mapping: $in.function_mapping
             }}
         />
+    </Task>
 
-        <Return value={$ctx.pack} />
-
-        <Else>
-            <Return value={null} />
-        </Else>
-    </If>
+    <Return
+        value={{
+            types: $ctx.task.types,
+            functions: $ctx.task.functions
+        }}
+    />
 </Module>

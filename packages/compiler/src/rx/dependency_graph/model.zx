@@ -1,18 +1,22 @@
 export enum Issue { None, InvalidPath, Missing, Cycle }
 
+export enum Mark { Unseen, Visiting, Done }
+
 export type Graph = {
     offsets: u64[],
     targets: u64[],
-    issues: Issue[]
+    issues: Issue[],
+    root?: u64
 }
 
 export type State = {
     graph: Graph,
-    marks: u64[],
+    marks: Mark[],
     cursors: u64[],
     frames: u64[],
     order: u64[],
     root: u64,
+    limit: u64,
     depth: u64,
     count: u64,
     issue: Issue,

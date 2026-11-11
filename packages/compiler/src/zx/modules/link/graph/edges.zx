@@ -1,0 +1,31 @@
+import locate from "./locate"
+
+import type { Index } from "core/bytes/index/model"
+import type { Graph } from "../../../../rx/dependency_graph/model"
+
+export type Input = {
+    index: Index,
+    targets: u8[][],
+    offsets: u64[],
+    root: u64
+}
+
+export type Output = Graph
+
+export default function (in: Input): Output {
+    const missing = in.offsets.length - 1
+
+    const targets = in.targets.map(
+        key => locate({
+            index: in.index,
+            key
+        }) ?? missing
+    )[0]
+
+    return {
+        offsets: in.offsets,
+        targets,
+        issues: [],
+        root: in.root
+    }
+}

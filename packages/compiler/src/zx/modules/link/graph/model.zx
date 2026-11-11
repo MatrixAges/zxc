@@ -1,0 +1,21 @@
+import type { Index } from "core/bytes/index/model"
+
+export enum Status { Ready, Invalid, Missing, Cycle }
+
+export type Input = {
+    paths: u8[][],
+    targets: u8[][],
+    offsets: u64[],
+    entry: u8[]
+}
+
+export type Registry = {
+    index: Index,
+    valid: bool
+}
+
+export type Output = {
+    order: u64[],
+    count: u64,
+    status: Status
+}

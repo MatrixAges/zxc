@@ -5,7 +5,7 @@ const Binding = @import("../function_import.zig");
 const Nodes = @import("../artifact/nodes.zig");
 const Error = @import("../artifact/model.zig").Error || error{ConflictingInterface};
 
-pub fn find(module: Module, name: []const u8) ?Binding {
+pub fn find(module: *const Module, name: []const u8) ?Binding {
     const original = if (std.mem.eql(u8, name, "default")) "" else name;
 
     for (module.members) |member| {
@@ -15,7 +15,7 @@ pub fn find(module: Module, name: []const u8) ?Binding {
     return null;
 }
 
-pub fn check(provider: Module, member: Binding, consumers: []const Binding, local: []const u8, nodes: *Nodes, functions: ir.FunctionTable, mapping: []const ir.TypeId) Error!void {
+pub fn check(provider: *const Module, member: Binding, consumers: []const Binding, local: []const u8, nodes: *Nodes, functions: ir.FunctionTable, mapping: []const ir.TypeId) Error!void {
     if (!member.valid() or member.namespace != null) return error.InvalidModule;
 
     const name = if (std.mem.eql(u8, local, "default")) "" else local;

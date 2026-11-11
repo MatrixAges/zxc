@@ -22,7 +22,6 @@ allocator: std.mem.Allocator,
 types: TypeMap,
 functions: IdMap(ir.FunctionId),
 native_modules: IdMap(ir.NativeModuleId),
-arena: ?*std.heap.ArenaAllocator = null,
 pub fn constants(self: *Self, values: []const ir.Constant) Error![]const ir.Constant {
     if (values.len == 0) return &.{};
 
@@ -49,23 +48,7 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     result.expressions = try self.expressions(value.expressions);
     result.body = try self.body(value.body);
     result.stores = try self.stores(value.stores);
-
-    var contracts: ir.ContractStorage = .{};
-
-    errdefer contracts.deinit(self.allocator);
-
-    if (!value.contracts.validStructure()) return error.InvalidModule;
-
-    for (0..value.contracts.count()) |index| {
-        var contract = value.contracts.at(index);
-
-        contract.symbols = try self.symbols(contract.symbols);
-        contract.expressions = try self.expressions(contract.expressions);
-
-        try contracts.append(self.allocator, contract);
-    }
-
-    result.contracts = try contracts.finish(self.allocator);
+    result.contracts = try self.contracts(value.contracts);
     result.external = if (value.external) |entry| try self.external(entry) else null;
 
     return result;
@@ -74,11 +57,11 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
 pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
     if (!values.validStructure()) return error.InvalidModule;
 
-    if (comptime @import("parser_options").generated_parser) if (self.types == .planned) {
-        const mapped = try @import("nodes/remap.zig").columns(self.arena.?, values.types, self.types.planned, &.{}, self.functions.planned);
+    if (comptime @import("parser_options").generated_parser) {
+        const mapped = try @import("nodes/remap.zig").columns(self, values.types, &.{});
 
         return @import("nodes/columns.zig").own(self.allocator, values, .{ .types = mapped.types });
-    };
+    }
 
     var storage: ir.StoreStorage = .{};
 
@@ -100,11 +83,11 @@ pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
 fn symbols(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {
     if (!values.validStructure()) return error.InvalidModule;
 
-    if (comptime @import("parser_options").generated_parser) if (self.types == .planned) {
-        const mapped = try @import("nodes/remap.zig").columns(self.arena.?, values.types, self.types.planned, &.{}, self.functions.planned);
+    if (comptime @import("parser_options").generated_parser) {
+        const mapped = try @import("nodes/remap.zig").columns(self, values.types, &.{});
 
         return @import("nodes/columns.zig").own(self.allocator, values, .{ .types = mapped.types });
-    };
+    }
 
     var storage: ir.SymbolStorage = .{};
 
@@ -127,11 +110,11 @@ fn expressions(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable
 
     if (!values.validStructure()) return error.InvalidModule;
 
-    if (comptime @import("parser_options").generated_parser) if (self.types == .planned) {
-        const mapped = try @import("nodes/remap.zig").columns(self.arena.?, values.types, self.types.planned, values.call_functions, self.functions.planned);
+    if (comptime @import("parser_options").generated_parser) {
+        const mapped = try @import("nodes/remap.zig").columns(self, values.types, values.call_functions);
 
         return @import("nodes/columns.zig").own(self.allocator, values, .{ .types = mapped.types, .call_functions = mapped.functions });
-    };
+    }
 
     var result: ir.ExpressionTable = .{};
 
@@ -153,17 +136,34 @@ fn expressions(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable
     return result;
 }
 
+fn contracts(self: *Self, values: ir.ContractTable) Error!ir.ContractTable {
+    if (!values.validStructure()) return error.InvalidModule;
+    if (values.count() == 0) return .{};
+
+    const owned_symbols = try self.allocator.alloc(*const ir.SymbolTable, values.count());
+    const owned_expressions = try self.allocator.alloc(*const ir.ExpressionTable, values.count());
+
+    for (values.symbols, values.expressions, owned_symbols, owned_expressions) |source_symbols, source_expressions, *symbols_slot, *expressions_slot| {
+        const mapped_symbols = try self.symbols(source_symbols.*);
+        const mapped_expressions = try self.expressions(source_expressions.*);
+        const symbol_table = try self.allocator.create(ir.SymbolTable);
+        const expression_table = try self.allocator.create(ir.ExpressionTable);
+        symbol_table.* = mapped_symbols;
+        expression_table.* = mapped_expressions;
+        symbols_slot.* = symbol_table;
+        expressions_slot.* = expression_table;
+    }
+
+    return @import("nodes/columns.zig").own(self.allocator, values, .{ .symbols = owned_symbols, .expressions = owned_expressions });
+}
+
 fn body(self: *Self, value: ir.ControlBody) Error!ir.ControlBody {
     if (!try value.validStructure(self.allocator)) return error.InvalidModule;
     if (value.root == null) return .{};
 
     const table = try self.allocator.create(ir.ControlTable);
 
-    inline for (@typeInfo(ir.ControlTable).@"struct".field_names) |name| {
-        const source = @field(value.control, name);
-
-        @field(table, name) = try self.allocator.dupe(@typeInfo(@TypeOf(source)).pointer.child, source);
-    }
+    table.* = try @import("nodes/columns.zig").own(self.allocator, value.control.*, .{});
 
     return .{ .control = table, .root = value.root };
 }
