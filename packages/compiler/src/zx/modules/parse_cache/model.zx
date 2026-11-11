@@ -1,0 +1,18 @@
+export enum Action { Reuse, Upgrade, Parse }
+
+export type Format = {
+    native: bool,
+    indexed: bool
+}
+
+export type Probe = {
+    format: Format,
+    text_matches: bool,
+    source: u8[],
+    stored?: u8[]
+}
+
+export type Result = {
+    action: Action,
+    digest?: u8[]
+}

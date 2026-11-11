@@ -1,0 +1,18 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+
+import { native_domain } from "./const"
+
+import type { Sha256State } from "std:crypto"
+
+export type Input = Sha256State
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const domain = bytes.fromText(native_domain)
+
+    crypto.resetSha256(in)
+    crypto.updateSha256U64Le(in, domain.length)
+    crypto.updateSha256(in, domain)
+}

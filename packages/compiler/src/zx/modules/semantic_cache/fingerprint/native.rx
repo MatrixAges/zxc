@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Fingerprint" />
+
+    <Args in={Fingerprint.Input} out={void} />
+
+    <Call fn="seed" in={$in.hash} />
+
+    <Task name="interface">
+        <Call
+            fn="fields"
+            in={{
+                hash: $in.hash,
+                fields: $in.fields
+            }}
+        />
+    </Task>
+
+    <Task name="namespace">
+        <Call
+            fn="fields"
+            in={{
+                hash: $in.hash,
+                fields: $in.namespace
+            }}
+        />
+    </Task>
+</Module>

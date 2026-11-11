@@ -1,0 +1,15 @@
+import bytes from "std:bytes"
+
+export type Input = {
+    cached_source: u8[],
+    source: u8[],
+    cached_context: u8[],
+    context: u8[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return bytes.equals(in.cached_source, in.source) &&
+        bytes.equals(in.cached_context, in.context)
+}

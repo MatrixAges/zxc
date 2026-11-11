@@ -53,10 +53,24 @@ pub fn load(self: *Self, allocator: std.mem.Allocator, entry: Native, current: C
 }
 
 fn digest(entry: Native) [32]u8 {
-    var hash = @import("zx").Sha256.init(.{});
+    var hash: zx.Sha256 = undefined;
+    const fields = [_][]const u8{ entry.key(), entry.specifier, entry.path, entry.source, entry.module };
 
-    for ([_][]const u8{ "zxc.native.interface.v2", entry.key(), entry.specifier, entry.path, entry.source, entry.module }) |part| field(&hash, part);
-    for (entry.namespace) |part| field(&hash, part);
+    if (comptime @import("parser_options").generated_parser) {
+        const generated = @import("generated_semantic_cache_native_fingerprint");
+        const reference: zx.Sha256State = .{ .value = &hash };
+        const input: std.meta.Child(generated.Input) = .{ .hash = @ptrCast(&reference), .fields = &fields, .namespace = entry.namespace };
+        var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+        zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
+    } else {
+        hash = zx.Sha256.init(.{});
+
+        field(&hash, "zxc.native.interface.v2");
+
+        for (fields) |part| field(&hash, part);
+        for (entry.namespace) |part| field(&hash, part);
+    }
 
     var result: [32]u8 = undefined;
 

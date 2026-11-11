@@ -1,0 +1,26 @@
+import bytes from "std:bytes"
+import crypto from "std:crypto"
+
+import type { Sha256State } from "std:crypto"
+
+export type Input = {
+    hash: Sha256State,
+    fields: string[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.fields.length,
+        next: state => {
+            const field = bytes.fromText(in.fields[state.index])
+
+            crypto.updateSha256U64Le(in.hash, field.length)
+            crypto.updateSha256(in.hash, field)
+            state.index += 1
+        }
+    })
+}

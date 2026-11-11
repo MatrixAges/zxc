@@ -89,23 +89,19 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
         return false;
     };
 
-    if (!std.mem.eql(u8, decoded.result.value.path, key)) {
-        decoded.result.deinit();
-
-        self.discarded += 1;
-
-        return false;
-    }
-
-    SemanticCache.entry_store.put(allocator, entries, decoded.result, decoded.context_digest) catch |err| {
+    const installed = SemanticCache.entry_store.putLoaded(allocator, entries, decoded.result, decoded.context_digest, key) catch |err| {
         decoded.result.deinit();
 
         return err;
     };
 
-    entries.get(key).?.dirty = false;
+    if (!installed) {
+        decoded.result.deinit();
 
-    return true;
+        self.discarded += 1;
+    }
+
+    return installed;
 }
 
 pub fn save(self: *Self, cache: *SemanticCache) !void {

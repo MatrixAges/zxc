@@ -1,5 +1,6 @@
 const std = @import("std");
 const parser = @import("../frontend/parse.zig");
+const probe = @import("parse_cache/probe.zig");
 const Self = @This();
 pub const ModuleResult = parser.ModuleResult;
 pub const indexed_enabled = @import("../frontend/module_result.zig").indexed_enabled;
@@ -72,8 +73,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
     const Prefetch = struct {
         cache: *const Self,
         requests: []const Request,
-        digests: [][32]u8,
-        results: []?ModuleResult,
+        results: []?Entry,
         next: std.atomic.Value(usize) = .init(0),
         failed: std.atomic.Value(bool) = .init(false),
         fn run(work: *@This(), _: usize) void {
@@ -87,46 +87,37 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
                 if (index >= work.requests.len) return;
 
                 const request = work.requests[index];
+                var digest: [32]u8 = undefined;
 
-                work.results[index] = null;
+                if (lookup(work.cache.entries.get(request.path), request.source, false, &digest) == .reuse) continue;
 
-                if (unchanged(work.cache.entries.get(request.path), request.source, &work.digests[index])) continue;
-
-                work.results[index] = parser.parseModuleIn(std.heap.smp_allocator, &scratch, request.source, request.path) catch {
+                const result = parser.parseModuleIn(std.heap.smp_allocator, &scratch, request.source, request.path) catch {
                     work.failed.store(true, .monotonic);
 
                     return;
                 };
+
+                work.results[index] = .{ .digest = digest, .result = result };
             }
         }
     };
 
-    const digests = try self.allocator.alloc([32]u8, requests.len);
-
-    defer self.allocator.free(digests);
-
-    const results = try self.allocator.alloc(?ModuleResult, requests.len);
+    const results = try self.allocator.alloc(?Entry, requests.len);
 
     defer self.allocator.free(results);
 
     @memset(results, null);
 
-    var work = Prefetch{ .cache = self, .requests = requests, .digests = digests, .results = results };
+    var work = Prefetch{ .cache = self, .requests = requests, .results = results };
 
     @import("zx").parallel.spread(Prefetch, &work, Prefetch.run, requests.len);
 
     var kept: usize = 0;
 
-    errdefer for (results[kept..]) |*result| if (result.*) |*value| value.deinit();
+    errdefer for (results[kept..]) |*result| if (result.*) |*value| value.result.deinit();
 
-    for (requests, digests, results) |request, digest, *result| {
-        const value = result.* orelse {
-            kept += 1;
-
-            continue;
-        };
-
-        try self.adopt(request.path, digest, value);
+    for (requests, results) |request, *result| {
+        if (result.*) |*value| _ = try self.adopt(request.path, self.entries.get(request.path), value);
 
         kept += 1;
     }
@@ -134,14 +125,14 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
     if (work.failed.load(.monotonic)) return error.OutOfMemory;
 }
 
-fn adopt(self: *Self, path: []const u8, digest: [32]u8, result: ModuleResult) std.mem.Allocator.Error!void {
-    if (self.entries.get(path)) |entry| {
+fn adopt(self: *Self, path: []const u8, found: ?*Entry, value: *const Entry) std.mem.Allocator.Error!*Entry {
+    if (found) |entry| {
         try self.replace(entry.result);
 
-        entry.* = .{ .digest = digest, .result = result };
+        entry.* = value.*;
         self.parsed += 1;
 
-        return;
+        return entry;
     }
 
     const key = try self.allocator.dupe(u8, path);
@@ -152,11 +143,13 @@ fn adopt(self: *Self, path: []const u8, digest: [32]u8, result: ModuleResult) st
 
     errdefer self.allocator.destroy(entry);
 
-    entry.* = .{ .digest = digest, .result = result };
+    entry.* = value.*;
 
     try self.entries.put(self.allocator, key, entry);
 
     self.parsed += 1;
+
+    return entry;
 }
 
 fn replace(self: *Self, result: ModuleResult) std.mem.Allocator.Error!void {
@@ -172,57 +165,29 @@ fn replace(self: *Self, result: ModuleResult) std.mem.Allocator.Error!void {
 fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []const u8) std.mem.Allocator.Error!*Entry {
     var digest: [32]u8 = undefined;
     const found = self.entries.get(path);
-    const same = unchanged(found, source, &digest);
 
-    if (found) |entry| {
-        if (same) {
-            if (native and entry.result == .indexed) {
-                const result = try parser.parse(self.allocator, source, path);
+    switch (lookup(found, source, native, &digest)) {
+        .reuse => {
+            self.reused += 1;
 
-                try self.replace(entry.result);
-
-                entry.result = .{ .native = result };
-                self.parsed += 1;
-            } else self.reused += 1;
-
-            return entry;
-        }
-
-        const result = if (native) ModuleResult{ .native = try parser.parse(self.allocator, source, path) } else try parser.parseModule(self.allocator, source, path);
-
-        try self.replace(entry.result);
-
-        entry.* = .{ .digest = digest, .result = result };
-        self.parsed += 1;
-
-        return entry;
+            return found.?;
+        },
+        .upgrade => digest = found.?.digest,
+        .parse => {},
     }
 
-    const key = try self.allocator.dupe(u8, path);
+    var prepared: Entry = .{
+        .digest = digest,
+        .result = if (native) .{ .native = try parser.parse(self.allocator, source, path) } else try parser.parseModule(self.allocator, source, path),
+    };
 
-    errdefer self.allocator.free(key);
+    errdefer prepared.result.deinit();
 
-    const entry = try self.allocator.create(Entry);
-
-    errdefer self.allocator.destroy(entry);
-
-    entry.* = .{ .digest = digest, .result = if (native) .{ .native = try parser.parse(self.allocator, source, path) } else try parser.parseModule(self.allocator, source, path) };
-
-    errdefer entry.result.deinit();
-
-    try self.entries.put(self.allocator, key, entry);
-
-    self.parsed += 1;
-
-    return entry;
+    return self.adopt(path, found, &prepared);
 }
 
-/// Whether `entry` holds the result for `source`. A result keeps a copy of its text, so comparing the texts settles it
-/// without hashing; otherwise `digest` receives the digest of `source`.
-fn unchanged(entry: ?*const Entry, source: []const u8, digest: *[32]u8) bool {
-    if (entry) |kept| if (kept.result.text()) |text| if (@import("zx").bytes.equal(text, source)) return true;
+fn lookup(entry: ?*const Entry, source: []const u8, native: bool, digest: *[32]u8) probe.Action {
+    const kept = entry orelse return probe.run(source, null, null, native, false, digest);
 
-    @import("zx").Sha256.hash(source, digest, .{});
-
-    return if (entry) |kept| std.mem.eql(u8, &kept.digest, digest) else false;
+    return probe.run(source, kept.result.text(), &kept.digest, native, kept.result == .indexed, digest);
 }

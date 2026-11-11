@@ -1,0 +1,11 @@
+import { Action } from "./model"
+
+import type { Format } from "./model"
+
+export type Input = Format
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    return in.native && in.indexed ? Action.Upgrade : Action.Reuse
+}

@@ -1,0 +1,44 @@
+<Module>
+    <Type from="model" as="Cache" />
+
+    <Args in={Cache.Probe} out={Cache.Result} />
+
+    <If on={$in.text_matches}>
+        <Call fn="reuse" in={$in.format} />
+
+        <Return
+            value={{
+                action: $ctx.reuse,
+                digest: null
+            }}
+        />
+    </If>
+
+    <Call fn="hash" in={$in.source} />
+
+    <Call
+        fn="matches"
+        in={{
+            digest: $ctx.hash,
+            stored: $in.stored
+        }}
+    />
+
+    <If on={$ctx.matches}>
+        <Call fn="reuse" in={$in.format} />
+
+        <Return
+            value={{
+                action: $ctx.reuse,
+                digest: null
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            action: Cache.Action.Parse,
+            digest: $ctx.hash
+        }}
+    />
+</Module>
