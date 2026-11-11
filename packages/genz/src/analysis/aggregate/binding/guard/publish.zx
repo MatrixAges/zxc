@@ -1,0 +1,31 @@
+import { ExpressionsKind } from "../../../../printer/model/expressions"
+
+import type { Publish as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const block = in.block
+
+    return {
+        ...block.omit(["expressions"]),
+        expressions: {
+            ...block.expressions.pick([
+                "block_label",
+                "block_statements_start",
+                "block_statements_len"
+            ]),
+            tags: [
+                ExpressionsKind.Conditional,
+                ExpressionsKind.Block
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            conditional_condition: [in.source.condition],
+            conditional_yes: [in.source.value],
+            conditional_no: [in.source.fallback],
+            conditional_capture: [null],
+            conditional_error_capture: [null]
+        }
+    }
+}

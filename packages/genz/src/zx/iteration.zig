@@ -187,11 +187,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         if (first_condition) |first| {
             var skipped: std.ArrayList(node.Statement) = .empty;
 
-            return try aggregate.finish(self, &body, try self.builder.expression(.{ .conditional = .{
-                .condition = first,
-                .yes = result,
-                .no = try finish.lower(self, &skipped, seed),
-            } }));
+            return try aggregate.finishGuarded(self, &body, first, result, try finish.lower(self, &skipped, seed));
         }
 
         return try aggregate.finish(self, &body, result);

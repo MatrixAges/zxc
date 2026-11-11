@@ -1,8 +1,18 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
+const generated = @import("genz_options").generated_analysis;
+const entry = if (generated) @import("generated_iteration_result_route") else struct {};
+
+const Route = if (generated)
+    @typeInfo(@typeInfo(@TypeOf(entry.executeValue)).@"fn".return_type.?).error_union.payload
+
+else
+    enum { BufferedConsumer, DeepConsumer, ConvertedConsumer, Consumer, Discard, Value, Reference, ConvertedGuard, SelectedGuard, DeepGuard, ConstructGuard };
+
 pub const Mode = enum { reference, value, discard, consume };
 
 pub const Result = struct {
@@ -18,48 +28,81 @@ pub const Result = struct {
     changed_name: []const u8,
     mode: Mode,
     pub fn lower(config: Result, self: *Lower, body: *std.ArrayList(node.Statement), state: node.ExpressionId) Lower.Error!node.ExpressionId {
-        const consumer = config.consumer;
-        const deep = config.deep;
-        const context = config.context;
-        const type_id = config.type_id;
-        const by_value = config.by_value;
-        const local = config.local;
-        const selected_state = config.selected_state;
-        const initial = config.initial;
-        const changed_name = config.changed_name;
-        const mode = config.mode;
+        const selected = config.route();
 
-        if (consumer) |selected| {
-            if (deep) {
-                if (context.inline_lists) return aggregate.finish(self, body, try @import("../iteration_value/result.zig").buffered(context, body, selected, state));
+        switch (selected) {
+            .BufferedConsumer => return aggregate.finish(self, body, try @import("../iteration_value/result.zig").buffered(config.context, body, config.consumer.?, state)),
+            .DeepConsumer => return aggregate.finish(self, body, try @import("../iteration_value/result.zig").lower(self, config.consumer.?, state)),
+            .Consumer, .ConvertedConsumer => {
+                const consumer = config.consumer.?;
+                var result = try @import("../iteration_consumer.zig").read(self, consumer, consumer.result, state);
 
-                const result = try @import("../iteration_value/result.zig").lower(self, selected, state);
+                if (selected == .ConvertedConsumer) {
+                    const bound = try aggregate.bind(self, body, result);
+                    result = try @import("../state_value/conversion.zig").convert(self, body, self.program.expression(consumer.result).type_id, bound, .pointer);
+                }
 
                 return try aggregate.finish(self, body, result);
-            }
-
-            var result = try @import("../iteration_consumer.zig").read(self, selected, selected.result, state);
-
-            if (config.converted) {
-                const bound = try aggregate.bind(self, body, result);
-                result = try @import("../state_value/conversion.zig").convert(self, body, self.program.expression(selected.result).type_id, bound, .pointer);
-            }
-
-            return try aggregate.finish(self, body, result);
+            },
+            .Discard => return aggregate.finish(self, body, try self.builder.expression(.unit)),
+            else => {},
         }
 
-        if (mode == .discard) return try aggregate.finish(self, body, try self.builder.expression(.unit));
-
         var converted_body: std.ArrayList(node.Statement) = .empty;
-        const converted_state = if (config.converted) try @import("../state_value/conversion.zig").convert(self, &converted_body, type_id, state, if (by_value) .layout else .pointer) else state;
+        const converted_state = if (config.converted) try @import("../state_value/conversion.zig").convert(self, &converted_body, config.type_id, state, if (selected == .Value) .layout else .pointer) else state;
         const boundary = try aggregate.finish(self, &converted_body, converted_state);
 
-        const result = if (by_value) boundary else if (local) try self.builder.expression(.{ .conditional = .{
-            .condition = try self.builder.identifier(changed_name),
-            .yes = if (config.converted) boundary else if (selected_state) state else if (deep) try @import("../iteration_value/conversion.zig").convert(context, type_id, state, true) else try self.construct(type_id, state),
-            .no = initial,
-        } }) else state;
+        switch (selected) {
+            .Value => return aggregate.finish(self, body, boundary),
+            .Reference => return aggregate.finish(self, body, state),
+            else => {},
+        }
 
-        return try aggregate.finish(self, body, result);
+        const condition = try self.builder.identifier(config.changed_name);
+
+        const result = switch (selected) {
+            .ConvertedGuard => boundary,
+            .SelectedGuard => state,
+            .DeepGuard => try @import("../iteration_value/conversion.zig").convert(config.context, config.type_id, state, true),
+            .ConstructGuard => try self.construct(config.type_id, state),
+            else => unreachable,
+        };
+
+        return aggregate.finishGuarded(self, body, condition, result, config.initial);
+    }
+    fn route(config: Result) Route {
+        if (!generated) {
+            if (config.consumer != null) {
+                if (config.deep) return if (config.context.inline_lists) .BufferedConsumer else .DeepConsumer;
+
+                return if (config.converted) .ConvertedConsumer else .Consumer;
+            }
+
+            if (config.mode == .discard) return .Discard;
+            if (config.by_value) return .Value;
+            if (!config.local) return .Reference;
+            if (config.converted) return .ConvertedGuard;
+            if (config.selected_state) return .SelectedGuard;
+            if (config.deep) return .DeepGuard;
+
+            return .ConstructGuard;
+        }
+
+        const Input = std.meta.Child(entry.Input);
+
+        const input: Input = .{
+            .consumer = config.consumer != null,
+            .deep = config.deep,
+            .inline_lists = config.context.inline_lists,
+            .converted = config.converted,
+            .discard = config.mode == .discard,
+            .by_value = config.by_value,
+            .local = config.local,
+            .selected = config.selected_state,
+        };
+
+        var fixed = std.heap.FixedBufferAllocator.init(&.{});
+
+        return zx.columns.invoke(entry.executeValue, fixed.allocator(), &input) catch unreachable;
     }
 };

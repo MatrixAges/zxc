@@ -1,0 +1,39 @@
+import type { ExpressionsKind } from "../../../../printer/model/expressions"
+import type { Output as Block, Statements } from "../model"
+
+export type Input = {
+    condition: u32,
+    value: u32,
+    fallback: u32,
+    expression_base: u32,
+    statement_base: u32,
+    body_count: u64,
+    serial: u64
+}
+
+export type Publish = {
+    source: Input,
+    block: Block
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    conditional_condition: u32[],
+    conditional_yes: u32[],
+    conditional_no: u32[],
+    conditional_capture: u8[]?[],
+    conditional_error_capture: u8[]?[],
+    block_label: u8[][],
+    block_statements_start: u32[],
+    block_statements_len: u32[]
+}
+
+export type Output = {
+    expressions: Expressions,
+    statements: Statements,
+    name: u8[],
+    serial: u64,
+    root: u32,
+    valid: bool
+}

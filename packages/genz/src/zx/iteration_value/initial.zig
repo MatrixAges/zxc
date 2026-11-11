@@ -27,5 +27,5 @@ pub fn create(lowering: *Lower, body: *std.ArrayList(node.Statement), iteration:
 }
 
 pub fn finish(self: *Self, lowering: *Lower, result: node.ExpressionId) Lower.Error!node.ExpressionId {
-    return aggregate.finish(lowering, &self.body, try lowering.builder.expression(.{ .conditional = .{ .condition = self.condition, .yes = result, .no = self.result } }));
+    return aggregate.finishGuarded(lowering, &self.body, self.condition, result, self.result);
 }

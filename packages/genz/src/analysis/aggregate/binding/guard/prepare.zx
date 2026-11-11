@@ -1,0 +1,18 @@
+import integers from "std:integer"
+
+import type { Input as Output } from "../model"
+import type { Input } from "./model"
+
+export default function (in: Input): Output {
+    const base = integers.widen(in.expression_base)
+
+    return {
+        ...in.pick([
+            "statement_base",
+            "body_count",
+            "serial"
+        ]),
+        value: in.expression_base,
+        expression_base: integers.narrow(base + 1)
+    }
+}

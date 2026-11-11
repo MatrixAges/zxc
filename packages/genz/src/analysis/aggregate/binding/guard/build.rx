@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Guard" />
+
+    <Args in={Guard.Input} out={Guard.Output} />
+
+    <Call fn="prepare" in={$in} />
+    <Call fn="../finish" in={$ctx.prepare} />
+
+    <Call
+        fn="publish"
+        in={{
+            source: $in,
+            block: $ctx.finish
+        }}
+    />
+
+    <Return value={$ctx.publish} />
+</Module>

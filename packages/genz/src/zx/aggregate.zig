@@ -155,3 +155,13 @@ pub fn finish(self: *Lower, body: *std.ArrayList(node.Statement), result: node.E
 
     return @import("aggregate/binding.zig").finish(self, body, result);
 }
+
+pub fn finishGuarded(self: *Lower, body: *std.ArrayList(node.Statement), condition: node.ExpressionId, value: node.ExpressionId, fallback: node.ExpressionId) Lower.Error!node.ExpressionId {
+    if (!@import("genz_options").generated_analysis) return finish(self, body, try self.builder.expression(.{ .conditional = .{
+        .condition = condition,
+        .yes = value,
+        .no = fallback,
+    } }));
+
+    return @import("aggregate/binding.zig").finishGuarded(self, body, condition, value, fallback);
+}
