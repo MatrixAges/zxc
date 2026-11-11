@@ -2,19 +2,23 @@ import bytes from "std:bytes"
 
 import digest from "./digest"
 
-import type { Content as Input } from "./model"
+export type Input = {
+    source: string,
+    start: u64,
+    digest_start: u64
+}
 
 export type Output = bool
 
 export default function (in: Input): Output {
     const expected = digest({
         source: in.source,
-        start: in.layout.payload_start
+        start: in.start
     })
 
     return bytes.startsWithText(
         bytes.fromText(in.source),
-        in.layout.digest_start,
+        in.digest_start,
         expected
     )
 }

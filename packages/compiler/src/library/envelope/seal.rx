@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Envelope" />
+
+    <Args in={Envelope.Seal} out={void} />
+
+    <Call
+        fn="../../zx/artifact_codec/digest"
+        in={{
+            source: $in.payload,
+            start: 0
+        }}
+    />
+
+    <Call
+        fn="header"
+        in={{
+            writer: $in.writer,
+            digest: $ctx.digest
+        }}
+    />
+</Module>

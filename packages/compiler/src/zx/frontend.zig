@@ -36,6 +36,12 @@ pub const binding_path = @import("analysis/binding_path.zig");
 pub const native_context = @import("modules/native_context.zig");
 pub const native_link = @import("modules/link/native.zig");
 pub const ArtifactNodes = @import("modules/artifact/nodes.zig");
+
+pub const artifact_json = struct {
+    pub const parse = @import("artifact_codec/json_scanner.zig").parse;
+    pub const write = @import("artifact_codec/json_writer.zig").write;
+};
+
 pub const analyzeOwnership = @import("ownership/check.zig").analyze;
 pub const storesOwnValues = @import("ownership/stores.zig").check;
 pub const constants = @import("analysis/constants/host.zig");

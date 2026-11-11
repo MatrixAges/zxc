@@ -18,10 +18,11 @@
     </If>
 
     <Call
-        fn="content"
+        fn="../../../artifact_codec/content"
         in={{
             source: $in.source,
-            layout: $ctx.layout
+            start: $ctx.layout.payload_start,
+            digest_start: $ctx.layout.digest_start
         }}
     />
 

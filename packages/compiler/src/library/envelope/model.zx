@@ -1,0 +1,19 @@
+import type { Writer } from "std:bytes"
+
+export type Payload = {
+    accepted: bool,
+    start: u64,
+    digest_start: u64,
+    maximum_depth: u64,
+    legacy: bool
+}
+
+export type Seal = {
+    writer: Writer,
+    payload: string
+}
+
+export type Header = {
+    writer: Writer,
+    digest: string
+}

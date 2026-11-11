@@ -1,0 +1,26 @@
+<Module>
+    <Type from="model" as="Envelope" />
+
+    <Args in={string} out={Envelope.Payload?} />
+
+    <Call fn="inspect" in={$in} />
+
+    <If on={!$ctx.inspect.accepted}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="../../zx/artifact_codec/content"
+        in={{
+            source: $in,
+            start: $ctx.inspect.start,
+            digest_start: $ctx.inspect.digest_start
+        }}
+    />
+
+    <If on={!$ctx.content}>
+        <Return value={null} />
+    </If>
+
+    <Return value={$ctx.inspect} />
+</Module>

@@ -37,7 +37,7 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
 
     const memory = arena.allocator();
 
-    const parsed = @import("payload/scanner.zig").parse(Payload(@import("payload/version.zig")), memory, payload.bytes, payload.maximum_depth) catch |err| switch (err) {
+    const parsed = @import("../../artifact_codec/json_scanner.zig").parse(Payload(@import("payload/version.zig")), memory, payload.bytes, payload.maximum_depth, .{ .allocate = .alloc_always }) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => return error.InvalidCache,
     };

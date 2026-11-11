@@ -6,15 +6,10 @@ const sealing = @import("generated_semantic_cache_seal");
 
 pub fn encode(allocator: std.mem.Allocator, payload: anytype, compiler_digest: [32]u8) std.mem.Allocator.Error![]u8 {
     const compiler_hex = std.fmt.bytesToHex(compiler_digest, .lower);
-    var out: std.Io.Writer.Allocating = .init(allocator);
+    const payload_start = headerSize(compiler_hex.len);
+    var out = try @import("../../artifact_codec/json_writer.zig").write(allocator, payload, payload_start);
 
     errdefer out.deinit();
-
-    const payload_start = headerSize(compiler_hex.len);
-    const header_space = out.writer.writableSlice(payload_start) catch return error.OutOfMemory;
-
-    @memset(header_space, 0);
-    std.json.Stringify.value(payload, .{}, &out.writer) catch return error.OutOfMemory;
 
     const encoded = out.writer.buffered();
 

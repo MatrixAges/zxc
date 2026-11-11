@@ -1,0 +1,10 @@
+import { digest_width, newline_width } from "../../zx/artifact_codec/const"
+import { marker } from "./const"
+
+export type Input = void
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return marker.length + digest_width + newline_width
+}

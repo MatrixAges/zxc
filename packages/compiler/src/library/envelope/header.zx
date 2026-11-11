@@ -1,0 +1,14 @@
+import bytes from "std:bytes"
+
+import { newline } from "../../zx/artifact_codec/const"
+import { marker } from "./const"
+
+import type { Header as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    bytes.write(in.writer, bytes.fromText(marker))
+    bytes.write(in.writer, bytes.fromText(in.digest))
+    bytes.writeByte(in.writer, newline)
+}

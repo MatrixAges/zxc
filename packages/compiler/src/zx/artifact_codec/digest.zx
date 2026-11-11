@@ -2,7 +2,10 @@ import bytes from "std:bytes"
 import crypto from "std:crypto"
 import encoding from "std:encoding"
 
-import type { Digest as Input } from "./model"
+export type Input = {
+    source: string,
+    start: u64
+}
 
 export type Output = string
 

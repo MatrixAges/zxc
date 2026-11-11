@@ -1,0 +1,33 @@
+import bytes from "std:bytes"
+
+import {
+    maximum_json_depth,
+    newline,
+    newline_width
+} from "../../zx/artifact_codec/const"
+import { legacy_marker, marker } from "./const"
+import layout from "./layout"
+
+import type { Payload } from "./model"
+
+export type Input = string
+
+export type Output = Payload
+
+export default function (in: Input): Output {
+    const start = layout()
+    const source = bytes.fromText(in)
+    const legacy = bytes.startsWithText(source, 0, legacy_marker)
+    const known = legacy || bytes.startsWithText(source, 0, marker)
+
+    const accepted = known && source.length >= start &&
+        source[start - newline_width] == newline
+
+    return {
+        accepted,
+        start,
+        digest_start: marker.length,
+        maximum_depth: maximum_json_depth,
+        legacy
+    }
+}

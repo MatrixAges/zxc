@@ -9,7 +9,7 @@ pub const PeekError = Scanner.PeekError;
 
 source: Scanner,
 maximum_depth: usize,
-pub fn parse(comptime T: type, allocator: std.mem.Allocator, bytes: []const u8, maximum_depth: usize) std.json.ParseError(Self)!T {
+pub fn parse(comptime T: type, allocator: std.mem.Allocator, bytes: []const u8, maximum_depth: usize, options: std.json.ParseOptions) std.json.ParseError(Self)!T {
     var scanner: Self = .{
         .source = Scanner.initCompleteInput(allocator, bytes),
         .maximum_depth = maximum_depth,
@@ -17,7 +17,11 @@ pub fn parse(comptime T: type, allocator: std.mem.Allocator, bytes: []const u8, 
 
     defer scanner.source.deinit();
 
-    return std.json.parseFromTokenSourceLeaky(T, allocator, &scanner, .{ .allocate = .alloc_always, .max_value_len = bytes.len });
+    var resolved = options;
+    resolved.max_value_len = bytes.len;
+    resolved.allocate = resolved.allocate orelse .alloc_if_needed;
+
+    return std.json.parseFromTokenSourceLeaky(T, allocator, &scanner, resolved);
 }
 
 pub inline fn next(self: *Self) NextError!Token {
