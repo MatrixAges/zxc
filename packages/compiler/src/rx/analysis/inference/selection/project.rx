@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Projection" />
+
+    <Args in={Projection.Input} out={Projection.Output} />
+
+    <Call fn="../../../../zx/analysis/selection/plan" in={$in.fields} />
+
+    <If on={$ctx.plan.missing}>
+        <Return
+            value={{
+                indices: [],
+                all: false,
+                status: $in.required ? Projection.Status.Missing : Projection.Status.Wait
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            indices: $ctx.plan.indices,
+            all: $ctx.plan.all,
+            status: Projection.Status.Ready
+        }}
+    />
+</Module>

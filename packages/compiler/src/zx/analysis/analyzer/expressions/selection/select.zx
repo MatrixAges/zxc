@@ -1,8 +1,9 @@
 import integers from "std:integer"
 import { pick } from "std:utils"
 
+import plan from "../../../selection/plan"
 import row from "../../../semantic/types/row"
-import indices from "./indices"
+import { name_code, unknown_field_message } from "./const"
 import keys from "./keys"
 import lower from "./lower"
 
@@ -52,26 +53,30 @@ export default function (in: Input): Output {
 
     const table = target.delta ? tables.delta : tables.base
 
-    const selected = indices({
+    const selected = plan({
         names: table.field_names,
         first: integers.widen(target.first),
         count: integers.widen(target.second),
         keys: fields.names,
-        omit: in.omit,
-        span: node.span
+        omit: in.omit
     })
 
-    if (selected.diagnostic.message != "") {
+    if (selected.missing) {
         return {
             state: {
                 ...in.state,
-                diagnostic: selected.diagnostic
+                diagnostic: {
+                    code: name_code,
+                    message: unknown_field_message,
+                    start: node.span.start,
+                    end: node.span.end
+                }
             },
             value: 0
         }
     }
 
-    if (selected.indices.length == integers.widen(target.second)) {
+    if (selected.all) {
         return {
             state: in.state,
             value: in.target

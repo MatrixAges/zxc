@@ -1,0 +1,18 @@
+import type { Input as Fields } from "../../../../zx/analysis/selection/model"
+
+export enum Status {
+    Ready,
+    Wait,
+    Missing
+}
+
+export type Input = {
+    fields: Fields,
+    required: bool
+}
+
+export type Output = {
+    indices: u32[],
+    all: bool,
+    status: Status
+}

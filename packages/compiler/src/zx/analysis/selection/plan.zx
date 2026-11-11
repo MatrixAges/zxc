@@ -1,0 +1,61 @@
+import integers from "std:integer"
+
+import type { Input as Fields, Plan } from "./model"
+
+export type Input = Fields
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    if (in.keys.length == 0) {
+        return {
+            indices: [],
+            all: in.omit || in.count == 0,
+            missing: false
+        }
+    }
+
+    const indices: u32[] = []
+
+    return loop({
+        seen: in.keys.map(key => false)[0],
+        indices,
+        field: 0,
+        matched: 0
+    }, {
+        while: state => state.field < in.count,
+        next: state => {
+            const name = in.names[in.first + state.field]
+
+            const key = loop({
+                index: 0
+            }, {
+                while: position =>
+                    position.index < in.keys.length &&
+                    in.keys[position.index] != name,
+                next: position => {
+                    position.index += 1
+                },
+                return: position => position.index
+            })
+
+            const requested = key < in.keys.length
+
+            if (requested && !state.seen[key]) {
+                state.seen[key] = true
+                state.matched += 1
+            }
+
+            if (requested != in.omit) {
+                state.indices = state.indices.push(integers.narrow(state.field))[0]
+            }
+
+            state.field += 1
+        },
+        return: state => ({
+            indices: state.indices,
+            all: state.indices.length == in.count,
+            missing: state.matched != in.keys.length
+        })
+    })
+}
