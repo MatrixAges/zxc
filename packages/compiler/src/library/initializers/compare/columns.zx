@@ -1,0 +1,117 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import type { ColumnPair as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const words = loop({
+        index: 0,
+        equal: true
+    }, {
+        while: state => state.equal && state.index < in.left.words.length,
+        next: state => {
+            const index = state.index
+
+            state.equal = bytes.equals(in.left.words[index], in.right.words[index])
+            state.index += 1
+        },
+        return: state => state.equal
+    })
+
+    if (!words) {
+        return false
+    }
+
+    const tags = loop({
+        index: 0,
+        equal: true
+    }, {
+        while: state => state.equal && state.index < in.left.tags.length,
+        next: state => {
+            const index = state.index
+
+            const left = in.left.tags[index]
+            const right = in.right.tags[index]
+
+            if (!bytes.equals(left, right)) {
+                const mask = integers.widenByte(in.masks[index])
+
+                state.equal = loop({
+                    index: 0,
+                    equal: left.length == right.length
+                }, {
+                    while: row => row.equal && row.index < left.length,
+                    next: row => {
+                        const a = integers.widenByte(left[row.index])
+                        const b = integers.widenByte(right[row.index])
+
+                        row.equal = integers.andBits(a, mask) ==
+                            integers.andBits(b, mask)
+                        row.index += 1
+                    },
+                    return: row => row.equal
+                })
+            }
+            state.index += 1
+        },
+        return: state => state.equal
+    })
+
+    if (!tags) {
+        return false
+    }
+
+    const options = loop({
+        column: 0,
+        equal: true
+    }, {
+        while: state => state.equal && state.column < in.left.options.length,
+        next: state => {
+            const left = in.left.options[state.column]
+            const right = in.right.options[state.column]
+
+            state.equal = loop({
+                index: 0,
+                equal: left.length == right.length
+            }, {
+                while: row => row.equal && row.index < left.length,
+                next: row => {
+                    row.equal = left[row.index] == right[row.index]
+                    row.index += 1
+                },
+                return: row => row.equal
+            })
+            state.column += 1
+        },
+        return: state => state.equal
+    })
+
+    if (!options) {
+        return false
+    }
+
+    return loop({
+        column: 0,
+        equal: true
+    }, {
+        while: state => state.equal && state.column < in.left.text.length,
+        next: state => {
+            const left = in.left.text[state.column]
+            const right = in.right.text[state.column]
+
+            state.equal = loop({
+                index: 0,
+                equal: left.length == right.length
+            }, {
+                while: row => row.equal && row.index < left.length,
+                next: row => {
+                    row.equal = left[row.index] == right[row.index]
+                    row.index += 1
+                },
+                return: row => row.equal
+            })
+            state.column += 1
+        },
+        return: state => state.equal
+    })
+}

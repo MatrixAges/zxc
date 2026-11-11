@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Comparison" />
+
+    <Args in={Comparison.Input} out={Comparison.Output} />
+
+    <Call fn="header" in={$in.header} />
+
+    <If on={!$ctx.header}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="types" in={$in.types} />
+
+    <If on={!$ctx.types}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="native"
+        in={{
+            left: $in.header.left.native,
+            right: $in.header.right.native
+        }}
+    />
+
+    <If on={!$ctx.native}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="columns" in={$in.columns} />
+
+    <Return value={$ctx.columns} />
+</Module>

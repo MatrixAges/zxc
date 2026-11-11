@@ -94,6 +94,8 @@ pub const main = [_]Entry{
     .{ .path = "library/members/build.rx", .name = "library_public_members", .owner = .compiler },
     .{ .path = "zx/modules/compiled/loading/remap/ids.zx", .name = "library_constant_types", .owner = .compiler },
     .{ .path = "library/initializers/register.rx", .name = "library_initializer_register", .owner = .compiler },
+    .{ .path = "library/initializers/compare/compare.rx", .name = "library_initializer_compare", .owner = .compiler },
+    .{ .path = "library/initializers/compare/columns.zx", .name = "library_initializer_columns", .owner = .compiler },
     input_snapshot,
     .{ .path = "backends/zig/cache/envelope/frame.rx", .name = "generation_cache_envelope", .owner = .compiler },
     .{ .path = "backends/zig/source_abi/scoped.zx", .name = "source_abi_scoped", .owner = .compiler },

@@ -18,11 +18,11 @@ functions: *ir.FunctionStorage,
 items: std.ArrayList(Entry) = .empty,
 index: Index = .{},
 pub fn append(self: *Self, value: Entry) Error!void {
-    if (try self.register(value.identity, value.schema_version)) |previous| {
-        const left = self.functions.at(@backingInt(previous));
+    if (try self.register(value.identity)) |previous| {
+        const left = self.functions.at(@backingInt(previous.function));
         const right = self.functions.at(@backingInt(value.function));
 
-        if (!equality.linked(&left, &right)) return error.ConflictingInitializer;
+        if (!equality.matches(&left, &right, previous.schema_version, value.schema_version, null)) return error.ConflictingInitializer;
 
         return;
     }
@@ -30,13 +30,10 @@ pub fn append(self: *Self, value: Entry) Error!void {
     try self.publish(value);
 }
 
-fn register(self: *Self, identity: []const u8, version: u32) Error!?ir.FunctionId {
+fn register(self: *Self, identity: []const u8) Error!?Entry {
     const row = (try self.index.register(self.scratch, identity, self.items.items.len)) orelse return null;
-    const previous = self.items.items[row];
 
-    if (previous.schema_version != version) return error.ConflictingInitializer;
-
-    return previous.function;
+    return self.items.items[row];
 }
 
 fn publish(self: *Self, value: Entry) Error!void {
@@ -63,10 +60,10 @@ pub fn source(self: *Self, initial: model.Initializer, origins: @FieldType(front
         .body = program.body,
     };
 
-    if (try self.register(initial.identity, initial.schema_version)) |previous| {
-        const linked = self.functions.at(@backingInt(previous));
+    if (try self.register(initial.identity)) |previous| {
+        const linked = self.functions.at(@backingInt(previous.function));
 
-        if (!equality.source(&linked, &candidate, mapping)) return error.ConflictingInitializer;
+        if (!equality.matches(&linked, &candidate, previous.schema_version, initial.schema_version, mapping)) return error.ConflictingInitializer;
 
         return;
     }

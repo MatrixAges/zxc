@@ -1,0 +1,66 @@
+import type { Ownership } from "core/symbol_table/model"
+
+export type Columns = {
+    words: u8[][],
+    tags: u8[][],
+    options: u32?[][],
+    text: string[][]
+}
+
+export type ColumnPair = {
+    left: Columns,
+    right: Columns,
+    masks: u8[]
+}
+
+export type Native = {
+    module_id: u32,
+    member: string[],
+    export_name?: string,
+    allocator: bool,
+    io: bool,
+    process: bool,
+    tuple: bool,
+    fallible: bool,
+    concurrent: bool,
+    input?: string?[],
+    errors?: string[]
+}
+
+export type Header = {
+    version: u32,
+    name: string,
+    transaction: bool,
+    ownership: Ownership,
+    input_type: u32,
+    output_type: u32,
+    root?: u32,
+    native?: Native
+}
+
+export type HeaderPair = {
+    left: Header,
+    right: Header,
+    mapping?: u32[]
+}
+
+export type IdPair = {
+    left: u32[],
+    right: u32[],
+    left_bytes: u8[],
+    right_bytes: u8[]
+}
+
+export type Types = {
+    symbols: IdPair,
+    expressions: IdPair,
+    mapping?: u32[]
+}
+
+export type Input = {
+    header: HeaderPair,
+    types: Types,
+    columns: ColumnPair
+}
+
+export type Output = bool

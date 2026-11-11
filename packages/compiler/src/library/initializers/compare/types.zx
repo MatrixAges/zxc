@@ -1,0 +1,13 @@
+import ids from "./ids"
+
+import type { Types as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    return ids({
+        pair: in.symbols,
+        mapping: in.mapping
+    }) && ids({
+        pair: in.expressions,
+        mapping: in.mapping
+    })
+}

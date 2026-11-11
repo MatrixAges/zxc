@@ -1,88 +1,106 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const projection = @import("compare/borrow.zig");
+const generated = @import("parser_options").generated_parser;
 
-pub fn linked(left: *const ir.Function, right: *const ir.Function) bool {
-    return equal(left, right);
+pub fn matches(left: *const ir.Function, right: *const ir.Function, left_version: u32, right_version: u32, mapping: ?[]const ir.TypeId) bool {
+    if (!generated) {
+        const seed = @import("function_equal_seed.zig");
+
+        if (left_version != right_version) return false;
+
+        return if (mapping) |map| seed.source(left, right, map) else seed.linked(left, right);
+    }
+
+    const entry = @import("generated_library_initializer_compare");
+    const Input = std.meta.Child(entry.Input);
+    const Pair = std.meta.Child(@FieldType(Input, "header"));
+    const Header = std.meta.Child(@FieldType(Pair, "left"));
+    const Native = std.meta.Child(@typeInfo(@FieldType(Header, "native")).optional.child);
+    const Types = std.meta.Child(@FieldType(Input, "types"));
+    const Ids = std.meta.Child(@FieldType(Types, "symbols"));
+    const Columns = std.meta.Child(@FieldType(Input, "columns"));
+    const map = if (mapping) |values| @as([*]const u32, @ptrCast(values.ptr))[0..values.len] else null;
+    const left_native = if (left.external) |value| native(Native, value) else null;
+    const right_native = if (right.external) |value| native(Native, value) else null;
+    const left_header = header(Header, left, left_version, if (left_native != null) &left_native.? else null);
+    const right_header = header(Header, right, right_version, if (right_native != null) &right_native.? else null);
+    const headers: Pair = .{ .left = &left_header, .right = &right_header, .mapping = map };
+    const symbols = ids(Ids, left.symbols.types, right.symbols.types);
+    const expressions = ids(Ids, left.expressions.types, right.expressions.types);
+    const types: Types = .{ .symbols = &symbols, .expressions = &expressions, .mapping = map };
+    const right_control = if (mapping != null and right.body.root == null) &ir.ControlTable{} else right.body.control;
+    var left_columns: projection.Function = undefined;
+    var right_columns: projection.Function = undefined;
+
+    left_columns.borrow(.{ &left.stores, &left.symbols, &left.expressions, left.body.control, &left.contracts });
+    right_columns.borrow(.{ &right.stores, &right.symbols, &right.expressions, right_control, &right.contracts });
+
+    const input_left = left_columns.view(std.meta.Child(@FieldType(Columns, "left")));
+    const input_right = right_columns.view(std.meta.Child(@FieldType(Columns, "right")));
+    const columns: Columns = .{ .left = &input_left, .right = &input_right, .masks = &projection.Function.masks };
+    const input: Input = .{ .header = &headers, .types = &types, .columns = &columns };
+    var fixed = std.heap.FixedBufferAllocator.init(&.{});
+
+    if (!(entry.executeIn(fixed.allocator(), &input) catch unreachable)) return false;
+
+    return contracts(fixed.allocator(), &left.contracts, &right.contracts);
 }
 
-pub fn source(left: *const ir.Function, right: *const ir.Function, mapping: []const ir.TypeId) bool {
-    if (left.input_type != mapping[@backingInt(right.input_type)] or
-        left.output_type != mapping[@backingInt(right.output_type)])
+fn contracts(allocator: std.mem.Allocator, left: *const ir.ContractTable, right: *const ir.ContractTable) bool {
+    const entry = @import("generated_library_initializer_columns");
+    const Input = std.meta.Child(entry.Input);
+    const View = std.meta.Child(@FieldType(Input, "left"));
+    var left_columns: projection.Contract = undefined;
+    var right_columns: projection.Contract = undefined;
 
-        return false;
+    for (left.symbols, right.symbols, left.expressions, right.expressions) |left_symbols, right_symbols, left_expr, right_expr| {
+        left_columns.borrow(.{ left_symbols, left_expr });
+        right_columns.borrow(.{ right_symbols, right_expr });
 
-    if (!mapped(left.symbols.types, right.symbols.types, mapping) or
-        !mapped(left.expressions.types, right.expressions.types, mapping))
+        const a = left_columns.view(View);
+        const b = right_columns.view(View);
+        const input: Input = .{ .left = &a, .right = &b, .masks = &projection.Contract.masks };
 
-        return false;
-
-    const body = if (right.body.root == null) ir.ControlBody{} else right.body;
-
-    return equal(left.file_name, right.file_name) and
-        left.store_mode == right.store_mode and
-        left.output_ownership == right.output_ownership and
-
-        equal(left.external, right.external) and
-        equal(&left.stores, &right.stores) and
-        equal(&left.contracts, &right.contracts) and
-        equal(&left.body, &body) and
-        equalFields(ir.SymbolTable, &left.symbols, &right.symbols, "types") and
-        equalFields(ir.ExpressionTable, &left.expressions, &right.expressions, "types");
-}
-
-fn mapped(left: []const u32, right: []const u32, mapping: []const ir.TypeId) bool {
-    if (left.len != right.len) return false;
-
-    for (left, right) |actual, id| {
-        if (actual != @backingInt(mapping[id])) return false;
+        if (!(entry.executeIn(allocator, &input) catch unreachable)) return false;
     }
 
     return true;
 }
 
-fn equalFields(comptime T: type, left: *const T, right: *const T, comptime omitted: ?[]const u8) bool {
-    if (std.meta.hasFn(T, "jsonStringify")) @compileError("Custom encodings need explicit equality");
-
-    inline for (@typeInfo(T).@"struct".field_names) |name| {
-        if (comptime omitted == null or !std.mem.eql(u8, omitted.?, name)) {
-            if (!equal(@field(left, name), @field(right, name))) return false;
-        }
-    }
-
-    return true;
-}
-
-fn equal(left: anytype, right: @TypeOf(left)) bool {
-    @setEvalBranchQuota(100_000);
-
-    const T = @TypeOf(left);
-
-    return switch (@typeInfo(T)) {
-        .bool, .int, .@"enum" => left == right,
-        // IR validation establishes finite literals. Keep the sign of zero, as JSON does.
-        .float => @as(@Int(.unsigned, @bitSizeOf(T)), @bitCast(left)) == @as(@Int(.unsigned, @bitSizeOf(T)), @bitCast(right)),
-        .@"struct" => equalFields(T, &left, &right, null),
-        .optional => if (left) |value| if (right) |other| equal(value, other) else false else right == null,
-        .pointer => |pointer| switch (pointer.size) {
-            .one => left == right or switch (@typeInfo(pointer.child)) {
-                .@"struct" => equalFields(pointer.child, left, right, null),
-                else => equal(left.*, right.*),
-            },
-            .slice => sameSlice(pointer.child, left, right),
-            else => @compileError("Unsupported function field pointer"),
+fn header(comptime Target: type, value: *const ir.Function, version: u32, external: @FieldType(Target, "native")) Target {
+    return .{
+        .version = version,
+        .name = value.file_name,
+        .transaction = value.store_mode == .transaction,
+        .ownership = switch (value.output_ownership) {
+            .copy => .Copy,
+            .borrowed => .Borrowed,
+            .owned => .Owned,
         },
-        else => @compileError("Unsupported function field type"),
+        .input_type = @backingInt(value.input_type),
+        .output_type = @backingInt(value.output_type),
+        .root = if (value.body.root) |root| @backingInt(root) else null,
+        .native = external,
     };
 }
 
-fn sameSlice(comptime T: type, left: []const T, right: []const T) bool {
-    if (left.len != right.len) return false;
-    if (left.ptr == right.ptr) return true;
-    if (@typeInfo(T) == .int) return std.mem.eql(T, left, right);
+fn native(comptime Target: type, value: ir.External) Target {
+    return .{
+        .module_id = @backingInt(value.module),
+        .member = value.member,
+        .export_name = value.export_name,
+        .allocator = value.allocator_argument,
+        .io = value.io_argument,
+        .process = value.process_argument,
+        .tuple = value.expand_tuple,
+        .fallible = value.fallible,
+        .concurrent = value.concurrent,
+        .input = if (value.input) |input| input.names else null,
+        .errors = value.errors,
+    };
+}
 
-    for (left, right) |a, b| {
-        if (!equal(a, b)) return false;
-    }
-
-    return true;
+fn ids(comptime Target: type, left: []const u32, right: []const u32) Target {
+    return .{ .left = left, .right = right, .left_bytes = std.mem.sliceAsBytes(left), .right_bytes = std.mem.sliceAsBytes(right) };
 }

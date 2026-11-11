@@ -1,0 +1,35 @@
+import integers from "std:integer"
+
+import type { HeaderPair as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const { left, right, mapping } = in
+
+    const same_version = left.version == right.version
+    const same_mode = left.transaction == right.transaction
+    const same_ownership = left.ownership == right.ownership
+    const same_name = left.name == right.name
+    const same_root = left.root == right.root
+
+    const same_header = (
+        - same_version
+        - and same_mode
+        - and same_ownership
+        - and same_name
+        - and same_root
+    )
+
+    if (!same_header) {
+        return false
+    }
+
+    if (mapping == null) {
+        return left.input_type == right.input_type &&
+            left.output_type == right.output_type
+    }
+
+    const input_type = mapping[integers.widen(right.input_type)]
+    const output_type = mapping[integers.widen(right.output_type)]
+
+    return left.input_type == input_type && left.output_type == output_type
+}

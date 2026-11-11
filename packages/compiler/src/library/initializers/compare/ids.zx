@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import type { IdPair } from "./model"
+
+export type Input = {
+    pair: IdPair,
+    mapping?: u32[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { left, right } = in.pair
+
+    const mapping = in.mapping
+
+    if (mapping == null) {
+        return bytes.equals(in.pair.left_bytes, in.pair.right_bytes)
+    }
+
+    return loop({
+        index: 0,
+        equal: left.length == right.length
+    }, {
+        while: row => row.equal && row.index < left.length,
+        next: row => {
+            const candidate = integers.widen(right[row.index])
+
+            row.equal = left[row.index] == mapping[candidate]
+            row.index += 1
+        },
+        return: row => row.equal
+    })
+}

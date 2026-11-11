@@ -1,0 +1,93 @@
+import type { Native, Output } from "./model"
+
+export type Input = {
+    left?: Native,
+    right?: Native
+}
+
+export default function (in: Input): Output {
+    const { left, right } = in
+
+    if (left == null || right == null) {
+        return left == null && right == null
+    }
+
+    const same_module = left.module_id == right.module_id
+    const same_export = left.export_name == right.export_name
+    const same_allocator = left.allocator == right.allocator
+    const same_process = left.process == right.process
+    const same_fallibility = left.fallible == right.fallible
+    const same_concurrency = left.concurrent == right.concurrent
+
+    const equal = (
+        - same_module
+        - and same_export
+        - and same_allocator
+        - and left.io == right.io
+        - and same_process
+        - and left.tuple == right.tuple
+        - and same_fallibility
+        - and same_concurrency
+    )
+
+    if (!equal) {
+        return false
+    }
+
+    const member = loop({
+        index: 0,
+        equal: left.member.length == right.member.length
+    }, {
+        while: row => row.equal && row.index < left.member.length,
+        next: row => {
+            row.equal = left.member[row.index] == right.member[row.index]
+            row.index += 1
+        },
+        return: row => row.equal
+    })
+
+    if (!member) {
+        return false
+    }
+
+    const left_input = left.input
+    const right_input = right.input
+    const left_errors = left.errors
+    const right_errors = right.errors
+
+    const input = match {
+        left_input == null || right_input == null =>
+            left_input == null && right_input == null,
+        _ => loop({
+            index: 0,
+            equal: left_input.length == right_input.length
+        }, {
+            while: row => row.equal && row.index < left_input.length,
+            next: row => {
+                row.equal = left_input[row.index] == right_input[row.index]
+                row.index += 1
+            },
+            return: row => row.equal
+        })
+    }
+
+    if (!input) {
+        return false
+    }
+
+    if (left_errors == null || right_errors == null) {
+        return left_errors == null && right_errors == null
+    }
+
+    return loop({
+        index: 0,
+        equal: left_errors.length == right_errors.length
+    }, {
+        while: row => row.equal && row.index < left_errors.length,
+        next: row => {
+            row.equal = left_errors[row.index] == right_errors[row.index]
+            row.index += 1
+        },
+        return: row => row.equal
+    })
+}
