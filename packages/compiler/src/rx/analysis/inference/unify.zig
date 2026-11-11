@@ -3,6 +3,7 @@ const Graph = @import("types.zig");
 const Scalar = @import("scalar.zig");
 const Plan = @import("unification/plan.zig");
 const Fields = @import("unification/fields.zig");
+const Occurs = @import("unification/occurs.zig");
 
 pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth: usize) zx.Error!void {
     if (depth >= 256) return self.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels");
@@ -11,10 +12,11 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
     const b = self.root(right);
 
     if (a == b) return;
-    if (try contains(self, a, b, span, 0) or try contains(self, b, a, span, 0)) return self.reporter.fail(.type_mismatch, span, "inference would require a recursive input type");
 
-    const first = self.nodes.items[@backingInt(a)];
-    const second = self.nodes.items[@backingInt(b)];
+    try Occurs.check(self, a, b, span);
+
+    const first = self.nodeAt(@backingInt(a));
+    const second = self.nodeAt(@backingInt(b));
     const shape = try combine(self, first.shape, second.shape, span, depth);
 
     const constraints = Scalar.combine(
@@ -22,8 +24,8 @@ pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth
         .{ .allowed = second.allowed, .fallback = second.fallback },
     );
 
-    self.nodes.items[@backingInt(a)].shape = shape;
-    self.nodes.items[@backingInt(a)].fallback = constraints.fallback;
+    self.setShape(@backingInt(a), shape);
+    self.nodes.items(.facts)[@backingInt(a)].fallback = constraints.fallback;
     self.forest.connect(a, b);
 
     self.revision += 1;
@@ -100,25 +102,4 @@ fn message(route: Plan.Route) []const u8 {
         .ConcreteTupleMismatch => "input tuple requirements conflict with its complete type",
         else => unreachable,
     };
-}
-
-fn contains(self: *const Graph, parent: Graph.Id, child: Graph.Id, span: zx.Span, depth: usize) zx.Error!bool {
-    if (depth >= 256) return self.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels");
-
-    const root = self.root(parent);
-
-    if (root == child) return true;
-
-    switch (self.nodes.items[@backingInt(root)].shape) {
-        .list, .optional => |nested| return contains(self, nested, child, span, depth + 1),
-        .tuple => |items| for (items) |item| {
-            if (try contains(self, item, child, span, depth + 1)) return true;
-        },
-        .object => |fields| for (fields.values()) |value| {
-            if (try contains(self, value, child, span, depth + 1)) return true;
-        },
-        else => {},
-    }
-
-    return false;
 }

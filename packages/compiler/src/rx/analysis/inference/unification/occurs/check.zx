@@ -1,0 +1,24 @@
+import contains from "./contains"
+import { Reach } from "./model"
+
+import type { Query, Result } from "./model"
+
+export type Input = Query
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const forward = contains(in)
+
+    if (forward.reach != Reach.Absent) {
+        return forward
+    }
+
+    return contains({
+        graph: in.graph,
+        parents: forward.parents,
+        source: in.target,
+        target: in.source,
+        depth: in.depth
+    })
+}

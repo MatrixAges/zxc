@@ -4,11 +4,13 @@ const Graph = @import("../../types.zig");
 const Bound = struct { lower: usize = 0, upper: ?usize = null, prefer_lower: bool = false };
 
 pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
-    const bounds = try scratch.alloc(Bound, graph.nodes.items.len);
+    const bounds = try scratch.alloc(Bound, graph.nodes.len);
 
     @memset(bounds, .{});
 
-    for (graph.nodes.items, bounds) |node, *bound| {
+    for (bounds, 0..) |*bound, index| {
+        const node = graph.nodeAt(index);
+
         switch (node.shape) {
             .known => |id| {
                 var current = id;
@@ -68,8 +70,14 @@ fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
             try check(graph, expected.*, span);
         }
 
-        for (graph.nodes.items, 0..) |node, index| {
-            if (graph.root(@fromBackingInt(@intCast(index))) != @as(Graph.Id, @fromBackingInt(@intCast(index))) or node.shape != .optional) continue;
+        for (0..graph.nodes.len) |index| {
+            const id: Graph.Id = @fromBackingInt(@intCast(index));
+
+            if (graph.root(id) != id) continue;
+
+            const node = graph.nodeAt(index);
+
+            if (node.shape != .optional) continue;
 
             const parent = &bounds[index];
             const child = &bounds[@backingInt(graph.root(node.shape.optional))];
@@ -97,7 +105,7 @@ fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
         if (!changed) return;
     }
 
-    const span = if (assignments.len != 0) assignments.items(.span)[0] else graph.nodes.items[0].span;
+    const span = if (assignments.len != 0) assignments.items(.span)[0] else graph.nodes.items(.facts)[0].span;
 
     return graph.reporter.fail(.type_mismatch, span, "inference would require a recursive optional type");
 }

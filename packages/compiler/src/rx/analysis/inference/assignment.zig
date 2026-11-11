@@ -12,7 +12,7 @@ pub fn materialize(graph: *Graph, base: Base, scratch: std.mem.Allocator) zx.Err
 
         if (graph.root(id) != id) continue;
 
-        const node = graph.nodes.items[index];
+        const node = graph.nodeAt(index);
 
         if (node.shape != .unknown or node.allowed != null) continue;
         if (@import("index.zig").isResult(graph, id)) continue;

@@ -1,0 +1,77 @@
+import integers from "std:integer"
+import { max_nesting_depth } from "core/const"
+
+import halve from "../../forest/halve"
+import { Kind } from "../model"
+import { Reach } from "./model"
+
+import type { Query, Result } from "./model"
+
+export type Input = Query
+
+export type Output = Result
+
+export default function contains(in: Input): Output {
+    if (in.depth >= max_nesting_depth) {
+        return {
+            parents: in.parents,
+            reach: Reach.Depth
+        }
+    }
+
+    const found = halve({
+        parents: in.parents,
+        item: in.source,
+        parent: in.parents[integers.widen(in.source)]
+    })
+
+    const root = found.item
+
+    if (root == in.target) {
+        return {
+            parents: found.parents,
+            reach: Reach.Present
+        }
+    }
+
+    const index = integers.widen(root)
+    const kind = in.graph.kinds[index]
+    const depth = in.depth + 1
+
+    if (kind == Kind.List || kind == Kind.Optional) {
+        return contains({
+            graph: in.graph,
+            parents: found.parents,
+            source: in.graph.arguments[index],
+            target: in.target,
+            depth
+        })
+    }
+
+    const children = in.graph.members[index]
+
+    return loop({
+        parents: found.parents,
+        reach: Reach.Absent,
+        position: 0
+    }, {
+        while: state => state.position < children.length && state.reach == Reach.Absent,
+        next: state => {
+            const result = contains({
+                graph: in.graph,
+                parents: state.parents,
+                source: children[state.position],
+                target: in.target,
+                depth
+            })
+
+            state.parents = result.parents
+            state.reach = result.reach
+            state.position += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            reach: state.reach
+        })
+    })
+}

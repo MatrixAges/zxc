@@ -5,7 +5,7 @@ const Types = @import("frontend").types;
 
 pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeId {
     const index = @backingInt(self.root(value));
-    const node = self.nodes.items[index];
+    const node = self.nodeAt(index);
 
     if (depth >= 256) return self.reporter.fail(.unsupported, node.span, "type inference nesting exceeds 256 levels");
 
@@ -39,7 +39,8 @@ pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeI
     };
 
     if (node.shape != .known) {
-        self.nodes.items[index].shape = .{ .known = id };
+        self.setShape(index, .{ .known = id });
+
         self.object_revision += 1;
     }
 

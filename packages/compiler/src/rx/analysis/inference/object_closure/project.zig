@@ -85,7 +85,7 @@ const Registry = struct {
         if (!item.found_existing) {
             item.value_ptr.* = self.known.items.len;
 
-            try self.known.append(allocator, graph.nodes.items[@backingInt(root)].shape == .known);
+            try self.known.append(allocator, graph.nodes.items(.kind)[@backingInt(root)] == .Known);
         }
 
         return item.value_ptr.*;

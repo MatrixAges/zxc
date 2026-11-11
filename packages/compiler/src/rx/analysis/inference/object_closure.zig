@@ -20,7 +20,7 @@ pub fn deinit(self: *Self) void {
 pub fn prove(self: *Self, graph: *const Graph, value: Graph.Id, query: Query) std.mem.Allocator.Error!bool {
     const root = graph.root(value);
 
-    if (graph.nodes.items[@backingInt(root)].shape == .known) return true;
+    if (graph.nodes.items(.kind)[@backingInt(root)] == .Known) return true;
     if (graph.constructions.items.len == 0 and graph.selections.items.len == 0) return false;
     if (!@import("rx_options").generated_graph) return @import("object_closure/seed.zig").prove(graph, root, query, 0);
 

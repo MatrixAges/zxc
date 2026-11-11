@@ -8,29 +8,32 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     const generated = @import("generated_assignment_depth");
     const Input = @typeInfo(generated.Input).pointer.child;
     const Fact = std.meta.Elem(@FieldType(Input, "facts"));
-    const nodes = graph.nodes.items;
-    const depths = try scratch.alloc(u64, nodes.len);
-    const facts = try scratch.alloc(Fact, nodes.len);
+    const rows = graph.nodes.slice();
+    const kinds = rows.items(.kind);
+    const arguments = rows.items(.argument);
+    const metadata = rows.items(.facts);
+    const depths = try scratch.alloc(u64, kinds.len);
+    const facts = try scratch.alloc(Fact, kinds.len);
     var optional_count: usize = 0;
 
-    for (nodes, depths, facts, 0..) |node, *depth, *fact, index| {
+    for (kinds, arguments, metadata, depths, facts, 0..) |kind, argument, node, *depth, *fact, index| {
         depth.* = 0;
         fact.* = .Exact;
 
-        switch (node.shape) {
-            .known => |id| {
-                var current = graph.types.get(id);
+        switch (kind) {
+            .Known => {
+                var current = graph.types.get(@fromBackingInt(argument));
 
                 while (current == .optional) : (depth.* += 1) current = graph.types.get(current.optional);
             },
-            .optional => {
+            .Optional => {
                 depth.* = 1;
                 fact.* = .Optional;
 
                 const id: Graph.Id = @fromBackingInt(@intCast(index));
                 optional_count += @intFromBool(graph.forest.parent(id) == id);
             },
-            .unknown => if (node.allowed == null) {
+            .Unknown => if (node.allowed == null) {
                 fact.* = .Open;
             },
             else => {},
@@ -48,14 +51,14 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     const right = try scratch.alloc(u32, optional_count);
     var position: usize = 0;
 
-    for (nodes, 0..) |node, index| {
-        if (node.shape != .optional) continue;
+    for (kinds, arguments, 0..) |kind, argument, index| {
+        if (kind != .Optional) continue;
 
         const id: Graph.Id = @fromBackingInt(@intCast(index));
 
         if (graph.forest.parent(id) != id) continue;
 
-        left[position] = @backingInt(graph.root(node.shape.optional));
+        left[position] = @backingInt(graph.root(@fromBackingInt(argument)));
         right[position] = @intCast(index);
         position += 1;
     }
@@ -77,13 +80,13 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
             .OptionalToRequired => "optional input cannot satisfy a non-optional requirement",
             else => unreachable,
         }),
-        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments.items(.span)[0] else nodes[0].span, "inference would require a recursive optional type"),
+        .Recursive => graph.reporter.fail(.type_mismatch, if (assignments.len != 0) assignments.items(.span)[0] else metadata[0].span, "inference would require a recursive optional type"),
     };
 }
 
 fn failure(graph: *Graph, parents: []const u32, position: usize, message: []const u8) zx.Error {
     const assignments = graph.assignments.items(.span);
-    const span = if (position < assignments.len) assignments[position] else graph.nodes.items[parents[position - assignments.len]].span;
+    const span = if (position < assignments.len) assignments[position] else graph.nodes.items(.facts)[parents[position - assignments.len]].span;
 
     return graph.reporter.fail(.type_mismatch, span, message);
 }

@@ -52,7 +52,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
         if (module.shortcut) |call_index| {
             const call = module.calls[call_index];
             const ports = states[call.callee.module];
-            const span = graph.nodes.items[@backingInt(state.input)].span;
+            const span = graph.nodes.items(.facts)[@backingInt(state.input)].span;
 
             try graph.unify(state.input, ports.input, span);
             try graph.unify(state.output, ports.output, span);
@@ -67,7 +67,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
         try walker.steps(module.steps);
 
         if (!walker.returned) {
-            const span = graph.nodes.items[@backingInt(state.output)].span;
+            const span = graph.nodes.items(.facts)[@backingInt(state.output)].span;
 
             try graph.unify(state.output, try graph.scalar(.void, span), span);
         }
@@ -90,7 +90,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
         if (referenced) continue;
 
-        const span = graph.nodes.items[@backingInt(state.input)].span;
+        const span = graph.nodes.items(.facts)[@backingInt(state.input)].span;
 
         try graph.unify(state.input, try graph.scalar(.void, span), span);
     }

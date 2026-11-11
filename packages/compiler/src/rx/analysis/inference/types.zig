@@ -4,6 +4,7 @@ const Types = @import("frontend").types;
 const Scalar = @import("scalar.zig");
 const FieldAccess = @import("fields/access.zig");
 const Unification = @import("unification/plan.zig");
+const Nodes = @import("nodes.zig");
 const Self = @This();
 pub const Id = enum(u32) { _ };
 pub const Mask = Scalar.Mask;
@@ -21,7 +22,7 @@ allocator: std.mem.Allocator,
 scratch: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
-nodes: std.ArrayList(Node) = .empty,
+nodes: Nodes.Storage = .empty,
 forest: @import("forest.zig") = .{},
 lengths: std.ArrayList(Projection) = .empty,
 indexes: std.ArrayList(@import("index.zig").Projection) = .empty,
@@ -50,12 +51,12 @@ pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, reporter: 
 }
 
 pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
-    const id: Id = @fromBackingInt(@intCast(self.nodes.items.len));
+    const id: Id = @fromBackingInt(@intCast(self.nodes.len));
 
     try self.nodes.ensureUnusedCapacity(self.allocator, 1);
     try self.forest.append(self.allocator, id);
 
-    self.nodes.appendAssumeCapacity(.{ .shape = initial_shape, .span = span });
+    self.nodes.appendAssumeCapacity(Nodes.record(initial_shape, span));
 
     return id;
 }
@@ -79,7 +80,19 @@ pub fn root(self: *const Self, id: Id) Id {
 }
 
 pub fn shape(self: *const Self, id: Id) Shape {
-    return self.nodes.items[@backingInt(self.root(id))].shape;
+    return self.shapeAt(@backingInt(self.root(id)));
+}
+
+pub fn shapeAt(self: *const Self, index: usize) Shape {
+    return Nodes.shape(self.nodes.slice(), index);
+}
+
+pub fn nodeAt(self: *const Self, index: usize) Node {
+    return Nodes.get(self.nodes.slice(), index);
+}
+
+pub fn setShape(self: *Self, index: usize, value: Shape) void {
+    Nodes.setShape(self.nodes.slice(), index, value);
 }
 
 pub fn unify(self: *Self, left: Id, right: Id, span: zx.Span) zx.Error!void {
@@ -110,20 +123,22 @@ fn checkValue(self: *Self, use: ValueUse) zx.Error!void {
 }
 
 pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void {
-    const node = &self.nodes.items[@backingInt(self.root(id))];
+    const index = @backingInt(self.root(id));
+    const current = self.shapeAt(index);
+    const facts = &self.nodes.items(.facts)[index];
 
-    const known_scalar: ?zx.ir.Scalar = if (node.shape == .known) switch (self.types.get(node.shape.known)) {
+    const known_scalar: ?zx.ir.Scalar = if (current == .known) switch (self.types.get(current.known)) {
         .scalar => |value| value,
         else => null,
     } else null;
 
-    const constraint_shape: Scalar.Shape = switch (node.shape) {
+    const constraint_shape: Scalar.Shape = switch (current) {
         .unknown => .open,
         .known => if (known_scalar != null) .scalar else .concrete,
         else => .structure,
     };
 
-    const merged = Scalar.restrict(node.allowed, allowed, constraint_shape, known_scalar);
+    const merged = Scalar.restrict(facts.allowed, allowed, constraint_shape, known_scalar);
 
     switch (merged.issue) {
         .none => {},
@@ -132,19 +147,19 @@ pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void
         .structure => return self.reporter.fail(.type_mismatch, span, "the operator requires a scalar value"),
     }
 
-    if (node.allowed == null or !node.allowed.?.eql(merged.allowed)) {
+    if (facts.allowed == null or !facts.allowed.?.eql(merged.allowed)) {
         self.revision += 1;
     }
 
-    node.allowed = merged.allowed;
+    facts.allowed = merged.allowed;
 }
 
 pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.Error!Id {
     const number_type = Scalar.literal(text, negative);
     const id = try self.add(.unknown, span);
-    const node = &self.nodes.items[@backingInt(id)];
-    node.allowed = number_type.allowed;
-    node.fallback = number_type.fallback;
+    const facts = &self.nodes.items(.facts)[@backingInt(id)];
+    facts.allowed = number_type.allowed;
+    facts.fallback = number_type.fallback;
     self.revision += 1;
 
     return id;
@@ -152,7 +167,7 @@ pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.E
 
 pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
     const index = @backingInt(self.root(id));
-    const value = self.nodes.items[index].shape;
+    const value = self.shapeAt(index);
     const declared = if (value == .known) self.types.get(value.known) else null;
 
     switch (FieldAccess.route(value, declared, name)) {
@@ -182,7 +197,7 @@ pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
         .Open => {},
     }
 
-    if (self.nodes.items[index].allowed != null) return self.reporter.fail(.type_mismatch, span, "object fields conflict with scalar requirements");
+    if (self.nodes.items(.facts)[index].allowed != null) return self.reporter.fail(.type_mismatch, span, "object fields conflict with scalar requirements");
 
     const fields: Fields = if (value == .object) value.object else .{};
 
@@ -193,8 +208,8 @@ pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
 
     fields.copyTo(extended);
     extended.set(fields.len, try self.allocator.dupe(u8, name), result);
+    self.setShape(index, .{ .object = extended });
 
-    self.nodes.items[index].shape = .{ .object = extended };
     self.revision += 1;
 
     return result;

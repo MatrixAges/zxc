@@ -69,7 +69,7 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
 
         if (provider) |source| {
             if (source.field and optional(graph, target)) continue;
-            if (source.field and !final and graph.shape(target) == .unknown and graph.nodes.items[@backingInt(graph.root(target))].allowed == null) continue;
+            if (source.field and !final and graph.shape(target) == .unknown and graph.nodes.items(.facts)[@backingInt(graph.root(target))].allowed == null) continue;
 
             const value = if (source.field) try graph.field(source.value, name.*, object.span) else source.value;
 

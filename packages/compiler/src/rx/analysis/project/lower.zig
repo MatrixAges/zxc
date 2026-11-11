@@ -25,7 +25,7 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, or
                 .getters = call.getters,
                 .function = switch (call.callee) {
                     .function => |function| function,
-                    .signature => return graph.reporter.fail(.module, graph.nodes.items[@backingInt(states[index].input)].span, "source function bodies must be analyzed before RX lowering"),
+                    .signature => return graph.reporter.fail(.module, graph.nodes.items(.facts)[@backingInt(states[index].input)].span, "source function bodies must be analyzed before RX lowering"),
                     .module => |module_index| .{ .program = contracts[module_index].?.program, .store_initializers = contracts[module_index].?.store_initializers, .nominal_types = loaded.project.context.nominal_types },
                 },
             };

@@ -2,39 +2,57 @@ const std = @import("std");
 const Graph = @import("types.zig");
 const Self = @This();
 pub const Field = struct { name: []const u8, value: Graph.Id };
-const Storage = std.MultiArrayList(Field);
+const Name = []const u8;
+const row_bytes = @sizeOf(Name) + @sizeOf(Graph.Id);
 
 bytes: [*]u8 = undefined,
 len: usize = 0,
 pub fn init(allocator: std.mem.Allocator, count: usize) std.mem.Allocator.Error!Self {
-    const storage = try Storage.initCapacity(allocator, count);
+    if (count == 0) return .{};
 
-    return .{ .bytes = storage.bytes, .len = count };
+    const size = std.math.mul(usize, count, row_bytes) catch return error.OutOfMemory;
+    const storage = try allocator.alignedAlloc(u8, .of(Name), size);
+
+    return .{ .bytes = storage.ptr, .len = count };
+}
+
+/// Reconstruct the descriptor from the complete value column of this layout.
+pub fn fromValues(column: []const Graph.Id) Self {
+    if (column.len == 0) return .{};
+
+    const data: [*]const u8 = @ptrCast(column.ptr);
+
+    return .{ .bytes = @constCast(data - column.len * @sizeOf(Name)), .len = column.len };
 }
 
 pub fn names(self: Self) []const []const u8 {
-    return self.columns().items(.name);
+    return self.nameColumn();
 }
 
 pub fn values(self: Self) []const Graph.Id {
-    return self.columns().items(.value);
+    return self.valueColumn();
 }
 
 pub fn set(self: Self, index: usize, name: []const u8, value: Graph.Id) void {
-    var storage = self.columns();
-
-    storage.set(index, .{ .name = name, .value = value });
+    self.nameColumn()[index] = name;
+    self.valueColumn()[index] = value;
 }
 
 pub fn copyTo(self: Self, destination: Self) void {
-    const storage = destination.columns();
-
-    @memcpy(storage.items(.name)[0..self.len], self.names());
-    @memcpy(storage.items(.value)[0..self.len], self.values());
+    @memcpy(destination.nameColumn()[0..self.len], self.names());
+    @memcpy(destination.valueColumn()[0..self.len], self.values());
 }
 
-fn columns(self: Self) Storage.Slice {
-    const storage: Storage = .{ .bytes = self.bytes, .len = self.len, .capacity = self.len };
+fn nameColumn(self: Self) []Name {
+    if (self.len == 0) return &.{};
 
-    return storage.slice();
+    return @as([*]Name, @ptrCast(@alignCast(self.bytes)))[0..self.len];
+}
+
+fn valueColumn(self: Self) []Graph.Id {
+    if (self.len == 0) return &.{};
+
+    const start = self.bytes + self.len * @sizeOf(Name);
+
+    return @as([*]Graph.Id, @ptrCast(@alignCast(start)))[0..self.len];
 }

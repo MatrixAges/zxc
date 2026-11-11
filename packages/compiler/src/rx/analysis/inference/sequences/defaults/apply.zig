@@ -87,7 +87,7 @@ const View = struct {
             const root = self.nodes.keys()[index];
             const start = self.children.items.len;
 
-            switch (self.graph.nodes.items[@backingInt(root)].shape) {
+            switch (self.graph.shapeAt(@backingInt(root))) {
                 .list, .optional => |child| try self.append(child),
                 .tuple => |children| for (children) |child| try self.append(child),
                 .object => |fields| for (fields.values()) |value| try self.append(value),

@@ -16,19 +16,20 @@ pub fn init(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
 
 fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     const generated = @import("generated_assignment_classes");
-    var payloads = try std.ArrayList(u32).initCapacity(allocator, graph.nodes.items.len);
+    var payloads = try std.ArrayList(u32).initCapacity(allocator, graph.nodes.len);
     var index: usize = 0;
 
-    while (index < graph.nodes.items.len) : (index += 1) {
+    while (index < graph.nodes.len) : (index += 1) {
         try payloads.append(allocator, @backingInt(try payload(graph, @fromBackingInt(@intCast(index)))));
     }
 
     const candidates = try allocator.alloc(bool, payloads.items.len);
+    const rows = graph.nodes.slice();
+    const kinds = rows.items(.kind);
+    const facts = rows.items(.facts);
 
     for (payloads.items, candidates) |id, *candidate| {
-        const node = graph.nodes.items[@intCast(id)];
-
-        candidate.* = node.shape != .unknown or node.allowed != null;
+        candidate.* = kinds[id] != .Unknown or facts[id].allowed != null;
     }
 
     const edges = graph.assignments.slice();
@@ -48,9 +49,9 @@ fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
 fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     var index: usize = 0;
 
-    while (index < graph.nodes.items.len) : (index += 1) _ = try payload(graph, @fromBackingInt(@intCast(index)));
+    while (index < graph.nodes.len) : (index += 1) _ = try payload(graph, @fromBackingInt(@intCast(index)));
 
-    const parents = try allocator.alloc(u32, graph.nodes.items.len);
+    const parents = try allocator.alloc(u32, graph.nodes.len);
     const representatives = try allocator.alloc(?u32, parents.len);
 
     for (parents, 0..) |*parent, item| parent.* = @intCast(item);
@@ -66,12 +67,13 @@ fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         parents[right] = left;
     }
 
-    for (graph.nodes.items, 0..) |_, item| {
+    for (0..graph.nodes.len) |item| {
         const id: Graph.Id = @fromBackingInt(@intCast(item));
         const base = try payload(graph, id);
-        const node = graph.nodes.items[@backingInt(base)];
+        const index_of_base = @backingInt(base);
+        const rows = graph.nodes.slice();
 
-        if (node.shape == .unknown and node.allowed == null) continue;
+        if (rows.items(.kind)[index_of_base] == .Unknown and rows.items(.facts)[index_of_base].allowed == null) continue;
 
         representatives[root(parents, @backingInt(base))] = @backingInt(base);
     }
@@ -117,7 +119,7 @@ pub fn propagate(self: Self, graph: *Graph) zx.Error!void {
 
         if (graph.root(id) != id) continue;
 
-        const node = graph.nodes.items[index];
+        const node = graph.nodeAt(index);
 
         if (node.shape == .optional or (node.shape == .known and graph.types.get(node.shape.known) == .optional)) continue;
         if (node.shape == .unknown and node.allowed == null) continue;
@@ -134,20 +136,20 @@ pub fn payload(graph: *Graph, id: Graph.Id) zx.Error!Graph.Id {
     var current = graph.root(id);
 
     for (0..256) |_| {
-        const node = graph.nodes.items[@backingInt(current)];
+        const index = @backingInt(current);
 
-        switch (node.shape) {
+        switch (graph.shapeAt(index)) {
             .optional => |child| current = graph.root(child),
             .known => |known| {
                 const value = graph.types.get(known);
 
                 if (value != .optional) return current;
 
-                current = graph.root(try graph.known(value.optional, node.span));
+                current = graph.root(try graph.known(value.optional, graph.nodes.items(.facts)[index].span));
             },
             else => return current,
         }
     }
 
-    return graph.reporter.fail(.unsupported, graph.nodes.items[@backingInt(current)].span, "type inference nesting exceeds 256 levels");
+    return graph.reporter.fail(.unsupported, graph.nodes.items(.facts)[@backingInt(current)].span, "type inference nesting exceeds 256 levels");
 }

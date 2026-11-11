@@ -156,13 +156,13 @@ pub fn payload(self: *Self, expected: ?Graph.Id) zx.Error!?Graph.Id {
             const value = self.graph.types.get(shape.known);
 
             if (value == .optional) {
-                id = try self.graph.known(value.optional, self.graph.nodes.items[@backingInt(self.graph.root(id))].span);
+                id = try self.graph.known(value.optional, self.graph.nodes.items(.facts)[@backingInt(self.graph.root(id))].span);
 
                 continue;
             }
         }
 
-        if (shape == .unknown and self.graph.nodes.items[@backingInt(self.graph.root(id))].allowed == null) return null;
+        if (shape == .unknown and self.graph.nodes.items(.facts)[@backingInt(self.graph.root(id))].allowed == null) return null;
 
         return id;
     }

@@ -22,7 +22,7 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
 
     while (iterator.next()) |name| {
         const target = try graph.field(object.result, name.*, object.span);
-        const node = graph.nodes.items[@backingInt(graph.root(target))];
+        const node = graph.nodeAt(@backingInt(graph.root(target)));
         const optional = node.shape == .optional or (node.shape == .known and graph.types.get(node.shape.known) == .optional);
 
         const plan = generated.executeValue(allocator, &.{
@@ -56,7 +56,7 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
 
 fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator, object: Object, final: bool, names: *NameSet) zx.Error!Parts {
     const result = graph.root(object.result);
-    const result_fields = try Fields.from(graph, graph.nodes.items[@backingInt(result)].shape, object.span);
+    const result_fields = try Fields.from(graph, graph.shapeAt(@backingInt(result)), object.span);
 
     try result_fields.register(allocator, names);
 
@@ -88,7 +88,7 @@ fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator,
         }
 
         const root = graph.root(part.value);
-        const shape = graph.nodes.items[@backingInt(root)].shape;
+        const shape = graph.shapeAt(@backingInt(root));
 
         if (final and shape == .unknown) return graph.reporter.fail(.type_mismatch, part.span, "object spread source cannot be inferred from the available constraints");
 
