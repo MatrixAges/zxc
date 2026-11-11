@@ -1,0 +1,21 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { true_byte } from "../const"
+
+import type { Flowed as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, held, text_held, written } = in
+
+    bytes.write(writer, in.digest)
+    bytes.writeU32Le(writer, integers.narrow(held.length))
+    bytes.writeMasked(writer, held, true_byte)
+    bytes.writeU32Le(writer, integers.narrow(text_held.length))
+    bytes.writeMasked(writer, text_held, true_byte)
+    bytes.writeU32Le(writer, integers.narrow(written.length))
+    bytes.writeMasked(writer, written, true_byte)
+    bytes.writeByte(writer, true_byte)
+}

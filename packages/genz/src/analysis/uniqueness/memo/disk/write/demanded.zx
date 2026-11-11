@@ -1,0 +1,66 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { level_modulus } from "../../../replay/ordered/const"
+import { false_byte, true_byte } from "../const"
+
+import type { Demanded as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, marks, normalized, renewed } = in
+
+    const first: u64 = 0
+
+    bytes.write(writer, in.digest)
+    bytes.writeU32Le(writer, integers.narrow(marks.length))
+
+    const marks_written = loop(first, {
+        while: index => index < marks.length,
+        next: index => {
+            const row = marks[index]
+            const output = row.output ? true_byte : false_byte
+
+            bytes.writeByte(writer, output)
+            bytes.writeU32Le(writer, row.function)
+            bytes.writeU32Le(writer, row.slot)
+            bytes.writeByte(writer, row.want % level_modulus)
+
+            index += 1
+        }
+    })
+
+    bytes.writeU32Le(writer, integers.narrow(normalized.length))
+
+    const normalized_written = loop(first, {
+        while: index => index < normalized.length,
+        next: index => {
+            const row = normalized[index]
+
+            bytes.writeU32Le(writer, row.id)
+            bytes.writeByte(writer, row.want % level_modulus)
+
+            index += 1
+        }
+    })
+
+    bytes.writeU32Le(writer, integers.narrow(renewed.length))
+
+    const renewed_written = loop(first, {
+        while: index => index < renewed.length,
+        next: index => {
+            const row = renewed[index]
+
+            bytes.writeU64Le(writer, row.key)
+            bytes.writeByte(writer, row.want % level_modulus)
+
+            index += 1
+        }
+    })
+
+    const grew = in.grew ? true_byte : false_byte
+
+    bytes.writeByte(writer, grew)
+    bytes.writeByte(writer, true_byte)
+}

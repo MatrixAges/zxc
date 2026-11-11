@@ -1,0 +1,11 @@
+import bytes from "std:bytes"
+
+import { magic } from "../const"
+
+import type { Writer as Input } from "std:bytes"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    bytes.write(in, bytes.fromText(magic))
+}

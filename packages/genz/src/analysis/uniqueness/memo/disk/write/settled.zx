@@ -1,0 +1,37 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { level_modulus } from "../../../replay/ordered/const"
+import { true_byte } from "../const"
+
+import type { Settled as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, passed, output } = in
+
+    const mask = level_modulus - true_byte
+
+    const first: u64 = 0
+
+    bytes.write(writer, in.digest)
+    bytes.writeU32Le(writer, integers.narrow(passed.length))
+
+    const passed_written = loop(first, {
+        while: index => index < passed.length,
+        next: index => {
+            const row = passed[index]
+
+            bytes.writeU32Le(writer, row.callee)
+            bytes.writeU32Le(writer, integers.narrow(row.levels.length))
+            bytes.writeMasked(writer, row.levels, mask)
+
+            index += 1
+        }
+    })
+
+    bytes.writeU32Le(writer, integers.narrow(output.length))
+    bytes.writeMasked(writer, output, mask)
+    bytes.writeByte(writer, true_byte)
+}

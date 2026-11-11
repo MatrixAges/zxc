@@ -1,0 +1,37 @@
+<Module>
+    <Type from="model" as="Wire" />
+
+    <Args in={Wire.Frame} out={Wire.Phase} />
+
+    <If on={$in.phase == Wire.Phase.Header}>
+        <Call fn="version" in={$in.writer} />
+
+        <Return value={Wire.Phase.Settled} />
+    </If>
+
+    <Call
+        fn="count"
+        in={$in.pick([
+            "writer",
+            "count"
+        ])}
+    />
+
+    <Switch on={$in.phase}>
+        <Case value={Wire.Phase.Settled}>
+            <Return value={Wire.Phase.Demanded} />
+        </Case>
+
+        <Case value={Wire.Phase.Demanded}>
+            <Return value={Wire.Phase.Planned} />
+        </Case>
+
+        <Case value={Wire.Phase.Planned}>
+            <Return value={Wire.Phase.Flowed} />
+        </Case>
+
+        <Default>
+            <Return value={Wire.Phase.Done} />
+        </Default>
+    </Switch>
+</Module>

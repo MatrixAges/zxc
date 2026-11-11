@@ -1,0 +1,39 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { true_byte } from "../const"
+
+import type { Planned as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, flags, keys, paths, transfers, slot_first } = in
+
+    const first: u64 = 0
+
+    bytes.write(writer, in.digest)
+    bytes.writeU32Le(writer, integers.narrow(flags.length))
+    bytes.write(writer, flags)
+    bytes.writeU32Le(writer, integers.narrow(keys.length))
+    bytes.writeU64sLe(writer, keys)
+    bytes.writeU32Le(writer, integers.narrow(paths.length))
+
+    const paths_written = loop(first, {
+        while: index => index < paths.length,
+        next: index => {
+            const path = paths[index]
+
+            bytes.writeU32Le(writer, integers.narrow(path.length))
+            bytes.writeU32sLe(writer, path)
+
+            index += 1
+        }
+    })
+
+    bytes.writeU32Le(writer, integers.narrow(transfers.length))
+    bytes.writeU64sLe(writer, transfers)
+    bytes.writeU32Le(writer, integers.narrow(slot_first.length))
+    bytes.writeU32sLe(writer, slot_first)
+    bytes.writeByte(writer, true_byte)
+}

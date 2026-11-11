@@ -391,6 +391,8 @@ pub fn stale(self: *const Self) bool {
 
 /// The records this run used or added, for `load` in a later run.
 pub fn save(self: *const Self, allocator: std.mem.Allocator) std.mem.Allocator.Error![]u8 {
+    if (generated_encoding) return @import("memo/writing.zig").save(self, allocator);
+
     var out: std.Io.Writer.Allocating = .init(allocator);
 
     errdefer out.deinit();

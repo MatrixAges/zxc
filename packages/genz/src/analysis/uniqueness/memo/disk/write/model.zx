@@ -1,0 +1,54 @@
+import type { Writer } from "std:bytes"
+import type {
+    Contribution,
+    Mark,
+    Normalized,
+    Renewed
+} from "../../../replay/ordered/model"
+
+export enum Phase { Header, Settled, Demanded, Planned, Flowed, Done }
+
+export type Frame = {
+    writer: Writer,
+    phase: Phase,
+    count: u32
+}
+
+export type Count = {
+    writer: Writer,
+    count: u32
+}
+
+export type Settled = {
+    writer: Writer,
+    digest: u8[],
+    passed: Contribution[],
+    output: u8[]
+}
+
+export type Demanded = {
+    writer: Writer,
+    digest: u8[],
+    marks: Mark[],
+    normalized: Normalized[],
+    renewed: Renewed[],
+    grew: bool
+}
+
+export type Planned = {
+    writer: Writer,
+    digest: u8[],
+    flags: u8[],
+    keys: u64[],
+    paths: u32[][],
+    transfers: u64[],
+    slot_first: u32[]
+}
+
+export type Flowed = {
+    writer: Writer,
+    digest: u8[],
+    held: u8[],
+    text_held: u8[],
+    written: u8[]
+}

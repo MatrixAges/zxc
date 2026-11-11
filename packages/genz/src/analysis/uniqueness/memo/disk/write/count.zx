@@ -1,0 +1,9 @@
+import bytes from "std:bytes"
+
+import type { Count as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    bytes.writeU32Le(in.writer, in.count)
+}

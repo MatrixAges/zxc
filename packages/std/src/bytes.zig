@@ -10,6 +10,14 @@ pub const atomicRowLength = AtomicRows.rowLength;
 pub const loadAtomicCell = AtomicRows.load;
 pub const storeAtomicCell = AtomicRows.store;
 pub const fillAtomicRow = AtomicRows.fill;
+const writer = @import("bytes/writer.zig");
+pub const write = writer.write;
+pub const writeMasked = writer.writeMasked;
+pub const writeByte = writer.writeByte;
+pub const writeU32Le = writer.writeU32Le;
+pub const writeU64Le = writer.writeU64Le;
+pub const writeU32sLe = writer.writeU32sLe;
+pub const writeU64sLe = writer.writeU64sLe;
 
 pub fn repeat(allocator: std.mem.Allocator, count_value: u64, value: u8) std.mem.Allocator.Error![]const u8 {
     const length = std.math.cast(usize, count_value) orelse return error.OutOfMemory;
