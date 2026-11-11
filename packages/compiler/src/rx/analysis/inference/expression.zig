@@ -141,31 +141,7 @@ pub fn declared(self: *Self, expression: anytype) zx.Error!Graph.Id {
 }
 
 pub fn payload(self: *Self, expected: ?Graph.Id) zx.Error!?Graph.Id {
-    var id = expected orelse return null;
-
-    while (true) {
-        const shape = self.graph.shape(id);
-
-        if (shape == .optional) {
-            id = shape.optional;
-
-            continue;
-        }
-
-        if (shape == .known) {
-            const value = self.graph.types.get(shape.known);
-
-            if (value == .optional) {
-                id = try self.graph.known(value.optional, self.graph.nodes.items(.facts)[@backingInt(self.graph.root(id))].span);
-
-                continue;
-            }
-        }
-
-        if (shape == .unknown and self.graph.nodes.items(.facts)[@backingInt(self.graph.root(id))].allowed == null) return null;
-
-        return id;
-    }
+    return @import("optional.zig").hint(self.graph, expected orelse return null);
 }
 
 pub fn sourceSpan(self: *const Self, value: zx.Span) zx.Span {

@@ -1,0 +1,19 @@
+import type { Kind } from "../unification/model"
+
+export enum Route {
+    Boundary,
+    Stable,
+    Open,
+    Declared
+}
+
+export type Types = {
+    kinds: u8[],
+    children: u32[]
+}
+
+export type Graph = {
+    kinds: Kind[],
+    arguments: u32[],
+    types: Types
+}

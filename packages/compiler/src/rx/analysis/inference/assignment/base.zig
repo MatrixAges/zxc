@@ -132,24 +132,4 @@ pub fn propagate(self: Self, graph: *Graph) zx.Error!void {
     }
 }
 
-pub fn payload(graph: *Graph, id: Graph.Id) zx.Error!Graph.Id {
-    var current = graph.root(id);
-
-    for (0..256) |_| {
-        const index = @backingInt(current);
-
-        switch (graph.shapeAt(index)) {
-            .optional => |child| current = graph.root(child),
-            .known => |known| {
-                const value = graph.types.get(known);
-
-                if (value != .optional) return current;
-
-                current = graph.root(try graph.known(value.optional, graph.nodes.items(.facts)[index].span));
-            },
-            else => return current,
-        }
-    }
-
-    return graph.reporter.fail(.unsupported, graph.nodes.items(.facts)[@backingInt(current)].span, "type inference nesting exceeds 256 levels");
-}
+pub const payload = @import("../optional.zig").payload;

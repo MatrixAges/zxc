@@ -1,0 +1,36 @@
+import integers from "std:integer"
+import { kind_optional } from "core/type_table/const"
+
+import type { Types } from "./model"
+
+export type Input = {
+    types: Types,
+    expected: u32,
+    actual?: u32
+}
+
+export type Output = {
+    depth: u64,
+    accepts: bool
+}
+
+export default function (in: Input): Output {
+    const actual = in.actual
+
+    return loop({
+        expected: in.expected,
+        depth: 0
+    }, {
+        while: state =>
+            (actual == null || state.expected != actual) &&
+            in.types.kinds[integers.widen(state.expected)] == kind_optional,
+        next: state => {
+            state.expected = in.types.children[integers.widen(state.expected)]
+            state.depth += 1
+        },
+        return: state => ({
+            depth: state.depth,
+            accepts: actual != null && state.expected == actual
+        })
+    })
+}

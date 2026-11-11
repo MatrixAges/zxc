@@ -12,6 +12,7 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     const kinds = rows.items(.kind);
     const arguments = rows.items(.argument);
     const metadata = rows.items(.facts);
+    const types = graph.types.items.view();
     const depths = try scratch.alloc(u64, kinds.len);
     const facts = try scratch.alloc(Fact, kinds.len);
     var optional_count: usize = 0;
@@ -21,11 +22,7 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
         fact.* = .Exact;
 
         switch (kind) {
-            .Known => {
-                var current = graph.types.get(@fromBackingInt(argument));
-
-                while (current == .optional) : (depth.* += 1) current = graph.types.get(current.optional);
-            },
+            .Known => depth.* = @import("../optional.zig").depth(types, @fromBackingInt(argument)),
             .Optional => {
                 depth.* = 1;
                 fact.* = .Optional;

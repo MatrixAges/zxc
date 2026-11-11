@@ -1,0 +1,68 @@
+import integers from "std:integer"
+import { kind_optional } from "core/type_table/const"
+
+import representative from "../forest/representative"
+import { Kind } from "../unification/model"
+import { Route } from "./model"
+
+import type { Graph, Route as WalkRoute } from "./model"
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    value: u32,
+    root: u32,
+    remaining: u64,
+    route: WalkRoute
+}
+
+export type Output = {
+    parents: u32[],
+    value: u32,
+    root: u32,
+    remaining: u64,
+    route: WalkRoute
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.remaining != 0 && state.route == Route.Boundary,
+        next: state => {
+            const parent = representative({
+                parents: state.parents,
+                value: state.value
+            })
+
+            state.parents = parent.parents
+            state.root = parent.item
+
+            const graph = state.graph
+            const index = integers.widen(parent.item)
+            const kind = graph.kinds[index]
+
+            if (kind == Kind.Optional) {
+                state.value = graph.arguments[index]
+                state.remaining -= 1
+            } else if (kind == Kind.Known) {
+                const type_id = integers.widen(graph.arguments[index])
+
+                if (graph.types.kinds[type_id] == kind_optional) {
+                    state.value = graph.types.children[type_id]
+                    state.remaining -= 1
+                    state.route = Route.Declared
+                } else {
+                    state.route = Route.Stable
+                }
+            } else {
+                state.route = kind == Kind.Unknown ? Route.Open : Route.Stable
+            }
+        },
+        return: state => ({
+            parents: state.parents,
+            value: state.value,
+            root: state.root,
+            remaining: state.remaining,
+            route: state.route
+        })
+    })
+}

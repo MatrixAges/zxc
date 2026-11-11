@@ -1,0 +1,35 @@
+import integers from "std:integer"
+
+import halve from "./halve"
+
+export type Input = {
+    parents: u32[],
+    value: u32
+}
+
+export type Output = {
+    parents: u32[],
+    item: u32
+}
+
+export default function (in: Input): Output {
+    const first = in.parents[integers.widen(in.value)]
+
+    if (in.parents[integers.widen(first)] == first) {
+        return {
+            parents: in.parents,
+            item: first
+        }
+    }
+
+    const root = halve({
+        parents: in.parents,
+        item: in.value,
+        parent: first
+    })
+
+    return {
+        parents: root.parents,
+        item: root.item
+    }
+}

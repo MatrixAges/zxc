@@ -30,14 +30,8 @@ pub fn validate(graph: *Graph) zx.Error!void {
 
     for (edges.items(.value), edges.items(.expected), edges.items(.span)) |source, target, span| {
         const actual = try graph.resolve(source);
-        var expected = try graph.resolve(target);
+        const expected = try graph.resolve(target);
 
-        while (actual != expected) {
-            const value = graph.types.get(expected);
-
-            if (value != .optional) return graph.reporter.fail(.type_mismatch, span, "inferred value cannot be passed to the required type");
-
-            expected = value.optional;
-        }
+        if (!@import("optional.zig").accepts(graph.types.items.view(), actual, expected)) return graph.reporter.fail(.type_mismatch, span, "inferred value cannot be passed to the required type");
     }
 }

@@ -42,6 +42,8 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/bindings/uses.zx", .name = "rx_binding_uses", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/bindings/collisions.zx", .name = "rx_binding_collisions", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/bindings/lookup.zx", .name = "rx_binding_lookup", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/optional/walk.zx", .name = "rx_optional_walk", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/optional/known.zx", .name = "rx_optional_known", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/object_closure/prove.rx", .name = "object_closure", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/decide.rx", .name = "rx_unification", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/find_field.zx", .name = "rx_unification_field", .owner = .rx_analysis },

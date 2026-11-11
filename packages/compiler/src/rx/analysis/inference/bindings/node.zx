@@ -1,6 +1,6 @@
 import integers from "std:integer"
 
-import halve from "../forest/halve"
+import representative from "../forest/representative"
 import status from "./status"
 
 import type { Graph, Status } from "./model"
@@ -17,21 +17,10 @@ export type Output = {
 }
 
 export default function (in: Input): Output {
-    const first = in.parents[integers.widen(in.value)]
-    const direct = in.parents[integers.widen(first)] == first
-
-    const root = match {
-        direct => ({
-            parents: in.parents,
-            item: first,
-            parent: first
-        }),
-        _ => halve({
-            parents: in.parents,
-            item: in.value,
-            parent: first
-        })
-    }
+    const root = representative({
+        parents: in.parents,
+        value: in.value
+    })
 
     const index = integers.widen(root.item)
 
