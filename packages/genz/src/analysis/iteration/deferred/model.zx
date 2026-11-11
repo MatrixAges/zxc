@@ -1,17 +1,38 @@
 import type { Expressions } from "core/expression_table/model"
 import type { Table } from "core/type_table/model"
+import type { Renewal } from "../../uniqueness/function/plan/model"
 
-export type Input = {
+export type Facts = {
     expressions: Expressions,
     types: Table,
     selected: bool[],
     referenced: bool[],
     roots: u32[],
     state_type: u32,
-    paths: u32[][]
+}
+
+export type Selection = {
+    records: Renewal[],
+    owner: u32
+}
+
+export type Input = {
+    facts: Facts,
+    records: Renewal[],
+    owner: u32,
+    classify: bool,
+    inline_lists: bool
+}
+
+export type Schedule = {
+    facts: Facts,
+    paths: u32[][],
+    classify: bool,
+    inline_lists: bool
 }
 
 export type Output = {
-    valid: bool,
-    paths: bool[]
+    entries: bool,
+    delayed: bool,
+    immediate: u32[][]
 }

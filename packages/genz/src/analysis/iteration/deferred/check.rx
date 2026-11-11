@@ -3,23 +3,49 @@
 
     <Args in={Deferred.Input} out={Deferred.Output} />
 
-    <Call fn="eligible" in={$in} />
+    <Call
+        fn="select"
+        in={$in.pick([
+            "records",
+            "owner"
+        ])}
+    />
 
-    <If on={!$ctx.eligible}>
+    <If on={$ctx.select.length == 0}>
         <Return
             value={{
-                valid: false,
-                paths: []
+                entries: false,
+                delayed: false,
+                immediate: []
             }}
         />
     </If>
 
-    <Call fn="paths" in={$in} />
+    <If on={$in.classify}>
+        <Call fn="eligible" in={$in.facts} />
 
-    <Return
-        value={{
-            valid: true,
-            paths: $ctx.paths
+        <Call
+            fn="schedule"
+            in={{
+                facts: $in.facts,
+                paths: $ctx.select,
+                classify: $ctx.eligible,
+                inline_lists: $in.inline_lists
+            }}
+        />
+
+        <Return value={$ctx.schedule} />
+    </If>
+
+    <Call
+        fn="schedule"
+        in={{
+            facts: $in.facts,
+            paths: $ctx.select,
+            classify: false,
+            inline_lists: $in.inline_lists
         }}
     />
+
+    <Return value={$ctx.schedule} />
 </Module>

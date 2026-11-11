@@ -4,6 +4,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const frame = @import("iteration/frame.zig");
+const renewal = @import("iteration/renewal.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!node.ExpressionId {
     return (try lowerMode(self, id, iteration, .reference, null)).?;
@@ -137,14 +138,17 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
     const converted_initial = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value or direct_initial) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial;
     const initial_state = if (selected_state and state_scope == null) try @import("state_value/ownership.zig").clip(self, &body, iteration.initial, converted_initial) else converted_initial;
+    var renewal_scope = std.heap.ArenaAllocator.init(self.workspace);
+    var renewal_buffer: [256]u8 = undefined;
+    var renewal_memory = std.heap.BufferFirstAllocator.init(&renewal_buffer, renewal_scope.allocator());
+
+    defer renewal_scope.deinit();
+
+    const temporary = renewal_memory.allocator();
 
     if (fields) |*selected| {
-        var renewed = false;
-
-        for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
-            renewed = true;
-        };
-
+        const renewals = try renewal.plan(self, temporary, .{ .owner = id, .type_id = type_id });
+        const renewed = renewals.needsEntries(self);
         const seed_name = self.builder.nodes.get(seed).identifier;
         const declaration = node.Constant{ .name = seed_name, .type_expr = try self.layoutExpr(type_id), .value = initial_state };
 
@@ -167,10 +171,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         var entered: std.ArrayList(node.Statement) = .empty;
 
-        for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
-            try @import("growth.zig").renew(self, &entered, type_id, seed, renewal.path);
-        };
-
+        try renewals.emit(self, &entered, type_id, .{ .reference = seed });
         try selected.maskBorrowed(self, &entered);
         try entered.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = selected.layout, .value = try selected.initial(self) } });
 
@@ -196,12 +197,17 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         return try aggregate.finish(self, &body, result);
     }
 
-    const deferred = if (!deep and selected_state and selected_call == null) try @import("iteration/deferred.zig").paths(self, id, iteration) else &.{};
+    const renewals = try renewal.plan(self, temporary, .{
+        .owner = id,
+        .type_id = type_id,
+        .classify = if (!deep and selected_state and selected_call == null) iteration else null,
+        .inline_lists = buffered,
+    });
+
     const previous_deferred = self.deferred_lists;
 
     defer self.deferred_lists = previous_deferred;
-    self.deferred_lists = std.mem.indexOfScalar(bool, deferred, true) != null;
-
+    self.deferred_lists = renewals.delayed;
     const condition = try self.expr(iteration.condition);
     const next = if (selected_call) |call| try @import("value_call/root.zig").expression(self, call) else if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
 
@@ -215,17 +221,8 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     } });
 
     var entered: std.ArrayList(node.Statement) = .empty;
-    var renewal_index: usize = 0;
 
-    for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
-        const delayed = renewal_index < deferred.len and deferred[renewal_index];
-
-        renewal_index += 1;
-
-        if (delayed) continue;
-        if (context.bufferedPath(type_id, renewal.path)) continue;
-        try @import("growth.zig").renew(self, &entered, type_id, state, renewal.path);
-    };
+    try renewals.emit(self, &entered, type_id, .{ .reference = state });
 
     const prepared = entered.items.len != 0;
 

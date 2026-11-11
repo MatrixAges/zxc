@@ -26,10 +26,18 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), args: Request) 
     if (!generated) try body.append(self.allocator, .{ .variable = .{ .name = accumulator, .type_expr = args.layout, .value = initial } });
 
     var entered: std.ArrayList(node.Statement) = .empty;
+    var renewal_scope = std.heap.ArenaAllocator.init(self.workspace);
+    var renewal_buffer: [256]u8 = undefined;
+    var renewal_memory = std.heap.BufferFirstAllocator.init(&renewal_buffer, renewal_scope.allocator());
 
-    for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(args.operation) and !renewal.value) {
-        try @import("../growth.zig").renew(self, &entered, type_id, try self.builder.identifier(accumulator), renewal.path);
-    };
+    defer renewal_scope.deinit();
+
+    const renewals = try @import("../iteration/renewal.zig").plan(self, renewal_memory.allocator(), .{
+        .owner = args.operation,
+        .type_id = type_id,
+    });
+
+    try renewals.emit(self, &entered, type_id, .{ .name = accumulator });
 
     if (!generated and entered.items.len != 0) try body.append(self.allocator, .{ .branch = .{
         .condition = try self.builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try self.field(args.source, "len"), .right = try self.builder.integer(0) } }),

@@ -1,0 +1,49 @@
+import buffered from "../../growth/renew/buffered"
+import path from "./path"
+
+import type { Schedule as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    if (!in.classify && !in.inline_lists) {
+        return {
+            entries: true,
+            delayed: false,
+            immediate: in.paths
+        }
+    }
+
+    const immediate: u32[][] = []
+
+    return loop({
+        index: 0,
+        delayed: false,
+        immediate
+    }, {
+        while: state => state.index < in.paths.length,
+        next: state => {
+            const selected = in.paths[state.index]
+            const delay = in.classify && path({
+                source: in.facts,
+                path: selected
+            })
+
+            if (delay) {
+                state.delayed = true
+            } else if (!buffered({
+                types: in.facts.types,
+                type_id: in.facts.state_type,
+                path: selected,
+                inline_lists: in.inline_lists
+            })) {
+                state.immediate = state.immediate.push(selected)[0]
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            entries: true,
+            delayed: state.delayed,
+            immediate: state.immediate
+        })
+    })
+}
