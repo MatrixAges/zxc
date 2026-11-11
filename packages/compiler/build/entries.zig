@@ -202,6 +202,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/statements/basic/branch.zx", .name = "statement_branch", .owner = .genz },
     .{ .path = "genz/analysis/statements/basic/assignment.zx", .name = "statement_assignment", .owner = .genz },
     .{ .path = "genz/analysis/statements/basic/store_target.zx", .name = "statement_store_target", .owner = .genz },
+    .{ .path = "genz/ast/fresh/suffix.zx", .name = "fresh_name_suffix", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/binding/bind.zx", .name = "operand_binding", .owner = .genz },
     .{ .path = "genz/analysis/aggregate/binding/finish.zx", .name = "result_block", .owner = .genz },
     .{ .path = "genz/analysis/invocation/call.zx", .name = "invocation_call", .owner = .genz },

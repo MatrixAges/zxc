@@ -377,9 +377,28 @@ pub fn construct(self: *Self, type_id: ir.TypeId, value: node.ExpressionId) Erro
 }
 
 pub fn fresh(self: *Self, prefix: []const u8) Error![]const u8 {
-    self.serial += 1;
+    if (!@import("genz_options").generated_analysis) {
+        self.serial += 1;
 
-    return std.fmt.allocPrint(self.allocator, "{s}_{d}", .{ prefix, self.serial });
+        return std.fmt.allocPrint(self.allocator, "{s}_{d}", .{ prefix, self.serial });
+    }
+
+    const entry = @import("generated_fresh_name_suffix");
+    var memory = std.heap.FixedBufferAllocator.init(&.{});
+    const output = entry.executeValue(memory.allocator(), self.serial) catch unreachable;
+
+    const words = [_]u64{
+        std.mem.nativeToLittle(u64, output.first),
+        std.mem.nativeToLittle(u64, output.middle),
+        std.mem.nativeToLittle(u64, output.last),
+    };
+
+    const suffix = std.mem.asBytes(&words)[0..@intCast(output.length)];
+    const name = try std.mem.concat(self.allocator, u8, &.{ prefix, suffix });
+
+    self.serial = @intCast(output.serial);
+
+    return name;
 }
 
 pub fn statements(self: *Self, values: ir.Block) Error![]const node.Statement {

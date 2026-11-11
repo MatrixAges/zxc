@@ -1,0 +1,61 @@
+import integers from "std:integer"
+import { ascii_underscore, decimal_radix } from "core/const"
+
+import { decimal_digits } from "../../const"
+import { byte_radix, bytes_per_word, high_byte_divisor } from "./const"
+
+export type Input = u64
+
+export type Output = {
+    serial: u64,
+    length: u64,
+    first: u64,
+    middle: u64,
+    last: u64
+}
+
+export default function (in: Input): Output {
+    const serial = in + 1
+
+    return loop({
+        value: serial,
+        length: 0,
+        first: 0,
+        middle: 0,
+        last: 0,
+        done: false
+    }, {
+        while: current => !current.done,
+        next: current => {
+            const value = current.value
+            const byte = match value {
+                0 => ascii_underscore,
+                _ => decimal_digits[value % decimal_radix]
+            }
+
+            if (current.length >= bytes_per_word) {
+                current.last =
+                    current.last * byte_radix + current.middle / high_byte_divisor
+
+                const middle = current.middle % high_byte_divisor
+
+                current.middle =
+                    middle * byte_radix + current.first / high_byte_divisor
+            }
+
+            const first = current.first % high_byte_divisor
+
+            current.first = first * byte_radix + integers.widenByte(byte)
+            current.length += 1
+            current.value = value / decimal_radix
+            current.done = value == 0
+        },
+        return: state => ({
+            serial,
+            length: state.length,
+            first: state.first,
+            middle: state.middle,
+            last: state.last
+        })
+    })
+}
