@@ -1,0 +1,46 @@
+import { level_modulus } from "../../replay/ordered/const"
+import { mark_width, normalized_width, renewed_width } from "./const"
+import boolean from "./fields/boolean"
+import checked from "./fields/checked"
+
+import type { Record as Input } from "./model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { source } = in
+
+    const normalized = checked({
+        source,
+        start: in.start,
+        stride: mark_width,
+        limit: level_modulus,
+        mark: true
+    })
+
+    const renewed = checked({
+        source,
+        start: normalized,
+        stride: normalized_width,
+        limit: level_modulus,
+        mark: false
+    })
+
+    const grew = checked({
+        source,
+        start: renewed,
+        stride: renewed_width,
+        limit: level_modulus,
+        mark: false
+    })
+
+    const used = boolean({
+        source,
+        start: grew
+    })
+
+    return boolean({
+        source,
+        start: used
+    })
+}

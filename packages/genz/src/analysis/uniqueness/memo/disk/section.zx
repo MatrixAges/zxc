@@ -1,0 +1,52 @@
+import { word_width } from "../encoding/const"
+import { byte_width, digest_width } from "./const"
+import demanded from "./demanded"
+import vector from "./fields/vector"
+import flowed from "./flowed"
+import { Kind } from "./model"
+import planned from "./planned"
+import settled from "./settled"
+
+import type { Scan as Input, Span as Output } from "./model"
+
+export default function (in: Input): Output {
+    const shortest = digest_width + word_width + byte_width
+
+    const records = vector({
+        source: in.source,
+        start: in.start,
+        width: shortest
+    })
+
+    if (records.end == 0) {
+        return records
+    }
+
+    const end = loop({
+        offset: records.start,
+        remaining: records.count
+    }, {
+        while: state => state.offset != 0 && state.remaining != 0,
+        next: state => {
+            const record = {
+                source: in.source,
+                start: state.offset + digest_width
+            }
+
+            state.offset = match in.kind {
+                Kind.Settled => settled(record),
+                Kind.Demanded => demanded(record),
+                Kind.Planned => planned(record),
+                _ => flowed(record)
+            }
+            state.remaining -= 1
+        },
+        return: state => state.offset
+    })
+
+    return {
+        start: records.start,
+        end,
+        count: records.count
+    }
+}

@@ -1,0 +1,40 @@
+import { boolean_limit, byte_width } from "./const"
+import boolean from "./fields/boolean"
+import checked from "./fields/checked"
+
+import type { Record as Input } from "./model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { source } = in
+
+    const text_held = checked({
+        source,
+        start: in.start,
+        stride: byte_width,
+        limit: boolean_limit,
+        mark: false
+    })
+
+    const written = checked({
+        source,
+        start: text_held,
+        stride: byte_width,
+        limit: boolean_limit,
+        mark: false
+    })
+
+    const used = checked({
+        source,
+        start: written,
+        stride: byte_width,
+        limit: boolean_limit,
+        mark: false
+    })
+
+    return boolean({
+        source,
+        start: used
+    })
+}

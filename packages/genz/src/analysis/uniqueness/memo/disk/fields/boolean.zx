@@ -1,0 +1,13 @@
+import { boolean_limit, byte_width } from "../const"
+
+import type { Record as Input } from "../model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.start == 0 || in.start >= in.source.length) {
+        return 0
+    }
+
+    return in.source[in.start] < boolean_limit ? in.start + byte_width : 0
+}

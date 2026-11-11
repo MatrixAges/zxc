@@ -1,0 +1,35 @@
+export enum Kind { Settled, Demanded, Planned, Flowed }
+
+export type Input = {
+    source: u8[]
+}
+
+export type Scan = {
+    source: u8[],
+    start: u64,
+    kind: Kind
+}
+
+export type Span = {
+    start: u64,
+    end: u64,
+    count: u32
+}
+
+export type Layout = {
+    settled_start: u64,
+    settled_count: u32,
+    demanded_start: u64,
+    demanded_count: u32,
+    planned_start: u64,
+    planned_count: u32,
+    flowed_start: u64,
+    flowed_count: u32
+}
+
+export type Output = Layout?
+
+export type Record = {
+    source: u8[],
+    start: u64
+}

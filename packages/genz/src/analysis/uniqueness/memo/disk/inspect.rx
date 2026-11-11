@@ -1,0 +1,84 @@
+<Module>
+    <Type from="model" as="Disk" />
+
+    <Args in={Disk.Input} out={Disk.Output} />
+
+    <Call fn="header" in={$in} />
+
+    <If on={$ctx.header == 0}>
+        <Return value={null} />
+    </If>
+
+    <Task name="settled" out={$ctx.section}>
+        <Call
+            fn="section"
+            in={{
+                source: $in.source,
+                start: $ctx.header,
+                kind: Disk.Kind.Settled
+            }}
+        />
+    </Task>
+
+    <If on={$ctx.task.settled.end == 0}>
+        <Return value={null} />
+    </If>
+
+    <Task name="demanded" out={$ctx.section}>
+        <Call
+            fn="section"
+            in={{
+                source: $in.source,
+                start: $ctx.task.settled.end,
+                kind: Disk.Kind.Demanded
+            }}
+        />
+    </Task>
+
+    <If on={$ctx.task.demanded.end == 0}>
+        <Return value={null} />
+    </If>
+
+    <Task name="planned" out={$ctx.section}>
+        <Call
+            fn="section"
+            in={{
+                source: $in.source,
+                start: $ctx.task.demanded.end,
+                kind: Disk.Kind.Planned
+            }}
+        />
+    </Task>
+
+    <If on={$ctx.task.planned.end == 0}>
+        <Return value={null} />
+    </If>
+
+    <Task name="flowed" out={$ctx.section}>
+        <Call
+            fn="section"
+            in={{
+                source: $in.source,
+                start: $ctx.task.planned.end,
+                kind: Disk.Kind.Flowed
+            }}
+        />
+    </Task>
+
+    <If on={$ctx.task.flowed.end != $in.source.length}>
+        <Return value={null} />
+    </If>
+
+    <Return
+        value={{
+            settled_start: $ctx.task.settled.start,
+            settled_count: $ctx.task.settled.count,
+            demanded_start: $ctx.task.demanded.start,
+            demanded_count: $ctx.task.demanded.count,
+            planned_start: $ctx.task.planned.start,
+            planned_count: $ctx.task.planned.count,
+            flowed_start: $ctx.task.flowed.start,
+            flowed_count: $ctx.task.flowed.count
+        }}
+    />
+</Module>

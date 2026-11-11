@@ -1,0 +1,17 @@
+import { word_width } from "../encoding/const"
+
+export const magic: string = "zxc.uniqueness.memo.v17"
+
+export const digest_width: u64 = 32
+
+export const byte_width: u64 = 1
+
+export const wide_width: u64 = word_width * 2
+
+export const boolean_limit: u8 = 2
+
+export const mark_width: u64 = wide_width + byte_width * 2
+
+export const normalized_width: u64 = word_width + byte_width
+
+export const renewed_width: u64 = wide_width + byte_width

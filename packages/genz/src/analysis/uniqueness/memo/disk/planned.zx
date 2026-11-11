@@ -1,0 +1,97 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { word_radix, word_width } from "../encoding/const"
+import { byte_width, wide_width } from "./const"
+import boolean from "./fields/boolean"
+import vector from "./fields/vector"
+
+import type { Record as Input } from "./model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { source, start } = in
+
+    const flags = vector({
+        source,
+        start,
+        width: byte_width
+    })
+
+    if (flags.end == 0) {
+        return 0
+    }
+
+    const keys = vector({
+        source,
+        start: flags.end,
+        width: wide_width
+    })
+
+    if (keys.end == 0) {
+        return 0
+    }
+
+    const paths = vector({
+        source,
+        start: keys.end,
+        width: word_width
+    })
+
+    if (paths.end == 0 || paths.count != keys.count) {
+        return 0
+    }
+
+    const transfers_start = loop({
+        key_offset: keys.start,
+        path_offset: paths.start,
+        previous: 0
+    }, {
+        while: state => state.path_offset != 0 && state.key_offset < keys.end,
+        next: state => {
+            const low = integers.widen(bytes.readU32(source, state.key_offset, true))
+            const high_offset = state.key_offset + word_width
+            const high = integers.widen(bytes.readU32(source, high_offset, true))
+            const key = high * word_radix + low
+
+            if (key < state.previous) {
+                state.path_offset = 0
+            } else {
+                state.path_offset = vector({
+                    source,
+                    start: state.path_offset,
+                    width: word_width
+                }).end
+                state.previous = key
+                state.key_offset += wide_width
+            }
+        },
+        return: state => state.path_offset
+    })
+
+    if (transfers_start == 0) {
+        return 0
+    }
+
+    const transfers = vector({
+        source,
+        start: transfers_start,
+        width: wide_width
+    })
+
+    if (transfers.end == 0) {
+        return 0
+    }
+
+    const slot_first = vector({
+        source,
+        start: transfers.end,
+        width: word_width
+    })
+
+    return boolean({
+        source,
+        start: slot_first.end
+    })
+}

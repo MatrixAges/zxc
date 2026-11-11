@@ -1,0 +1,55 @@
+import { level_modulus } from "../../replay/ordered/const"
+import { word_width } from "../encoding/const"
+import { byte_width, wide_width } from "./const"
+import boolean from "./fields/boolean"
+import checked from "./fields/checked"
+import vector from "./fields/vector"
+
+import type { Record as Input } from "./model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { source, start } = in
+
+    const passed = vector({
+        source,
+        start,
+        width: wide_width
+    })
+
+    if (passed.end == 0) {
+        return 0
+    }
+
+    const output_start = loop({
+        offset: passed.start,
+        remaining: passed.count
+    }, {
+        while: state => state.offset != 0 && state.remaining != 0,
+        next: state => {
+            state.offset = checked({
+                source,
+                start: state.offset + word_width,
+                stride: byte_width,
+                limit: level_modulus,
+                mark: false
+            })
+            state.remaining -= 1
+        },
+        return: state => state.offset
+    })
+
+    const used = checked({
+        source,
+        start: output_start,
+        stride: byte_width,
+        limit: level_modulus,
+        mark: false
+    })
+
+    return boolean({
+        source,
+        start: used
+    })
+}

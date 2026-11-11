@@ -164,6 +164,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/uniqueness/memo/encoding/entries.rx", .name = "uniqueness_memo_entries", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/restore/inspect.rx", .name = "uniqueness_memo_restore_inspect", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/memo/restore/publish.rx", .name = "uniqueness_memo_restore_publish", .owner = .genz },
+    .{ .path = "genz/analysis/uniqueness/memo/disk/inspect.rx", .name = "uniqueness_memo_disk_inspect", .owner = .genz },
     partition_groups,
     .{ .path = "genz/analysis/uniqueness/work/create.rx", .name = "uniqueness_work_create", .owner = .genz },
     .{ .path = "genz/analysis/uniqueness/work/fill.rx", .name = "uniqueness_work_fill", .owner = .genz },
