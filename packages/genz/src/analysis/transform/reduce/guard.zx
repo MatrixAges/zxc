@@ -1,0 +1,50 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import binary from "../../../ast/context/binary"
+import field from "../../../ast/context/field"
+import integer from "../../../ast/context/integer"
+import branch from "../../../ast/statements/branch"
+import { ExpressionsBinaryOperator } from "../../../printer/model/expressions"
+import { length_member } from "./const"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const length = field({
+        state: in.context,
+        target: in.source.source,
+        name: bytes.fromText(length_member)
+    })
+
+    const zero = integer({
+        state: length.state,
+        value: 0
+    })
+
+    const nonempty = binary({
+        state: zero.state,
+        operator: ExpressionsBinaryOperator.NotEqual,
+        left: length.id,
+        right: zero.id
+    })
+
+    const result = branch({
+        table: nonempty.state.statements,
+        base: in.generated_start,
+        condition: nonempty.id,
+        yes_start: in.source.statement_base,
+        yes_count: integers.narrow(in.source.entered_count),
+        no_start: 0,
+        no_count: 0
+    })
+
+    return {
+        ...in,
+        context: {
+            ...nonempty.state,
+            statements: result.table,
+            valid: nonempty.state.valid && result.valid
+        }
+    }
+}

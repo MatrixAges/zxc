@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
+const frame = @import("iteration/frame.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!node.ExpressionId {
     return (try lowerMode(self, id, iteration, .reference, null)).?;
@@ -177,14 +178,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
 
         try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = qualified } });
         if (local and !by_value and mode != .discard) try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
-
-        try loop.append(self.allocator, .{ .branch = .{
-            .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
-            .yes = try self.builder.statements(&.{.break_loop}),
-            .no = .{},
-        } });
-
-        try entered.append(self.allocator, .{ .while_loop = .{ .condition = try self.builder.expression(.{ .boolean = true }), .body = try self.builder.statements(loop.items) } });
+        try frame.append(self, &entered, &loop, .{ .condition = condition, .after_step = true });
 
         const restored = if (mode == .discard) state else try aggregate.bind(self, &entered, try selected.restore(self, state));
         const result = try finish.lower(self, &entered, restored);
@@ -246,18 +240,12 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
     }
 
-    if (iteration.postcondition or prepared or initial_guard != null) {
-        try loop.append(self.allocator, .{ .branch = .{
-            .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = condition } }),
-            .yes = try self.builder.statements(&.{.break_loop}),
-            .no = .{},
-        } });
-    }
-
-    try entered.append(self.allocator, .{ .while_loop = .{
-        .condition = if (iteration.postcondition or prepared or initial_guard != null) try self.builder.expression(.{ .boolean = true }) else condition,
-        .body = try self.builder.statements(loop.items),
-    } });
+    try frame.append(self, &entered, &loop, .{
+        .condition = condition,
+        .after_step = iteration.postcondition,
+        .renewed = prepared,
+        .guarded_initial = initial_guard != null,
+    });
 
     if (!iteration.postcondition and prepared) {
         try body.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = try self.builder.statements(entered.items), .no = .{} } });

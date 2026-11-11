@@ -52,7 +52,7 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
     if (count > std.math.maxInt(u32) - target.items.len) return error.OutOfMemory;
 
     for (source.tags) |item| switch (@as(Tag, @fromBackingInt(@backingInt(item)))) {
-        .constant, .variable, .assignment, .break_value, .errdefer_expression, .defer_expression, .branch, .expression, .discard, .discard_error, .result, .scope, .defer_scope, .unreachable_stmt => {},
+        .constant, .variable, .assignment, .break_value, .errdefer_expression, .defer_expression, .branch, .while_loop, .expression, .discard, .discard_error, .result, .scope, .defer_scope, .unreachable_stmt => {},
         else => return error.InvalidAst,
     };
 
@@ -116,6 +116,11 @@ fn appendRows(allocator: std.mem.Allocator, target: *std.ArrayList(node.Statemen
             .assignment => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "assignment_target")) .{ .assignment = .{
                 .target = @fromBackingInt(source.assignment_target[offset]),
                 .value = @fromBackingInt(source.assignment_value[offset]),
+            } } else return error.InvalidAst,
+            .while_loop => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "while_loop_condition")) .{ .while_loop = .{
+                .condition = @fromBackingInt(source.while_loop_condition[offset]),
+                .body = .{ .start = source.while_loop_body_start[offset], .len = source.while_loop_body_len[offset] },
+                .capture = if (source.while_loop_capture[offset]) |text| if (comptime borrow_text) text else try allocator.dupe(u8, text) else null,
             } } else return error.InvalidAst,
             .scope => if (comptime @hasField(std.meta.Child(@TypeOf(source)), "scope_start")) .{ .scope = .{
                 .start = source.scope_start[offset],

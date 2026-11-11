@@ -1,0 +1,68 @@
+import type {
+    ExpressionsKind,
+    ExpressionsUnaryOperator
+} from "../../../printer/model/expressions"
+import type { StatementsKind } from "../../../printer/model/statements"
+
+export type Input = {
+    condition: u32,
+    expression_base: u32,
+    statement_base: u32,
+    body_count: u64,
+    after_step: bool,
+    renewed: bool,
+    guarded_initial: bool
+}
+
+export type Loop = {
+    condition: u32,
+    start: u32,
+    count: u64
+}
+
+export type Header = {
+    tags: StatementsKind[],
+    offsets: u32[]
+}
+
+export type While = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    while_loop_condition: u32[],
+    while_loop_body_start: u32[],
+    while_loop_body_len: u32[],
+    while_loop_capture: u8[]?[]
+}
+
+export type Branch = {
+    tags: StatementsKind[],
+    offsets: u32[],
+    branch_condition: u32[],
+    branch_yes_start: u32[],
+    branch_yes_len: u32[],
+    branch_no_start: u32[],
+    branch_no_len: u32[],
+    branch_capture: u8[]?[],
+    branch_capture_reference: bool[],
+    branch_error_capture: u8[]?[]
+}
+
+export type Expressions = {
+    tags: ExpressionsKind[],
+    offsets: u32[],
+    unary_operator: ExpressionsUnaryOperator[],
+    unary_operand: u32[],
+    boolean: bool[]
+}
+
+export type Guard = {
+    expressions: Expressions,
+    stop: Header,
+    exit: Branch,
+    loop: Loop
+}
+
+export type Output = {
+    guard?: Guard,
+    statement: While
+}

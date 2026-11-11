@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Loop" />
+
+    <Args in={Loop.Input} out={Loop.Output} />
+
+    <If on={$in.after_step || $in.renewed || $in.guarded_initial}>
+        <Call fn="guard" in={$in} />
+        <Call fn="statement" in={$ctx.guard.loop} />
+
+        <Return
+            value={{
+                guard: $ctx.guard,
+                statement: $ctx.statement
+            }}
+        />
+    </If>
+
+    <Call
+        fn="statement"
+        in={{
+            condition: $in.condition,
+            start: $in.statement_base,
+            count: $in.body_count
+        }}
+    />
+
+    <Return
+        value={{
+            guard: null,
+            statement: $ctx.statement
+        }}
+    />
+</Module>

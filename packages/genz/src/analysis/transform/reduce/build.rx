@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Reduce" />
+
+    <Args in={Reduce.Input} out={Reduce.Output} />
+
+    <Call fn="initialize" in={$in} />
+    <Call fn="accumulator" in={$ctx.initialize} />
+
+    <If on={$in.entered_count != 0}>
+        <Call fn="guard" in={$ctx.accumulator} />
+        <Call fn="finish" in={$ctx.guard} />
+
+        <Return value={$ctx.finish} />
+    </If>
+
+    <Call fn="finish" in={$ctx.accumulator} />
+
+    <Return value={$ctx.finish} />
+</Module>

@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+import context from "../../../ast/context/initialize"
+import empty from "../../../ast/statements/empty"
+
+import type { Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const loop_start = integers.widen(in.statement_base) + in.entered_count
+    const loop_count = in.element_count + 1
+    const outer_start = loop_start + loop_count
+    const generated_start = integers.narrow(outer_start + in.outer_count)
+
+    return {
+        source: in,
+        context: context({
+            capture: null,
+            expression_base: in.expression_base,
+            statement_base: generated_start,
+            field_base: 0,
+            serial: 0
+        }),
+        loop_start: integers.narrow(loop_start),
+        loop_count: integers.narrow(loop_count),
+        outer_start: integers.narrow(outer_start),
+        generated_start,
+        update: empty({}),
+        accumulator: 0
+    }
+}

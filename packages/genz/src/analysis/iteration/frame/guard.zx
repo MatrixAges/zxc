@@ -1,0 +1,51 @@
+import integers from "std:integer"
+
+import {
+    ExpressionsKind,
+    ExpressionsUnaryOperator
+} from "../../../printer/model/expressions"
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Input, Guard as Output } from "./model"
+
+export default function (in: Input): Output {
+    const condition = integers.narrow(integers.widen(in.expression_base) + 1)
+    const start = integers.narrow(integers.widen(in.statement_base) + 1)
+
+    return {
+        expressions: {
+            tags: [
+                ExpressionsKind.Unary,
+                ExpressionsKind.Boolean
+            ],
+            offsets: [
+                0,
+                0
+            ],
+            unary_operator: [ExpressionsUnaryOperator.Not],
+            unary_operand: [in.condition],
+            boolean: [true]
+        },
+        stop: {
+            tags: [StatementsKind.BreakLoop],
+            offsets: [0]
+        },
+        exit: {
+            tags: [StatementsKind.Branch],
+            offsets: [0],
+            branch_condition: [in.expression_base],
+            branch_yes_start: [in.statement_base],
+            branch_yes_len: [1],
+            branch_no_start: [0],
+            branch_no_len: [0],
+            branch_capture: [null],
+            branch_capture_reference: [false],
+            branch_error_capture: [null]
+        },
+        loop: {
+            condition,
+            start,
+            count: in.body_count + 1
+        }
+    }
+}

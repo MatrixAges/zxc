@@ -1,0 +1,38 @@
+import identifier from "../../../ast/context/identifier"
+import variable from "../../../ast/context/variable"
+import assignment from "../../../ast/statements/assignment"
+
+import type { State as Input, State as Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    const target = identifier({
+        state: in.context,
+        name: source.accumulator
+    })
+
+    const update = assignment({
+        table: in.update,
+        base: in.loop_start,
+        target: target.id,
+        value: source.callback
+    })
+
+    const declared = variable({
+        state: target.state,
+        name: source.accumulator,
+        type_expr: source.layout,
+        value: source.initial
+    })
+
+    return {
+        ...in,
+        context: {
+            ...declared,
+            valid: declared.valid && update.valid
+        },
+        update: update.table,
+        accumulator: target.id
+    }
+}

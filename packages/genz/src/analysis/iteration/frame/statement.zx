@@ -1,0 +1,16 @@
+import integers from "std:integer"
+
+import { StatementsKind } from "../../../printer/model/statements"
+
+import type { Loop as Input, While as Output } from "./model"
+
+export default function (in: Input): Output {
+    return {
+        tags: [StatementsKind.WhileLoop],
+        offsets: [0],
+        while_loop_condition: [in.condition],
+        while_loop_body_start: [in.start],
+        while_loop_body_len: [integers.narrow(in.count)],
+        while_loop_capture: [null]
+    }
+}

@@ -13,8 +13,10 @@ export default function (in: Input): Output {
     const initial = in.seed.map(item => item)[0]
 
     return in.steps.reduce(
-        (items, step) => items.length % 2 == 0 ? items.push(step.value)[0] :
-            items.concat(step.values)[0],
+        (items, step) => match items.length % 2 {
+            0 => items.push(step.value)[0],
+            _ => items.concat(step.values)[0]
+        },
         initial
     )[1]
 }

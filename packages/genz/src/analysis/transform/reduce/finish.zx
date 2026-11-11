@@ -1,0 +1,54 @@
+import integers from "std:integer"
+
+import block from "../../../ast/expressions/block"
+import breakValue from "../../../ast/statements/break_value"
+import forLoop from "../../../ast/statements/for_loop"
+
+import type { State as Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    const loop = forLoop({
+        table: in.context.statements,
+        base: in.generated_start,
+        iterable: source.source,
+        capture: source.capture,
+        start: in.loop_start,
+        count: in.loop_count,
+        index: null
+    })
+
+    const completed = breakValue({
+        table: loop.table,
+        base: in.generated_start,
+        label: source.label,
+        value: in.accumulator
+    })
+
+    const count = source.outer_count + completed.table.tags.length
+
+    const result = block({
+        table: in.context.expressions,
+        base: source.expression_base,
+        label: source.label,
+        start: in.outer_start,
+        count: integers.narrow(count)
+    })
+
+    const valid = (
+        - in.context.valid
+        - and loop.valid
+        - and completed.valid
+        - and result.valid
+    )
+
+    return {
+        expressions: result.table,
+        update: in.update,
+        outer: completed.table,
+        variables: in.context.variables,
+        root: result.id,
+        valid
+    }
+}

@@ -20,7 +20,16 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
     const source = try aggregate.bind(self, &body, try @import("state_value/list.zig").expression(self, value.target));
     const result_type = try self.typeExpr(self.program.expression(id).type_id);
     const callback = try self.expr(value.body);
-    const element = value.parameters[if (value.kind == .reduce) @as(usize, 1) else 0];
+
+    if (value.kind == .reduce) return @import("transform/reduce.zig").lower(self, &body, .{
+        .operation = id,
+        .transform = value,
+        .source = source,
+        .layout = result_type,
+        .callback = callback,
+    });
+
+    const element = value.parameters[0];
     const capture = self.names[@backingInt(element)];
     var loop: std.ArrayList(node.Statement) = .empty;
     var result: node.ExpressionId = undefined;
@@ -28,31 +37,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     try @import("transform/context.zig").bind(self, &body, value);
 
-    if (value.kind == .reduce) {
-        const accumulator = self.names[@backingInt(value.parameters[0])];
-        const evaluated_initial = try self.expr(value.initial.?);
-        const initial = if (self.state_active) try @import("state_value/ownership.zig").erase(self, &body, self.program.expression(id).type_id, evaluated_initial) else evaluated_initial;
-
-        try body.append(self.allocator, .{ .variable = .{ .name = accumulator, .type_expr = result_type, .value = initial } });
-
-        var entered: std.ArrayList(node.Statement) = .empty;
-
-        for (self.plan.renewals) |renewal| if (renewal.owner == @backingInt(id) and !renewal.value) {
-            try @import("growth.zig").renew(self, &entered, self.program.expression(id).type_id, try self.builder.identifier(accumulator), renewal.path);
-        };
-
-        if (entered.items.len != 0) try body.append(self.allocator, .{ .branch = .{
-            .condition = try self.builder.expression(.{ .binary = .{ .operator = .not_equal, .left = try self.field(source, "len"), .right = try self.builder.integer(0) } }),
-            .yes = try self.builder.statements(entered.items),
-            .no = .{},
-        } });
-
-        const qualified = if (self.state_active) try @import("state_value/ownership.zig").erase(self, &loop, self.program.expression(id).type_id, callback) else callback;
-
-        try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(accumulator), .value = qualified } });
-
-        result = try self.builder.identifier(accumulator);
-    } else if (value.kind == .map) {
+    if (value.kind == .map) {
         const allocation = try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ try @import("state_value/elements.zig").typeExpr(self, self.program.expression(id).type_id), try self.field(source, "len") }, true);
         result = try aggregate.bind(self, &body, allocation);
         index_capture = try self.fresh("index");
@@ -81,5 +66,5 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     try body.append(self.allocator, .{ .for_loop = .{ .iterable = source, .capture = element_capture, .body = try self.builder.statements(loop.items), .index_capture = index_capture } });
 
-    return aggregate.finish(self, &body, if (value.kind == .reduce) result else try @import("state_value/list.zig").owned(self, self.program.expression(id).type_id, result, try self.builder.expression(.{ .boolean = false })));
+    return aggregate.finish(self, &body, try @import("state_value/list.zig").owned(self, self.program.expression(id).type_id, result, try self.builder.expression(.{ .boolean = false })));
 }

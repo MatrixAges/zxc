@@ -1,0 +1,38 @@
+import type { State as Context, Variables } from "../../../ast/context/model"
+import type { Columns as Expressions } from "../../../ast/expressions/model"
+import type { Columns as Statements } from "../../../ast/statements/model"
+
+export type Input = {
+    source: u32,
+    initial: u32,
+    callback: u32,
+    layout: u32,
+    accumulator: u8[],
+    capture: u8[],
+    label: u8[],
+    expression_base: u32,
+    statement_base: u32,
+    entered_count: u64,
+    element_count: u64,
+    outer_count: u64
+}
+
+export type State = {
+    source: Input,
+    context: Context,
+    loop_start: u32,
+    loop_count: u32,
+    outer_start: u32,
+    generated_start: u32,
+    update: Statements,
+    accumulator: u32
+}
+
+export type Output = {
+    expressions: Expressions,
+    update: Statements,
+    outer: Statements,
+    variables: Variables,
+    root: u32,
+    valid: bool
+}
