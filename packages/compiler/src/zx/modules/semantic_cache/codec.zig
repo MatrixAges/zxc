@@ -47,21 +47,31 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
         return error.InvalidCache;
     };
 
-    if (!parsed.module.functions.validStructure() or !parsed.module.native_modules.validStructure() or !parsed.module.stores.validStructure() or !@import("../../ir/type_rules.zig").validate(parsed.module.types)) return error.InvalidCache;
-    if (!try @import("../../analysis/constants/check.zig").validate(arena.allocator(), parsed.module.types, parsed.module.constant_exports)) return error.InvalidCache;
-    if (!try @import("../../analysis/constants/check.zig").validate(arena.allocator(), parsed.module.types, parsed.module.constant_imports)) return error.InvalidCache;
+    if (generated) {
+        if (!try @import("validation.zig").validate(allocator, arena.allocator(), &parsed.module)) return error.InvalidCache;
+    } else {
+        try validateSeed(allocator, arena.allocator(), &parsed.module);
+    }
 
-    for ([_][]const @import("../function_import.zig"){ parsed.module.function_imports, parsed.module.members }) |bindings| for (bindings) |binding| {
+    return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
+}
+
+fn validateSeed(allocator: std.mem.Allocator, artifact_allocator: std.mem.Allocator, module: *const Artifact.Module) Error!void {
+    if (!module.functions.validStructure() or !module.native_modules.validStructure() or !module.stores.validStructure() or !@import("../../ir/type_rules.zig").validate(module.types)) return error.InvalidCache;
+    if (!try @import("../../analysis/constants/check.zig").validate(artifact_allocator, module.types, module.constant_exports)) return error.InvalidCache;
+    if (!try @import("../../analysis/constants/check.zig").validate(artifact_allocator, module.types, module.constant_imports)) return error.InvalidCache;
+
+    for ([_][]const @import("../function_import.zig"){ module.function_imports, module.members }) |bindings| for (bindings) |binding| {
         if (!binding.valid()) return error.InvalidCache;
         if (binding.intrinsic != null) continue;
-        if (@backingInt(binding.id.?) >= parsed.module.functions.count()) return error.InvalidCache;
+        if (@backingInt(binding.id.?) >= module.functions.count()) return error.InvalidCache;
 
-        const signature = parsed.module.functions.at(@backingInt(binding.id.?));
+        const signature = module.functions.at(@backingInt(binding.id.?));
 
         if (binding.input_type != signature.input_type or binding.output_type != signature.output_type) return error.InvalidCache;
     };
 
-    if (parsed.module.function) |function| {
+    if (module.function) |function| {
         if (!function.stores.validStructure() or !try function.body.validStructure(allocator) or !function.symbols.validStructure() or !function.expressions.validStructure()) return error.InvalidCache;
         if (!function.contracts.validStructure()) return error.InvalidCache;
 
@@ -71,8 +81,6 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
             if (!contract.symbols.validStructure() or !contract.expressions.validStructure()) return error.InvalidCache;
         }
     }
-
-    return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
 }
 
 fn openSeed(bytes: []const u8, compiler_digest: [32]u8) ?[]const u8 {

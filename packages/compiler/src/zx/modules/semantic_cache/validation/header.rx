@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Cache" />
+
+    <Args in={Cache.Header} out={bool} />
+
+    <Call fn="tables" in={$in.tables} />
+
+    <If on={!$ctx.tables}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        module="../../../analysis/semantic/validate_types"
+        in={{
+            table: $in.types,
+            scalar_count: $in.scalar_count,
+            maximum_count: $in.maximum_count,
+            trusted: false
+        }}
+    />
+
+    <Return value={$ctx.validate_types} />
+</Module>

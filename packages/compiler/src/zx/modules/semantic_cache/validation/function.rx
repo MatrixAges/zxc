@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Cache" />
+
+    <Args in={Cache.Function} out={bool} />
+
+    <Call
+        module="../../../ir/canonical/body/structure"
+        in={$in.pick([
+            "body",
+            "max_offset"
+        ])}
+    />
+
+    <If on={!$ctx.structure}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        module="../../../ir/canonical/contract_tables_check"
+        in={$in.pick([
+            "contracts",
+            "max_offset"
+        ])}
+    />
+
+    <Return value={$ctx.contract_tables_check} />
+</Module>

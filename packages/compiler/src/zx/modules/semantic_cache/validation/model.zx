@@ -1,0 +1,34 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Body } from "core/ir/body"
+import type { Modules } from "core/native_module_table/model"
+import type { Table as Signatures } from "core/signature_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Table as Types } from "core/type_table/model"
+
+export type Tables = {
+    signatures: Signatures,
+    modules: Modules,
+    stores: Stores
+}
+
+export type Header = {
+    tables: Tables,
+    types: Types,
+    scalar_count: u64,
+    maximum_count: u64
+}
+
+export type Function = {
+    body: Body,
+    contracts: Contracts,
+    max_offset: u64
+}
+
+export type Binding = {
+    intrinsic: bool,
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32,
+    input_types: u32[],
+    output_types: u32[]
+}
