@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Ownership" />
+
+    <Args in={Ownership.Input} out={Ownership.Output} />
+
+    <If on={$in.mask}>
+        <Call fn="requires_mask" in={$in} />
+
+        <If on={!$ctx.requires_mask}>
+            <Return value={[]} />
+        </If>
+    </If>
+
+    <Call fn="field_slots" in={$in} />
+
+    <Return value={$ctx.field_slots} />
+</Module>

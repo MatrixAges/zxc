@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const { facts, type_id, borrowed, mask } = in
+
+    const first = integers.widen(facts.types.first[integers.widen(type_id)])
+    const slots: u32?[] = []
+    const offset: u32 = 0
+
+    return loop({
+        index: 0,
+        offset,
+        slots
+    }, {
+        while: state => state.index < borrowed.length,
+        next: state => {
+            const shared = borrowed[state.index]
+            const slot: u32? = match {
+                mask && shared => 0,
+                !mask && !shared => state.offset,
+                _ => null
+            }
+
+            state.slots = state.slots.push(slot)[0]
+
+            if (!mask) {
+                const child = facts.types.field_types[first + state.index]
+
+                state.offset += facts.counts[integers.widen(child)]
+            }
+
+            state.index += 1
+        },
+        return: state => state.slots
+    })
+}

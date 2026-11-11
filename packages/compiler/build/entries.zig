@@ -258,6 +258,7 @@ pub const main = [_]Entry{
     .{ .path = "genz/analysis/iteration/fields/prepare/plan.rx", .name = "loop_fields_prepare", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/layout/build.rx", .name = "loop_fields_layout", .owner = .genz },
     .{ .path = "genz/analysis/iteration/fields/projection/build.rx", .name = "loop_fields_projection", .owner = .genz },
+    .{ .path = "genz/analysis/iteration/fields/ownership/plan.rx", .name = "loop_fields_ownership", .owner = .genz },
     .{ .path = "genz/analysis/iteration/mutation/build.rx", .name = "iteration_mutation", .owner = .genz },
     .{ .path = "genz/analysis/iteration/literals/build.rx", .name = "iteration_literals", .owner = .genz },
     .{ .path = "genz/analysis/collections/splice/build.rx", .name = "collection_splice", .owner = .genz },

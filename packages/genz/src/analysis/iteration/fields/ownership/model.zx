@@ -1,0 +1,10 @@
+import type { Facts } from "../../../state/ownership/model"
+
+export type Input = {
+    facts: Facts,
+    type_id: u32,
+    borrowed: bool[],
+    mask: bool
+}
+
+export type Output = u32?[]
