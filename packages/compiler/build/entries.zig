@@ -48,6 +48,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/task_captures/initialize.zx", .name = "rx_task_capture_init", .owner = .rx_analysis },
     .{ .path = "rx/analysis/task_captures/mark.zx", .name = "rx_task_capture_mark", .owner = .rx_analysis },
     .{ .path = "rx/analysis/task_captures/positions.zx", .name = "rx_task_capture_positions", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/program/linking/plan.rx", .name = "rx_expression_link_plan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/payloads.zx", .name = "assignment_payloads", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/validation/scan.zx", .name = "assignment_validation", .owner = .rx_analysis },

@@ -1,0 +1,53 @@
+<Module>
+    <Type from="model" as="Linking" />
+
+    <Args in={Linking.Input} out={Linking.Output} />
+
+    <Call
+        fn="shape"
+        in={{
+            body: $in.body,
+            expressions: $in.expressions
+        }}
+    />
+
+    <If on={$ctx.shape.returned == null}>
+        <Return
+            value={{
+                returned: null,
+                rows: [],
+                bindings: []
+            }}
+        />
+    </If>
+
+    <Call fn="bindings" in={$in.scope} />
+
+    <If on={!$ctx.bindings.valid}>
+        <Return
+            value={{
+                returned: null,
+                rows: [],
+                bindings: []
+            }}
+        />
+    </If>
+
+    <Call
+        fn="rows"
+        in={{
+            expressions: $in.expressions,
+            rows: $ctx.shape.rows,
+            index: 0,
+            next_id: $in.base
+        }}
+    />
+
+    <Return
+        value={{
+            returned: $ctx.shape.returned,
+            rows: $ctx.rows,
+            bindings: $ctx.bindings.ids
+        }}
+    />
+</Module>

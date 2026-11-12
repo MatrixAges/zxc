@@ -1,0 +1,39 @@
+import type { StatementKind } from "core/control_table/model"
+import type { ExpressionKind } from "core/expression_table/kinds"
+
+export type Body = {
+    statement_kinds: StatementKind[],
+    statement_payloads: u32[],
+    constant_symbols: u32[],
+    constant_values: u32[],
+    results: u32?[]
+}
+
+export type Expressions = {
+    kinds: ExpressionKind[],
+    payloads: u32[],
+    references: u32[],
+    projection_indices: u32[],
+    projection_targets: u32[]
+}
+
+export type Scope = {
+    names: string[],
+    types: u32[],
+    active: u32[],
+    target_names: string[],
+    target_types: u32[]
+}
+
+export type Input = {
+    body: Body,
+    expressions: Expressions,
+    scope: Scope,
+    base: u64
+}
+
+export type Output = {
+    returned?: u32,
+    rows: u32[],
+    bindings: u32[]
+}

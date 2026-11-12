@@ -18,6 +18,7 @@ stores: ir.StoreStorage = .{},
 body: std.ArrayList(ir.Statement) = .empty,
 control: ir.ControlStorage = .{},
 bindings: std.ArrayList(ir.SymbolId) = .empty,
+linking_scratch: std.heap.ArenaAllocator = .init(std.heap.page_allocator),
 pub fn symbol(self: *Self, name: []const u8, type_id: ir.TypeId, span: zx.Span) std.mem.Allocator.Error!ir.SymbolId {
     const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.count()));
 

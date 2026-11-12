@@ -1,0 +1,49 @@
+import integers from "std:integer"
+import { StatementKind } from "core/control_table/model"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Body, Expressions } from "./model"
+
+export type Input = {
+    body: Body,
+    expressions: Expressions,
+    index: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (in.body.statement_kinds[in.index] != StatementKind.Constant) {
+        return null
+    }
+
+    const payload = integers.widen(in.body.statement_payloads[in.index])
+    const symbol = integers.widen(in.body.constant_symbols[payload])
+
+    if (symbol != in.index + 1) {
+        return null
+    }
+
+    const value = integers.widen(in.body.constant_values[payload])
+
+    if (in.expressions.kinds[value] != ExpressionKind.TupleField) {
+        return null
+    }
+
+    const projection = integers.widen(in.expressions.payloads[value])
+    const index = integers.widen(in.expressions.projection_indices[projection])
+
+    if (index != in.index) {
+        return null
+    }
+
+    const target = integers.widen(in.expressions.projection_targets[projection])
+
+    if (in.expressions.kinds[target] != ExpressionKind.Reference) {
+        return null
+    }
+
+    const reference = integers.widen(in.expressions.payloads[target])
+
+    return in.expressions.references[reference] == 0 ? value : null
+}

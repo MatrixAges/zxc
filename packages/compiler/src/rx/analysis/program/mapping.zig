@@ -1,21 +1,38 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Error = @import("builder.zig").Error;
+const missing = @import("linking.zig").missing;
 const Self = @This();
 
 allocator: std.mem.Allocator,
-symbols: []?ir.SymbolId,
-expressions: []?ir.ExprId,
-pub fn id(self: *const Self, value: ir.ExprId) Error!ir.ExprId {
-    if (@backingInt(value) >= self.expressions.len) return error.InvalidModule;
+bindings: []const u32,
+locals_base: usize,
+symbol_count: usize,
+expressions: []const u32,
 
-    return self.expressions[@backingInt(value)] orelse error.InvalidModule;
+available: usize = 0,
+pub fn id(self: *const Self, value: ir.ExprId) Error!ir.ExprId {
+    const index = @backingInt(value);
+
+    if (index >= self.available) return error.InvalidModule;
+
+    const target = self.expressions[index];
+
+    return if (target == missing) error.InvalidModule else @fromBackingInt(target);
 }
 
 fn symbol(self: *const Self, value: ir.SymbolId) Error!ir.SymbolId {
-    if (@backingInt(value) >= self.symbols.len) return error.InvalidModule;
+    const index = @backingInt(value);
 
-    return self.symbols[@backingInt(value)] orelse error.InvalidModule;
+    if (index == 0 or index >= self.symbol_count) return error.InvalidModule;
+
+    const offset = index - 1;
+
+    if (offset >= self.bindings.len) return @fromBackingInt(@intCast(self.locals_base + (offset - self.bindings.len)));
+
+    const target = self.bindings[offset];
+
+    return if (target == missing) error.InvalidModule else @fromBackingInt(target);
 }
 
 fn ids(self: *const Self, values: []const ir.ExprId) Error![]const ir.ExprId {

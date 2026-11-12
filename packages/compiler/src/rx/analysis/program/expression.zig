@@ -1,90 +1,41 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Builder = @import("builder.zig");
+const linking = @import("linking.zig");
 const Mapping = @import("mapping.zig");
 
 pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.ExprId {
-    if (program.body.block().len == 0) return error.InvalidModule;
-
-    const count = program.body.block().len - 1;
-
-    if (program.functions.count() != 0 or program.stores.count() != 0) return error.InvalidModule;
-    if (program.symbols.count() < count + 1) return error.InvalidModule;
+    var buffer: [std.heap.page_size_min / 4]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, builder.linking_scratch.allocator());
+    defer _ = builder.linking_scratch.reset(.retain_capacity);
+    const plan = try linking.plan(scratch.allocator(), builder, program);
+    const local_first = plan.bindings.len + 1;
 
     var mapping = Mapping{
         .allocator = builder.allocator,
-        .symbols = try builder.allocator.alloc(?ir.SymbolId, program.symbols.count()),
-        .expressions = try builder.allocator.alloc(?ir.ExprId, program.expressions.count()),
+        .bindings = plan.bindings,
+        .locals_base = builder.symbols.count(),
+        .symbol_count = program.symbols.count(),
+        .expressions = plan.rows,
     };
 
-    const projections = try builder.allocator.alloc(bool, program.expressions.count());
-
-    @memset(mapping.symbols, null);
-    @memset(mapping.expressions, null);
-    @memset(projections, false);
-
-    for (0..program.body.block().prefix(count).len) |index| {
-        const statement = program.body.block().prefix(count).at(index);
-
-        if (statement != .constant) return error.InvalidModule;
-
-        const source = statement.constant;
-
-        if (@backingInt(source.symbol) >= mapping.symbols.len or @backingInt(source.value) >= program.expressions.count()) return error.InvalidModule;
-
-        const value = program.expression(source.value);
-
-        if (value.value != .tuple_field or value.value.tuple_field.index != index) return error.InvalidModule;
-        if (@backingInt(value.value.tuple_field.target) >= program.expressions.count()) return error.InvalidModule;
-
-        const environment = program.expression(value.value.tuple_field.target);
-
-        if (environment.value != .reference or @backingInt(environment.value.reference) != 0) return error.InvalidModule;
-
-        const symbol = program.symbols.at(@backingInt(source.symbol));
-
-        for (builder.bindings.items) |binding| {
-            const target = builder.symbols.at(@backingInt(binding));
-
-            if (!std.mem.eql(u8, symbol.name, target.name)) continue;
-            if (symbol.type_id != target.type_id) return error.InvalidModule;
-
-            mapping.symbols[@backingInt(source.symbol)] = binding;
-        }
-
-        projections[@backingInt(source.value)] = true;
-    }
-
-    for (0..program.symbols.count()) |index| {
+    for (local_first..program.symbols.count()) |index| {
         const symbol = program.symbols.at(index);
 
-        if (index == 0 or mapping.symbols[index] != null) continue;
-
-        var environment_binding = false;
-
-        for (0..program.body.block().prefix(count).len) |statement_index| {
-            const statement = program.body.block().prefix(count).at(statement_index);
-
-            if (@backingInt(statement.constant.symbol) == index) environment_binding = true;
-        }
-
-        if (environment_binding) continue;
-
-        mapping.symbols[index] = try builder.symbol(symbol.name, symbol.type_id, symbol.span);
+        _ = try builder.symbol(symbol.name, symbol.type_id, symbol.span);
     }
 
-    for (0..program.expressions.count()) |index| {
-        const expression = program.expressions.at(index);
+    for (plan.rows, 0..) |row, index| {
+        if (row == linking.missing) continue;
 
-        if (projections[index]) continue;
-        if (expression.value == .reference and @backingInt(expression.value.reference) == 0) continue;
+        mapping.available = index;
 
-        mapping.expressions[index] = try builder.expression(try mapping.expression(expression));
+        const id = try builder.expression(try mapping.expression(program.expressions.at(index)));
+
+        std.debug.assert(@backingInt(id) == row);
     }
 
-    const returned = program.body.block().at(count);
+    mapping.available = plan.rows.len;
 
-    if (returned != .result or returned.result == null) return error.InvalidModule;
-
-    return mapping.id(returned.result.?);
+    return mapping.id(plan.returned);
 }

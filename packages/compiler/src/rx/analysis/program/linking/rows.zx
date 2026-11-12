@@ -1,0 +1,45 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "./model"
+
+export type Input = {
+    expressions: Expressions,
+    rows: u32[],
+    index: u64,
+    next_id: u64
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.index < state.rows.length,
+        next: state => {
+            const index = state.index
+
+            if (state.rows[index] != max_u32) {
+                const environment = match state.expressions.kinds[index] {
+                    ExpressionKind.Reference => state.expressions
+                        .references[
+                            integers.widen(
+                                state.expressions.payloads[index]
+                            )
+                        ] == 0,
+                    _ => false
+                }
+
+                if (environment) {
+                    state.rows[index] = max_u32
+                } else {
+                    state.rows[index] = integers.narrow(state.next_id)
+                    state.next_id += 1
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.rows
+    })
+}

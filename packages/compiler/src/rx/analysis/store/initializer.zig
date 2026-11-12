@@ -17,6 +17,9 @@ pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Fi
     const output = try table.object(fields);
     const owned_modules = try frontend.native_context.copy(allocator, native_modules);
     var builder = Builder{ .allocator = allocator, .types = table.items.view(), .native_modules = owned_modules };
+
+    defer builder.linking_scratch.deinit();
+
     const span = zx.Span{ .start = 0, .end = 0 };
     const input: zx.ir.TypeId = @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void)));
 

@@ -23,6 +23,7 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
     var builder = Builder{ .allocator = allocator, .types = contract.types, .native_modules = contract.native_modules, .base_functions = contract.shared_functions orelse .{}, .shared = contract.shared_functions != null };
 
     defer builder.body.deinit(allocator);
+    defer builder.linking_scratch.deinit();
 
     for (contract.store_initializers) |initial| try builder.initializer(initial);
 

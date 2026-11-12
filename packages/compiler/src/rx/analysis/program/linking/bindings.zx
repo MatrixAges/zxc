@@ -1,0 +1,74 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import lookup from "./lookup"
+
+import type { Scope } from "./model"
+
+export type Input = Scope
+
+export type Output = {
+    valid: bool,
+    ids: u32[]
+}
+
+export default function (in: Input): Output {
+    const ids = in.names.map(name => max_u32)[0]
+    const count = in.names.length
+    const active_count = in.active.length
+
+    return loop({
+        ids,
+        position: 0,
+        active: 0,
+        ordered: true,
+        valid: true
+    }, {
+        while: state => state.valid && state.position < count,
+        next: state => {
+            if (state.ordered && state.active == active_count) {
+                state.position = count
+            } else {
+                if (state.ordered) {
+                    const id = in.active[state.active]
+                    const target = integers.widen(id)
+
+                    if (in.target_names[target] == in.names[state.position]) {
+                        state.valid =
+                            in.target_types[target] == in.types[state.position]
+                        state.ids[state.position] = id
+                        state.active += 1
+                    }
+                } else {
+                    const id = lookup({
+                        scope: in,
+                        index: state.position
+                    })
+
+                    if (id == null) {
+                        state.valid = false
+                    } else {
+                        state.ids[state.position] = id
+                    }
+                }
+
+                state.position += 1
+
+                const retry = (
+                    - state.ordered
+                    - and state.position == count
+                    - and state.active < active_count
+                )
+
+                if (retry) {
+                    state.ordered = false
+                    state.position = 0
+                }
+            }
+        },
+        return: state => ({
+            valid: state.valid,
+            ids: state.ids
+        })
+    })
+}

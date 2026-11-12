@@ -1,0 +1,37 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+import type { Scope } from "./model"
+
+export type Input = {
+    scope: Scope,
+    index: u64
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const name = in.scope.names[in.index]
+    const type_id = in.scope.types[in.index]
+    const active = in.scope.active
+
+    return loop({
+        position: 0,
+        id: max_u32,
+        valid: true
+    }, {
+        while: state => state.valid && state.position < active.length,
+        next: state => {
+            const id = active[state.position]
+            const target = integers.widen(id)
+
+            if (in.scope.target_names[target] == name) {
+                state.valid = in.scope.target_types[target] == type_id
+                state.id = id
+            }
+
+            state.position += 1
+        },
+        return: state => state.valid ? state.id : null
+    })
+}

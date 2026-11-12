@@ -1,0 +1,66 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+import { StatementKind } from "core/control_table/model"
+
+import projection from "./projection"
+
+import type { Body, Expressions } from "./model"
+
+export type Input = {
+    body: Body,
+    expressions: Expressions
+}
+
+export type Output = {
+    returned?: u32,
+    rows: u32[]
+}
+
+export default function (in: Input): Output {
+    const last = in.body.statement_kinds.length - 1
+
+    const returned: u32? = match in.body.statement_kinds[last] {
+        StatementKind.Result => in.body
+            .results[integers.widen(
+                in.body.statement_payloads[last]
+            )],
+        _ => null
+    }
+
+    if (returned == null) {
+        return {
+            returned,
+            rows: []
+        }
+    }
+
+    const placeholder: u32 = 0
+    const rows = in.expressions.kinds.map(kind => placeholder)[0]
+
+    return loop({
+        valid: true,
+        rows,
+        index: 0
+    }, {
+        while: state => state.valid && state.index < last,
+        next: state => {
+            const value = projection({
+                body: in.body,
+                expressions: in.expressions,
+                index: state.index
+            })
+
+            if (value == null) {
+                state.valid = false
+            } else {
+                state.rows[value] = max_u32
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            returned: state.valid ? returned : null,
+            rows: state.rows
+        })
+    })
+}
