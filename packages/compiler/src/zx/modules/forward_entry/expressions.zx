@@ -1,3 +1,4 @@
+import integers from "std:integer"
 import empty from "core/expression_table/empty"
 import { ExpressionKind } from "core/expression_table/kinds"
 
@@ -13,6 +14,9 @@ export type Output = Expressions
 export default function (in: Input): Output {
     const parameter = in.parameter
     const argument = in.unit ? ExpressionKind.Unit : ExpressionKind.Reference
+
+    const stores =
+        in.store_types.map((type_id, index) => integers.narrow(index))[0]
 
     return {
         ...empty(),
@@ -43,6 +47,7 @@ export default function (in: Input): Output {
         call_functions: [in.function_id],
         call_arguments: [reference_id],
         call_store_first: [payload_index],
-        call_store_count: [payload_index]
+        call_store_count: [integers.narrow(stores.length)],
+        call_stores: stores
     }
 }

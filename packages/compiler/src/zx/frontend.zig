@@ -44,6 +44,8 @@ pub const native_context = @import("modules/native_context.zig");
 pub const native_link = @import("modules/link/native.zig");
 pub const ArtifactNodes = @import("modules/artifact/nodes.zig");
 pub const installForwardEntry = @import("modules/forward_entry/host.zig").install;
+pub const writeForwardEntry = @import("modules/forward_entry/host.zig").write;
+pub const writeExternalEntry = @import("modules/function_body.zig").externalEntry;
 pub const functionImportColumns = @import("analysis/analyzer/host/bindings.zig").imports;
 
 pub const artifact_json = struct {

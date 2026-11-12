@@ -1,5 +1,6 @@
 const std = @import("std");
 const zx = @import("zx");
+const frontend = @import("frontend");
 const ir = zx.ir;
 
 pub const Input = struct {
@@ -13,20 +14,8 @@ pub const Input = struct {
 
 pub fn build(allocator: std.mem.Allocator, input: Input) std.mem.Allocator.Error!ir.Program {
     const function = input.functions.at(@backingInt(input.id));
-    const stores = try allocator.alloc(u32, function.stores.count());
 
-    for (stores, 0..) |*slot, index| slot.* = @intCast(index);
-
-    const span = zx.Span{ .start = input.offset, .end = input.offset };
-    const is_void = function.input_type == @as(ir.TypeId, @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))));
-    const symbols = try ir.SymbolTable.fromValues(allocator, &.{.{ .name = "$in", .type_id = function.input_type, .span = span }});
-
-    const expressions = try ir.ExpressionTable.fromValues(allocator, &.{
-        .{ .type_id = function.input_type, .span = span, .value = if (is_void) .unit else .{ .reference = @fromBackingInt(@intCast(0)) } },
-        .{ .type_id = function.output_type, .span = span, .value = .{ .call = .{ .function = input.id, .argument = @fromBackingInt(@intCast(0)), .stores = stores } } },
-    });
-
-    return .{
+    var program: ir.Program = .{
         .file_name = input.file_name,
         .types = input.types,
         .stores = function.stores,
@@ -34,12 +23,25 @@ pub fn build(allocator: std.mem.Allocator, input: Input) std.mem.Allocator.Error
         .input_type = function.input_type,
         .output_type = function.output_type,
         .output_ownership = function.output_ownership,
-        .symbols = symbols,
-        .expressions = expressions,
-        .body = try ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@intCast(1)) }}),
+        .symbols = .{},
+        .expressions = .{},
+        .body = .{},
         .functions = input.functions,
         .native_modules = input.native_modules,
     };
+
+    try frontend.writeForwardEntry(allocator, &program, .{
+        .id = input.id,
+        .parameter = .{
+            .name = "$in",
+            .type_id = function.input_type,
+            .span = .{ .start = input.offset, .end = input.offset },
+        },
+        .unit = @backingInt(function.input_type) == @backingInt(ir.Scalar.void),
+        .store_types = function.stores.types,
+    });
+
+    return program;
 }
 
 pub fn reject(function: ?ir.FunctionId, functions: *const ir.FunctionStorage, setter: bool) ?struct { code: []const u8, message: []const u8 } {
