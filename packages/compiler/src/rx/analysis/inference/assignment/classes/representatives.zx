@@ -2,12 +2,12 @@ import integers from "std:integer"
 
 import { Kind } from "../../unification/model"
 
-import type { Nodes } from "../model"
+import type { Nodes, Payloads } from "../model"
 import type { Output as Classes } from "./model"
 
 export type Input = {
     parents: u32[],
-    payloads: u32[],
+    payloads: Payloads,
     nodes: Nodes
 }
 
@@ -15,15 +15,21 @@ export type Output = Classes
 
 export default function (in: Input): Output {
     const parents = in.parents
+    const initial = in.payloads.initial
+    const registered = in.payloads.registered
     const empty: u32? = null
 
     const representatives = loop({
         values: in.parents.map(item => empty)[0],
         index: 0
     }, {
-        while: state => state.index < in.payloads.length,
+        while: state => state.index < parents.length,
         next: state => {
-            const payload = in.payloads[state.index]
+            const position = state.index
+            const payload = match {
+                position < initial.length => initial[position],
+                _ => registered[position - initial.length]
+            }
             const index = integers.widen(payload)
 
             if (

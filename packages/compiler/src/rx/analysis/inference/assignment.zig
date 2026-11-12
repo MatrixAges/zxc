@@ -2,6 +2,7 @@ const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
 pub const Base = @import("assignment/base.zig");
+pub const validate = @import("assignment/validation.zig").validate;
 pub const Edge = struct { value: Graph.Id, expected: Graph.Id, span: zx.Span };
 
 pub fn materialize(graph: *Graph, base: Base, scratch: std.mem.Allocator) zx.Error!void {
@@ -60,16 +61,6 @@ fn apply(graph: *Graph, index: usize, payload: Graph.Id, depth: u64) zx.Error!vo
     var value = payload;
 
     for (0..depth) |_| value = try graph.add(.{ .optional = value }, span);
+
     try graph.unify(@fromBackingInt(@intCast(index)), value, span);
-}
-
-pub fn validate(graph: *Graph) zx.Error!void {
-    const edges = graph.assignments.slice();
-
-    for (edges.items(.value), edges.items(.expected), edges.items(.span)) |source, target, span| {
-        const actual = try graph.resolve(source);
-        const expected = try graph.resolve(target);
-
-        if (!@import("optional.zig").accepts(graph.types.items.view(), actual, expected)) return graph.reporter.fail(.type_mismatch, span, "inferred value cannot be passed to the required type");
-    }
 }

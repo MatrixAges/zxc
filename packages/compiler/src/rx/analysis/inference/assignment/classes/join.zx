@@ -2,10 +2,12 @@ import integers from "std:integer"
 
 import root from "./root"
 
+import type { Kind } from "../../unification/model"
 import type { Edges } from "../model"
 
 export type Input = {
     payloads: u32[],
+    kinds: Kind[],
     edges: Edges
 }
 
@@ -15,8 +17,8 @@ export default function (in: Input): Output {
     const empty_rank: u8 = 0
 
     return loop({
-        parents: in.payloads.map((item, index) => integers.narrow(index))[0],
-        ranks: in.payloads.map(item => empty_rank)[0],
+        parents: in.kinds.map((kind, index) => integers.narrow(index))[0],
+        ranks: in.kinds.map(kind => empty_rank)[0],
         edge: 0,
         index: 0
     }, {

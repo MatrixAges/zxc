@@ -6,7 +6,8 @@
     <Call
         fn="join"
         in={{
-            payloads: $in.payloads,
+            payloads: $in.payloads.initial,
+            kinds: $in.nodes.kinds,
             edges: $in.edges
         }}
     />

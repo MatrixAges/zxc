@@ -1,12 +1,13 @@
 const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("../types.zig");
+const Payloads = @import("classes/payloads.zig");
 const Self = @This();
 
 parents: []const u32,
 representatives: []const ?u32,
 
-payloads: []const u32 = &.{},
+payloads: Payloads.Columns = .{},
 pub fn init(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     return if (@import("rx_options").generated_graph)
         build(graph, allocator)
@@ -16,18 +17,12 @@ pub fn init(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
 
 fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     const generated = @import("generated_assignment_classes");
-    var payloads = try std.ArrayList(u32).initCapacity(allocator, graph.nodes.len);
-    var index: usize = 0;
-
-    while (index < graph.nodes.len) : (index += 1) {
-        try payloads.append(allocator, @backingInt(try payload(graph, @fromBackingInt(@intCast(index)))));
-    }
-
+    const payloads = try Payloads.collect(graph, allocator);
     const rows = graph.nodes.slice();
     const edges = graph.assignments.slice();
 
     const classes = generated.executeValue(allocator, &.{
-        .payloads = payloads.items,
+        .payloads = &.{ .initial = payloads.initial, .registered = payloads.registered },
         .nodes = &.{ .kinds = rows.items(.kind), .allowed = rows.items(.allowed) },
         .edges = &.{ .left = @ptrCast(edges.items(.value)), .right = @ptrCast(edges.items(.expected)) },
     }) catch |err| switch (err) {
@@ -35,7 +30,7 @@ fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
         error.IndexOutOfBounds => unreachable,
     };
 
-    return .{ .parents = classes.parents, .representatives = classes.representatives, .payloads = payloads.items };
+    return .{ .parents = classes.parents, .representatives = classes.representatives, .payloads = payloads };
 }
 
 fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
@@ -94,7 +89,7 @@ pub fn representative(self: Self, graph: *Graph, id: Graph.Id) zx.Error!?Graph.I
 
 /// Available to the Source solver while the graph revision still matches this assignment base.
 pub fn stableRoot(self: Self, graph: *const Graph, id: Graph.Id) Graph.Id {
-    return self.lookup(self.payloads[@backingInt(id)]) orelse graph.root(id);
+    return self.lookup(self.payloads.at(@backingInt(id))) orelse graph.root(id);
 }
 
 fn lookup(self: Self, index: usize) ?Graph.Id {

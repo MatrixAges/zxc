@@ -3,7 +3,6 @@ const zx = @import("zx");
 const Graph = @import("types.zig");
 const enabled = @import("rx_options").generated_graph;
 const walk_rule = if (enabled) @import("generated_rx_optional_walk") else void;
-const known_rule = if (enabled) @import("generated_rx_optional_known") else void;
 const View = if (enabled) std.meta.Child(@FieldType(std.meta.Child(walk_rule.Input), "graph")) else void;
 const Route = if (enabled) @FieldType(std.meta.Child(walk_rule.Output), "route") else enum { Boundary, Stable, Open, Declared };
 const Types = if (enabled) std.meta.Child(@FieldType(View, "types")) else void;
@@ -62,38 +61,6 @@ pub fn payload(graph: *Graph, source: Graph.Id) zx.Error!Graph.Id {
             },
         }
     }
-}
-
-pub fn accepts(table: zx.ir.TypeTable, actual: zx.ir.TypeId, expected: zx.ir.TypeId) bool {
-    if (actual == expected) return true;
-    if (table.kinds[@backingInt(expected)] != optional_tag) return false;
-
-    if (!enabled) {
-        var current = expected;
-
-        while (current != actual) {
-            const index = @backingInt(current);
-
-            if (table.kinds[index] != optional_tag) return false;
-
-            current = @fromBackingInt(table.first[index]);
-        }
-
-        return true;
-    }
-
-    const types: Types = .{ .kinds = table.kinds, .children = table.first };
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-    const Parameter = @typeInfo(@TypeOf(known_rule.executeValue)).@"fn".param_types[1].?;
-    const Request = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
-
-    const request: Request = .{
-        .types = &types,
-        .expected = @backingInt(expected),
-        .actual = @backingInt(actual),
-    };
-
-    return (known_rule.executeValue(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &request else request) catch unreachable).accepts;
 }
 
 fn walk(graph: *const Graph, source: Graph.Id, remaining: u64) Step {

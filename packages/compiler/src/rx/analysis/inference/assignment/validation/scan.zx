@@ -1,0 +1,101 @@
+import integers from "std:integer"
+
+import representative from "../../forest/representative"
+import accepts from "../../optional/known"
+import { Kind } from "../../unification/model"
+
+import type { Graph } from "../../optional/model"
+import type { Edges } from "../model"
+
+export enum Action {
+    Scan,
+    ResolveSource,
+    ResolveTarget,
+    Mismatch
+}
+
+export type Input = {
+    graph: Graph,
+    edges: Edges,
+    parents: u32[],
+    index: u64,
+    source_type?: u32,
+    target_type?: u32,
+    node: u32,
+    action: Action
+}
+
+export type Output = {
+    parents: u32[],
+    index: u64,
+    source_type?: u32,
+    node: u32,
+    action: Action
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state =>
+            state.action == Action.Scan && state.index < state.edges.left.length,
+        next: state => {
+            if (state.source_type == null) {
+                const source = representative({
+                    parents: state.parents,
+                    value: state.edges.left[state.index]
+                })
+                const node = integers.widen(source.item)
+
+                state.parents = source.parents
+
+                if (state.graph.kinds[node] == Kind.Known) {
+                    state.source_type = state.graph.arguments[node]
+                } else {
+                    state.node = source.item
+                    state.action = Action.ResolveSource
+                }
+            }
+
+            if (state.action == Action.Scan && state.target_type == null) {
+                const target = representative({
+                    parents: state.parents,
+                    value: state.edges.right[state.index]
+                })
+                const node = integers.widen(target.item)
+
+                state.parents = target.parents
+
+                if (state.graph.kinds[node] == Kind.Known) {
+                    state.target_type = state.graph.arguments[node]
+                } else {
+                    state.node = target.item
+                    state.action = Action.ResolveTarget
+                }
+            }
+
+            const expected = state.target_type
+
+            if (state.action == Action.Scan && expected != null) {
+                const result = accepts({
+                    types: state.graph.types,
+                    expected,
+                    actual: state.source_type
+                })
+
+                if (result.accepts) {
+                    state.index += 1
+                    state.source_type = null
+                    state.target_type = null
+                } else {
+                    state.action = Action.Mismatch
+                }
+            }
+        },
+        return: state => ({
+            parents: state.parents,
+            index: state.index,
+            source_type: state.source_type,
+            node: state.node,
+            action: state.action
+        })
+    })
+}
