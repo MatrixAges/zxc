@@ -5,7 +5,7 @@ pub const Step = union(enum) {
     parallel: []const usize,
     result: ir.Program,
     task: struct { body: []const Step, output: ?struct { value: ir.Program, name: ?[]const u8 } = null },
-    selection: struct { subject: ir.Program, cases: []const Case },
+    selection: struct { subject: ir.Program, cases: []const Case, exhaustive: bool },
 };
 
 pub const Case = struct { value: ?ir.Program, body: []const Step };

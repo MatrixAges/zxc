@@ -130,13 +130,15 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                     item.* = .{ .value = label.value, .body = body };
                 }
 
-                if (@import("selection.zig").check(subject, selection.subject, cases, selection.cases)) |issue| {
-                    self.issue = issue;
+                const checked = try @import("selection.zig").check(self.allocator, subject, selection.subject, cases, selection.cases);
+
+                if (checked == .diagnostic) {
+                    self.issue = checked.diagnostic;
 
                     return error.InvalidFlow;
                 }
 
-                break :selection .{ .selection = .{ .subject = subject, .cases = cases } };
+                break :selection .{ .selection = .{ .subject = subject, .cases = cases, .exhaustive = checked.exhaustive } };
             },
         };
 

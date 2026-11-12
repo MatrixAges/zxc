@@ -44,6 +44,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/project/contracts/location.zx", .name = "rx_args_location", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/shorthand/route.zx", .name = "rx_shortcut_route", .owner = .rx_analysis },
     .{ .path = "rx/analysis/condition/plan.zx", .name = "rx_condition_plan", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/selection/check.rx", .name = "rx_selection_check", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/payloads.zx", .name = "assignment_payloads", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/validation/scan.zx", .name = "assignment_validation", .owner = .rx_analysis },

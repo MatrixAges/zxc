@@ -1,0 +1,24 @@
+import { type_id_bool, type_id_u8, type_id_i64, type_id_string } from "core/const"
+
+import { bool_domain_size } from "./const"
+
+import type { Coverage, Subject } from "./model"
+
+export type Input = Subject
+
+export type Output = Coverage
+
+export default function (in: Input): Output {
+    const boolean = in.type_id == type_id_bool
+    const integer = in.type_id >= type_id_u8 && in.type_id <= type_id_i64
+    const text = in.type_id == type_id_string
+
+    const size: u64? = boolean ? bool_domain_size : in.enum_members
+    const complete = size != null && size == in.case_count
+    const scalar = boolean || integer || text
+
+    return {
+        valid: scalar || in.enum_members != null,
+        exhaustive: in.has_default || complete
+    }
+}

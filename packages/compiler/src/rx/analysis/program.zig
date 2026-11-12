@@ -36,9 +36,9 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
         if (@backingInt(contract.input_type) != @backingInt(ir.Scalar.void)) try builder.bindings.append(allocator, input);
     }
 
-    try @import("program/statements.zig").lower(&builder, contract.steps, contract.calls);
+    const terminates = try @import("program/statements.zig").lower(&builder, contract.steps, contract.calls);
 
-    if (!builder.control.terminates(builder.body.items)) {
+    if (!terminates) {
         if (@backingInt(contract.output_type) != @backingInt(ir.Scalar.void)) return error.IncompleteFlow;
         try builder.body.append(allocator, .{ .result = null });
     }

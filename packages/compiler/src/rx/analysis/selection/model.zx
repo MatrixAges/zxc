@@ -1,0 +1,42 @@
+export enum Kind {
+    Default,
+    Invalid,
+    Integer,
+    Negative,
+    String,
+    Boolean,
+    Enumeration
+}
+
+export type Labels = {
+    kinds: Kind[],
+    numbers: u64[],
+    texts: string[]
+}
+
+export type Subject = {
+    type_id: u32,
+    enum_members?: u64,
+    has_default: bool,
+    case_count: u64
+}
+
+export type Coverage = {
+    valid: bool,
+    exhaustive: bool
+}
+
+export type Failure = {
+    index?: u64,
+    duplicate: bool
+}
+
+export type Input = {
+    subject: Subject,
+    labels: Labels
+}
+
+export type Output = {
+    coverage: Coverage,
+    failure: Failure
+}

@@ -1,0 +1,36 @@
+import { Kind } from "./model"
+
+import type { Labels } from "./model"
+
+export type Input = {
+    labels: Labels,
+    left: u64,
+    right: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const left_kind = in.labels.kinds[in.left]
+    const right_kind = in.labels.kinds[in.right]
+
+    if (left_kind == Kind.Default || right_kind == Kind.Default) {
+        return false
+    }
+
+    const left = in.labels.numbers[in.left]
+    const right = in.labels.numbers[in.right]
+
+    if (left_kind != right_kind) {
+        const left_integer = left_kind == Kind.Integer || left_kind == Kind.Negative
+        const right_integer = right_kind == Kind.Integer || right_kind == Kind.Negative
+        const zero = left == 0 && right == 0
+
+        return zero && left_integer && right_integer
+    }
+
+    return match left_kind {
+        Kind.String => in.labels.texts[in.left] == in.labels.texts[in.right],
+        _ => left == right
+    }
+}

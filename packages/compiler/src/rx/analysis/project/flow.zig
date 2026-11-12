@@ -1,3 +1,4 @@
+const std = @import("std");
 const rx = @import("rx");
 
 pub const Step = struct {
@@ -12,39 +13,37 @@ pub const Step = struct {
 
 pub const Case = struct { value: ?rx.ast.Attribute, body: []const Step };
 
-pub fn terminates(sequence: []const Step) bool {
-    for (sequence) |step| switch (step.value) {
-        .result => return true,
-        .task => |task| if (terminates(task.body)) return true,
-        .selection => |selection| {
-            var has_default = false;
-            var all_return = true;
+pub const Exits = struct {
+    returns: bool = false,
+    terminates: bool = false,
+    pub const returned: Exits = .{ .returns = true, .terminates = true };
+};
 
-            for (selection.cases) |case| {
-                has_default = has_default or case.value == null;
-                all_return = all_return and terminates(case.body);
-            }
+pub const Sequence = struct {
+    steps: std.ArrayList(Step) = .empty,
+    exits: Exits = .{},
+    pub fn append(self: *Sequence, allocator: std.mem.Allocator, value: @FieldType(Step, "value"), exits: Exits) std.mem.Allocator.Error!void {
+        try self.steps.append(allocator, .{ .value = value });
 
-            if (has_default and all_return) return true;
-        },
-        .call, .parallel => {},
-    };
+        self.exits.returns = self.exits.returns or exits.returns;
+        self.exits.terminates = exits.terminates;
+    }
+};
 
-    return false;
-}
+pub const BranchExits = struct {
+    has_default: bool = false,
+    any_return: bool = false,
+    all_terminate: bool = true,
+    pub fn add(self: *BranchExits, default: bool, exits: Exits) void {
+        self.has_default = self.has_default or default;
+        self.any_return = self.any_return or exits.returns;
+        self.all_terminate = self.all_terminate and exits.terminates;
+    }
+
+    pub fn finish(self: BranchExits) Exits {
+        return .{ .returns = self.any_return, .terminates = self.has_default and self.all_terminate };
+    }
+};
 
 pub const Task = struct { id: usize, node: rx.ast.Node, body: []const Step };
 pub const Branch = union(enum) { call: usize, task: Task };
-
-pub fn returns(sequence: []const Step) bool {
-    for (sequence) |step| switch (step.value) {
-        .result => return true,
-        .task => |task| if (returns(task.body)) return true,
-        .selection => |selection| {
-            for (selection.cases) |case| if (returns(case.body)) return true;
-        },
-        .call, .parallel => {},
-    };
-
-    return false;
-}

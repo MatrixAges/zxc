@@ -1,0 +1,29 @@
+import equal from "./equal"
+
+import type { Labels } from "./model"
+
+export type Input = {
+    labels: Labels,
+    index: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({
+        cursor: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.cursor < in.index,
+        next: state => {
+            state.found = equal({
+                labels: in.labels,
+                left: state.cursor,
+                right: in.index
+            })
+
+            state.cursor += 1
+        },
+        return: state => state.found
+    })
+}

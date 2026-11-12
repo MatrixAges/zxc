@@ -1,0 +1,58 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+
+import { empty_slot } from "./const"
+import equal from "./equal"
+import { Kind } from "./model"
+
+import type { Labels } from "./model"
+
+export type Input = {
+    labels: Labels,
+    slots: u64[],
+    index: u64
+}
+
+export type Output = {
+    slot: u64,
+    duplicate: bool
+}
+
+export default function (in: Input): Output {
+    const hash = match in.labels.kinds[in.index] {
+        Kind.String => bytes.hash(bytes.fromText(in.labels.texts[in.index])),
+        _ => integers.hash(in.labels.numbers[in.index])
+    }
+
+    return loop({
+        slot: hash % in.slots.length,
+        done: false,
+        duplicate: false
+    }, {
+        while: state => !state.done,
+        next: state => {
+            const entry = in.slots[state.slot]
+
+            if (entry == empty_slot) {
+                state.done = true
+            } else {
+                const same = equal({
+                    labels: in.labels,
+                    left: entry - 1,
+                    right: in.index
+                })
+
+                if (same) {
+                    state.done = true
+                    state.duplicate = true
+                } else {
+                    state.slot = (state.slot + 1) % in.slots.length
+                }
+            }
+        },
+        return: state => ({
+            slot: state.slot,
+            duplicate: state.duplicate
+        })
+    })
+}

@@ -6,9 +6,11 @@ const Flow = @import("flow.zig");
 const Module = @import("../module.zig");
 const inlineValue = @import("expression.zig").inlineValue;
 
-pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!void {
+pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!bool {
+    var terminates = false;
+
     for (sequence) |step| {
-        if (builder.control.terminates(builder.body.items)) return error.UnreachableFlow;
+        if (terminates) return error.UnreachableFlow;
 
         switch (step) {
             .call => |index| try call(builder, calls[index]),
@@ -28,16 +30,21 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
                 try builder.body.append(builder.allocator, .{ .parallel = invocations });
                 try builder.bindings.appendSlice(builder.allocator, bindings.items);
             },
-            .result => |program| try builder.body.append(builder.allocator, .{ .result = try inlineValue(builder, program) }),
+            .result => |program| {
+                try builder.body.append(builder.allocator, .{ .result = try inlineValue(builder, program) });
+
+                terminates = true;
+            },
             .task => |task| {
                 const count = builder.bindings.items.len;
-
-                try lower(builder, task.body, calls);
+                terminates = try lower(builder, task.body, calls);
 
                 var result: ?ir.SymbolId = null;
 
                 if (task.output) |output| {
                     const value = try inlineValue(builder, output.value);
+
+                    terminates = false;
 
                     if (output.name) |name| {
                         const expression = builder.expressions.view().at(@backingInt(value));
@@ -54,28 +61,29 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
             },
             .selection => |selection| {
                 const subject = try inlineValue(builder, selection.subject);
-                const type_id = builder.expressions.view().at(@backingInt(subject)).type_id;
-                const target = builder.types.at(@backingInt(type_id));
                 const cases = try builder.allocator.alloc(ir.SwitchCase, selection.cases.len);
-                var has_default = false;
+                var all_terminate = true;
 
                 for (selection.cases, cases) |source, *item| {
                     const value = if (source.value) |program| try inlineValue(builder, program) else null;
-
-                    if (value == null) has_default = true;
-
-                    item.* = .{ .value = value, .body = try block(builder, source.body, calls) };
+                    const body = try block(builder, source.body, calls);
+                    all_terminate = all_terminate and body.terminates;
+                    item.* = .{ .value = value, .body = body.id };
                 }
 
-                const exhaustive = has_default or (target == .enumeration and cases.len == target.enumeration.members.len) or (type_id == @as(ir.TypeId, @fromBackingInt(@intCast(@backingInt(ir.Scalar.bool)))) and cases.len == 2);
+                const exhaustive = selection.exhaustive;
 
                 try builder.body.append(builder.allocator, .{ .switch_stmt = .{ .subject = subject, .cases = cases, .exhaustive = exhaustive } });
+
+                terminates = exhaustive and all_terminate;
             },
         }
     }
+
+    return terminates;
 }
 
-fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!ir.BlockId {
+fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!struct { id: ir.BlockId, terminates: bool } {
     const parent = builder.body;
     const count = builder.bindings.items.len;
     builder.body = .empty;
@@ -88,9 +96,9 @@ fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.C
         builder.bindings.shrinkRetainingCapacity(count);
     }
 
-    try lower(builder, sequence, calls);
+    const terminates = try lower(builder, sequence, calls);
 
-    return builder.control.appendBlock(builder.allocator, builder.body.items);
+    return .{ .id = try builder.control.appendBlock(builder.allocator, builder.body.items), .terminates = terminates };
 }
 
 fn call(builder: *Builder, invocation: Module.Call) Builder.Error!void {

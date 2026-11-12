@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Selection" />
+
+    <Args in={Selection.Input} out={Selection.Output} />
+
+    <Call fn="domain" in={$in.subject} />
+
+    <If on={!$ctx.domain.valid}>
+        <Return
+            value={{
+                coverage: $ctx.domain,
+                failure: {
+                    index: null,
+                    duplicate: false
+                }
+            }}
+        />
+    </If>
+
+    <Call fn="labels" in={$in.labels} />
+
+    <Return
+        value={{
+            coverage: $ctx.domain,
+            failure: $ctx.labels
+        }}
+    />
+</Module>

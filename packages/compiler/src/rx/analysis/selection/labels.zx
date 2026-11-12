@@ -1,0 +1,69 @@
+import bytes from "std:bytes"
+
+import { empty_slot, hash_capacity_factor, linear_case_limit } from "./const"
+import { Kind } from "./model"
+import previous from "./previous"
+import probe from "./probe"
+
+import type { Failure, Labels } from "./model"
+
+export type Input = Labels
+
+export type Output = Failure
+
+export default function (in: Input): Output {
+    const slots: u64[] = match {
+        in.kinds.length > linear_case_limit => bytes.repeat(
+            in.kinds.length * hash_capacity_factor,
+            0
+        ).map(byte => empty_slot)[0],
+        _ => []
+    }
+
+    const failure: u64? = null
+
+    return loop({
+        index: 0,
+        slots,
+        failure,
+        duplicate: false
+    }, {
+        while: state => state.failure == null && state.index < in.kinds.length,
+        next: state => {
+            const kind = in.kinds[state.index]
+
+            if (kind == Kind.Invalid) {
+                state.failure = state.index
+            } else if (kind != Kind.Default) {
+                if (state.slots.length == 0) {
+                    state.duplicate = previous({
+                        labels: in,
+                        index: state.index
+                    })
+                } else {
+                    const found = probe({
+                        labels: in,
+                        slots: state.slots,
+                        index: state.index
+                    })
+
+                    state.duplicate = found.duplicate
+
+                    if (!found.duplicate) {
+                        state.slots[found.slot] = state.index + 1
+                    }
+                }
+
+                if (state.duplicate) {
+                    state.failure = state.index
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            index: state.failure,
+            duplicate: state.duplicate
+        })
+    })
+}

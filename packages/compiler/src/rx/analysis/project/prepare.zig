@@ -31,10 +31,7 @@ pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
 
         loader.stores = references.bindings;
 
-        const steps = (if (target.optionalAttribute(source.node, "fn") != null)
-            loader.shortcut(source.node)
-        else
-            loader.steps(source.node.children)) catch |err| {
+        const steps = loader.moduleBody(source.node) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             return .{ .diagnostic = loader.issue.? };
@@ -106,80 +103,106 @@ const Loader = struct {
 
         return plan.steps;
     }
-    fn steps(self: *Loader, nodes: []const rx.ast.Node) Error![]const Flow.Step {
-        var result: std.ArrayList(Flow.Step) = .empty;
-        var terminated = false;
+    fn moduleBody(self: *Loader, node: rx.ast.Node) Error![]const Flow.Step {
+        if (target.optionalAttribute(node, "fn") != null) return self.shortcut(node);
+
+        return (try self.steps(node.children)).steps.items;
+    }
+    fn steps(self: *Loader, nodes: []const rx.ast.Node) Error!Flow.Sequence {
+        var sequence: Flow.Sequence = .{};
 
         for (nodes) |node| {
             if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store") or std.mem.eql(u8, node.name, "Type") or std.mem.eql(u8, node.name, "Args")) continue;
-            if (terminated) return self.fail(node.location, "return_path", "steps after a terminating Return, Switch or If are unreachable");
+            if (sequence.exits.terminates) return self.fail(node.location, "return_path", "steps after a terminating Return, Switch or If are unreachable");
 
-            const value: @FieldType(Flow.Step, "value") = if (std.mem.eql(u8, node.name, "Return"))
-                .{ .result = target.attribute(node, "value") }
+            var exits: Flow.Exits = .{};
 
-            else if (std.mem.eql(u8, node.name, "Call"))
+            const value: @FieldType(Flow.Step, "value") = if (std.mem.eql(u8, node.name, "Return")) result: {
+                exits = Flow.Exits.returned;
+
+                break :result .{ .result = target.attribute(node, "value") };
+            } else if (std.mem.eql(u8, node.name, "Call"))
                 .{ .call = try self.call(node) }
-            else if (std.mem.eql(u8, node.name, "Task"))
-                .{ .task = .{ .node = node, .body = try self.taskBody(node, false) } }
-            else if (std.mem.eql(u8, node.name, "Parallel")) parallel: {
-                const branches = try self.allocator.alloc(Flow.Branch, node.children.len);
 
-                for (node.children, branches) |child, *branch| {
-                    branch.* = if (std.mem.eql(u8, child.name, "Call"))
-                        .{ .call = try self.call(child) }
+            else if (std.mem.eql(u8, node.name, "Task")) task: {
+                const body = try self.taskBody(node, false);
 
-                    else task: {
-                        const id = self.task_count;
+                exits = body.exits;
 
-                        self.task_count += 1;
-
-                        break :task .{ .task = .{ .id = id, .node = child, .body = try self.taskBody(child, true) } };
-                    };
-                }
-
-                break :parallel .{ .parallel = branches };
-            } else if (std.mem.eql(u8, node.name, "Switch")) selection: {
-                const cases = try self.allocator.alloc(Flow.Case, node.children.len);
-
-                for (node.children, cases) |child, *case| {
-                    case.* = .{ .value = if (std.mem.eql(u8, child.name, "Case")) target.attribute(child, "value") else null, .body = try self.steps(child.children) };
-                }
-
-                break :selection .{ .selection = .{ .subject = target.attribute(node, "on"), .cases = cases } };
-            } else if (std.mem.eql(u8, node.name, "If")) selection: {
+                break :task .{ .task = .{ .node = node, .body = body.steps.items } };
+            } else if (std.mem.eql(u8, node.name, "Parallel"))
+                .{ .parallel = try self.parallel(node) }
+            else if (std.mem.eql(u8, node.name, "Switch") or std.mem.eql(u8, node.name, "If")) selection: {
                 const subject = target.attribute(node, "on");
-                const has_else = std.mem.eql(u8, node.children[node.children.len - 1].name, "Else");
-                const body = if (has_else) node.children[0 .. node.children.len - 1] else node.children;
-                const cases = try self.allocator.alloc(Flow.Case, if (has_else) 2 else 1);
+                var branches: Flow.BranchExits = .{};
+                const cases = if (std.mem.eql(u8, node.name, "Switch")) try self.switchCases(node, &branches) else try self.ifCases(node, subject, &branches);
 
-                cases[0] = .{ .value = .{ .name = "value", .value = "true", .kind = .expression, .location = subject.location, .value_location = subject.value_location }, .body = try self.steps(body) };
-
-                if (has_else) cases[1] = .{ .value = null, .body = try self.steps(node.children[node.children.len - 1].children) };
+                exits = branches.finish();
 
                 break :selection .{ .selection = .{ .subject = subject, .cases = cases } };
             } else return self.fail(node.location, "unsupported", "RX execution supports Store declarations, Call, Return, Task, Switch, If and pure Parallel branches; events require host linking");
 
-            try result.append(self.allocator, .{ .value = value });
-
-            terminated = Flow.terminates(result.items);
+            try sequence.append(self.allocator, value, exits);
         }
 
-        return result.items;
+        return sequence;
     }
-    fn taskBody(self: *Loader, node: rx.ast.Node, parallel: bool) Error![]const Flow.Step {
-        const body = try self.steps(node.children);
+    fn switchCases(self: *Loader, node: rx.ast.Node, exits: *Flow.BranchExits) Error![]const Flow.Case {
+        const cases = try self.allocator.alloc(Flow.Case, node.children.len);
+
+        for (node.children, cases) |child, *case| {
+            const value = if (std.mem.eql(u8, child.name, "Case")) target.attribute(child, "value") else null;
+            case.* = try self.selectionCase(value, child.children, exits);
+        }
+
+        return cases;
+    }
+    fn ifCases(self: *Loader, node: rx.ast.Node, subject: rx.ast.Attribute, exits: *Flow.BranchExits) Error![]const Flow.Case {
+        const last = node.children[node.children.len - 1];
+        const has_else = std.mem.eql(u8, last.name, "Else");
+        const body = if (has_else) node.children[0 .. node.children.len - 1] else node.children;
+        const cases = try self.allocator.alloc(Flow.Case, if (has_else) 2 else 1);
+        const value = rx.ast.Attribute{ .name = "value", .value = "true", .kind = .expression, .location = subject.location, .value_location = subject.value_location };
+        cases[0] = try self.selectionCase(value, body, exits);
+
+        if (has_else) cases[1] = try self.selectionCase(null, last.children, exits);
+
+        return cases;
+    }
+    fn selectionCase(self: *Loader, value: ?rx.ast.Attribute, nodes: []const rx.ast.Node, exits: *Flow.BranchExits) Error!Flow.Case {
+        const body = try self.steps(nodes);
+
+        exits.add(value == null, body.exits);
+
+        return .{ .value = value, .body = body.steps.items };
+    }
+    fn parallel(self: *Loader, node: rx.ast.Node) Error![]const Flow.Branch {
+        const branches = try self.allocator.alloc(Flow.Branch, node.children.len);
+
+        for (node.children, branches) |child, *branch| {
+            if (std.mem.eql(u8, child.name, "Call")) {
+                branch.* = .{ .call = try self.call(child) };
+
+                continue;
+            }
+
+            const id = self.task_count;
+            self.task_count += 1;
+            const body = try self.taskBody(child, true);
+
+            branch.* = .{ .task = .{ .id = id, .node = child, .body = body.steps.items } };
+        }
+
+        return branches;
+    }
+    fn taskBody(self: *Loader, node: rx.ast.Node, parallel_task: bool) Error!Flow.Sequence {
+        var body = try self.steps(node.children);
         const output = target.optionalAttribute(node, "out") orelse return body;
 
-        if (Flow.returns(body)) return self.fail(output.value_location, "return_path", "Task.out and Return cannot both define the same task output");
-        if (!parallel) return body;
+        if (body.exits.returns) return self.fail(output.value_location, "return_path", "Task.out and Return cannot both define the same task output");
+        if (parallel_task) try body.append(self.allocator, .{ .result = output }, Flow.Exits.returned);
 
-        const result = try self.allocator.alloc(Flow.Step, body.len + 1);
-
-        @memcpy(result[0..body.len], body);
-
-        result[body.len] = .{ .value = .{ .result = output } };
-
-        return result;
+        return body;
     }
     fn call(self: *Loader, node: rx.ast.Node) Error!usize {
         const index = self.calls.items.len;
