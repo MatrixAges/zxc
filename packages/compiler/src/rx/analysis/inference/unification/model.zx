@@ -11,6 +11,10 @@ export enum Kind {
 }
 
 export enum Route {
+    Ready,
+    Same,
+    Depth,
+    Recursive,
     Left,
     Right,
     Known,
@@ -26,16 +30,14 @@ export enum Route {
     ConcreteTupleMismatch
 }
 
-export type Shape = {
-    kind: Kind,
-    concrete: Concrete,
-    identity: u32,
-    size: u64
-}
-
 export type Input = {
-    left: Shape,
-    right: Shape
+    left: Kind,
+    right: Kind,
+    concrete: Concrete,
+    left_id: u32,
+    right_id: u32,
+    left_size: u64,
+    right_size: u64
 }
 
 export type Output = Route

@@ -1,0 +1,23 @@
+<Module>
+    <Type from="commit/model" as="Commit" />
+
+    <Args in={Commit.Input} out={Commit.Output} />
+
+    <Call
+        fn="../scalar/combine"
+        in={$in.pick([
+            "left",
+            "right"
+        ])}
+    />
+
+    <Call
+        fn="../forest/link"
+        in={$in.omit([
+            "left",
+            "right"
+        ])}
+    />
+
+    <Return value={$ctx.combine} />
+</Module>

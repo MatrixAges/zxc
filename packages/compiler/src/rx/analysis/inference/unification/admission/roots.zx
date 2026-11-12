@@ -1,0 +1,44 @@
+import { max_nesting_depth } from "core/const"
+
+import representative from "../../forest/borrowed_root"
+import { Route } from "../model"
+
+import type { U32Buffer } from "std:memory"
+import type { Output as Admission } from "./model"
+
+export type Input = {
+    parents: U32Buffer,
+    left: u32,
+    right: u32
+    depth: u64
+}
+
+export type Output = Admission
+
+export default function (in: Input): Output {
+    if (in.depth >= max_nesting_depth) {
+        return {
+            left: in.left,
+            right: in.right,
+            route: Route.Depth
+        }
+    }
+
+    const left = representative({
+        parents: in.parents,
+        value: in.left
+    })
+
+    const right = representative({
+        parents: in.parents,
+        value: in.right
+    })
+
+    const route = left == right ? Route.Same : Route.Ready
+
+    return {
+        left,
+        right,
+        route
+    }
+}

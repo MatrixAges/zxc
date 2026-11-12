@@ -1,10 +1,16 @@
 const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("../types.zig");
+const Occurs = @import("occurs.zig");
 pub const enabled = @import("rx_options").generated_graph;
-const generated = if (enabled) @import("generated_rx_unification") else void;
+const generated = if (enabled) @import("generated_rx_unification_prepare") else void;
+const Output = if (enabled) @typeInfo(@typeInfo(@TypeOf(generated.executeValue)).@"fn".return_type.?).error_union.payload else void;
 
-pub const Route = if (enabled) generated.Output else enum {
+pub const Route = if (enabled) @FieldType(Output, "route") else enum {
+    Ready,
+    Same,
+    Depth,
+    Recursive,
     Left,
     Right,
     Known,
@@ -20,44 +26,60 @@ pub const Route = if (enabled) generated.Output else enum {
     ConcreteTupleMismatch,
 };
 
-pub fn choose(left: Graph.Shape, right: Graph.Shape, concrete: ?zx.ir.Type) Route {
-    if (!enabled) return seed(left, right, concrete);
+pub const Work = struct { left: Graph.Id, right: Graph.Id, route: Route };
 
-    const Input = @typeInfo(generated.Input).pointer.child;
-    const Shape = @typeInfo(@FieldType(Input, "left")).pointer.child;
-    const first = describe(Shape, left, if (left == .known) concrete else null);
-    const second = describe(Shape, right, if (right == .known) concrete else null);
-    var bytes: [0]u8 = undefined;
-    var scratch = std.heap.FixedBufferAllocator.init(&bytes);
+pub fn prepare(graph: *const Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth: usize) zx.Error!Work {
+    if (!enabled) return prepareSeed(graph, left, right, span, depth);
 
-    return generated.executeIn(scratch.allocator(), &.{ .left = &first, .right = &second }) catch unreachable;
+    const rows = graph.nodes.slice();
+    const types = &graph.types.items;
+    const parents: []u32 = @constCast(graph.forest.state.items);
+    var scratch = std.heap.FixedBufferAllocator.init(&.{});
+
+    const result = generated.executeValue(scratch.allocator(), &.{
+        .graph = &.{
+            .kinds = rows.items(.kind),
+            .members = rows.items(.members),
+            .arguments = rows.items(.argument),
+        },
+        .types = &.{ .kinds = types.kinds.items, .sizes = types.second.items },
+        .parents = @ptrCast(&parents),
+        .left = @backingInt(left),
+        .right = @backingInt(right),
+        .depth = depth,
+    }) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    return .{ .left = @fromBackingInt(result.left), .right = @fromBackingInt(result.right), .route = result.route };
 }
 
-fn describe(comptime Shape: type, value: Graph.Shape, concrete: ?zx.ir.Type) Shape {
+fn prepareSeed(graph: *const Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth: usize) zx.Error!Work {
+    if (depth >= 256) return .{ .left = left, .right = right, .route = .Depth };
+
+    const a = graph.root(left);
+    const b = graph.root(right);
+
+    if (a == b) return .{ .left = a, .right = b, .route = .Same };
+
+    try Occurs.check(graph, a, b, span);
+
+    const first = graph.shapeAt(@backingInt(a));
+    const second = graph.shapeAt(@backingInt(b));
+
     return .{
-        .kind = switch (value) {
-            .unknown => .Unknown,
-            .sequence => .Sequence,
-            .known => .Known,
-            .object => .Object,
-            .list => .List,
-            .optional => .Optional,
-            .tuple => .Tuple,
-        },
-        .identity = if (value == .known) @backingInt(value.known) else 0,
-        .size = if (value == .tuple) value.tuple.len else if (concrete != null and concrete.? == .tuple) concrete.?.tuple.len else 0,
-        .concrete = if (concrete) |kind| switch (kind) {
-            .scalar => .Scalar,
-            .object => .Object,
-            .optional => .Optional,
-            .list => .List,
-            .tuple => .Tuple,
-            .error_set => .ErrorSet,
-            .task => .Task,
-            .enumeration => .Enumeration,
-            .native_reference => .NativeReference,
-        } else .Scalar,
+        .left = a,
+        .right = b,
+        .route = seed(first, second, concreteType(graph, first, second)),
     };
+}
+
+pub fn concreteType(graph: *const Graph, left: Graph.Shape, right: Graph.Shape) ?zx.ir.Type {
+    if (left == .known and right != .unknown and right != .known) return graph.types.get(left.known);
+    if (right == .known and left != .unknown and left != .known) return graph.types.get(right.known);
+
+    return null;
 }
 
 fn seed(left: Graph.Shape, right: Graph.Shape, concrete: ?zx.ir.Type) Route {

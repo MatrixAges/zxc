@@ -1,37 +1,28 @@
 import integers from "std:integer"
 import { max_nesting_depth } from "core/const"
 
-import halve from "../../forest/halve"
+import representative from "../../forest/borrowed_root"
 import { Kind } from "../model"
 import { Reach } from "./model"
 
-import type { Query, Result } from "./model"
+import type { Query } from "./model"
 
 export type Input = Query
 
-export type Output = Result
+export type Output = Reach
 
 export default function contains(in: Input): Output {
     if (in.depth >= max_nesting_depth) {
-        return {
-            parents: in.parents,
-            reach: Reach.Depth
-        }
+        return Reach.Depth
     }
 
-    const found = halve({
+    const root = representative({
         parents: in.parents,
-        item: in.source,
-        parent: in.parents[integers.widen(in.source)]
+        value: in.source
     })
 
-    const root = found.item
-
     if (root == in.target) {
-        return {
-            parents: found.parents,
-            reach: Reach.Present
-        }
+        return Reach.Present
     }
 
     const index = integers.widen(root)
@@ -41,7 +32,7 @@ export default function contains(in: Input): Output {
     if (kind == Kind.List || kind == Kind.Optional) {
         return contains({
             graph: in.graph,
-            parents: found.parents,
+            parents: in.parents,
             source: in.graph.arguments[index],
             target: in.target,
             depth
@@ -51,27 +42,21 @@ export default function contains(in: Input): Output {
     const children = in.graph.members[index]
 
     return loop({
-        parents: found.parents,
         reach: Reach.Absent,
         position: 0
     }, {
         while: state => state.position < children.length && state.reach == Reach.Absent,
         next: state => {
-            const result = contains({
+            state.reach = contains({
                 graph: in.graph,
-                parents: state.parents,
+                parents: in.parents,
                 source: children[state.position],
                 target: in.target,
                 depth
             })
 
-            state.parents = result.parents
-            state.reach = result.reach
             state.position += 1
         },
-        return: state => ({
-            parents: state.parents,
-            reach: state.reach
-        })
+        return: state => state.reach
     })
 }

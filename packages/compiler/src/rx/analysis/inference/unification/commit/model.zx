@@ -1,0 +1,12 @@
+import type { U32Buffer } from "std:memory"
+import type { Constraints } from "../../scalar/model"
+
+export type Input = {
+    parents: U32Buffer,
+    parent: u32,
+    child: u32,
+    left: Constraints,
+    right: Constraints
+}
+
+export type Output = Constraints

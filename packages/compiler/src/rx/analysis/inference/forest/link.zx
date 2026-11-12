@@ -1,20 +1,18 @@
 import integers from "std:integer"
+import memory from "std:memory"
+
+import type { U32Buffer } from "std:memory"
 
 export type Input = {
-    parents: u32[],
+    parents: U32Buffer,
     parent: u32,
     child: u32
 }
 
-export type Output = Input
+export type Output = void
 
 export default function (in: Input): Output {
-    if (in.parent == in.child) {
-        return in
-    }
-
-    return {
-        ...in,
-        parents: in.parents.with(integers.widen(in.child), in.parent)
+    if (in.parent != in.child) {
+        memory.writeU32(in.parents, integers.widen(in.child), in.parent)
     }
 }

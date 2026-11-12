@@ -1,56 +1,36 @@
 const zx = @import("zx");
 const Graph = @import("types.zig");
-const Scalar = @import("scalar.zig");
 const Plan = @import("unification/plan.zig");
+const Commit = @import("unification/commit.zig");
 const Fields = @import("unification/fields.zig");
 const Occurs = @import("unification/occurs.zig");
 
 pub fn merge(self: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, depth: usize) zx.Error!void {
-    if (depth >= 256) return self.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels");
+    const work = try Plan.prepare(self, left, right, span, depth);
 
-    const a = self.root(left);
-    const b = self.root(right);
+    switch (work.route) {
+        .Same => return,
+        .Depth => return Occurs.depthLimit(self, span),
+        .Recursive => return Occurs.recursive(self, span),
+        else => {},
+    }
 
-    if (a == b) return;
+    const first = self.nodeAt(@backingInt(work.left));
+    const second = self.nodeAt(@backingInt(work.right));
+    const shape = try combine(self, first.shape, second.shape, work.route, span, depth);
 
-    try Occurs.check(self, a, b, span);
-
-    const first = self.nodeAt(@backingInt(a));
-    const second = self.nodeAt(@backingInt(b));
-    const shape = try combine(self, first.shape, second.shape, span, depth);
-
-    const constraints = Scalar.combine(
-        .{ .allowed = first.allowed, .fallback = first.fallback },
-        .{ .allowed = second.allowed, .fallback = second.fallback },
-    );
-
-    self.setShape(@backingInt(a), shape);
-    self.nodes.items(.fallback)[@backingInt(a)] = if (constraints.fallback) |scalar| @backingInt(scalar) else null;
-    self.forest.connect(a, b);
-
-    self.revision += 1;
-    self.object_revision += 1;
-
-    if (constraints.allowed) |mask| try self.restrict(a, mask, span);
+    try Commit.publish(self, work.left, work.right, first, second, shape, span);
 }
 
-fn combine(self: *Graph, left: Graph.Shape, right: Graph.Shape, span: zx.Span, depth: usize) zx.Error!Graph.Shape {
-    const concrete: ?zx.ir.Type = if (left == .known and right != .unknown and right != .known)
-        self.types.get(left.known)
-
-    else if (right == .known and left != .unknown and left != .known)
-        self.types.get(right.known)
-    else
-        null;
-
-    switch (Plan.choose(left, right, concrete)) {
+fn combine(self: *Graph, left: Graph.Shape, right: Graph.Shape, route: Plan.Route, span: zx.Span, depth: usize) zx.Error!Graph.Shape {
+    switch (route) {
         .Left => return left,
         .Right => return right,
         .Known => {
             const declared = if (left == .known) left else right;
             const inferred = if (left == .known) right else left;
 
-            try applyKnown(self, inferred, concrete, span, depth);
+            try applyKnown(self, inferred, Plan.concreteType(self, left, right), span, depth);
 
             return declared;
         },

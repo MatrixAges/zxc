@@ -1,0 +1,59 @@
+import integers from "std:integer"
+import concreteKind from "core/type_table/kind"
+import { Kind as Concrete } from "core/type_table/model"
+
+import { Kind } from "../model"
+
+import type { Input as Shapes } from "../model"
+import type { Graph } from "../occurs/model"
+import type { Columns } from "./model"
+
+export type Input = {
+    graph: Graph,
+    types: Columns,
+    left: u32,
+    right: u32
+}
+
+export type Output = Shapes
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.left)
+    const second = integers.widen(in.right)
+    const left = in.graph.kinds[first]
+    const right = in.graph.kinds[second]
+    const left_id = left == Kind.Known ? in.graph.arguments[first] : 0
+    const right_id = right == Kind.Known ? in.graph.arguments[second] : 0
+    const left_known = left == Kind.Known && right != Kind.Known && right != Kind.Unknown
+    const right_known = right == Kind.Known && left != Kind.Known && left != Kind.Unknown
+    const identity = integers.widen(left_known ? left_id : right_id)
+
+    const concrete = match {
+        left_known || right_known => concreteKind(in.types.kinds[identity]),
+        _ => Concrete.Scalar
+    }
+
+    const left_size = match {
+        left == Kind.Tuple => in.graph.members[first].length,
+        left_known && concrete == Concrete.Tuple =>
+            integers.widen(in.types.sizes[identity]),
+        _ => 0
+    }
+
+    const right_size = match {
+        right == Kind.Tuple => in.graph.members[second].length,
+        right_known && concrete == Concrete.Tuple =>
+            integers.widen(in.types.sizes[identity]),
+        _ => 0
+    }
+
+    return {
+        left,
+        right,
+        concrete,
+        left_id,
+        right_id,
+        left_size,
+        right_size
+    }
+}

@@ -1,22 +1,37 @@
 import contains from "./contains"
+import hasChildren from "./has_children"
 import { Reach } from "./model"
 
-import type { Query, Result } from "./model"
+import type { Query } from "./model"
 
 export type Input = Query
 
-export type Output = Result
+export type Output = Reach
 
 export default function (in: Input): Output {
+    const source_has_children = hasChildren({
+        graph: in.graph,
+        index: in.source
+    })
+
+    const target_has_children = hasChildren({
+        graph: in.graph,
+        index: in.target
+    })
+
+    if (!source_has_children && !target_has_children) {
+        return Reach.Absent
+    }
+
     const forward = contains(in)
 
-    if (forward.reach != Reach.Absent) {
+    if (forward != Reach.Absent) {
         return forward
     }
 
     return contains({
         graph: in.graph,
-        parents: forward.parents,
+        parents: in.parents,
         source: in.target,
         target: in.source,
         depth: in.depth

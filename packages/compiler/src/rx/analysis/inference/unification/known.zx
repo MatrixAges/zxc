@@ -5,15 +5,14 @@ import { Kind, Route } from "./model"
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    const left_known = in.left.kind == Kind.Known
-    const declared = left_known ? in.left : in.right
+    const left_known = in.left == Kind.Known
     const inferred = left_known ? in.right : in.left
-    const kind = declared.concrete
-    const same = declared.identity == inferred.identity
+    const kind = in.concrete
+    const same = in.left_id == in.right_id
     const sequence = kind == Concrete.List || kind == Concrete.Tuple
-    const tuple = kind == Concrete.Tuple && declared.size == inferred.size
+    const tuple = kind == Concrete.Tuple && in.left_size == in.right_size
 
-    return match inferred.kind {
+    return match inferred {
         Kind.Known => same ? Route.Known : Route.ConcreteMismatch,
         Kind.Sequence => sequence ? Route.Known : Route.SequenceMismatch,
         Kind.Object => match kind {

@@ -1,0 +1,78 @@
+<Module>
+    <Type from="admission/model" as="Admission" />
+    <Type from="model" as="Unification" />
+    <Type from="occurs/model" as="Occurs" />
+
+    <Args in={Admission.Input} out={Admission.Output} />
+
+    <Call
+        fn="admission/roots"
+        in={$in.omit([
+            "graph",
+            "types"
+        ])}
+    />
+
+    <If on={$ctx.roots.route != Unification.Route.Ready}>
+        <Return value={$ctx.roots} />
+    </If>
+
+    <Call
+        fn="occurs/check"
+        in={{
+            graph: $in.graph,
+            parents: $in.parents,
+            source: $ctx.roots.left,
+            target: $ctx.roots.right,
+            depth: 0
+        }}
+    />
+
+    <If on={$ctx.check == Occurs.Reach.Present}>
+        <Return
+            value={{
+                ...$ctx.roots.pick([
+                    "left",
+                    "right"
+                ]),
+                route: Unification.Route.Recursive
+            }}
+        />
+    </If>
+
+    <If on={$ctx.check == Occurs.Reach.Depth}>
+        <Return
+            value={{
+                ...$ctx.roots.pick([
+                    "left",
+                    "right"
+                ]),
+                route: Unification.Route.Depth
+            }}
+        />
+    </If>
+
+    <Call
+        fn="admission/rows"
+        in={{
+            ...$ctx.roots.pick([
+                "left",
+                "right"
+            ]),
+            graph: $in.graph,
+            types: $in.types
+        }}
+    />
+
+    <Call module="decide" in={$ctx.rows} />
+
+    <Return
+        value={{
+            ...$ctx.roots.pick([
+                "left",
+                "right"
+            ]),
+            route: $ctx.decide
+        }}
+    />
+</Module>

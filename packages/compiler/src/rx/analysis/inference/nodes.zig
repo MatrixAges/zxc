@@ -2,7 +2,7 @@ const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
 const enabled = @import("rx_options").generated_graph;
-const generated = if (enabled) @import("generated_rx_unification_occurs") else void;
+const generated = if (enabled) @import("generated_rx_unification_prepare") else void;
 const View = if (enabled) std.meta.Child(@FieldType(std.meta.Child(generated.Input), "graph")) else void;
 
 pub const Kind = if (enabled) std.meta.Elem(@FieldType(View, "kinds")) else enum {

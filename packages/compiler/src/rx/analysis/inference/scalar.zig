@@ -96,22 +96,6 @@ pub fn restrict(previous: ?Mask, requested: Mask, shape: Shape, scalar: ?zx.ir.S
     };
 }
 
-pub fn combine(left: Constraints, right: Constraints) Constraints {
-    if (left.allowed == null and left.fallback == null) return right;
-    if (right.allowed == null and right.fallback == null) return left;
-    if (!enabled) return seed.combine(left, right);
-
-    const result = call(@import("generated_rx_scalar_combine"), &.{
-        .left = &.{ .allowed = bits(left.allowed), .fallback = code(left.fallback) },
-        .right = &.{ .allowed = bits(right.allowed), .fallback = code(right.fallback) },
-    });
-
-    return .{
-        .allowed = if (result.allowed) |value| fromBits(value) else null,
-        .fallback = if (result.fallback) |value| @fromBackingInt(@intCast(value)) else null,
-    };
-}
-
 pub fn default(allowed: ?Mask, fallback: zx.ir.Scalar) ?zx.ir.Scalar {
     if (!enabled) return seed.default(allowed, fallback);
 
@@ -126,10 +110,6 @@ fn bits(value: ?Mask) ?u64 {
 
 fn fromBits(value: u64) Mask {
     return .{ .bits = .{ .mask = @intCast(value) } };
-}
-
-fn code(value: ?zx.ir.Scalar) ?u32 {
-    return if (value) |scalar| @backingInt(scalar) else null;
 }
 
 fn Value(comptime Output: type) type {

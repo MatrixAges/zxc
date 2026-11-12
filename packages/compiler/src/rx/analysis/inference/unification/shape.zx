@@ -3,8 +3,7 @@ import { Kind, Route } from "./model"
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    const left = in.left.kind
-    const right = in.right.kind
+    const { left, right } = in
 
     if (left == Kind.Unknown) {
         return Route.Right
@@ -37,7 +36,7 @@ export default function (in: Input): Output {
         return Route.ShapeMismatch
     }
 
-    const same_size = in.left.size == in.right.size
+    const same_size = in.left_size == in.right_size
 
     return match left {
         Kind.Tuple => same_size ? Route.Tuple : Route.TupleMismatch,

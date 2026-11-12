@@ -15,6 +15,14 @@ export default function (in: Input): Output {
     const left = in.left.fallback
     const right = in.right.fallback
 
+    if (left == null && in.left.allowed == null) {
+        return in.right
+    }
+
+    if (right == null && in.right.allowed == null) {
+        return in.left
+    }
+
     const fallback = match {
         left == null => right,
         right == null => left,
