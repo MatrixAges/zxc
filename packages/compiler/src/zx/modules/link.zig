@@ -42,19 +42,22 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     @memset(function_ids, null);
 
+    const workspace = module_scratch.allocator();
+
     for (order) |index| {
-        const source = &modules[index];
-        mappings[index] = try types.appendFrom(scratch, source.types, source.nominal_types, 0);
+        mappings[index] = try types.appendTemporary(scratch, workspace, &modules[index]);
+
+        if (!module_scratch.reset(.retain_capacity)) return error.OutOfMemory;
     }
 
-    var builder = Builder{ .allocator = owned, .temporary = module_scratch.allocator(), .modules = modules, .plan = plan, .type_mappings = mappings, .module_functions = function_ids };
+    var builder = Builder{ .allocator = owned, .temporary = workspace, .modules = modules, .plan = plan, .type_mappings = mappings, .module_functions = function_ids };
     const entry_position = order.len - 1;
 
     for (order[0..entry_position]) |index| {
         const module = &modules[index];
         const function = try builder.module(index);
 
-        _ = module_scratch.reset(.retain_capacity);
+        if (!module_scratch.reset(.retain_capacity)) return error.OutOfMemory;
 
         switch (@import("link/placement.zig").select(module.stores.count(), function != null)) {
             .Invalid => return error.InvalidModule,

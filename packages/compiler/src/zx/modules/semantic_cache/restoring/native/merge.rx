@@ -1,18 +1,12 @@
 <Module>
-    <Type from="../../../compiled/loading/type_base" as="TypeBase" />
-    <Type from="../../../../analysis/semantic/merging/origin" as="Origin" />
+    <Type from="../../../../analysis/semantic/merging/model" as="Merge" />
+    <Type from="restore_input" as="Restore" />
     <Type from="program" as="Program" />
     <Type from="failed" as="Failed" />
 
     <Args
         in={{
-            input: {
-                base: TypeBase.Output,
-                base_origins: Origin.Output,
-                module_id: u32,
-                origin_names: string[],
-                validation: Program.Input
-            },
+            input: Restore.Input,
             program: Program.Output
         }}
         out={Failed.Output}
@@ -33,16 +27,17 @@
             origins: $in.input.validation.request.origins,
             names: $in.input.origin_names,
             base: $ctx.type_base,
-            base_origins: $in.input.base_origins
+            base_origins: $in.input.base_origins,
+            mapping: $in.input.type_mapping
         }}
     />
 
-    <If on={$ctx.types.status == 0}>
+    <If on={$ctx.types.status == Merge.Status.Ready}>
         <Call
             fn="functions"
             in={{
                 source: $in.program.context.functions,
-                mapping: $ctx.types.mapping,
+                mapping: $in.input.type_ids,
                 module_id: $in.input.module_id
             }}
         />
@@ -63,7 +58,7 @@
                 types: $ctx.type_delta,
                 origins: $ctx.types.origins,
                 functions: $ctx.functions,
-                mapping: $ctx.types.mapping
+                mapping: $in.input.type_ids
             }}
         />
 

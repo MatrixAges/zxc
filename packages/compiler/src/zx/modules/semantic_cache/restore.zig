@@ -79,7 +79,7 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
         for (std.enums.values(ir.Scalar)) |scalar| try types.items.append(allocator, .{ .scalar = scalar });
     }
 
-    const mapping = try types.appendTemporary(temporary, module.*);
+    const mapping = try types.appendTemporary(temporary, temporary, module);
 
     if (!try constants.validate(temporary, module.types, module.constant_exports)) return error.InvalidModule;
     if (!try constants.validate(temporary, module.types, module.constant_imports)) return error.InvalidModule;

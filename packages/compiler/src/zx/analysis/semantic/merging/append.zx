@@ -1,9 +1,11 @@
 import integers from "std:integer"
+import memory from "std:memory"
 import { Kind } from "core/type_table/model"
 
 import delta from "../constructing/delta"
 import kind from "../types/kind"
 import candidate from "./candidate"
+import { Status } from "./model"
 import nominal from "./nominal"
 import origin from "./origin"
 import references from "./references"
@@ -20,7 +22,7 @@ export default function (in: Input): Output {
         index: in.request.first
     }, {
         while: current =>
-            current.state.status == 0 &&
+            current.state.status == Status.Ready &&
             current.index < current.request.source.kinds.length,
         next: current => {
             const request = current.request
@@ -28,7 +30,7 @@ export default function (in: Input): Output {
             const remapped = references({
                 source: request.source,
                 index,
-                mapping: current.state.mapping,
+                mapping: request.mapping,
                 references: current.state.references
             })
             const value = candidate({
@@ -44,7 +46,7 @@ export default function (in: Input): Output {
                 current.state = {
                     ...current.state,
                     references: remapped,
-                    status: 1
+                    status: Status.MissingOrigin
                 }
             } else {
                 const origin_index =
@@ -85,7 +87,7 @@ export default function (in: Input): Output {
                     current.state = {
                         ...current.state,
                         references: remapped,
-                        status: 2
+                        status: Status.Conflict
                     }
                 } else {
                     const id =
@@ -114,14 +116,13 @@ export default function (in: Input): Output {
                         }),
                         _ => current.state.origins
                     }
-                    const mapping = current.state.mapping.with(index, id)
+                    memory.writeU32(request.mapping, index, id)
 
                     current.state = {
-                        mapping,
                         delta: added,
                         origins: bound,
                         references: remapped,
-                        status: 0
+                        status: Status.Ready
                     }
                 }
             }

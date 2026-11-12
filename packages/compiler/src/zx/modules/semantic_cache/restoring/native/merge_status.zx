@@ -1,11 +1,13 @@
-export type Input = u64
+import { Status } from "../../../../analysis/semantic/merging/model"
+
+export type Input = Status
 
 export type Output = u64
 
 export default function (in: Input): Output {
     return match in {
-        1 => 3,
-        2 => 4,
+        Status.MissingOrigin => 3,
+        Status.Conflict => 4,
         _ => 1
     }
 }

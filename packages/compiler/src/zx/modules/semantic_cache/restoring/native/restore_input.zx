@@ -1,0 +1,14 @@
+import type { U32Buffer } from "std:memory"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+import type { Input as Validation } from "./program"
+
+export type Input = {
+    base: Table,
+    base_origins: Bindings,
+    module_id: u32,
+    origin_names: string[],
+    type_ids: u32[],
+    type_mapping: U32Buffer,
+    validation: Validation
+}

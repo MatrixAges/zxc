@@ -1,5 +1,6 @@
 <Module>
     <Type from="model" as="Model" />
+    <Type from="../../analysis/semantic/merging/model" as="Merge" />
 
     <Args in={Model.Input} out={Model.Result} />
 
@@ -27,11 +28,12 @@
             origins: $ctx.origins,
             names: $in.graph.origin_names,
             base: $ctx.type_base,
-            base_origins: $in.destination.origins
+            base_origins: $in.destination.origins,
+            mapping: $in.type_mapping
         }}
     />
 
-    <If on={$ctx.types.status == 0}>
+    <If on={$ctx.types.status == Merge.Status.Ready}>
         <Call
             fn="loading/capacity"
             in={{
@@ -47,7 +49,7 @@
                 in={{
                     source: $in.graph.program.context.modules,
                     base: $in.destination.natives,
-                    types: $ctx.types.mapping,
+                    types: $in.type_ids,
                     instance: $in.instance,
                     maximum: $in.graph.program.context.maximum_count
                 }}

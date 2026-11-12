@@ -19,11 +19,13 @@ pub const Request = struct {
 
 pub fn append(request: Request) Error!void {
     const Input = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
-    const Data = @FieldType(Input, "request");
+    const DataView = @FieldType(Input, "request");
+    const Data = if (@typeInfo(DataView) == .pointer) std.meta.Child(DataView) else DataView;
     const State = @FieldType(Input, "state");
     const Table = @FieldType(Data, "source");
     const Delta = @FieldType(State, "delta");
-    const Bindings = @FieldType(Data, "origins");
+    const BindingsView = @FieldType(Data, "origins");
+    const Bindings = if (@typeInfo(BindingsView) == .pointer) std.meta.Child(BindingsView) else BindingsView;
     const mapping: []u32 = @ptrCast(request.mapping);
 
     @memset(mapping, 0);
@@ -31,41 +33,43 @@ pub fn append(request: Request) Error!void {
     const source = table(Table, request.source);
     const base = table(Table, request.items.view());
     const delta = table(Delta, .{});
+    const origins = Origins.Table.borrow(Bindings, request.origins);
+    const base_origins = Origins.Table.borrow(Bindings, request.nominal.view());
+
+    const data: Data = .{
+        .source = if (@typeInfo(Table) == .pointer) &source else source,
+        .origins = if (@typeInfo(BindingsView) == .pointer) &origins else origins,
+        .origin_indices = request.origin_indices,
+        .base = if (@typeInfo(Table) == .pointer) &base else base,
+        .base_origins = if (@typeInfo(BindingsView) == .pointer) &base_origins else base_origins,
+        .mapping = @ptrCast(&mapping),
+        .first = request.first,
+        .checked = request.checked,
+    };
 
     const input: Input = .{
-        .request = .{
-            .source = if (@typeInfo(Table) == .pointer) &source else source,
-            .origins = Origins.Table.borrow(Bindings, request.origins),
-            .origin_indices = request.origin_indices,
-            .base = if (@typeInfo(Table) == .pointer) &base else base,
-            .base_origins = Origins.Table.borrow(Bindings, request.nominal.view()),
-            .first = request.first,
-            .checked = request.checked,
-        },
+        .request = if (@typeInfo(DataView) == .pointer) &data else data,
         .state = .{
-            .mapping = mapping,
             .delta = if (@typeInfo(Delta) == .pointer) &delta else delta,
             .origins = Origins.Table.borrow(@FieldType(State, "origins"), .{}),
             .references = &.{},
-            .status = 0,
+            .status = .Ready,
         },
     };
 
     const result = generated.executeValue(request.temporary, input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
+        error.IndexOutOfBounds => return error.InvalidModule,
         else => unreachable,
     };
-
-    @memcpy(mapping, result.mapping);
 
     try @import("merging/commit.zig").append(request.allocator, request.items, request.nominal, result.delta, result.origins);
 
     return switch (result.status) {
-        0 => {},
-        1 => error.MissingNominalOrigin,
-        2 => error.ConflictingNominalType,
-        3 => error.InvalidModule,
-        else => unreachable,
+        .Ready => {},
+        .MissingOrigin => error.MissingNominalOrigin,
+        .Conflict => error.ConflictingNominalType,
+        .Invalid => error.InvalidModule,
     };
 }
 

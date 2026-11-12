@@ -17,7 +17,7 @@
             <Return
                 value={{
                     ...$in.state,
-                    status: 3
+                    status: Model.Status.Invalid
                 }}
             />
         </If>
@@ -26,21 +26,12 @@
     <Call
         fn="merging/initialize"
         in={{
-            mapping: $in.state.mapping,
+            mapping: $in.request.mapping,
             first: $in.request.first
         }}
     />
 
-    <Call
-        fn="merging/append"
-        in={{
-            request: $in.request,
-            state: {
-                ...$in.state,
-                mapping: $ctx.initialize
-            }
-        }}
-    />
+    <Call fn="merging/append" in={$in} />
 
     <Return value={$ctx.append} />
 </Module>

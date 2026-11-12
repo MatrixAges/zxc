@@ -20,6 +20,7 @@ base: std.meta.Child(@FieldType(Input, "base")),
 base_origins: std.meta.Child(@FieldType(Input, "base_origins")),
 request: Request,
 validation: Validation,
+type_ids: []u32,
 input: Input,
 pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) std.mem.Allocator.Error!void {
     self.signatures = borrow.columns(@TypeOf(self.signatures), artifact.functions);
@@ -70,5 +71,17 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .maximum_count = std.math.maxInt(u32),
     };
 
-    self.input = .{ .validation = &self.validation, .origin_names = artifact.nominal_types.names, .base = &self.base, .base_origins = &self.base_origins, .module_id = @backingInt(current.module) };
+    self.type_ids = try allocator.alloc(u32, artifact.types.count());
+
+    @memset(self.type_ids, 0);
+
+    self.input = .{
+        .validation = &self.validation,
+        .origin_names = artifact.nominal_types.names,
+        .base = &self.base,
+        .base_origins = &self.base_origins,
+        .module_id = @backingInt(current.module),
+        .type_ids = self.type_ids,
+        .type_mapping = @ptrCast(&self.type_ids),
+    };
 }

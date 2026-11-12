@@ -1,6 +1,7 @@
 <Module>
     <Type from="types/model" as="Model" />
     <Type from="types/initial" as="Initial" />
+    <Type from="../../../analysis/semantic/merging/model" as="Merge" />
 
     <Args in={Model.Request} out={Initial.Output} />
 
@@ -28,6 +29,7 @@
                     origin_indices: $ctx.preflight,
                     base: $in.base,
                     base_origins: $in.base_origins,
+                    mapping: $in.mapping,
                     first: 0,
                     checked: true
                 },
@@ -41,7 +43,7 @@
             <Return
                 value={{
                     ...$ctx.initial,
-                    status: 3
+                    status: Merge.Status.Invalid
                 }}
             />
         </Else>

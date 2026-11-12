@@ -21,8 +21,8 @@ pub fn append(self: *Self, temporary: std.mem.Allocator, module: Module) Error![
 }
 
 /// Extends a shared table while the caller owns only a temporary type-ID map.
-pub fn appendTemporary(self: *Self, temporary: std.mem.Allocator, module: Module) Error![]const ir.TypeId {
-    return self.appendValues(temporary, temporary, module.types, module.nominal_types, 0, false);
+pub fn appendTemporary(self: *Self, mapping_allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Module) Error![]const ir.TypeId {
+    return self.appendValues(mapping_allocator, temporary, module.types, module.nominal_types, 0, false);
 }
 
 pub fn compact(self: *Self, temporary: std.mem.Allocator, first: usize, origin_count: usize) Error![]const ir.TypeId {

@@ -1,14 +1,16 @@
 import integers from "std:integer"
+import memory from "std:memory"
 import { Kind } from "core/type_table/model"
 
 import kind from "../types/kind"
 
+import type { U32Buffer } from "std:memory"
 import type { Table } from "core/type_table/model"
 
 export type Input = {
     source: Table,
     index: u64,
-    mapping: u32[],
+    mapping: U32Buffer,
     references: u32[]
 }
 
@@ -28,16 +30,18 @@ export default function (in: Input): Output {
     )
 
     if (condition) {
-        const first = in.mapping[integers.widen(in.source.first[in.index])]
+        const first =
+            memory.readU32(in.mapping, integers.widen(in.source.first[in.index]))
 
         const single = empty.push(first)[0]
 
         return match {
             type_kind ==
                 Kind.Task => single.push(
-                    in.mapping[integers.widen(
-                        in.source.second[in.index]
-                    )]
+                    memory.readU32(
+                        in.mapping,
+                        integers.widen(in.source.second[in.index])
+                    )
                 )[0],
             _ => single
         }
@@ -49,7 +53,6 @@ export default function (in: Input): Output {
     const first = integers.widen(in.source.first[in.index])
 
     return loop({
-        mapping: in.mapping,
         values,
         first,
         count,
@@ -63,7 +66,8 @@ export default function (in: Input): Output {
                     current.values[current.first + current.index]
                 )
 
-            current.references = current.references.push(current.mapping[id])[0]
+            current.references =
+                current.references.push(memory.readU32(in.mapping, id))[0]
             current.index += 1
         },
         return: state => state.references

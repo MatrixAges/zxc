@@ -21,6 +21,7 @@ natives: std.meta.Child(@FieldType(Destination, "natives")),
 graph: Graph,
 destination: Destination,
 selection: Selection,
+type_ids: []u32,
 input: Input,
 pub fn init(self: *Self, allocator: std.mem.Allocator, graph: *const model.Graph, instance: []const u8, artifact: []const u8, destination: ?load.Destination, seed: bool, selected: ?[]const model.PublicReference) std.mem.Allocator.Error!void {
     try self.program.init(allocator, &graph.program, 0);
@@ -46,5 +47,19 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, graph: *const model.Graph
         self.selection = .{ .names = names, .modules = modules };
     }
 
-    self.input = .{ .graph = &self.graph, .instance = instance, .artifact = artifact, .load = destination != null, .seed = seed, .destination = &self.destination, .selection = if (selected != null) &self.selection else null };
+    self.type_ids = if (destination != null) try allocator.alloc(u32, graph.program.types.count()) else &.{};
+
+    @memset(self.type_ids, 0);
+
+    self.input = .{
+        .graph = &self.graph,
+        .instance = instance,
+        .artifact = artifact,
+        .load = destination != null,
+        .seed = seed,
+        .destination = &self.destination,
+        .type_ids = self.type_ids,
+        .type_mapping = @ptrCast(&self.type_ids),
+        .selection = if (selected != null) &self.selection else null,
+    };
 }

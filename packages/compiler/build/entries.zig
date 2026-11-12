@@ -133,6 +133,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/analysis/semantic/produce.rx", .name = "origin_production" },
     .{ .path = "zx/analysis/semantic/preflight.rx", .name = "merge_preflight" },
     .{ .path = "zx/analysis/semantic/merge.rx", .name = "type_merge" },
+    .{ .path = "zx/analysis/semantic/merging/rebase.zx", .name = "type_merge_rebase" },
     .{ .path = "zx/analysis/semantic/validate_types.rx", .name = "type_validation" },
     .{ .path = "zx/analysis/semantic/resolve.rx", .name = "type_resolution" },
     .{ .path = "zx/analysis/semantic/construct_type.rx", .name = "type_construction" },

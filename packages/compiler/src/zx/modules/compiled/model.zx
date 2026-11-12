@@ -1,3 +1,4 @@
+import type { U32Buffer } from "std:memory"
 import type { Values } from "core/constant/model"
 import type { Complete } from "core/function_table/complete"
 import type { Modules } from "core/native_module_table/model"
@@ -56,6 +57,8 @@ export type Input = {
     load: bool,
     seed: bool,
     destination: Destination,
+    type_ids: u32[],
+    type_mapping: U32Buffer,
     selection?: Selection
 }
 

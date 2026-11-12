@@ -18,7 +18,7 @@
         fn="functions/walk"
         in={{
             source: $in.input.graph.program.context.functions,
-            types: $in.merged.mapping,
+            types: $in.input.type_ids,
             natives: $in.native.mapping,
             first: $in.input.destination.function_count,
             instance: $in.input.instance
@@ -44,7 +44,7 @@
         in={{
             source: $in.input.graph.exports,
             selection: $ctx.plan,
-            mapping: $in.merged.mapping,
+            mapping: $in.input.type_ids,
             first: $in.input.destination.function_count,
             instance: $in.input.instance
         }}

@@ -1,3 +1,5 @@
+import { Status } from "../../../../analysis/semantic/merging/model"
+
 import type { State } from "../../../../analysis/semantic/merging/model"
 import type { Request } from "./model"
 
@@ -6,10 +8,7 @@ export type Input = Request
 export type Output = State
 
 export default function (in: Input): Output {
-    const zero: u32 = 0
-
     return {
-        mapping: in.source.kinds.map(value => zero)[0],
         delta: {
             kinds: [],
             first: [],
@@ -27,6 +26,6 @@ export default function (in: Input): Output {
             members: []
         },
         references: [],
-        status: 0
+        status: Status.Ready
     }
 }

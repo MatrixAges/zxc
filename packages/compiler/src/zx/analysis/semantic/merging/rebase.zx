@@ -1,0 +1,38 @@
+import memory from "std:memory"
+import { Kind } from "core/type_table/model"
+
+import kind from "../types/kind"
+
+import type { U32Buffer } from "std:memory"
+
+export type Input = {
+    kinds: u8[],
+    first: u32[],
+    target: U32Buffer,
+    children: u32,
+    fields: u32,
+    names: u32
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.kinds.length,
+        next: state => {
+            const index = state.index
+            const offset = match kind(in.kinds[index]) {
+                Kind.Object => in.fields,
+                Kind.Tuple => in.children,
+                Kind.ErrorSet => in.names,
+                Kind.Enumeration => in.names,
+                _ => 0
+            }
+
+            memory.writeU32(in.target, index, in.first[index] + offset)
+            state.index += 1
+        }
+    })
+}

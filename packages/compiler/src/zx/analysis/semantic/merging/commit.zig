@@ -1,5 +1,6 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const Origins = @import("nominal_data");
 
 pub fn append(allocator: std.mem.Allocator, target: *ir.TypeStorage, origins: *Origins.Storage, delta: anytype, bindings: anytype) std.mem.Allocator.Error!void {
@@ -24,7 +25,28 @@ pub fn append(allocator: std.mem.Allocator, target: *ir.TypeStorage, origins: *O
     }
 
     try origins.ensureUnusedCapacity(allocator, bindings.ids.len);
-    try target.appendDelta(allocator, table);
+
+    const first = try target.reserveDelta(allocator, table);
+
+    if (first.len != 0) {
+        const generated = @import("generated_type_merge_rebase");
+        const Input = std.meta.Child(generated.Input);
+
+        const input: Input = .{
+            .kinds = table.kinds,
+            .first = table.first,
+            .target = @ptrCast(&first),
+            .children = @intCast(target.children.items.len),
+            .fields = @intCast(target.field_types.items.len),
+            .names = @intCast(target.names.items.len),
+        };
+
+        var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+        zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
+    }
+
+    target.publishDelta(table);
 
     inline for (.{ "ids", "kinds", "owners", "members" }) |name| {
         @field(origins, name).appendSliceAssumeCapacity(@field(bindings, name));

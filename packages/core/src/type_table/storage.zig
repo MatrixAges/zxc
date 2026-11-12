@@ -119,6 +119,27 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
 }
 
 pub fn appendDelta(self: *Self, allocator: std.mem.Allocator, delta: Table) Error!void {
+    const firsts = try self.reserveDelta(allocator, delta);
+    const child_offset: u32 = @intCast(self.children.items.len);
+    const field_offset: u32 = @intCast(self.field_types.items.len);
+    const name_offset: u32 = @intCast(self.names.items.len);
+
+    for (delta.kinds, delta.first, firsts) |code, first, *destination| {
+        const kind: model.Kind = @fromBackingInt(@intCast(code));
+
+        destination.* = first + switch (kind) {
+            .object => field_offset,
+            .tuple => child_offset,
+            .error_set, .enumeration => name_offset,
+            else => @as(u32, 0),
+        };
+    }
+
+    self.publishDelta(delta);
+}
+
+/// Reserves all columns and lends the unpublished first-column tail for rebasing.
+pub fn reserveDelta(self: *Self, allocator: std.mem.Allocator, delta: Table) Error![]u32 {
     const limit = std.math.maxInt(u32);
 
     inline for (@typeInfo(Self).@"struct".field_names) |name| {
@@ -132,22 +153,12 @@ pub fn appendDelta(self: *Self, allocator: std.mem.Allocator, delta: Table) Erro
         try @field(self, name).ensureUnusedCapacity(allocator, @field(delta, name).len);
     }
 
-    const child_offset: u32 = @intCast(self.children.items.len);
-    const field_offset: u32 = @intCast(self.field_types.items.len);
-    const name_offset: u32 = @intCast(self.names.items.len);
+    return self.first.unusedCapacitySlice()[0..delta.first.len];
+}
 
-    for (delta.kinds, delta.first) |code, first| {
-        const kind: model.Kind = @fromBackingInt(@intCast(code));
-
-        const adjusted = first + switch (kind) {
-            .object => field_offset,
-            .tuple => child_offset,
-            .error_set, .enumeration => name_offset,
-            else => @as(u32, 0),
-        };
-
-        self.first.appendAssumeCapacity(adjusted);
-    }
+/// Publishes a reserved delta after its first-column tail is initialized.
+pub fn publishDelta(self: *Self, delta: Table) void {
+    _ = self.first.addManyAsSliceAssumeCapacity(delta.first.len);
 
     inline for (@typeInfo(Self).@"struct".field_names) |name| {
         if (comptime !std.mem.eql(u8, name, "first")) {
