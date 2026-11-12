@@ -1,18 +1,13 @@
-export enum Receiver {
-    Unknown,
-    Sequence,
-    Object,
-    List,
-    DeclaredObject,
-    DeclaredList,
-    String,
-    OtherDeclared,
-    Other
-}
+import type { Kind } from "../unification/model"
 
 export enum Route {
     Declared,
     Open,
+    KnownMember,
+    Member,
+    MissingMember,
+    AppendMember,
+    ScalarConflict,
     Length,
     RequireList,
     DeferLength,
@@ -20,9 +15,31 @@ export enum Route {
     InvalidInferred
 }
 
-export type Input = {
-    receiver: Receiver,
+export type Receiver = {
+    kind: Kind,
+    type_kind: u8,
+    type_argument: u32,
+    restricted: bool,
     name: string
 }
 
-export type Output = Route
+export type Members = {
+    names: string[],
+    values: u32[]
+}
+
+export type Input = {
+    receiver: Receiver,
+    members: Members
+}
+
+export type Lookup = {
+    members: Members,
+    name: string,
+    declared: bool
+}
+
+export type Output = {
+    route: Route,
+    value: u32
+}

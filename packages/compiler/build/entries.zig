@@ -103,7 +103,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/unification/commit.rx", .name = "rx_unification_commit", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/find_field.zx", .name = "rx_unification_field", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/fields/align.rx", .name = "rx_unification_fields", .owner = .rx_analysis },
-    .{ .path = "rx/analysis/inference/fields/access.zx", .name = "rx_field_access", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/fields/access.rx", .name = "rx_field_access", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/forest/extend.zx", .name = "rx_forest_extend", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/forest/halve.zx", .name = "rx_forest_halve", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/scalar/domain.zx", .name = "rx_scalar_domain", .owner = .rx_analysis },

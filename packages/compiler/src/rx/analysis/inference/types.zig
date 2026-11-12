@@ -3,7 +3,6 @@ const zx = @import("zx");
 const Types = @import("frontend").types;
 const Scalar = @import("scalar.zig");
 const FieldAccess = @import("fields/access.zig");
-const Unification = @import("unification/plan.zig");
 const Nodes = @import("nodes.zig");
 const Self = @This();
 pub const Id = enum(u32) { _ };
@@ -164,55 +163,7 @@ pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.E
     return id;
 }
 
-pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
-    const index = @backingInt(self.root(id));
-    const value = self.shapeAt(index);
-    const declared = if (value == .known) self.types.get(value.known) else null;
-
-    switch (FieldAccess.route(value, declared, name)) {
-        .Declared => {
-            const object = declared.?.object;
-
-            const position = Unification.position(object.names[0..object.len], name) orelse
-                return self.reporter.fail(.type_mismatch, span, "the complete input type does not contain this field");
-
-            return self.known(object.at(position).type_id, span);
-        },
-        .Length => return self.scalar(.u64, span),
-        .RequireList => {
-            _ = try self.payload(id, .list, span);
-
-            return self.scalar(.u64, span);
-        },
-        .DeferLength => {
-            const result = try self.add(.unknown, span);
-
-            try self.lengths.append(self.allocator, .{ .target = id, .value = result, .span = span });
-
-            return result;
-        },
-        .InvalidDeclared => return self.reporter.fail(.type_mismatch, span, "field access requires an object"),
-        .InvalidInferred => return self.reporter.fail(.type_mismatch, span, "field requirements conflict with the inferred input type"),
-        .Open => {},
-    }
-
-    if (self.nodes.items(.allowed)[index] != null) return self.reporter.fail(.type_mismatch, span, "object fields conflict with scalar requirements");
-
-    const fields: Fields = if (value == .object) value.object else .{};
-
-    if (Unification.position(fields.names(), name)) |position| return fields.values()[position];
-
-    const result = try self.add(.unknown, span);
-    const extended = try Fields.init(self.allocator, fields.len + 1);
-
-    fields.copyTo(extended);
-    extended.set(fields.len, try self.allocator.dupe(u8, name), result);
-    self.setShape(index, .{ .object = extended });
-
-    self.revision += 1;
-
-    return result;
-}
+pub const field = FieldAccess.field;
 
 pub fn payload(self: *Self, id: Id, kind: enum { list, optional }, span: zx.Span) zx.Error!Id {
     const child = try self.add(.unknown, span);

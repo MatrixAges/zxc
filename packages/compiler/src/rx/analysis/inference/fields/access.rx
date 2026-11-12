@@ -1,0 +1,27 @@
+<Module>
+    <Type from="model" as="Fields" />
+
+    <Args in={Fields.Input} out={Fields.Output} />
+
+    <Call fn="access" in={$in.receiver} />
+
+    <If on={$ctx.access == Fields.Route.Declared || $ctx.access == Fields.Route.Open}>
+        <Call
+            fn="member"
+            in={{
+                members: $in.members,
+                name: $in.receiver.name,
+                declared: $ctx.access == Fields.Route.Declared
+            }}
+        />
+
+        <Return value={$ctx.member} />
+    </If>
+
+    <Return
+        value={{
+            route: $ctx.access,
+            value: 0
+        }}
+    />
+</Module>

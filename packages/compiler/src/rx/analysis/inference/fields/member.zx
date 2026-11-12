@@ -1,0 +1,27 @@
+import find from "../unification/find_field"
+import { Route } from "./model"
+
+import type { Lookup, Output as Access } from "./model"
+
+export type Input = Lookup
+
+export type Output = Access
+
+export default function (in: Input): Output {
+    const index = find({
+        names: in.members.names,
+        name: in.name
+    })
+
+    if (index == null) {
+        return {
+            route: in.declared ? Route.MissingMember : Route.AppendMember,
+            value: 0
+        }
+    }
+
+    return {
+        route: in.declared ? Route.KnownMember : Route.Member,
+        value: in.members.values[index]
+    }
+}

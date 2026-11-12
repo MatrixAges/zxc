@@ -1,24 +1,41 @@
+import { kind_list, kind_object, kind_scalar, scalar_string } from "core/type_table/const"
+
+import { Kind } from "../unification/model"
 import { length_name } from "./const"
-import { Receiver, Route } from "./model"
+import { Route } from "./model"
 
-import type { Input as Access, Output as Decision } from "./model"
+import type { Receiver } from "./model"
 
-export type Input = Access
+export type Input = Receiver
 
-export type Output = Decision
+export type Output = Route
 
 export default function (in: Input): Output {
+    if (in.kind == Kind.Object) {
+        return in.restricted ? Route.ScalarConflict : Route.Open
+    }
+
+    if (in.kind == Kind.Known && in.type_kind == kind_object) {
+        return Route.Declared
+    }
+
     const length = in.name == length_name
 
-    return match in.receiver {
-        Receiver.Unknown => length ? Route.DeferLength : Route.Open,
-        Receiver.Sequence => length ? Route.RequireList : Route.InvalidInferred,
-        Receiver.Object => Route.Open,
-        Receiver.List => length ? Route.Length : Route.InvalidInferred,
-        Receiver.DeclaredObject => Route.Declared,
-        Receiver.DeclaredList => length ? Route.Length : Route.InvalidDeclared,
-        Receiver.String => length ? Route.Length : Route.InvalidDeclared,
-        Receiver.OtherDeclared => Route.InvalidDeclared,
+    return match in.kind {
+        Kind.Unknown => match {
+            length => Route.DeferLength,
+            in.restricted => Route.ScalarConflict,
+            _ => Route.AppendMember
+        },
+        Kind.Sequence => length ? Route.RequireList : Route.InvalidInferred,
+        Kind.List => length ? Route.Length : Route.InvalidInferred,
+        Kind.Known => match {
+            !length => Route.InvalidDeclared,
+            in.type_kind == kind_list => Route.Length,
+            in.type_kind == kind_scalar && in.type_argument == scalar_string =>
+                Route.Length,
+            _ => Route.InvalidDeclared
+        },
         _ => Route.InvalidInferred
     }
 }

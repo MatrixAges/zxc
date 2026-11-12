@@ -119,7 +119,7 @@ pub fn defaultLists(graph: *Graph) zx.Error!bool {
     const indexes = graph.indexes.slice();
 
     const index = if (@import("rx_options").generated_graph)
-        Projections.next(graph, indexes.items(.target), &.{}, .DefaultIndex, 0)
+        if (Projections.next(graph, indexes.items(.target), &.{}, .DefaultIndex, 0)) |result| result.row else null
 
     else
         seedList(graph, indexes);
