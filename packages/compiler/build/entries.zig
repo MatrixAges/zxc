@@ -151,6 +151,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/artifact/roots.rx", .name = "artifact_roots" },
     .{ .path = "zx/modules/artifact/planning/materialize.rx", .name = "artifact_prepare" },
     .{ .path = "zx/modules/artifact/remapping/columns.rx", .name = "artifact_remap" },
+    .{ .path = "zx/modules/artifact/remapping/function.rx", .name = "artifact_function_remap" },
     .{ .path = "zx/modules/link/graph/order.rx", .name = "artifact_graph" },
     .{ .path = "zx/modules/link/dependencies/check.rx", .name = "artifact_dependencies" },
     .{ .path = "zx/modules/link/dependencies/bindings.rx", .name = "artifact_binding_checks" },

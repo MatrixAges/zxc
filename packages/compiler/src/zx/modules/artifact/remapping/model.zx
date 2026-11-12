@@ -14,3 +14,15 @@ export type Mapping = {
     prefix: u64,
     count: u64
 }
+
+export type Ports = {
+    input: u32,
+    output: u32,
+    native_module?: u32
+}
+
+export type ContractColumns = {
+    symbols: u32[][],
+    types: u32[][],
+    calls: u32[][]
+}

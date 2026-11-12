@@ -1,0 +1,39 @@
+import id from "./id"
+
+import type { Mapping, Ports } from "./model"
+
+export type Input = {
+    ports: Ports,
+    types: Mapping,
+    natives: Mapping
+}
+
+export type Output = Ports
+
+export default function (in: Input): Output {
+    const { ports, types, natives } = in
+
+    const input = id({
+        id: ports.input,
+        mapping: types
+    })
+
+    const output = id({
+        id: ports.output,
+        mapping: types
+    })
+
+    const native_module: u32? = match {
+        ports.native_module == null => null,
+        _ => id({
+            id: ports.native_module,
+            mapping: natives
+        })
+    }
+
+    return {
+        input,
+        output,
+        native_module
+    }
+}

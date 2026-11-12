@@ -1,0 +1,85 @@
+<Module>
+    <Type from="model" as="References" />
+    <Type from="core/contract_table/model" as="Contract" />
+
+    <Args
+        in={{
+            ports: References.Ports,
+            symbols: u32[],
+            expressions: u32[],
+            calls: u32[],
+            stores: u32[],
+            contracts: Contract.Contracts,
+            types: References.Mapping,
+            functions: References.Mapping,
+            natives: References.Mapping
+        }}
+        out={{
+            ports: References.Ports,
+            symbols: u32[],
+            expressions: u32[],
+            calls: u32[],
+            stores: u32[],
+            contracts: References.ContractColumns
+        }}
+    />
+
+    <Call
+        fn="ports"
+        in={{
+            ports: $in.ports,
+            types: $in.types,
+            natives: $in.natives
+        }}
+    />
+
+    <Task name="symbols" out={$ctx.ids}>
+        <Call
+            fn="ids"
+            in={{
+                values: $in.symbols,
+                mapping: $in.types
+            }}
+        />
+    </Task>
+
+    <Call
+        module="columns"
+        in={{
+            types: $in.expressions,
+            type_mapping: $in.types,
+            functions: $in.calls,
+            function_mapping: $in.functions
+        }}
+    />
+
+    <Task name="stores" out={$ctx.ids}>
+        <Call
+            fn="ids"
+            in={{
+                values: $in.stores,
+                mapping: $in.types
+            }}
+        />
+    </Task>
+
+    <Call
+        fn="contracts"
+        in={{
+            source: $in.contracts,
+            types: $in.types,
+            functions: $in.functions
+        }}
+    />
+
+    <Return
+        value={{
+            ports: $ctx.ports,
+            symbols: $ctx.task.symbols,
+            expressions: $ctx.columns.types,
+            calls: $ctx.columns.functions,
+            stores: $ctx.task.stores,
+            contracts: $ctx.contracts
+        }}
+    />
+</Module>

@@ -1,0 +1,53 @@
+import ids from "./ids"
+
+import type { Contracts } from "core/contract_table/model"
+import type { ContractColumns, Mapping } from "./model"
+
+export type Input = {
+    source: Contracts,
+    types: Mapping,
+    functions: Mapping
+}
+
+export type Output = ContractColumns
+
+export default function (in: Input): Output {
+    const { source, types, functions } = in
+
+    const symbols: u32[][] = []
+    const expressions: u32[][] = []
+    const calls: u32[][] = []
+
+    return loop({
+        symbols,
+        expressions,
+        calls,
+        index: 0
+    }, {
+        while: current => current.index < source.kinds.length,
+        next: current => {
+            const index = current.index
+            const expression = source.expressions[index]
+
+            current.symbols = current.symbols.push(ids({
+                values: source.symbols[index].types,
+                mapping: types
+            }))[0]
+            current.expressions = current.expressions.push(ids({
+                values: expression.types,
+                mapping: types
+            }))[0]
+            current.calls = current.calls.push(ids({
+                values: expression.call_functions,
+                mapping: functions
+            }))[0]
+
+            current.index += 1
+        },
+        return: state => ({
+            symbols: state.symbols,
+            types: state.expressions,
+            calls: state.calls
+        })
+    })
+}

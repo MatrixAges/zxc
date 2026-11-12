@@ -1,0 +1,45 @@
+import integers from "std:integer"
+
+import { first_invalid_id } from "./const"
+import { Kind } from "./model"
+
+import type { Mapping } from "./model"
+
+export type Input = {
+    id: u32,
+    mapping: Mapping
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const { id, mapping } = in
+
+    const index = integers.widen(id)
+
+    if (mapping.kind == Kind.Dense) {
+        return mapping.dense[index]
+    }
+
+    if (mapping.kind == Kind.Sparse) {
+        const target = mapping.sparse[index]
+
+        return integers.narrow(
+            target == null ? first_invalid_id : integers.widen(target)
+        )
+    }
+
+    if (mapping.kind == Kind.Planned) {
+        const target = mapping.planned[index]
+
+        return integers.narrow(target == 0 ? first_invalid_id : target - 1)
+    }
+
+    return integers.narrow(
+        match {
+            index >= mapping.count => first_invalid_id,
+            index < mapping.prefix => index,
+            _ => mapping.first + (index - mapping.prefix)
+        }
+    )
+}

@@ -4,6 +4,8 @@ const Types = @import("types.zig");
 const Error = @import("model.zig").Error;
 const Self = @This();
 const IdMap = @import("nodes/id_map.zig").Map;
+const own = @import("nodes/columns.zig").own;
+const generated = @import("parser_options").generated_parser;
 
 pub const TypeMap = union(enum) {
     collect: if (@import("parser_options").generated_parser) void else *Types,
@@ -42,16 +44,35 @@ pub fn functionId(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
 }
 
 pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
+    if (comptime generated) return self.linkedFunction(value);
+
     var result = value;
+
     result.file_name = try self.allocator.dupe(u8, value.file_name);
     result.input_type = try self.types.include(value.input_type);
     result.output_type = try self.types.include(value.output_type);
-    result.symbols = try self.symbols(value.symbols);
-    result.expressions = try self.expressions(value.expressions);
+    result.symbols = try self.symbolsSeed(value.symbols);
+    result.expressions = try self.expressionsSeed(value.expressions);
     result.body = try self.body(value.body);
     result.stores = try self.stores(value.stores);
-    result.contracts = try self.contracts(value.contracts);
+    result.contracts = try self.contracts(value.contracts, {});
     result.external = if (value.external) |entry| try self.external(entry) else null;
+
+    return result;
+}
+
+fn linkedFunction(self: *Self, value: ir.Function) Error!ir.Function {
+    const mapped = try @import("nodes/remap.zig").function(self, &value);
+    var result = value;
+    result.file_name = try self.allocator.dupe(u8, value.file_name);
+    result.input_type = @fromBackingInt(mapped.ports.input);
+    result.output_type = @fromBackingInt(mapped.ports.output);
+    result.symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols });
+    result.expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls });
+    result.body = try self.body(value.body);
+    result.stores = try own(self.allocator, value.stores, .{ .types = mapped.stores });
+    result.contracts = try self.contracts(value.contracts, mapped.contracts);
+    result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
 
     return result;
 }
@@ -59,10 +80,10 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
 pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
     if (!values.validStructure()) return error.InvalidModule;
 
-    if (comptime @import("parser_options").generated_parser) {
+    if (comptime generated) {
         const mapped = try @import("nodes/remap.zig").columns(self, values.types, &.{});
 
-        return @import("nodes/columns.zig").own(self.allocator, values, .{ .types = mapped.types });
+        return own(self.allocator, values, .{ .types = mapped.types });
     }
 
     var storage: ir.StoreStorage = .{};
@@ -82,14 +103,8 @@ pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
     return storage.finish(self.allocator);
 }
 
-fn symbols(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {
+fn symbolsSeed(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {
     if (!values.validStructure()) return error.InvalidModule;
-
-    if (comptime @import("parser_options").generated_parser) {
-        const mapped = try @import("nodes/remap.zig").columns(self, values.types, &.{});
-
-        return @import("nodes/columns.zig").own(self.allocator, values, .{ .types = mapped.types });
-    }
 
     var storage: ir.SymbolStorage = .{};
 
@@ -107,16 +122,10 @@ fn symbols(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {
     return storage.finish(self.allocator);
 }
 
-fn expressions(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable {
+fn expressionsSeed(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable {
     @setEvalBranchQuota(100_000);
 
     if (!values.validStructure()) return error.InvalidModule;
-
-    if (comptime @import("parser_options").generated_parser) {
-        const mapped = try @import("nodes/remap.zig").columns(self, values.types, values.call_functions);
-
-        return @import("nodes/columns.zig").own(self.allocator, values, .{ .types = mapped.types, .call_functions = mapped.functions });
-    }
 
     var result: ir.ExpressionTable = .{};
 
@@ -138,25 +147,33 @@ fn expressions(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable
     return result;
 }
 
-fn contracts(self: *Self, values: ir.ContractTable) Error!ir.ContractTable {
-    if (!values.validStructure()) return error.InvalidModule;
+fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.ContractTable {
+    if (comptime @TypeOf(mapped) == void) {
+        if (!values.validStructure()) return error.InvalidModule;
+    }
+
     if (values.count() == 0) return .{};
 
     const owned_symbols = try self.allocator.alloc(*const ir.SymbolTable, values.count());
     const owned_expressions = try self.allocator.alloc(*const ir.ExpressionTable, values.count());
 
-    for (values.symbols, values.expressions, owned_symbols, owned_expressions) |source_symbols, source_expressions, *symbols_slot, *expressions_slot| {
-        const mapped_symbols = try self.symbols(source_symbols.*);
-        const mapped_expressions = try self.expressions(source_expressions.*);
+    for (values.symbols, values.expressions, owned_symbols, owned_expressions, 0..) |source_symbols, source_expressions, *symbols_slot, *expressions_slot, index| {
         const symbol_table = try self.allocator.create(ir.SymbolTable);
         const expression_table = try self.allocator.create(ir.ExpressionTable);
-        symbol_table.* = mapped_symbols;
-        expression_table.* = mapped_expressions;
+
+        if (comptime @TypeOf(mapped) == void) {
+            symbol_table.* = try self.symbolsSeed(source_symbols.*);
+            expression_table.* = try self.expressionsSeed(source_expressions.*);
+        } else {
+            symbol_table.* = try own(self.allocator, source_symbols.*, .{ .types = mapped.symbols[index] });
+            expression_table.* = try own(self.allocator, source_expressions.*, .{ .types = mapped.types[index], .call_functions = mapped.calls[index] });
+        }
+
         symbols_slot.* = symbol_table;
         expressions_slot.* = expression_table;
     }
 
-    return @import("nodes/columns.zig").own(self.allocator, values, .{ .symbols = owned_symbols, .expressions = owned_expressions });
+    return own(self.allocator, values, .{ .symbols = owned_symbols, .expressions = owned_expressions });
 }
 
 fn body(self: *Self, value: ir.ControlBody) Error!ir.ControlBody {
@@ -165,15 +182,19 @@ fn body(self: *Self, value: ir.ControlBody) Error!ir.ControlBody {
 
     const table = try self.allocator.create(ir.ControlTable);
 
-    table.* = try @import("nodes/columns.zig").own(self.allocator, value.control.*, .{});
+    table.* = try own(self.allocator, value.control.*, .{});
 
     return .{ .control = table, .root = value.root };
 }
 
 pub fn external(self: *Self, value: ir.External) Error!ir.External {
+    return self.externalMapped(value, try self.native_modules.get(value.module));
+}
+
+fn externalMapped(self: *Self, value: ir.External, module: ir.NativeModuleId) Error!ir.External {
     var result = value;
 
-    result.module = try self.native_modules.get(value.module);
+    result.module = module;
     result.member = try self.strings(value.member);
     result.errors = if (value.errors) |errors| try self.strings(errors) else null;
     result.export_name = if (value.export_name) |name| try self.allocator.dupe(u8, name) else null;
