@@ -1,1 +1,31 @@
-<Module fn="walk" />
+<Module>
+    <Type from="model" as="Graph" />
+
+    <Args in={Graph.Graph} out={Graph.Validation} />
+
+    <Call fn="walk" in={$in} />
+
+    <If on={$ctx.walk.issue != Graph.Issue.None}>
+        <Call fn="diagnostic" in={$ctx.walk.issue} />
+
+        <Return
+            value={{
+                order: [],
+                count: 0,
+                owner: $ctx.walk.owner,
+                edge: $ctx.walk.edge,
+                message: $ctx.diagnostic
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            order: $ctx.walk.order,
+            count: $ctx.walk.count,
+            owner: 0,
+            edge: 0,
+            message: null
+        }}
+    />
+</Module>

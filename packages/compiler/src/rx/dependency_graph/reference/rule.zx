@@ -1,0 +1,88 @@
+import {
+    attribute_fn,
+    attribute_from,
+    attribute_module,
+    attribute_service,
+    tag_call,
+    tag_import,
+    tag_module,
+    tag_route,
+    tag_store,
+    tag_type
+} from "./const"
+import { Role, Target } from "./model"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const tag = in.tag
+    const graph_only = in.graph_only
+    const enabled = !graph_only || (tag == tag_import || tag == tag_call)
+    const label = enabled ? tag : ""
+
+    return match label {
+        tag_import => {
+            primary: attribute_from,
+            fallback: "",
+            target: Target.Module,
+            fallback_target: Target.Module,
+            role: Role.Dependency,
+            required: true,
+            package_allowed: false
+        },
+        tag_call => {
+            primary: attribute_module,
+            fallback: graph_only ? "" : attribute_fn,
+            target: Target.Module,
+            fallback_target: Target.Function,
+            role: Role.Call,
+            required: !graph_only,
+            package_allowed: true
+        },
+        tag_module => {
+            primary: attribute_fn,
+            fallback: "",
+            target: Target.Function,
+            fallback_target: Target.Function,
+            role: Role.Call,
+            required: false,
+            package_allowed: false
+        },
+        tag_type => {
+            primary: attribute_from,
+            fallback: "",
+            target: Target.Function,
+            fallback_target: Target.Function,
+            role: Role.TypeImport,
+            required: true,
+            package_allowed: true
+        },
+        tag_store => {
+            primary: attribute_from,
+            fallback: "",
+            target: Target.Store,
+            fallback_target: Target.Store,
+            role: Role.Dependency,
+            required: false,
+            package_allowed: false
+        },
+        tag_route => {
+            primary: attribute_service,
+            fallback: "",
+            target: Target.Module,
+            fallback_target: Target.Module,
+            role: Role.Dependency,
+            required: true,
+            package_allowed: false
+        },
+        _ => {
+            primary: "",
+            fallback: "",
+            target: Target.Module,
+            fallback_target: Target.Module,
+            role: Role.Dependency,
+            required: false,
+            package_allowed: false
+        }
+    }
+}

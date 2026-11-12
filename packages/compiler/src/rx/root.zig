@@ -11,6 +11,7 @@ pub const TextSource = @import("text.zig").Source;
 pub const TextResult = @import("text.zig").Result;
 pub const parseModules = @import("text.zig").parseModules;
 pub const module_reference = @import("module_reference.zig");
+pub const dependency_reference = @import("dependency_graph/reference.zig");
 pub const resolveModulePath = @import("paths.zig").resolve;
 pub const normalizeModulePath = @import("paths.zig").normalize;
 pub const normalizeGatewayPath = @import("paths.zig").normalizeGateway;

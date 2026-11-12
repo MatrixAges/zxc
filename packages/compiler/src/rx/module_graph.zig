@@ -1,6 +1,5 @@
 const std = @import("std");
 const dsl = @import("dsl");
-const checks = @import("checks.zig");
 const modules = @import("modules.zig");
 
 pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, entries: []const modules.Module, source_index: *usize, reporter: *dsl.Reporter) dsl.Error![]const usize {
@@ -20,18 +19,18 @@ pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, e
         error.IndexOutOfBounds => unreachable,
     };
 
-    if (result.issue != .None) {
+    if (result.message) |message| {
         const link = prepared.links[@intCast(result.edge)];
-        source_index.* = link.owner;
 
-        const message = switch (result.issue) {
-            .None => unreachable,
-            .InvalidPath => "Module reference escapes the project root or is not a valid module path",
-            .Missing => "Referenced module file is not registered",
-            .Cycle => "Reference creates a circular module dependency",
-        };
+        source_index.* = @intCast(result.owner);
 
-        return checks.fail(link.node.*, link.attribute, message, reporter);
+        return reporter.fail(.{
+            .code = .context,
+            .location = link.attribute.value_location,
+            .element = link.node.name,
+            .attribute = link.attribute.name,
+            .message = message,
+        });
     }
 
     std.debug.assert(result.count == sources.len);

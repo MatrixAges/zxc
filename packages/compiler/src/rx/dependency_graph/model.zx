@@ -20,6 +20,14 @@ export type Graph = {
     ranked: bool
 }
 
+export type Validation = {
+    order: u64[],
+    count: u64,
+    owner: u64,
+    edge: u64,
+    message?: string
+}
+
 export type State = {
     graph: Graph,
     marks: Mark[],

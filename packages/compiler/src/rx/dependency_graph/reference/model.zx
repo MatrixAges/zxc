@@ -1,0 +1,26 @@
+export enum Target {
+    Module,
+    Function,
+    Store
+}
+
+export enum Role {
+    Dependency,
+    Call,
+    TypeImport
+}
+
+export type Input = {
+    tag: string,
+    graph_only: bool
+}
+
+export type Output = {
+    primary: string,
+    fallback: string,
+    target: Target,
+    fallback_target: Target,
+    role: Role,
+    required: bool,
+    package_allowed: bool
+}

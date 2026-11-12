@@ -1,0 +1,15 @@
+import { circular_dependency, invalid_path, missing_module } from "./const"
+import { Issue } from "./model"
+
+export type Input = Issue
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return match in {
+        Issue.InvalidPath => invalid_path,
+        Issue.Missing => missing_module,
+        Issue.Cycle => circular_dependency,
+        _ => ""
+    }
+}
