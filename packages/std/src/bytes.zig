@@ -72,6 +72,10 @@ pub fn startsWithText(haystack: []const u8, start: u64, prefix: []const u8) bool
     return startsWith(haystack, start, prefix);
 }
 
+pub fn startsWithTextIgnoreAsciiCase(haystack: []const u8, prefix: []const u8) bool {
+    return prefix.len <= haystack.len and std.ascii.eqlIgnoreCase(haystack[0..prefix.len], prefix);
+}
+
 pub fn equals(left: []const u8, right: []const u8) bool {
     return std.mem.eql(u8, left, right);
 }

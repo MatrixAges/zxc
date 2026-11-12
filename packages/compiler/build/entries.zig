@@ -115,6 +115,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/project/target/classify.rx", .name = "project_import_route" },
     .{ .path = "zx/modules/project/target/base.zx", .name = "project_path_base" },
     .{ .path = "zx/modules/project/target/package.zx", .name = "project_package_shape" },
+    .{ .path = "zx/modules/project/target/select.zx", .name = "project_package_select" },
+    .{ .path = "zx/modules/project/target/scope/owner.zx", .name = "project_package_owner" },
     .{ .path = "zx/modules/project/load/admit.zx", .name = "project_load_admission" },
     .{ .path = "zx/modules/project/load/source.rx", .name = "project_load_source" },
     .{ .path = "zx/modules/project/state/open.rx", .name = "project_state_open" },

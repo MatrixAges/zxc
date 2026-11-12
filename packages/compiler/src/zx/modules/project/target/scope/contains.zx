@@ -1,0 +1,46 @@
+import bytes from "std:bytes"
+import { ascii_backslash, ascii_slash } from "core/ascii/const"
+
+export type Input = {
+    path: u8[],
+    root: string,
+    windows: bool
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { path, root, windows } = in
+
+    const length = root.length
+
+    if (length > path.length) {
+        return false
+    }
+
+    const same = match {
+        windows => bytes.startsWithTextIgnoreAsciiCase(path, root),
+        _ => bytes.startsWithText(path, 0, root)
+    }
+
+    if (!same) {
+        return false
+    }
+
+    if (length == path.length) {
+        return true
+    }
+
+    if (length > 0) {
+        const end = path[length - 1]
+        const separator = end == ascii_slash || (windows && end == ascii_backslash)
+
+        if (separator) {
+            return true
+        }
+    }
+
+    const next = path[length]
+
+    return next == ascii_slash || (windows && next == ascii_backslash)
+}

@@ -1,0 +1,38 @@
+export type Input = {
+    specifiers: string[],
+    name: string,
+    offset: u64,
+    first?: u64
+}
+
+export type Output = {
+    first?: u64,
+    duplicate: bool
+}
+
+export default function (in: Input): Output {
+    const { specifiers, name, offset } = in
+
+    return loop({
+        row: 0,
+        first: in.first,
+        duplicate: false
+    }, {
+        while: state => !state.duplicate && state.row < specifiers.length,
+        next: state => {
+            if (specifiers[state.row] == name) {
+                if (state.first == null) {
+                    state.first = offset + state.row
+                } else {
+                    state.duplicate = true
+                }
+            }
+
+            state.row += 1
+        },
+        return: state => ({
+            first: state.first,
+            duplicate: state.duplicate
+        })
+    })
+}

@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+
+import contains from "./contains"
+
+export type Owner = {
+    index?: u64,
+    width: u64
+}
+
+export type Input = {
+    roots: string[],
+    path: string,
+    windows: bool,
+    offset: u64,
+    selected: Owner
+}
+
+export type Output = Owner
+
+export default function (in: Input): Output {
+    const { roots, windows, offset } = in
+
+    const path = bytes.fromText(in.path)
+
+    return loop({
+        row: 0,
+        index: in.selected.index,
+        width: in.selected.width
+    }, {
+        while: state => state.row < roots.length,
+        next: state => {
+            const root = roots[state.row]
+            const preferred = state.index == null || root.length > state.width
+
+            if (preferred && contains({
+                path,
+                root,
+                windows
+            })) {
+                state.index = offset + state.row
+                state.width = root.length
+            }
+
+            state.row += 1
+        },
+        return: state => ({
+            index: state.index,
+            width: state.width
+        })
+    })
+}

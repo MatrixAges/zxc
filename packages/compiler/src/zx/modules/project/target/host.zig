@@ -112,20 +112,17 @@ pub fn resolve(allocator: std.mem.Allocator, from: []const u8, path: []const u8,
 }
 
 fn dependency(allocator: std.mem.Allocator, path: []const u8, root: []const u8, packages: []const scopes.Package, reporter: *zx.Reporter, span: zx.Span) zx.Error!Target {
-    var selected: ?*const scopes.Package = null;
+    const selected = if (comptime enabled) packageSelection(packages, path) else packageSelectionSeed(packages, path);
+    const index = selected.first orelse return reporter.fail(.module, span, "ZX package is not declared in the project dependencies");
+    const package = &packages[index];
 
-    for (packages) |*package| {
-        if (!std.mem.eql(u8, package.specifier, path)) continue;
-        if (selected != null) return reporter.fail(.module, span, "duplicate ZX package specifier");
-
-        switch (packageShape(package)) {
-            .InvalidSource => return reporter.fail(.module, span, "package entry must be a .zx or .rx source file"),
-            .InvalidCompiled => return reporter.fail(.module, span, "compiled package target must identify one instance, artifact and public module"),
-            .Source, .Compiled => selected = package,
-        }
+    switch (packageShape(package)) {
+        .InvalidSource => return reporter.fail(.module, span, "package entry must be a .zx or .rx source file"),
+        .InvalidCompiled => return reporter.fail(.module, span, "compiled package target must identify one instance, artifact and public module"),
+        .Source, .Compiled => {},
     }
 
-    const package = selected orelse return reporter.fail(.module, span, "ZX package is not declared in the project dependencies");
+    if (selected.duplicate) return reporter.fail(.module, span, "duplicate ZX package specifier");
 
     if (package.compiled) |value| {
         const instance = try allocator.dupe(u8, value.instance);
@@ -144,6 +141,51 @@ fn dependency(allocator: std.mem.Allocator, path: []const u8, root: []const u8, 
     }
 
     return .{ .source = try std.fs.path.resolve(allocator, &.{ root, package.entry }) };
+}
+
+const PackageSelection = struct { first: ?u64 = null, duplicate: bool = false };
+
+fn packageSelection(packages: []const scopes.Package, path: []const u8) PackageSelection {
+    const generated = @import("generated_project_package_select");
+    const Input = std.meta.Child(generated.Input);
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    var specifiers: [scopes.lookup_batch_size][]const u8 = undefined;
+    var first: ?u64 = null;
+    var offset: usize = 0;
+
+    while (offset < packages.len) {
+        const batch = packages[offset..][0..@min(specifiers.len, packages.len - offset)];
+
+        for (batch, specifiers[0..batch.len]) |*package, *specifier_name| specifier_name.* = package.specifier;
+
+        const input: Input = .{ .specifiers = specifiers[0..batch.len], .name = path, .offset = offset, .first = first };
+        const result = zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
+
+        if (result.duplicate) return .{ .first = result.first, .duplicate = true };
+
+        first = result.first;
+        offset += batch.len;
+    }
+
+    return .{ .first = first };
+}
+
+fn packageSelectionSeed(packages: []const scopes.Package, path: []const u8) PackageSelection {
+    var selected: PackageSelection = .{};
+
+    for (packages, 0..) |*package, index| {
+        if (!std.mem.eql(u8, package.specifier, path)) continue;
+
+        if (selected.first != null) {
+            selected.duplicate = true;
+
+            break;
+        }
+
+        selected.first = index;
+    }
+
+    return selected;
 }
 
 fn packageShape(package: *const scopes.Package) Shape {
