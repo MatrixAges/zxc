@@ -45,6 +45,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/project/shorthand/route.zx", .name = "rx_shortcut_route", .owner = .rx_analysis },
     .{ .path = "rx/analysis/condition/plan.zx", .name = "rx_condition_plan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/condition/coverage.zx", .name = "rx_condition_coverage", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/expression_scope/plan.zx", .name = "rx_expression_scope", .owner = .rx_analysis },
     .{ .path = "rx/analysis/selection/check.rx", .name = "rx_selection_check", .owner = .rx_analysis },
     .{ .path = "rx/analysis/task_captures/initialize.zx", .name = "rx_task_capture_init", .owner = .rx_analysis },
     .{ .path = "rx/analysis/task_captures/mark.zx", .name = "rx_task_capture_mark", .owner = .rx_analysis },

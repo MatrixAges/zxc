@@ -27,13 +27,20 @@ pub fn init(allocator: std.mem.Allocator, types: []const zx.ir.TypeId) std.mem.A
 }
 
 pub fn observe(self: *Self, references: []const u32) void {
+    self.observeMapped(references, null);
+}
+
+pub fn observeMapped(self: *Self, references: []const u32, mapping: ?[]const u32) void {
     if (self.remaining == 0 or references.len == 0) return;
 
     if (comptime !enabled) {
         for (references) |symbol| {
-            if (symbol == 0 or symbol > self.marked.len) continue;
+            if (symbol == 0) continue;
 
-            const position = symbol - 1;
+            const index = symbol - 1;
+            const position = if (mapping) |mapped| if (index < mapped.len) mapped[index] else continue else index;
+
+            if (position >= self.marked.len) continue;
 
             if (!self.marked[position]) {
                 self.marked[position] = true;
@@ -50,6 +57,7 @@ pub fn observe(self: *Self, references: []const u32) void {
 
     const result = mark.executeState(empty.allocator(), .{
         .references = .{ .items = references, .storage = .plain },
+        .positions = if (mapping) |items| .{ .items = items, .storage = .plain } else null,
         .marked = self.marked,
         .remaining = self.remaining,
         .cursor = 0,

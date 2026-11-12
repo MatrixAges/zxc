@@ -40,6 +40,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     var nested = Flow{
         .allocator = allocator,
+        .scratch = parent.scratch,
         .owner = parent.owner,
         .aliases = parent.aliases,
         .types = types.items.view(),

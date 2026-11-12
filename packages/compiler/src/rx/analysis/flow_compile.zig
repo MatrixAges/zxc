@@ -12,6 +12,7 @@ const Self = @This();
 pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 
 allocator: std.mem.Allocator,
+scratch: std.mem.Allocator,
 owner: []const u8,
 
 aliases: []const zx.ir.Export = &.{},
@@ -166,7 +167,26 @@ fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Erro
 fn valueParsed(self: *Self, parsed: *const frontend.ExpressionInput.Result, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
     try self.ensureTypeStorage();
 
-    const compiled = try expression.compileParsed(self.allocator, parsed, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .aliases = self.aliases, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected }, true);
+    var arena = std.heap.ArenaAllocator.init(self.scratch);
+    var buffer: [std.heap.page_size_min / 8]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
+
+    defer arena.deinit();
+
+    const selection = try @import("expression_scope.zig").select(scratch.allocator(), parsed, self.bindings.items, self.nonnull.items);
+
+    const compiled = try expression.compileParsed(self.allocator, parsed, attribute, .{
+        .types = self.types,
+        .borrow_types = true,
+        .type_storage = &self.type_storage,
+        .native_modules = self.native_modules,
+        .aliases = self.aliases,
+        .bindings = selection.bindings,
+        .nonnull_bindings = self.nonnull.items,
+        .unit_bindings = if (self.unit_input) &.{"$in"} else &.{},
+        .expected = expected,
+        .scratch_backing = self.scratch,
+    }, true);
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;
@@ -178,7 +198,7 @@ fn valueParsed(self: *Self, parsed: *const frontend.ExpressionInput.Result, attr
 
     self.types = program.types;
 
-    if (self.captures) |captures| captures.observe(program.expressions.references);
+    if (self.captures) |captures| captures.observeMapped(program.expressions.references, selection.positions);
 
     return program;
 }

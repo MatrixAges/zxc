@@ -22,7 +22,7 @@ fn run(comptime mode: Mode, allocator: std.mem.Allocator, parsed: anytype, optio
 
     errdefer arena.deinit();
 
-    var scratch = std.heap.ArenaAllocator.init(allocator);
+    var scratch = std.heap.ArenaAllocator.init(options.scratch_backing orelse allocator);
 
     defer scratch.deinit();
 

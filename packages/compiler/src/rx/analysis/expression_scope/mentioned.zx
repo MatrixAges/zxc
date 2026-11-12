@@ -1,0 +1,68 @@
+import bytes from "std:bytes"
+
+import matches from "../../../zx/analysis/binding_path/match"
+import overlaps from "../../../zx/analysis/expression_program/bindings/path/overlaps"
+import { ExprKind } from "../../../zx/frontend/parser/expressions/state/model"
+
+import type { ExprNode } from "../../../zx/frontend/parser/expressions/state/model"
+
+export type Input = {
+    source: u8[],
+    nodes: ExprNode[],
+    name: string,
+    facts: string[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expression = loop({
+        index: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.index < in.nodes.length,
+        next: state => {
+            const kind = in.nodes[state.index].kind
+
+            if (kind == ExprKind.Identifier || kind == ExprKind.Field) {
+                state.found = matches({
+                    source: in.source,
+                    nodes: in.nodes,
+                    native_names: null,
+                    node: state.index,
+                    path: in.name,
+                    rooted: false
+                })
+            }
+
+            state.index += 1
+        },
+        return: state => state.found
+    })
+
+    if (expression) {
+        return true
+    }
+
+    const length = bytes.fromText(in.name).length
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.index < in.facts.length,
+        next: state => {
+            const fact = in.facts[state.index]
+
+            if (length <= bytes.fromText(fact).length) {
+                state.found = overlaps({
+                    left: in.name,
+                    right: fact
+                })
+            }
+
+            state.index += 1
+        },
+        return: state => state.found
+    })
+}

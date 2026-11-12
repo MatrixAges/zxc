@@ -70,7 +70,7 @@ pub fn prepare(state: *State, allocator: std.mem.Allocator, index: usize, module
 /// Lowers a prepared module against the shared tables, which it only reads, so modules that depend on none of each
 /// other may lower at once.
 pub fn lower(state: *const State, allocator: std.mem.Allocator, prepared: Prepared) std.mem.Allocator.Error!Module.Value {
-    return @import("../../module_compile.zig").compile(allocator, .{
+    return @import("../../module_compile.zig").compile(allocator, state.scratch.child_allocator, .{
         .owner = prepared.module.source.path,
         .aliases = prepared.module.value_imports,
         .module = prepared.module.source.node,

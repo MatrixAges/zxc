@@ -24,9 +24,10 @@ pub const Options = struct {
     output_type: zx.ir.TypeId,
 };
 
-pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
+pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
     var flow = @import("flow_compile.zig"){
         .allocator = allocator,
+        .scratch = scratch,
         .owner = options.owner,
         .aliases = options.aliases,
         .types = options.types,

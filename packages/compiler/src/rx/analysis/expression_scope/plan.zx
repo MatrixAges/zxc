@@ -1,0 +1,41 @@
+import integers from "std:integer"
+
+import mentioned from "./mentioned"
+
+import type { ExprNode } from "../../../zx/frontend/parser/expressions/state/model"
+
+export type Input = {
+    source: u8[],
+    nodes: ExprNode[],
+    names: string[],
+    facts: string[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const positions: u32[] = []
+
+    return loop({
+        index: 0,
+        positions
+    }, {
+        while: state => state.index < in.names.length,
+        next: state => {
+            const used = mentioned({
+                source: in.source,
+                nodes: in.nodes,
+                name: in.names[state.index],
+                facts: in.facts
+            })
+
+            if (used) {
+                state.positions =
+                    state.positions.push(integers.narrow(state.index))[0]
+            }
+
+            state.index += 1
+        },
+        return: state => state.positions
+    })
+}

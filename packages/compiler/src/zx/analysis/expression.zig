@@ -7,13 +7,27 @@ pub const compileInput = @import("expression_program.zig").compileInput;
 pub const compile = @import("expression_program.zig").compile;
 pub const compileForLinking = @import("expression_program.zig").compileForLinking;
 pub const Binding = struct { name: []const u8, type_id: ir.TypeId };
+
 /// `borrow_types` states that `types` comes from validated programs and outlives the result: the result then
 /// borrows its strings, and the table is re-validated only in internal builds. `type_storage`, with `borrow_types`,
 /// is the storage `types` views whole: the expression then extends it in place rather than copying the table. The
 /// storage only grows, so tables viewed from it earlier stay valid.
 /// Linking programs reserve symbol 0 for the environment. Their value bindings follow consecutively in
 /// `bindings` order. Unit bindings do not allocate a symbol.
-pub const Options = struct { types: ir.TypeTable = .{}, borrow_types: bool = false, type_storage: ?*ir.TypeStorage = null, native_modules: ir.NativeModuleTable = .{}, aliases: []const ir.Export = &.{}, constants: []const ir.Constant = &.{}, bindings: []const Binding = &.{}, unit_bindings: []const []const u8 = &.{}, nonnull_bindings: []const []const u8 = &.{}, expected: ?ir.TypeId = null };
+pub const Options = struct {
+    types: ir.TypeTable = .{},
+    borrow_types: bool = false,
+    type_storage: ?*ir.TypeStorage = null,
+    native_modules: ir.NativeModuleTable = .{},
+    aliases: []const ir.Export = &.{},
+    constants: []const ir.Constant = &.{},
+    bindings: []const Binding = &.{},
+    unit_bindings: []const []const u8 = &.{},
+    nonnull_bindings: []const []const u8 = &.{},
+    expected: ?ir.TypeId = null,
+    scratch_backing: ?std.mem.Allocator = null,
+};
+
 pub const Expression = struct { types: ir.TypeTable, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, value: ir.ExprId };
 
 pub const Result = struct {
