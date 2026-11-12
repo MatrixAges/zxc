@@ -10,6 +10,6 @@ pub fn collect(collector: *Collector, header: anytype, source: []const u8) Colle
             .offset = item.span.start,
             .line = location.line,
             .column = location.column,
-        });
+        }, .dependency);
     }
 }

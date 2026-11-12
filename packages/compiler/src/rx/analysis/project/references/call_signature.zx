@@ -1,0 +1,26 @@
+export type Input = {
+    forwards_rx: bool,
+    type_only: bool,
+    setter: bool,
+    has_store: bool
+}
+
+export enum Output {
+    Function,
+    Forward,
+    SetterOnForward,
+    TypeOnly,
+    MissingStore
+}
+
+export default function (in: Input): Output {
+    if (in.forwards_rx) {
+        return in.setter ? Output.SetterOnForward : Output.Forward
+    }
+
+    return match {
+        in.type_only => Output.TypeOnly,
+        in.setter && !in.has_store => Output.MissingStore,
+        _ => Output.Function
+    }
+}

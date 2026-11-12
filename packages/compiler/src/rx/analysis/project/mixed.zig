@@ -11,9 +11,8 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
     const dependencies = derived.dependencies;
     const loaded = derived.loaded;
     const resolved = derived.resolved;
-    const modules = derived.modules;
 
-    var state = State.init(allocator, backing, dependencies, derived.signatures, derived.types, loaded.project) catch |err| {
+    var state = State.init(allocator, backing, dependencies, derived.signatures, derived.signature_indices, derived.types, loaded.project) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = .{ .path = dependencies.modules[dependencies.entry].path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "source signatures cannot initialize the shared compilation context" } };
@@ -81,7 +80,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
                     _ = state.scratch.reset(.retain_capacity);
 
                     break :ready rx_module.link(&state, state.scratch.allocator(), lowered.prepared, lowered.contract);
-                } else rx_module.compile(&state, cache, sources, modules, index, loaded.modules[source], resolved[source]);
+                } else rx_module.compile(&state, cache, sources, index, loaded.modules[source], resolved[source]);
 
                 const result = linked catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;

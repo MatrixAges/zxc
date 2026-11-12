@@ -174,14 +174,17 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Opt
     project.context.types = signatures.types;
     project.context.nominal_types = signatures.nominal_types;
     project.context.native_modules = signatures.native_modules;
-
-    const registry = try @import("store/registry.zig").loadSignatures(allocator, options.stores, project, signatures);
+    const graph_modules = dependencies.value.graph.modules;
+    const rx_modules = graph_modules[options.sources.len..][0..modules.len];
+    const store_modules = graph_modules[options.sources.len + modules.len ..];
+    const indexed = try source_graph.Signatures.init(allocator, backing, dependencies.value.graph, signatures.modules);
+    const registry = try @import("store/registry.zig").loadSignatures(allocator, options.stores, project.context, store_modules, indexed);
 
     if (registry == .diagnostic) return .{ .diagnostic = registry.diagnostic };
 
     project.context = registry.data.context;
 
-    const prepared = try prepare.loadSignatures(allocator, modules, options.sources, project, registry.data.definitions, signatures);
+    const prepared = try prepare.loadSignatures(allocator, modules, rx_modules, project, registry.data.definitions, indexed);
 
     if (prepared == .diagnostic) return .{ .diagnostic = prepared.diagnostic };
 
@@ -206,6 +209,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Opt
         .definitions = registry.data.definitions,
         .loaded = try prepare.completeShortcuts(allocator, prepared.loaded, resolved),
         .signatures = signatures,
+        .signature_indices = indexed.indices,
         .resolved = resolved,
         .types = graph.types.items.view(),
     } };

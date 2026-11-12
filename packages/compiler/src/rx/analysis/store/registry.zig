@@ -3,23 +3,26 @@ const frontend = @import("frontend");
 const rx = @import("rx");
 const Store = @import("../store.zig");
 const target = @import("../call/target.zig");
+const Graph = @import("../project/source_graph/model.zig");
+const Signatures = @import("../project/references/signatures.zig");
 pub const Data = struct { definitions: []Store.Definition, context: frontend.Context };
 pub const Value = union(enum) { data: Data, diagnostic: target.Diagnostic };
 
 pub fn load(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context) std.mem.Allocator.Error!Value {
-    return loadIn(allocator, sources, .{ .entry = "", .context = context }, null);
+    return loadIn(allocator, sources, context, &.{}, null);
 }
 
-pub fn loadSignatures(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, project: frontend.project.Options, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
-    return loadIn(allocator, sources, project, signatures);
+pub fn loadSignatures(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context, modules: []const Graph.Module, signatures: Signatures) std.mem.Allocator.Error!Value {
+    return loadIn(allocator, sources, context, modules, signatures);
 }
 
-fn loadIn(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, project: frontend.project.Options, signatures: ?frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
+fn loadIn(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context, modules: []const Graph.Module, signatures: ?Signatures) std.mem.Allocator.Error!Value {
     const definitions = try allocator.alloc(Store.Definition, sources.len);
-    var shared = project.context;
+    var shared = context;
 
     for (sources, definitions, 0..) |source, *definition, index| {
-        const aliases = if (signatures) |signed| try @import("../project/type_imports.zig").collect(allocator, source, project, signed) else @import("../project/type_imports.zig").Value{ .imports = &.{} };
+        const imports = @import("../project/type_imports.zig");
+        const aliases = if (signatures) |signed| try imports.collect(allocator, source, modules[index], signed) else imports.Value{ .imports = &.{} };
 
         if (aliases == .diagnostic) return .{ .diagnostic = aliases.diagnostic };
 

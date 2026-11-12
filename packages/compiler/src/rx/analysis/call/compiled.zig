@@ -3,20 +3,17 @@ const frontend = @import("frontend");
 const zx = @import("zx");
 const target = @import("target.zig");
 
-pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Allocator.Error!target.Value {
+pub const Options = struct {
+    owner: []const u8,
+    call: @import("rx").ast.Node,
+    project: frontend.project.Options,
+    setter: ?target.Setter,
+    selected: frontend.project.compiled.Target,
+};
+
+pub fn load(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!target.Value {
     const attribute = target.attribute(options.call, "module");
-    const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.owner });
-    var reporter: zx.Reporter = .{};
-
-    const resolved = frontend.project.resolveTarget(allocator, owner, attribute.value, options.project, &reporter, .{ .start = 0, .end = 0 }) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
-
-        return fail(allocator, options, "module", reporter.diagnostic.?.message);
-    };
-
-    if (resolved != .compiled) return fail(allocator, options, "module", "Call.module requires a public compiled package module");
-
-    const selected = resolved.compiled;
+    const selected = options.selected;
     var library: ?frontend.project.compiled.Library = null;
 
     for (options.project.compiled_libraries) |candidate| {
@@ -89,6 +86,6 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
     return fail(allocator, options, "module", "compiled package does not export the requested public module");
 }
 
-fn fail(allocator: std.mem.Allocator, options: target.Options, code: []const u8, message: []const u8) std.mem.Allocator.Error!target.Value {
+fn fail(allocator: std.mem.Allocator, options: Options, code: []const u8, message: []const u8) std.mem.Allocator.Error!target.Value {
     return target.failure(allocator, .{ .path = options.owner, .location = target.attribute(options.call, "module").value_location, .code = code, .message = message });
 }

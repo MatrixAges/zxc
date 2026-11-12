@@ -70,7 +70,9 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, collection: Collection
     options.context.types = signatures.value.data.types;
     options.context.nominal_types = signatures.value.data.nominal_types;
     options.context.native_modules = signatures.value.data.native_modules;
-    const registry = try analysis.store.registry.loadSignatures(allocator, collection.stores, options, signatures.value.data);
+    const indexed = try analysis.project.source_graph.Signatures.init(allocator, allocator, graph.value.graph, signatures.value.data.modules);
+    const stores = graph.value.graph.modules[sources.items.len + collection.modules.len ..];
+    const registry = try analysis.store.registry.loadSignatures(allocator, collection.stores, options.context, stores, indexed);
 
     return if (registry == .diagnostic) report(writer, registry.diagnostic) else true;
 }

@@ -1,0 +1,32 @@
+import {
+    tag_import,
+    tag_call,
+    tag_module,
+    tag_type,
+    tag_store,
+    tag_route
+} from "./const"
+
+export enum Output {
+    Import,
+    Call,
+    Shortcut,
+    Type,
+    Store,
+    Route,
+    Other
+}
+
+export type Input = string
+
+export default function (in: Input): Output {
+    return match in {
+        tag_import => Output.Import,
+        tag_call => Output.Call,
+        tag_module => Output.Shortcut,
+        tag_type => Output.Type,
+        tag_store => Output.Store,
+        tag_route => Output.Route,
+        _ => Output.Other
+    }
+}

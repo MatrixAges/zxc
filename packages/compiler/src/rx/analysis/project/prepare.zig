@@ -4,25 +4,23 @@ const rx = @import("rx");
 const target = @import("../call/target.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
-pub const Call = struct { setter: ?target.Setter = null, getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize, signature: frontend.project.signature_project.Ports } };
+const zx = @import("zx");
+const Graph = @import("source_graph/model.zig");
+const Signatures = @import("references/signatures.zig");
+const generated = @import("rx_options").generated_graph;
+const Callee = union(enum) { module: usize, signature: frontend.project.signature_project.Ports };
+pub const Call = struct { setter: ?target.Setter = null, getters: []const Store.Binding = &.{}, node: rx.ast.Node, edge: *const Graph.Edge, callee: Callee };
 pub const Module = struct { source: rx.ModuleSource, shortcut: ?usize = null, calls: []const Call, steps: []const Flow.Step, type_imports: []const @import("zx").ir.Export = &.{}, value_imports: []const @import("zx").ir.Export = &.{} };
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
-pub fn load(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition) std.mem.Allocator.Error!Value {
-    return loadWithSignatures(allocator, modules, sources, initial_project, definitions, null);
-}
-
-pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
-    return loadWithSignatures(allocator, modules, sources, initial_project, definitions, signatures);
-}
-
-fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: ?frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
+pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures) std.mem.Allocator.Error!Value {
     const plans = try allocator.alloc(Module, modules.len);
-    var loader = Loader{ .allocator = allocator, .modules = modules, .sources = sources, .project = initial_project, .signatures = signatures };
+    var loader = Loader{ .allocator = allocator, .modules = registered, .project = initial_project, .signatures = signatures };
 
-    for (modules, plans) |source, *plan| {
+    for (modules, registered, plans) |source, module, *plan| {
         loader.owner = source.path;
+        loader.references = .{ .remaining = module.dependencies };
         loader.calls = .empty;
         loader.task_count = 0;
         loader.deferred_shortcut = null;
@@ -42,7 +40,7 @@ fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
             return .{ .diagnostic = loader.issue.? };
         };
 
-        const imported: @import("type_imports.zig").Value = if (signatures) |signed| try @import("type_imports.zig").collect(allocator, source, loader.project, signed) else .{ .imports = &.{} };
+        const imported = try @import("type_imports.zig").collect(allocator, source, module, signatures);
 
         if (imported == .diagnostic) return .{ .diagnostic = imported.diagnostic };
 
@@ -76,10 +74,10 @@ pub fn completeShortcuts(allocator: std.mem.Allocator, loaded: Loaded, signature
 
 const Loader = struct {
     allocator: std.mem.Allocator,
-    modules: []const rx.ModuleSource,
-    sources: []const frontend.project.Source,
+    modules: []const Graph.Module,
     project: frontend.project.Options,
-    signatures: ?frontend.project.signature_project.Data = null,
+    signatures: Signatures,
+    references: Graph.References = .{ .remaining = &.{} },
     owner: []const u8 = "",
     stores: []const Store.Binding = &.{},
     calls: std.ArrayList(Call) = .empty,
@@ -95,7 +93,6 @@ const Loader = struct {
 
         const ports = switch (callee) {
             .signature => |signature| signature,
-            .function => |function| frontend.project.signature_project.Ports{ .input_type = function.program.input_type, .output_type = function.program.output_type },
             .module => {
                 self.deferred_shortcut = index;
 
@@ -195,73 +192,72 @@ const Loader = struct {
         }
 
         const capability = authorized.authorized;
-        const reference = try @import("reference.zig").resolve(self.allocator, self.owner, node, self.modules, self.project);
+        const edge = self.references.next(.call);
 
-        if (reference == .diagnostic) {
-            self.issue = reference.diagnostic;
+        const callee = switch (edge.target) {
+            .source => |source| try self.sourceCallee(source, edge.location, capability.setter != null),
+            .compiled => |selected| try self.compiledCallee(node, selected, capability.setter),
+            .native => return self.fail(edge.location, "module", "native and standard imports must use the interface registry"),
+        };
+
+        try self.calls.append(self.allocator, .{
+            .node = node,
+            .setter = capability.setter,
+            .getters = capability.getters,
+            .edge = edge,
+            .callee = callee,
+        });
+
+        return index;
+    }
+
+    fn sourceCallee(self: *Loader, source: usize, location: rx.ast.Location, setter: bool) Error!Callee {
+        switch (self.signatures.graph.modules[source].source) {
+            .rx => |index| return .{ .module = index },
+            .store => return self.fail(location, "module", "Call.module target is not registered"),
+            .zx => {},
+        }
+
+        const module = self.signatures.get(source) orelse return self.fail(location, "module", "source function signature is missing from the analyzed input set");
+        const signature = module.signature;
+        const forwarded = signature.deferredSource();
+
+        return switch (routeSignature(forwarded != null, signature.type_only, setter, signature.has_store)) {
+            .Function => .{ .signature = signature.ports },
+            .Forward => .{ .module = self.deferredModule(forwarded.?) orelse return self.fail(location, "module", "default re-export target is missing from the RX module collection") },
+            .SetterOnForward => self.fail(location, "capability", "RX module Store authorization belongs inside the module"),
+            .TypeOnly => self.fail(location, "module", "Call.fn requires an executable ZX module with a default function"),
+            .MissingStore => self.fail(location, "capability", "a Call.setter target must declare its second parameter as { store }"),
+        };
+    }
+    fn compiledCallee(self: *Loader, node: rx.ast.Node, selected: frontend.project.compiled.Target, setter: ?target.Setter) Error!Callee {
+        if ((target.optionalAttribute(node, "setter") != null) != (setter != null) or self.project.context.stores.len != 0) return self.fail(node.location, "capability", "Store calls require explicit per-call authorization from module declarations");
+
+        const result = try @import("../call/compiled.zig").load(self.allocator, .{
+            .owner = self.owner,
+            .call = node,
+            .project = self.project,
+            .setter = setter,
+            .selected = selected,
+        });
+
+        if (result == .diagnostic) {
+            self.issue = result.diagnostic;
 
             return error.InvalidFlow;
         }
 
-        if (reference == .module) {
-            try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .module = reference.module } });
-        } else if (self.signatures != null and reference == .source) {
-            const attribute = target.optionalAttribute(node, "module") orelse target.attribute(node, "fn");
-            const path = reference.source;
-            var found = false;
+        const function = result.function;
 
-            for (self.signatures.?.modules) |module| {
-                if (!std.mem.eql(u8, module.path, path)) continue;
+        self.project.context.types = function.program.types;
+        self.project.context.nominal_types = function.nominal_types;
+        self.project.context.native_modules = function.program.native_modules;
 
-                if (module.signature.deferredSource()) |source| {
-                    if (capability.setter != null) return self.fail(attribute.value_location, "capability", "RX module Store authorization belongs inside the module");
-
-                    const module_index = try self.deferredModule(source) orelse return self.fail(attribute.value_location, "module", "default re-export target is missing from the RX module collection");
-
-                    try self.calls.append(self.allocator, .{ .node = node, .getters = capability.getters, .callee = .{ .module = module_index } });
-
-                    found = true;
-
-                    break;
-                }
-
-                if (module.signature.type_only) return self.fail(attribute.value_location, "module", "Call.fn requires an executable ZX module with a default function");
-                if (capability.setter != null and !module.signature.has_store) return self.fail(attribute.value_location, "capability", "a Call.setter target must declare its second parameter as { store }");
-                try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .signature = module.signature.ports } });
-
-                found = true;
-
-                break;
-            }
-
-            if (!found) return self.fail(attribute.value_location, "module", "source function signature is missing from the analyzed input set");
-        } else {
-            const result = try target.load(self.allocator, .{ .owner = self.owner, .call = node, .sources = self.sources, .project = self.project, .setter = capability.setter });
-
-            if (result.value == .diagnostic) {
-                self.issue = result.value.diagnostic;
-
-                return error.InvalidFlow;
-            }
-
-            const function = result.value.function;
-
-            self.project.context.types = function.program.types;
-            self.project.context.nominal_types = function.nominal_types;
-            self.project.context.native_modules = function.program.native_modules;
-
-            try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .function = function } });
-        }
-
-        return index;
+        return .{ .signature = .{ .input_type = function.program.input_type, .output_type = function.program.output_type } };
     }
-    fn deferredModule(self: *Loader, path: []const u8) Error!?usize {
-        for (self.modules, 0..) |module, index| {
-            const absolute = try std.fs.path.resolve(self.allocator, &.{ self.project.root_dir, module.path });
-
-            defer self.allocator.free(absolute);
-
-            if (std.mem.eql(u8, absolute, path)) return index;
+    fn deferredModule(self: *const Loader, path: []const u8) ?usize {
+        for (self.modules) |module| {
+            if (zx.bytes.equal(module.path, path)) return module.source.rx;
         }
 
         return null;
@@ -274,6 +270,28 @@ const Loader = struct {
         return error.InvalidFlow;
     }
 };
+
+const SignatureRoute = if (generated)
+    @typeInfo(@TypeOf(@import("generated_rx_call_signature").executeValue(undefined, undefined))).error_union.payload
+
+else
+    enum { Function, Forward, SetterOnForward, TypeOnly, MissingStore };
+
+fn routeSignature(forwards_rx: bool, type_only: bool, setter: bool, has_store: bool) SignatureRoute {
+    if (comptime generated) {
+        var empty = std.heap.FixedBufferAllocator.init(&.{});
+        const rule = @import("generated_rx_call_signature");
+        const input: std.meta.Child(rule.Input) = .{ .forwards_rx = forwards_rx, .type_only = type_only, .setter = setter, .has_store = has_store };
+
+        return zx.columns.invoke(rule.executeValue, empty.allocator(), &input) catch unreachable;
+    }
+
+    if (forwards_rx) return if (setter) .SetterOnForward else .Forward;
+    if (type_only) return .TypeOnly;
+    if (setter and !has_store) return .MissingStore;
+
+    return .Function;
+}
 
 pub fn find(modules: []const rx.ModuleSource, path: []const u8) ?usize {
     for (modules, 0..) |source, index| {

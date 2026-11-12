@@ -27,7 +27,7 @@ pub fn store(self: *Self, path: []const u8, location: rx.ast.Location, owner: []
         return error.InvalidGraph;
     }
 
-    try self.local(path, location);
+    try self.local(path, location, .dependency);
 }
 
 pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
@@ -41,13 +41,13 @@ pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
     return error.InvalidGraph;
 }
 
-pub fn source(self: *Self, path: []const u8, location: rx.ast.Location) Error!void {
+fn source(self: *Self, path: []const u8, location: rx.ast.Location, reference: model.Reference) Error!void {
     const index = self.paths.get(path) orelse return self.fail(location, "source module dependency is missing from the registered input set");
 
-    try self.edges.append(self.allocator, .{ .target = .{ .source = index }, .location = location });
+    try self.edges.append(self.allocator, .{ .target = .{ .source = index }, .location = location, .reference = reference });
 }
 
-pub fn local(self: *Self, path: []const u8, location: rx.ast.Location) Error!void {
+pub fn local(self: *Self, path: []const u8, location: rx.ast.Location, reference: model.Reference) Error!void {
     const absolute = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, path });
     const resolved = if (std.mem.endsWith(u8, absolute, ".zx")) try project.selectSource(self.allocator, absolute, self.options) else absolute;
     const scopes = self.options.package_scopes;
@@ -59,14 +59,14 @@ pub fn local(self: *Self, path: []const u8, location: rx.ast.Location) Error!voi
         if (project.package_scope.owner(scopes, resolved) != owner) return self.fail(location, "file import crosses a package boundary; declare and import the package dependency");
     }
 
-    try self.source(resolved, location);
+    try self.source(resolved, location, reference);
 }
 
-pub fn import(self: *Self, reference: []const u8, location: rx.ast.Location) Error!void {
+pub fn import(self: *Self, reference: []const u8, location: rx.ast.Location, role: model.Reference) Error!void {
     const kind = project.specifier.classify(reference) catch return self.fail(location, "invalid or unknown import specifier");
 
     if (kind != .file and kind != .package) {
-        try self.edges.append(self.allocator, .{ .target = .{ .native = try self.allocator.dupe(u8, reference) }, .location = location });
+        try self.edges.append(self.allocator, .{ .target = .{ .native = try self.allocator.dupe(u8, reference) }, .location = location, .reference = role });
 
         return;
     }
@@ -80,7 +80,7 @@ pub fn import(self: *Self, reference: []const u8, location: rx.ast.Location) Err
     };
 
     switch (target) {
-        .source => |path| try self.source(path, location),
-        .compiled => |compiled| try self.edges.append(self.allocator, .{ .target = .{ .compiled = compiled }, .location = location }),
+        .source => |path| try self.source(path, location, role),
+        .compiled => |compiled| try self.edges.append(self.allocator, .{ .target = .{ .compiled = compiled }, .location = location, .reference = role }),
     }
 }

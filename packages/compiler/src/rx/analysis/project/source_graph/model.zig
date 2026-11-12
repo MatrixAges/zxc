@@ -5,8 +5,24 @@ const Diagnostic = @import("../../call/target.zig").Diagnostic;
 
 pub const Source = union(enum) { zx: usize, rx: usize, store: usize };
 pub const Target = union(enum) { source: usize, compiled: project.compiled.Target, native: []const u8 };
-pub const Edge = struct { target: Target, location: rx.ast.Location };
+pub const Reference = enum(u8) { dependency, call, type_import };
+pub const Edge = struct { target: Target, location: rx.ast.Location, reference: Reference = .dependency };
 pub const Module = struct { path: []const u8, source: Source, dependencies: []const Edge = &.{} };
+
+pub const References = struct {
+    remaining: []const Edge,
+    pub fn next(self: *References, reference: Reference) *const Edge {
+        while (self.remaining.len != 0) {
+            const edge = &self.remaining[0];
+
+            self.remaining = self.remaining[1..];
+
+            if (edge.reference == reference) return edge;
+        }
+
+        unreachable;
+    }
+};
 
 pub const Schedule = struct {
     order: []const usize,

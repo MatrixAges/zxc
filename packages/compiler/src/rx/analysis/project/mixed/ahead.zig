@@ -150,9 +150,9 @@ fn prepare(self: *Self, state: *State, cache: *frontend.project.ParseCache, sour
             const module = derived.loaded.modules[source];
             const callees = @import("callees.zig");
 
-            if (!try callees.local(state, derived.modules, module)) return null;
+            if (!callees.local(module)) return null;
 
-            const ids = try callees.load(state, cache, sources, derived.modules, module);
+            const ids = try callees.load(state, cache, sources, module);
 
             return .{ .rx = .{ .prepared = try Rx.prepare(state, self.bindings.allocator(), index, module, derived.resolved[source], ids) } };
         },

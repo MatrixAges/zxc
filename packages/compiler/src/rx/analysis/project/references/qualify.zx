@@ -1,0 +1,12 @@
+import { qualifier_separator } from "./const"
+
+export type Input = {
+    alias: string,
+    member: string
+}
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return `${in.alias}${qualifier_separator}${in.member}`
+}

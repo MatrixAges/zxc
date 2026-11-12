@@ -212,7 +212,6 @@ const Walker = struct {
         const span = zx.Span{ .start = expression.span_offset + offset, .end = expression.span_offset + offset };
 
         const input = switch (invocation.callee) {
-            .function => |function| try graph.known(function.program.input_type, span),
             .module => |module_index| self.states.items(.input)[module_index],
             .signature => |signature| try graph.known(signature.input_type, span),
         };
@@ -229,7 +228,6 @@ const Walker = struct {
         } else try graph.unify(input, try graph.scalar(.void, span), span);
 
         const output = switch (invocation.callee) {
-            .function => |function| try graph.known(function.program.output_type, span),
             .module => |module_index| self.states.items(.output)[module_index],
             .signature => |signature| try graph.known(signature.output_type, span),
         };

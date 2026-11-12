@@ -1,6 +1,5 @@
 const std = @import("std");
 const frontend = @import("frontend");
-const rx = @import("rx");
 const ir = @import("zx").ir;
 const State = @import("state.zig");
 const Loading = @import("../prepare.zig");
@@ -23,10 +22,10 @@ pub const Prepared = struct {
     initializers: usize,
 };
 
-pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, index: usize, module: Loading.Module, signature: Signature) State.Error!Result {
+pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, index: usize, module: Loading.Module, signature: Signature) State.Error!Result {
     state.owner = index;
 
-    const ids = try @import("callees.zig").load(state, cache, sources, modules, module);
+    const ids = try @import("callees.zig").load(state, cache, sources, module);
     const entry = index == state.graph.entry;
 
     if (!entry) _ = state.scratch.reset(.retain_capacity);

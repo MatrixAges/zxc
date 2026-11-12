@@ -76,7 +76,14 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
             return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = reporter.diagnostic.?.message });
         };
 
-        if (resolved == .compiled) return @import("compiled.zig").load(allocator, options);
+        if (resolved == .compiled) return @import("compiled.zig").load(allocator, .{
+            .owner = options.owner,
+            .call = options.call,
+            .project = options.project,
+            .setter = options.setter,
+            .selected = resolved.compiled,
+        });
+
         if (!std.mem.endsWith(u8, resolved.source, ".zx")) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = "source RX module calls require project inference" });
         if (options.setter != null) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "capability", .message = "Call.module cannot grant a setter; Store authorization belongs inside the module" });
 
