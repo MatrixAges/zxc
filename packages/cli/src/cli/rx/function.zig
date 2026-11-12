@@ -92,26 +92,22 @@ fn report(writer: *std.Io.Writer, inputs: []const compiler.project.Source, issue
 }
 
 fn called(io: std.Io, allocator: std.mem.Allocator, path: []const u8, root: []const u8, modules: []const @import("rx").ModuleSource) !bool {
-    var pending: std.ArrayList(struct { owner: []const u8, node: @import("rx").ast.Node }) = .empty;
+    var index = modules.len;
 
-    defer pending.deinit(allocator);
+    while (index != 0) {
+        index -= 1;
+        const module = &modules[index];
 
-    for (modules) |module| try pending.append(allocator, .{ .owner = module.path, .node = module.node });
+        for (module.indexedReferences() orelse unreachable) |reference| {
+            if (reference.role != .Call or reference.target != .Function) continue;
 
-    while (pending.pop()) |item| {
-        if (std.mem.eql(u8, item.node.name, "Call") or std.mem.eql(u8, item.node.name, "Module")) {
-            for (item.node.attributes) |attribute| {
-                if (!std.mem.eql(u8, attribute.name, "fn")) continue;
+            const attribute = reference.attribute orelse unreachable;
+            const relative = try @import("rx").resolveFunctionPath(allocator, module.path, attribute.value);
+            const candidate = try std.fs.path.resolve(allocator, &.{ root, relative });
+            const resolved = try @import("../sources/module_path.zig").select(io, allocator, candidate, null);
 
-                const relative = try @import("rx").resolveFunctionPath(allocator, item.owner, attribute.value);
-                const candidate = try std.fs.path.resolve(allocator, &.{ root, relative });
-                const resolved = try @import("../sources/module_path.zig").select(io, allocator, candidate, null);
-
-                if (std.mem.eql(u8, path, resolved)) return true;
-            }
+            if (std.mem.eql(u8, path, resolved)) return true;
         }
-
-        for (item.node.children) |node| try pending.append(allocator, .{ .owner = item.owner, .node = node });
     }
 
     return false;

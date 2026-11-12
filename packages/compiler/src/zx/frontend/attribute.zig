@@ -2,12 +2,22 @@ const std = @import("std");
 const zx = @import("zx");
 const dsl = @import("dsl");
 const expression = @import("parse_expression.zig");
+const adapter = @import("xml_adapter");
+pub const references = adapter.references;
+pub const IndexedXml = struct { xml: dsl.XmlResult, references: ?*const references.Index = null };
 
 pub fn parseXml(allocator: std.mem.Allocator, source: []const u8) std.mem.Allocator.Error!dsl.XmlResult {
-    if (!@import("parser_options").generated_parser) return dsl.parseXmlWith(allocator, source, boundary);
+    return (try parseDocument(allocator, source, false)).xml;
+}
+
+pub fn parseIndexedXml(allocator: std.mem.Allocator, source: []const u8) std.mem.Allocator.Error!IndexedXml {
+    return parseDocument(allocator, source, true);
+}
+
+fn parseDocument(allocator: std.mem.Allocator, source: []const u8, comptime indexed: bool) std.mem.Allocator.Error!IndexedXml {
+    if (!@import("parser_options").generated_parser) return .{ .xml = try dsl.parseXmlWith(allocator, source, boundary) };
 
     const generated = @import("generated_xml");
-    const adapter = @import("xml_adapter");
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
@@ -21,38 +31,39 @@ pub fn parseXml(allocator: std.mem.Allocator, source: []const u8) std.mem.Alloca
         else => {
             const message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated XML parser failed with {s}", .{@errorName(err)});
 
-            return .{ .arena = arena, .value = .{ .diagnostic = .{
+            return .{ .xml = .{ .arena = arena, .value = .{ .diagnostic = .{
                 .code = .syntax,
                 .location = .{ .offset = 0, .line = 1, .column = 1 },
                 .element = "",
                 .message = message,
-            } } };
+            } } } };
         },
     };
 
     if (output.control.message.len != 0) {
         const message = try arena.allocator().dupe(u8, output.control.message);
 
-        return .{ .arena = arena, .value = .{ .diagnostic = .{
+        return .{ .xml = .{ .arena = arena, .value = .{ .diagnostic = .{
             .code = .syntax,
             .location = adapter.location(output.control.issue),
             .element = "",
             .message = message,
-        } } };
+        } } } };
     }
 
     const owned_source = try arena.allocator().dupe(u8, source);
 
-    const node = try adapter.convert(
+    const document = try adapter.convert(
         @import("generated_xml_slots").executeValue,
         @import("generated_xml_decode").executeValue,
+        if (indexed) @import("generated_xml_references").executeValue else null,
         arena.allocator(),
         scratch.allocator(),
         owned_source,
         output,
     );
 
-    return .{ .arena = arena, .value = .{ .node = node } };
+    return .{ .xml = .{ .arena = arena, .value = .{ .node = document.node } }, .references = document.references };
 }
 
 fn boundary(source: []const u8, start: usize) dsl.ExpressionBoundary {

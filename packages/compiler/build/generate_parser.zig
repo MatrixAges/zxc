@@ -151,7 +151,9 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
 
-    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node, .packages = packages };
+    for (inputs, modules.items, parsed.inputs) |*item, source, *module| {
+        item.* = .{ .path = source.path, .node = module.node, .packages = source.packages, .references = module.references };
+    }
 
     const summary = try @import("shared_generation.zig").run(io, allocator, resident, project.entries, .{
         .modules = inputs,

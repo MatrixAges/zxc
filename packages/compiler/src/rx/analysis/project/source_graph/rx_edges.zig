@@ -3,22 +3,15 @@ const Reference = @import("model.zig").Reference;
 const dependency = rx.dependency_reference;
 
 pub fn collect(collector: anytype, source: rx.ModuleSource) @TypeOf(collector.*).Error!void {
-    var cursor: dependency.Cursor = .{};
+    var references: dependency.Iterator = .{};
 
-    defer cursor.deinit(collector.allocator);
-    cursor.reset(&source.node);
-
-    while (try cursor.next(collector.allocator)) |node| try reference(collector, source.path, node);
+    defer references.deinit(collector.allocator);
+    references.reset(&source.node, source.references);
+    while (try references.next(collector.allocator, false)) |selection| try reference(collector, source.path, selection);
 }
 
-fn reference(collector: anytype, owner: []const u8, node: *const rx.ast.Node) @TypeOf(collector.*).Error!void {
-    const selection = switch (dependency.find(node, false)) {
-        .skip => return,
-        .missing => return collector.fail(node.location, "source dependency requires an explicit target"),
-        .selected => |selected| selected,
-    };
-
-    const value = selection.attribute;
+fn reference(collector: anytype, owner: []const u8, selection: dependency.Entry) @TypeOf(collector.*).Error!void {
+    const value = selection.attribute orelse return collector.fail(selection.node.location, "source dependency requires an explicit target");
 
     const role: Reference = switch (selection.role) {
         .Dependency => .dependency,

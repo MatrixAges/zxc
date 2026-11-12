@@ -138,7 +138,8 @@ fn loadIn(result: *Result, backing: std.mem.Allocator, options: Options) !?Data 
             continue;
         }
 
-        const parsed = try rx.parseXml(allocator, source);
+        const document = try rx.parseIndexedXml(allocator, source);
+        const parsed = document.xml;
 
         if (parsed.value == .diagnostic) {
             try report(writer, path, parsed.value.diagnostic);
@@ -178,18 +179,17 @@ fn loadIn(result: *Result, backing: std.mem.Allocator, options: Options) !?Data 
             continue;
         }
 
-        if (std.mem.endsWith(u8, path, ".store.rx")) {
-            try stores.append(allocator, .{ .path = path, .node = parsed.value.node });
-        }
-
         const packages = rx.module_reference.dependencies(options.project, absolute);
+        const module: rx.ModuleSource = .{ .path = path, .node = parsed.value.node, .packages = packages, .references = document.references };
 
-        if (!is_gateway and !std.mem.endsWith(u8, path, ".store.rx")) {
+        if (std.mem.endsWith(u8, path, ".store.rx")) {
+            try stores.append(allocator, module);
+        } else if (!is_gateway) {
             try sources.append(allocator, .{ .path = path, .source = source, .packages = packages });
-            try modules.append(allocator, .{ .path = path, .node = parsed.value.node, .packages = packages });
+            try modules.append(allocator, module);
         }
 
-        @import("rx_analysis").project.source_graph.references.collect(&collector, .{ .path = path, .node = parsed.value.node, .packages = packages }) catch |err| {
+        @import("rx_analysis").project.source_graph.references.collect(&collector, module) catch |err| {
             if (err == error.InvalidSourceGraph) return null;
 
             return err;

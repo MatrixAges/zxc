@@ -2,8 +2,10 @@ const std = @import("std");
 const ast = @import("dsl").ast;
 const generated = @import("rx_options").generated_graph;
 pub const Cursor = @import("cursor.zig");
-const Target = enum { Module, Function, Store };
-const Role = enum { Dependency, Call, TypeImport };
+const model = @import("frontend").xml_references;
+pub const Entry = model.Entry;
+const Target = model.Target;
+const Role = model.Role;
 
 const SeedRule = struct {
     primary: []const u8 = "",
@@ -13,6 +15,7 @@ const SeedRule = struct {
     role: Role = .Dependency,
     required: bool = false,
     package_allowed: bool = false,
+    graph: bool = false,
 };
 
 const Rule = if (generated)
@@ -26,9 +29,61 @@ const Selection = struct {
     target: @FieldType(Rule, "target"),
     role: @FieldType(Rule, "role"),
     package_allowed: bool,
+    graph: bool,
 };
 
 const Result = union(enum) { skip, missing, selected: Selection };
+
+pub const Iterator = struct {
+    indexed: ?[]const Entry = null,
+    fallback: Cursor = .{},
+    pub fn reset(self: *Iterator, node: *const ast.Node, indexed: ?*const model.Index) void {
+        self.indexed = if (indexed) |index| model.forNode(index, node) else null;
+
+        if (self.indexed == null) self.fallback.reset(node);
+    }
+
+    pub fn deinit(self: *Iterator, allocator: std.mem.Allocator) void {
+        self.fallback.deinit(allocator);
+    }
+    pub fn next(self: *Iterator, allocator: std.mem.Allocator, comptime graph_only: bool) std.mem.Allocator.Error!?Entry {
+        if (self.indexed) |entries| {
+            var end = entries.len;
+
+            while (end != 0) {
+                end -= 1;
+                const entry = entries[end];
+
+                if (graph_only and !entry.graph) continue;
+
+                self.indexed = entries[0..end];
+
+                return entry;
+            }
+
+            self.indexed = &.{};
+
+            return null;
+        }
+
+        while (try self.fallback.next(allocator)) |node| {
+            switch (find(node, graph_only)) {
+                .skip => continue,
+                .missing => return .{ .node = node },
+                .selected => |selection| return .{
+                    .node = node,
+                    .attribute = selection.attribute,
+                    .target = @fromBackingInt(@intCast(@backingInt(selection.target))),
+                    .role = @fromBackingInt(@intCast(@backingInt(selection.role))),
+                    .package_allowed = selection.package_allowed,
+                    .graph = selection.graph,
+                },
+            }
+        }
+
+        return null;
+    }
+};
 
 pub fn find(node: *const ast.Node, comptime graph_only: bool) Result {
     if (node.attributes.len == 0 and graph_only) return .skip;
@@ -42,6 +97,7 @@ pub fn find(node: *const ast.Node, comptime graph_only: bool) Result {
         .target = rule.target,
         .role = rule.role,
         .package_allowed = rule.package_allowed,
+        .graph = rule.graph,
     } };
 
     if (rule.fallback.len != 0) {
@@ -50,6 +106,7 @@ pub fn find(node: *const ast.Node, comptime graph_only: bool) Result {
             .target = rule.fallback_target,
             .role = rule.role,
             .package_allowed = false,
+            .graph = false,
         } };
     }
 
@@ -71,14 +128,16 @@ fn select(tag: []const u8, comptime graph_only: bool) Rule {
         var empty = std.heap.FixedBufferAllocator.init(&.{});
 
         const input: if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter = .{
-            .tag = tag,
+            .source = tag,
+            .start = 0,
+            .end = tag.len,
             .graph_only = graph_only,
         };
 
         return execute(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &input else input) catch unreachable;
     }
 
-    if (std.mem.eql(u8, tag, "Import")) return .{ .primary = "from", .required = true };
+    if (std.mem.eql(u8, tag, "Import")) return .{ .primary = "from", .required = true, .graph = true };
 
     if (std.mem.eql(u8, tag, "Call")) return .{
         .primary = "module",
@@ -87,6 +146,7 @@ fn select(tag: []const u8, comptime graph_only: bool) Rule {
         .role = .Call,
         .required = !graph_only,
         .package_allowed = true,
+        .graph = true,
     };
 
     if (graph_only) return .{};

@@ -11,69 +11,110 @@ import {
     tag_type
 } from "./const"
 import { Role, Target } from "./model"
+import name from "./name"
 
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    const tag = in.tag
     const graph_only = in.graph_only
-    const enabled = !graph_only || (tag == tag_import || tag == tag_call)
-    const label = enabled ? tag : ""
+    const source = in.source
+    const start = in.start
+    const end = in.end
 
-    return match label {
-        tag_import => {
+    const imported = name({
+        source,
+        start,
+        end,
+        name: tag_import
+    })
+
+    const called = !imported && name({
+        source,
+        start,
+        end,
+        name: tag_call
+    })
+
+    return match {
+        imported => {
             primary: attribute_from,
             fallback: "",
             target: Target.Module,
             fallback_target: Target.Module,
             role: Role.Dependency,
             required: true,
-            package_allowed: false
+            package_allowed: false,
+            graph: true
         },
-        tag_call => {
+        called => {
             primary: attribute_module,
             fallback: graph_only ? "" : attribute_fn,
             target: Target.Module,
             fallback_target: Target.Function,
             role: Role.Call,
             required: !graph_only,
-            package_allowed: true
+            package_allowed: true,
+            graph: true
         },
-        tag_module => {
+        !graph_only && name({
+            source,
+            start,
+            end,
+            name: tag_module
+        }) => {
             primary: attribute_fn,
             fallback: "",
             target: Target.Function,
             fallback_target: Target.Function,
             role: Role.Call,
             required: false,
-            package_allowed: false
+            package_allowed: false,
+            graph: false
         },
-        tag_type => {
+        !graph_only && name({
+            source,
+            start,
+            end,
+            name: tag_type
+        }) => {
             primary: attribute_from,
             fallback: "",
             target: Target.Function,
             fallback_target: Target.Function,
             role: Role.TypeImport,
             required: true,
-            package_allowed: true
+            package_allowed: true,
+            graph: false
         },
-        tag_store => {
+        !graph_only && name({
+            source,
+            start,
+            end,
+            name: tag_store
+        }) => {
             primary: attribute_from,
             fallback: "",
             target: Target.Store,
             fallback_target: Target.Store,
             role: Role.Dependency,
             required: false,
-            package_allowed: false
+            package_allowed: false,
+            graph: false
         },
-        tag_route => {
+        !graph_only && name({
+            source,
+            start,
+            end,
+            name: tag_route
+        }) => {
             primary: attribute_service,
             fallback: "",
             target: Target.Module,
             fallback_target: Target.Module,
             role: Role.Dependency,
             required: true,
-            package_allowed: false
+            package_allowed: false,
+            graph: false
         },
         _ => {
             primary: "",
@@ -82,7 +123,8 @@ export default function (in: Input): Output {
             fallback_target: Target.Module,
             role: Role.Dependency,
             required: false,
-            package_allowed: false
+            package_allowed: false,
+            graph: false
         }
     }
 }

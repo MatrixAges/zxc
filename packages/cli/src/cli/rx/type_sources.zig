@@ -27,14 +27,19 @@ pub fn collect(allocator: std.mem.Allocator, options: Options) !?[]const rx.Text
     }
 
     for (0..options.modules.len + options.stores.len) |index| {
-        const module = if (index < options.modules.len) options.modules[index] else options.stores[index - options.modules.len];
+        const module = if (index < options.modules.len) &options.modules[index] else &options.stores[index - options.modules.len];
         const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, module.path });
         const packages = rx.module_reference.dependencies(options.project, owner);
+        const references = module.indexedReferences() orelse unreachable;
+        var end = references.len;
 
-        for (module.node.children) |node| {
-            if (!std.mem.eql(u8, node.name, "Type")) continue;
+        while (end != 0) {
+            end -= 1;
+            const reference = references[end];
 
-            const from = attribute(node, "from");
+            if (reference.role != .TypeImport) continue;
+
+            const from = (reference.attribute orelse unreachable).*;
 
             if (!rx.module_reference.isPackage(from.value, packages)) continue;
 
@@ -81,14 +86,6 @@ pub fn collect(allocator: std.mem.Allocator, options: Options) !?[]const rx.Text
     }
 
     return result.items;
-}
-
-fn attribute(node: rx.ast.Node, name: []const u8) rx.ast.Attribute {
-    for (node.attributes) |value| {
-        if (std.mem.eql(u8, value.name, name)) return value;
-    }
-
-    unreachable;
 }
 
 fn report(writer: *std.Io.Writer, path: []const u8, from: rx.ast.Attribute, message: []const u8) !void {

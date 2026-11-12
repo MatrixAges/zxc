@@ -16,23 +16,18 @@ pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, 
     var targets: std.ArrayList(u64) = .empty;
     var issues: std.ArrayList(Issue) = .empty;
     var links: std.ArrayList(Link) = .empty;
-    var cursor: dependency.Cursor = .{};
+    var references: dependency.Iterator = .{};
 
-    defer cursor.deinit(allocator);
+    defer references.deinit(allocator);
 
     for (sources, 0..) |*source, owner| {
         offsets[owner] = targets.items.len;
 
-        cursor.reset(&source.node);
+        references.reset(&source.node, source.references);
 
-        while (try cursor.next(allocator)) |node| {
-            const selection = switch (dependency.find(node, true)) {
-                .skip => continue,
-                .missing => unreachable,
-                .selected => |selected| selected,
-            };
-
-            const value = selection.attribute.value;
+        while (try references.next(allocator, true)) |selection| {
+            const attribute = selection.attribute orelse unreachable;
+            const value = attribute.value;
 
             if (selection.package_allowed and module_reference.isPackage(value, source.packages)) continue;
 
@@ -40,7 +35,7 @@ pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, 
 
             try targets.append(allocator, target.index);
             try issues.append(allocator, target.issue);
-            try links.append(allocator, .{ .node = node, .attribute = selection.attribute });
+            try links.append(allocator, .{ .node = selection.node, .attribute = attribute });
         }
     }
 

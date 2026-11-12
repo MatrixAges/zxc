@@ -2,6 +2,7 @@ const std = @import("std");
 const dsl = @import("dsl");
 pub const ast = dsl.ast;
 pub const parseXml = @import("frontend").parseExpressionXml;
+pub const parseIndexedXml = @import("frontend").parseIndexedXml;
 pub const XmlResult = dsl.XmlResult;
 pub const attributeLocation = dsl.attributeLocation;
 pub const attributeEndLocation = dsl.attributeEndLocation;

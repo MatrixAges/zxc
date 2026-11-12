@@ -3,6 +3,7 @@ const dsl = @import("dsl");
 const flow = @import("flow.zig");
 const paths = @import("paths.zig");
 const graph = @import("module_graph.zig");
+const references = @import("frontend").xml_references;
 const generated_graph = @import("rx_options").generated_graph;
 pub const Registry = if (generated_graph) @import("frontend").project.source_index.Map else void;
 
@@ -10,6 +11,12 @@ pub const Source = struct {
     path: []const u8,
     node: dsl.ast.Node,
     packages: []const @import("frontend").project.Package = &.{},
+    references: ?*const references.Index = null,
+    pub fn indexedReferences(self: *const Source) ?[]const references.Entry {
+        const index = self.references orelse return null;
+
+        return references.forNode(index, &self.node);
+    }
 };
 
 pub const Module = struct {

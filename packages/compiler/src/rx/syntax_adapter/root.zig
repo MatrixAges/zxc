@@ -1,12 +1,15 @@
 const std = @import("std");
 const dsl = @import("dsl");
 const value = @import("value.zig");
+pub const references = @import("references.zig");
+
+const Document = struct { node: dsl.ast.Node, references: ?*const references.Index = null };
 
 pub fn location(input: anytype) dsl.ast.Location {
     return .{ .offset = @intCast(input.offset), .line = @intCast(input.line), .column = @intCast(input.column) };
 }
 
-pub fn convert(comptime layout: anytype, comptime decode: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !dsl.ast.Node {
+pub fn convert(comptime layout: anytype, comptime decode: anytype, comptime scan: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !Document {
     const tree = input.tree;
     const slots = try temporary.alloc(u64, tree.nodes.len + tree.text.len);
     const node_slots = slots[0..tree.nodes.len];
@@ -72,5 +75,8 @@ pub fn convert(comptime layout: anytype, comptime decode: anytype, allocator: st
         text_start += text_count;
     }
 
-    return nodes[0];
+    return .{
+        .node = nodes[0],
+        .references = if (comptime @TypeOf(scan) == @TypeOf(null)) null else try references.build(scan, allocator, temporary, source, input, node_slots, nodes, attributes),
+    };
 }

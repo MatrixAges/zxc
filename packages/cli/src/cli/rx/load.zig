@@ -1,7 +1,8 @@
 const std = @import("std");
 const rx = @import("rx");
+const collection = @import("collection.zig");
 
-pub fn load(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator, entry: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !?[]const rx.TextSource {
+pub fn load(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator, entry: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !?collection.Result {
     const project = try @import("../project.zig").load(io, allocator, entry, config_path);
 
     if (project.diagnostic) |message| {
@@ -14,9 +15,10 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator
     const cwd = try std.Io.Dir.cwd().realPathFileAlloc(io, ".", allocator);
     const absolute = try std.fs.path.resolve(allocator, &.{ cwd, entry });
     const owner = try std.fs.path.relative(allocator, root, null, root, absolute);
-    var loaded = try @import("collection.zig").load(allocator, .{ .io = io, .root = root, .entry = owner, .writer = writer, .project = project.project }) orelse return null;
+    var loaded = try collection.load(allocator, .{ .io = io, .root = root, .entry = owner, .writer = writer, .project = project.project }) orelse return null;
+    var transferred = false;
 
-    defer loaded.deinit();
+    defer if (!transferred) loaded.deinit();
 
     const functions = try @import("type_sources.zig").collect(allocator, .{
         .io = io,
@@ -85,11 +87,7 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator
 
     if (!try @import("compiled.zig").collect(allocator, .{ .io = io, .modules = loaded.data.modules, .project = project.project, .libraries = &libraries, .inputs = null, .writer = writer })) return null;
 
-    const sources = try allocator.alloc(rx.TextSource, loaded.data.sources.len);
+    transferred = true;
 
-    for (loaded.data.sources, sources) |source, *item| {
-        item.* = .{ .path = try allocator.dupe(u8, source.path), .source = try allocator.dupe(u8, source.source), .packages = source.packages };
-    }
-
-    return sources;
+    return loaded;
 }

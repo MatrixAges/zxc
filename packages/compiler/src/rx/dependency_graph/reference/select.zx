@@ -1,0 +1,80 @@
+import name from "./name"
+import rule from "./rule"
+
+import type { Attribute, Node } from "../../syntax/document/model"
+import type { Reference } from "./model"
+
+export type Input = {
+    source: u8[],
+    node: Node,
+    attributes: Attribute[],
+    row: u64
+}
+
+export type Output = Reference?
+
+export default function (in: Input): Output {
+    const source = in.source
+    const node = in.node
+
+    const rule = rule({
+        source,
+        start: node.name.start,
+        end: node.name.end,
+        graph_only: false
+    })
+
+    if (rule.primary.length == 0) {
+        return null
+    }
+
+    const absent: u64? = null
+    const end = node.attribute_start + node.attribute_count
+
+    const found = loop({
+        index: node.attribute_start,
+        primary: absent,
+        fallback: absent
+    }, {
+        while: state => state.index < end && state.primary == null,
+        next: state => {
+            const span = in.attributes[state.index].name
+            const start = span.start
+            const end = span.end
+
+            if (name({
+                source,
+                start,
+                end,
+                name: rule.primary
+            })) {
+                state.primary = state.index
+            } else if (rule.fallback.length != 0 && name({
+                source,
+                start,
+                end,
+                name: rule.fallback
+            })) {
+                state.fallback = state.index
+            }
+
+            state.index += 1
+        }
+    })
+
+    const primary = found.primary != null
+    const attribute = primary ? found.primary : found.fallback
+
+    if (attribute == null && !rule.required) {
+        return null
+    }
+
+    return {
+        node: in.row,
+        attribute,
+        target: primary ? rule.target : rule.fallback_target,
+        role: rule.role,
+        package_allowed: primary && rule.package_allowed,
+        graph: primary && rule.graph
+    }
+}

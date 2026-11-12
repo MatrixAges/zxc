@@ -13,9 +13,22 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, scratch: std.mem.Allocator,
 
         defer arena.deinit();
 
-        const sources = try @import("load.zig").load(io, arena.allocator(), scratch, paths[1], if (paths.len == 4) paths[3] else null, writer) orelse return false;
+        var loaded = try @import("load.zig").load(io, arena.allocator(), scratch, paths[1], if (paths.len == 4) paths[3] else null, writer) orelse return false;
 
-        return validate(allocator, sources, writer);
+        defer loaded.deinit();
+
+        const modules = loaded.data.modules;
+        var result = try rx.validateModules(allocator, modules);
+
+        defer result.deinit();
+
+        if (result.value == .diagnostic) {
+            const diagnostic = result.value.diagnostic;
+
+            return report(writer, modules[diagnostic.source_index].path, diagnostic.issue);
+        }
+
+        return true;
     }
 
     if (paths.len == 0) {
@@ -54,12 +67,15 @@ fn validate(allocator: std.mem.Allocator, sources: []const rx.TextSource, writer
 
     if (result.value == .diagnostic) {
         const diagnostic = result.value.diagnostic;
-        const issue = diagnostic.issue;
 
-        try writer.print("{s}:{d}:{d}: {t}: {s}\n", .{ sources[diagnostic.source_index].path, issue.location.line, issue.location.column, issue.code, issue.message });
-
-        return false;
+        return report(writer, sources[diagnostic.source_index].path, diagnostic.issue);
     }
 
     return true;
+}
+
+fn report(writer: *std.Io.Writer, path: []const u8, issue: rx.Diagnostic) !bool {
+    try writer.print("{s}:{d}:{d}: {t}: {s}\n", .{ path, issue.location.line, issue.location.column, issue.code, issue.message });
+
+    return false;
 }

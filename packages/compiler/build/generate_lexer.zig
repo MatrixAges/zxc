@@ -48,11 +48,7 @@ pub fn generate(init: std.process.Init, source_root: []const u8, core_root: []co
         return error.InvalidLexerModule;
     }
 
-    const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
-
-    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
-
-    const selected = try @import("parser_inputs.zig").reachable(allocator, inputs, "scan.rx");
+    const selected = try @import("parser_inputs.zig").reachable(allocator, parsed.inputs, "scan.rx");
 
     var analyzed = try analysis.project.infer(allocator, .{
         .entry = "scan.rx",

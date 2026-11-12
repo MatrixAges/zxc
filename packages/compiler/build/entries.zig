@@ -33,6 +33,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/syntax/parse.rx", .name = "xml" },
     .{ .path = "rx/syntax/document/slots.zx", .name = "xml_slots" },
     .{ .path = "rx/syntax/document/value/decode.zx", .name = "xml_decode" },
+    .{ .path = "rx/dependency_graph/reference/scan.zx", .name = "xml_references" },
     .{ .path = "rx/path_segments/normalize.rx", .name = "paths", .owner = .rx },
     .{ .path = "rx/path_segments/walk.zx", .name = "path_write", .owner = .rx },
     .{ .path = "rx/dependency_graph/validate.rx", .name = "graph", .owner = .rx },

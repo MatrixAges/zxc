@@ -1,0 +1,64 @@
+import memory from "std:memory"
+
+import select from "./select"
+
+import type { U64Buffer } from "std:memory"
+import type { Attribute, Node } from "../../syntax/document/model"
+import type { Reference } from "./model"
+
+export type Input = {
+    source: u8[],
+    nodes: Node[],
+    attributes: Attribute[],
+    root: u64,
+    parents: U64Buffer
+}
+
+export type Output = Reference[]
+
+export default function (in: Input): Output {
+    const parents = in.parents
+    const references: Reference[] = []
+
+    return loop({
+        next: in.root + 1,
+        depth: 0,
+        finishing: false,
+        references
+    }, {
+        while: state => state.next != 0,
+        next: state => {
+            const row = state.next - 1
+            const node = in.nodes[row]
+
+            if (!state.finishing && node.children != 0) {
+                memory.writeU64(parents, state.depth, state.next)
+                state.depth += 1
+                state.next = node.children
+            } else {
+                const reference = select({
+                    source: in.source,
+                    node,
+                    attributes: in.attributes,
+                    row
+                })
+
+                if (reference != null) {
+                    state.references = state.references.push(reference)[0]
+                }
+
+                if (node.previous_sibling != 0) {
+                    state.next = node.previous_sibling
+                    state.finishing = false
+                } else if (state.depth != 0) {
+                    state.depth -= 1
+                    state.next = memory.readU64(parents, state.depth)
+                    state.finishing = true
+                } else {
+                    state.next = 0
+                }
+            }
+        },
+        return: state => state.references
+    })
+}

@@ -7,6 +7,7 @@ pub const Result = struct {
     arena: std.heap.ArenaAllocator,
     dependency_order: []const usize = &.{},
     parsed: []dsl.XmlResult,
+    inputs: []const modules.Source = &.{},
     validated: ?modules.Result = null,
     value: union(enum) { data: []const modules.Module, diagnostic: modules.Diagnostic },
     pub fn deinit(self: *Result) void {
@@ -35,19 +36,19 @@ pub fn parseModules(allocator: std.mem.Allocator, sources: []const Source) std.m
     try parsed.ensureTotalCapacity(temporary, sources.len);
 
     for (sources, 0..) |source, index| {
-        const item = try @import("frontend").parseExpressionXml(allocator, source.source);
+        const item = try @import("frontend").parseIndexedXml(allocator, source.source);
 
-        parsed.appendAssumeCapacity(item);
+        parsed.appendAssumeCapacity(item.xml);
 
-        switch (item.value) {
+        switch (item.xml.value) {
             .diagnostic => |issue| return .{ .arena = arena, .parsed = parsed.items, .value = .{ .diagnostic = .{ .source_index = index, .issue = issue } } },
-            .node => |node| inputs[index] = .{ .path = source.path, .node = node, .packages = source.packages },
+            .node => |node| inputs[index] = .{ .path = source.path, .node = node, .packages = source.packages, .references = item.references },
         }
     }
 
     const validated = try modules.validate(allocator, inputs);
 
-    return .{ .arena = arena, .parsed = parsed.items, .validated = validated, .dependency_order = validated.dependency_order, .value = switch (validated.value) {
+    return .{ .arena = arena, .parsed = parsed.items, .inputs = inputs, .validated = validated, .dependency_order = validated.dependency_order, .value = switch (validated.value) {
         .data => |data| .{ .data = data },
         .diagnostic => |issue| .{ .diagnostic = issue },
     } };

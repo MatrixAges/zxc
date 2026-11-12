@@ -10,8 +10,19 @@ export enum Role {
     TypeImport
 }
 
+export type Reference = {
+    node: u64,
+    attribute?: u64,
+    target: Target,
+    role: Role,
+    package_allowed: bool,
+    graph: bool
+}
+
 export type Input = {
-    tag: string,
+    source: u8[],
+    start: u64,
+    end: u64,
     graph_only: bool
 }
 
@@ -22,5 +33,6 @@ export type Output = {
     fallback_target: Target,
     role: Role,
     required: bool,
-    package_allowed: bool
+    package_allowed: bool,
+    graph: bool
 }

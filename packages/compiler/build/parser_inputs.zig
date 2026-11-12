@@ -15,10 +15,10 @@ pub fn reachable(allocator: std.mem.Allocator, sources: []const rx.ModuleSource,
     @memset(seen, false);
 
     var pending: std.ArrayList(usize) = .empty;
-    var nodes: std.ArrayList(*const rx.ast.Node) = .empty;
+    var references: rx.dependency_reference.Iterator = .{};
 
     defer pending.deinit(allocator);
-    defer nodes.deinit(allocator);
+    defer references.deinit(allocator);
 
     try pending.append(allocator, registered.get(entry) orelse return error.MissingParserEntry);
 
@@ -29,23 +29,18 @@ pub fn reachable(allocator: std.mem.Allocator, sources: []const rx.ModuleSource,
 
         const source = &sources[index];
 
-        try nodes.append(allocator, &source.node);
+        references.reset(&source.node, source.references);
 
-        while (nodes.pop()) |node| {
-            const key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import")) "from" else if (std.mem.eql(u8, node.name, "Call")) "module" else null;
+        while (try references.next(allocator, true)) |selection| {
+            const attribute = selection.attribute orelse continue;
 
-            if (key) |name| for (node.attributes) |attribute| {
-                if (!std.mem.eql(u8, attribute.name, name)) continue;
-                if (std.mem.eql(u8, name, "module") and rx.module_reference.isPackage(attribute.value, source.packages)) continue;
+            if (selection.package_allowed and rx.module_reference.isPackage(attribute.value, source.packages)) continue;
 
-                const path = try rx.resolveModulePath(allocator, source.path, attribute.value);
+            const path = try rx.resolveModulePath(allocator, source.path, attribute.value);
 
-                defer allocator.free(path);
+            defer allocator.free(path);
 
-                try pending.append(allocator, registered.get(path) orelse return error.MissingParserModule);
-            };
-
-            for (node.children) |*child| try nodes.append(allocator, child);
+            try pending.append(allocator, registered.get(path) orelse return error.MissingParserModule);
         }
     }
 
