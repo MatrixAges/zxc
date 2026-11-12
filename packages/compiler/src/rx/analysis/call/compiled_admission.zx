@@ -1,0 +1,22 @@
+export type Input = {
+    executable: bool,
+    setter: bool,
+    has_stores: bool,
+    orchestration: bool
+}
+
+export enum Output {
+    Executable,
+    MissingFunction,
+    Setter,
+    Transaction
+}
+
+export default function (in: Input): Output {
+    return match {
+        !in.executable => Output.MissingFunction,
+        in.setter => Output.Setter,
+        in.has_stores && !in.orchestration => Output.Transaction,
+        _ => Output.Executable
+    }
+}

@@ -18,6 +18,8 @@ pub const Options = struct {
     project: frontend.project.Options,
     parse_cache: ?*frontend.project.ParseCache = null,
     scratch_allocator: ?std.mem.Allocator = null,
+    /// Optional caller-owned index, using the scratch allocator.
+    registered_paths: ?*frontend.project.source_index.Map = null,
 };
 
 pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Result {
@@ -32,9 +34,11 @@ pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
 fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!model.Value {
     const modules = try allocator.alloc(model.Module, options.sources.len + options.modules.len + options.stores.len);
-    var paths = try frontend.project.source_index.Map.init(backing, modules.len);
+    var temporary = frontend.project.source_index.Map.empty;
+    const paths = options.registered_paths orelse &temporary;
+    paths.* = try frontend.project.source_index.Map.init(backing, modules.len);
 
-    defer paths.deinit(backing);
+    defer temporary.deinit(backing);
 
     for (modules, 0..) |*module, index| {
         const is_zx = index < options.sources.len;
@@ -75,9 +79,9 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     for (roots[1 + options.additional_roots.len ..], 0..) |*root, index| root.* = options.sources.len + options.modules.len + index;
 
-    var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = &paths };
+    var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = paths };
 
-    if (collector.options.source_index == null) collector.options.source_index = &paths;
+    if (collector.options.source_index == null) collector.options.source_index = paths;
 
     @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;

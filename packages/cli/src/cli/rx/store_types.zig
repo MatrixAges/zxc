@@ -39,7 +39,20 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, collection: Collection
 
     for (collection.modules, roots) |module, *root| root.* = module.path;
 
-    var graph = try analysis.project.source_graph.build(allocator, .{ .entry = collection.stores[0].path, .additional_roots = roots, .modules = collection.modules, .stores = collection.stores, .sources = sources.items, .project = options, .parse_cache = &cache });
+    var paths = compiler.project.source_index.Map.empty;
+
+    defer paths.deinit(allocator);
+
+    var graph = try analysis.project.source_graph.build(allocator, .{
+        .entry = collection.stores[0].path,
+        .additional_roots = roots,
+        .modules = collection.modules,
+        .stores = collection.stores,
+        .sources = sources.items,
+        .project = options,
+        .parse_cache = &cache,
+        .registered_paths = &paths,
+    });
 
     defer graph.deinit();
 
@@ -70,7 +83,7 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, collection: Collection
     options.context.types = signatures.value.data.types;
     options.context.nominal_types = signatures.value.data.nominal_types;
     options.context.native_modules = signatures.value.data.native_modules;
-    const indexed = try analysis.project.source_graph.Signatures.init(allocator, allocator, graph.value.graph, signatures.value.data.modules);
+    const indexed = try analysis.project.source_graph.Signatures.init(allocator, graph.value.graph, signatures.value.data.modules, &paths);
     const stores = graph.value.graph.modules[sources.items.len + collection.modules.len ..];
     const registry = try analysis.store.registry.loadSignatures(allocator, collection.stores, options.context, stores, indexed);
 

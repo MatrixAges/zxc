@@ -5,19 +5,11 @@ const State = @import("state.zig");
 const compiled = frontend.project.compiled;
 
 pub fn load(state: *State, target: compiled.Target, location: rx.ast.Location) State.Error!compiled.Export {
-    var selected: ?usize = null;
-
-    for (state.options.compiled_libraries, 0..) |library, index| {
-        if (!std.mem.eql(u8, library.instance, target.instance)) continue;
-
-        const path = try std.fs.path.resolve(state.allocator, &.{ state.options.root_dir, library.artifact });
-
-        if (selected != null or !std.mem.eql(u8, path, target.artifact)) return state.fail(location, "compiled package instance has conflicting artifacts");
-
-        selected = index;
-    }
-
-    const index = selected orelse return state.fail(location, "compiled library is missing from the input set");
+    const index = switch (try compiled.resolve.library(state.allocator, state.options.compiled_libraries, state.options.root_dir, target)) {
+        .found => |value| value,
+        .conflict => return state.fail(location, "compiled package instance has conflicting artifacts"),
+        .missing => return state.fail(location, "compiled library is missing from the input set"),
+    };
 
     const exports = state.libraries.get(index) orelse block: {
         const loaded = compiled.loadInto(state.allocator, state.options.compiled_libraries[index], .{

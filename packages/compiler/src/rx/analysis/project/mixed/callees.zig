@@ -13,12 +13,14 @@ pub fn load(state: *State, cache: *frontend.project.ParseCache, sources: []const
         id.* = switch (call.edge.target) {
             .compiled => |library| block: {
                 const exported = try @import("library.zig").load(state, library, location);
-                const function = exported.function orelse return state.fail(location, "Call.module requires an executable public module");
-                const value = state.functions.at(@backingInt(function));
 
-                if (call.setter != null or (value.stores.count() != 0 and value.store_mode != .orchestration)) return state.fail(location, "compiled Store transactions require an explicit authorized RX module");
+                switch (@import("../../call/compiled_admission.zig").check(exported.function, &state.functions, call.setter != null)) {
+                    .Executable => {},
+                    .MissingFunction => return state.fail(location, "Call.module requires an executable public module"),
+                    .Setter, .Transaction => return state.fail(location, "compiled Store transactions require an explicit authorized RX module"),
+                }
 
-                break :block function;
+                break :block exported.function.?;
             },
             .source => |index| block: {
                 const is_rx = state.graph.modules[index].source == .rx;

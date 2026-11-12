@@ -131,6 +131,10 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
     for (modules, roots[0..modules.len]) |module, *path| path.* = module.path;
     for (options.exports, roots[modules.len..]) |exported, *path| path.* = exported.path;
 
+    var paths = frontend.project.source_index.Map.empty;
+
+    defer paths.deinit(backing);
+
     const dependencies = try source_graph.build(allocator, .{
         .entry = entry,
         .additional_roots = roots,
@@ -140,6 +144,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
         .project = options.project,
         .parse_cache = cache,
         .scratch_allocator = backing,
+        .registered_paths = &paths,
     });
 
     if (dependencies.value == .diagnostic) return failed(allocator, dependencies.value.diagnostic);
@@ -182,7 +187,12 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
     const graph_modules = dependencies.value.graph.modules;
     const rx_modules = graph_modules[options.sources.len..][0..modules.len];
     const store_modules = graph_modules[options.sources.len + modules.len ..];
-    const indexed = try source_graph.Signatures.init(allocator, backing, dependencies.value.graph, signatures.modules);
+    const indexed = try source_graph.Signatures.init(allocator, dependencies.value.graph, signatures.modules, &paths);
+
+    paths.deinit(backing);
+
+    paths = .empty;
+
     const registry = try @import("store/registry.zig").loadSignaturesIn(allocator, backing, options.stores, project.context, store_modules, indexed);
 
     if (registry == .diagnostic) return .{ .diagnostic = registry.diagnostic };

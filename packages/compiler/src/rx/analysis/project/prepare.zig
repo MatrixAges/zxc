@@ -17,7 +17,7 @@ pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
 pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures) std.mem.Allocator.Error!Value {
     const plans = try allocator.alloc(Module, modules.len);
-    var loader = Loader{ .allocator = allocator, .backing = backing, .modules = registered, .project = initial_project, .signatures = signatures };
+    var loader = Loader{ .allocator = allocator, .backing = backing, .project = initial_project, .signatures = signatures };
 
     for (modules, registered, plans) |source, module, *plan| {
         loader.owner = source.path;
@@ -74,7 +74,6 @@ pub fn completeShortcuts(allocator: std.mem.Allocator, loaded: Loaded, signature
 const Loader = struct {
     allocator: std.mem.Allocator,
     backing: std.mem.Allocator,
-    modules: []const Graph.Module,
     project: frontend.project.Options,
     signatures: Signatures,
     references: Graph.References = .{ .remaining = &.{} },
@@ -282,11 +281,11 @@ const Loader = struct {
 
         const module = self.signatures.get(source) orelse return self.fail(location, "module", "source function signature is missing from the analyzed input set");
         const signature = module.signature;
-        const forwarded = signature.deferredSource();
+        const forwarded = self.signatures.forwarded(source);
 
-        return switch (routeSignature(forwarded != null, signature.type_only, setter, signature.has_store)) {
+        return switch (routeSignature(forwarded != .none, signature.type_only, setter, signature.has_store)) {
             .Function => .{ .signature = signature.ports },
-            .Forward => .{ .module = self.deferredModule(forwarded.?) orelse return self.fail(location, "module", "default re-export target is missing from the RX module collection") },
+            .Forward => if (forwarded == .module) .{ .module = forwarded.module } else self.fail(location, "module", "default re-export target is missing from the RX module collection"),
             .SetterOnForward => self.fail(location, "capability", "RX module Store authorization belongs inside the module"),
             .TypeOnly => self.fail(location, "module", "Call.fn requires an executable ZX module with a default function"),
             .MissingStore => self.fail(location, "capability", "a Call.setter target must declare its second parameter as { store }"),
@@ -316,13 +315,6 @@ const Loader = struct {
         self.project.context.native_modules = function.program.native_modules;
 
         return .{ .signature = .{ .input_type = function.program.input_type, .output_type = function.program.output_type } };
-    }
-    fn deferredModule(self: *const Loader, path: []const u8) ?usize {
-        for (self.modules) |module| {
-            if (zx.bytes.equal(module.path, path)) return module.source.rx;
-        }
-
-        return null;
     }
     fn fail(self: *Loader, location: rx.ast.Location, code: []const u8, message: []const u8) Error {
         const result = try target.failure(self.allocator, .{ .path = self.owner, .location = location, .code = code, .message = message });

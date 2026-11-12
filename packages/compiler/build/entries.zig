@@ -42,6 +42,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/dependency_graph/reference/rule.zx", .name = "rx_reference_rule", .owner = .rx },
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/references/call_signature.zx", .name = "rx_call_signature", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/call/compiled_admission.zx", .name = "rx_compiled_admission", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/references/qualify.zx", .name = "rx_qualify_type", .owner = .rx_analysis },
     .{ .path = "rx/analysis/store/slot_names.zx", .name = "rx_store_slot_names", .owner = .rx_analysis },
     .{ .path = "rx/analysis/store/access/read.rx", .name = "rx_store_reads", .owner = .rx_analysis },

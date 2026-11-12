@@ -568,19 +568,11 @@ const Project = struct {
         return digest;
     }
     fn loadCompiled(self: *Project, target: compiled.Target, span: zx.Span) zx.Error!Imported {
-        var selected: ?usize = null;
-
-        for (self.options.compiled_libraries, 0..) |library, index| {
-            if (!std.mem.eql(u8, library.instance, target.instance)) continue;
-
-            const path = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, library.artifact });
-
-            if (selected != null or !std.mem.eql(u8, path, target.artifact)) return self.reporter.fail(.module, span, "compiled package instance has conflicting artifacts");
-
-            selected = index;
-        }
-
-        const index = selected orelse return self.reporter.fail(.module, span, "compiled library is missing from the input set");
+        const index = switch (try compiled.resolve.library(self.allocator, self.options.compiled_libraries, self.options.root_dir, target)) {
+            .found => |value| value,
+            .conflict => return self.reporter.fail(.module, span, "compiled package instance has conflicting artifacts"),
+            .missing => return self.reporter.fail(.module, span, "compiled library is missing from the input set"),
+        };
 
         const exports = self.compiled_units.get(index) orelse block: {
             const value = compiled.loadInto(self.allocator, self.options.compiled_libraries[index], .{

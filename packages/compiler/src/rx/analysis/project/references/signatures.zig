@@ -1,31 +1,48 @@
 const std = @import("std");
 const frontend = @import("frontend");
-const zx = @import("zx");
 const Graph = @import("../source_graph/model.zig").Graph;
 const Module = frontend.project.signature_project.Module;
 const Self = @This();
+pub const Forward = union(enum) { none, missing, module: usize };
 
 graph: Graph,
 modules: []const Module,
 indices: []const ?usize,
-pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, graph: Graph, modules: []const Module) std.mem.Allocator.Error!Self {
-    var paths: zx.bytes.Map(usize) = .empty;
+forwards: []const Forward,
+pub fn init(allocator: std.mem.Allocator, graph: Graph, modules: []const Module, paths: *const frontend.project.source_index.Map) std.mem.Allocator.Error!Self {
+    const indices = try allocator.alloc(?usize, graph.modules.len);
+    var forwards: []Forward = &.{};
 
-    defer paths.deinit(scratch);
-
-    try paths.ensureTotalCapacity(scratch, @intCast(modules.len));
+    @memset(indices, null);
 
     for (modules, 0..) |module, index| {
-        const entry = paths.getOrPutAssumeCapacity(module.path);
+        const source = paths.get(module.path) orelse continue;
 
-        if (!entry.found_existing) entry.value_ptr.* = index;
+        if (indices[source] != null) continue;
+
+        indices[source] = index;
+
+        if (module.signature.deferredSource()) |path| {
+            if (forwards.len == 0) {
+                forwards = try allocator.alloc(Forward, modules.len);
+
+                @memset(forwards, .none);
+            }
+
+            forwards[index] = .missing;
+
+            const target = paths.get(path) orelse continue;
+            const destination = graph.modules[target].source;
+
+            if (destination == .rx) forwards[index] = .{ .module = destination.rx };
+        }
     }
 
-    const indices = try allocator.alloc(?usize, graph.modules.len);
+    return .{ .graph = graph, .modules = modules, .indices = indices, .forwards = forwards };
+}
 
-    for (graph.modules, indices) |module, *index| index.* = paths.get(module.path);
-
-    return .{ .graph = graph, .modules = modules, .indices = indices };
+pub fn forwarded(self: Self, target: usize) Forward {
+    return if (self.forwards.len != 0) self.forwards[self.indices[target] orelse return .none] else .none;
 }
 
 pub fn get(self: Self, target: usize) ?*const Module {
