@@ -1,0 +1,49 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import path from "std:path"
+
+import { module_extension, rx_extension } from "../../path/const"
+
+import type { File } from "./model"
+
+export type Input = File
+
+export type Output = {
+    path: string,
+    basename: string,
+    extension: bool,
+    suffix: string,
+    rx: bool
+}
+
+export default function (in: Input): Output {
+    const source = bytes.fromText(in.path)
+    const width = rx_extension.length
+    const may_have_rx = in.allow_rx && source.length >= width
+
+    if (
+        may_have_rx && bytes.startsWithText(
+            source,
+            source.length - width,
+            rx_extension
+        )
+    ) {
+        const stem = encoding.sliceBytes(in.path, 0, source.length - width)
+
+        return {
+            path: stem,
+            basename: path.basename(stem),
+            extension: path.extname(stem).length != 0,
+            suffix: rx_extension,
+            rx: true
+        }
+    }
+
+    return {
+        path: in.path,
+        basename: in.basename,
+        extension: in.extension,
+        suffix: module_extension,
+        rx: false
+    }
+}

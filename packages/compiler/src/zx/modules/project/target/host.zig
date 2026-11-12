@@ -7,9 +7,20 @@ const intrinsic = @import("../../intrinsic.zig").specifier;
 const source_index = @import("../../source_index.zig");
 const compiled = @import("../../compiled.zig");
 const enabled = @import("parser_options").generated_parser;
+
 pub const Target = union(enum) { source: []const u8, compiled: compiled.Target };
 pub const Route = if (enabled) Output(@import("generated_project_import_route")) else enum { File, Package, Intrinsic, Interface, Invalid };
-const Base = if (enabled) Output(@import("generated_project_path_base")) else enum { Relative, Root, Extension, Invalid };
+
+const FilePlan = if (enabled) Output(@import("generated_project_file_target")) else struct {
+    kind: enum { Relative, Root, Extension, Invalid },
+    prefix: u64,
+    path: []const u8,
+    suffix: []const u8,
+    directory: bool,
+    rx: bool,
+};
+
+const ResolvedFile = struct { path: []const u8, fallback: bool };
 const Shape = if (enabled) Output(@import("generated_project_package_shape")) else enum { Source, Compiled, InvalidSource, InvalidCompiled };
 
 fn Output(comptime module: type) type {
@@ -33,42 +44,78 @@ pub fn classify(path: []const u8) Route {
 }
 
 pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const u8, root: []const u8, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
-    const directory = paths.directoryReference(path);
-    const base = pathBase(path, directory);
+    return (try resolveFile(allocator, from, path, root, false, reporter, span)).path;
+}
 
-    switch (base) {
+fn resolveFile(allocator: std.mem.Allocator, from: []const u8, path: []const u8, root: []const u8, allow_rx: bool, reporter: *zx.Reporter, span: zx.Span) zx.Error!ResolvedFile {
+    const plan = filePlan(path, allow_rx);
+
+    switch (plan.kind) {
         .Extension => return reporter.fail(.module, span, "project imports must omit the .zx extension; runtime and RX imports are forbidden"),
         .Invalid => return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration"),
         .Relative, .Root => {},
     }
 
-    const source = if (directory) try paths.directory(allocator, path) else try std.fmt.allocPrint(allocator, "{s}.zx", .{path});
+    var buffer: [512]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, allocator);
+    const temporary = scratch.allocator();
 
-    defer allocator.free(source);
+    const source = if (plan.directory)
+        try paths.directoryFor(temporary, plan.path, plan.rx)
+    else
+        try std.fmt.allocPrint(temporary, "{s}{s}", .{ plan.path, plan.suffix });
 
-    return switch (base) {
-        .Root => std.fs.path.resolve(allocator, &.{ root, source[2..] }),
-        .Relative => std.fs.path.resolve(allocator, &.{ std.fs.path.dirname(from) orelse ".", source }),
+    defer temporary.free(source);
+
+    const base = switch (plan.kind) {
+        .Root => root,
+        .Relative => std.fs.path.dirname(from) orelse ".",
         else => unreachable,
+    };
+
+    return .{
+        .path = try std.fs.path.resolve(allocator, &.{ base, source[@intCast(plan.prefix)..] }),
+        .fallback = !plan.directory and !plan.rx,
     };
 }
 
-fn pathBase(path: []const u8, directory: bool) Base {
-    const extension = std.fs.path.extension(path).len != 0;
-
+fn filePlan(path: []const u8, allow_rx: bool) FilePlan {
     if (comptime enabled) {
-        const generated = @import("generated_project_path_base");
+        const generated = @import("generated_project_file_target");
         var empty = std.heap.FixedBufferAllocator.init(&.{});
-        const input: std.meta.Child(generated.Input) = .{ .path = path, .directory = directory, .extension = extension };
+
+        const input: std.meta.Child(generated.Input) = .{
+            .path = path,
+            .basename = std.fs.path.basename(path),
+            .extension = std.fs.path.extension(path).len != 0,
+            .allow_rx = allow_rx,
+        };
 
         return zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
     }
 
-    if (!directory and extension) return .Extension;
-    if (std.mem.startsWith(u8, path, "@/")) return .Root;
-    if (std.mem.eql(u8, path, ".") or std.mem.eql(u8, path, "..") or std.mem.startsWith(u8, path, "./") or std.mem.startsWith(u8, path, "../")) return .Relative;
+    const rx = allow_rx and std.mem.endsWith(u8, path, ".rx");
+    const stem = if (rx) path[0 .. path.len - ".rx".len] else path;
+    const directory = paths.directoryReference(stem);
 
-    return .Invalid;
+    const kind: @FieldType(FilePlan, "kind") = if (!directory and std.fs.path.extension(stem).len != 0)
+        .Extension
+
+    else if (std.mem.startsWith(u8, stem, "@/"))
+        .Root
+    else if (std.mem.eql(u8, stem, ".") or std.mem.eql(u8, stem, "..") or std.mem.startsWith(u8, stem, "./") or std.mem.startsWith(u8, stem, "../"))
+        .Relative
+    else
+        .Invalid;
+
+    return .{
+        .kind = kind,
+        .prefix = if (kind == .Root) "@/".len else 0,
+        .path = stem,
+        .suffix = if (rx) ".rx" else ".zx",
+        .directory = directory,
+        .rx = rx,
+    };
 }
 
 pub fn resolve(allocator: std.mem.Allocator, from: []const u8, path: []const u8, route: Route, options: anytype, reporter: *zx.Reporter, span: zx.Span) zx.Error!Target {
@@ -81,17 +128,12 @@ pub fn resolve(allocator: std.mem.Allocator, from: []const u8, path: []const u8,
 
     switch (route) {
         .File => {
-            var resolved = if (std.mem.endsWith(u8, path, ".rx")) block: {
-                const candidate = try resolvePath(allocator, from, path[0 .. path.len - ".rx".len], root, reporter, span);
-
-                defer allocator.free(candidate);
-
-                break :block try std.fmt.allocPrint(allocator, "{s}.rx", .{candidate[0 .. candidate.len - ".zx".len]});
-            } else try resolvePath(allocator, from, path, root, reporter, span);
+            const file = try resolveFile(allocator, from, path, root, true, reporter, span);
+            var resolved = file.path;
 
             errdefer allocator.free(resolved);
 
-            const selected = if (paths.directoryReference(path)) resolved else try select(allocator, resolved, options.source_index);
+            const selected = if (file.fallback) try select(allocator, resolved, options.source_index) else resolved;
 
             if (selected.ptr != resolved.ptr) allocator.free(resolved);
 

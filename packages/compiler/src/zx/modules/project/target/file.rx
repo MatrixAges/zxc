@@ -1,0 +1,34 @@
+<Module>
+    <Type from="model" as="Target" />
+
+    <Args in={Target.File} out={Target.FileTarget} />
+
+    <Call fn="stem" in={$in} />
+
+    <Call
+        fn="../../path/directory"
+        in={{
+            path: $ctx.stem.path,
+            basename: $ctx.stem.basename
+        }}
+    />
+
+    <Call
+        fn="base"
+        in={{
+            path: $ctx.stem.path,
+            directory: $ctx.directory,
+            extension: $ctx.stem.extension
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.base,
+            path: $ctx.stem.path,
+            suffix: $ctx.stem.suffix,
+            directory: $ctx.directory,
+            rx: $ctx.stem.rx
+        }}
+    />
+</Module>

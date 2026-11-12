@@ -9,29 +9,41 @@ import {
 } from "../../path/const"
 import { PathBase } from "./model"
 
-import type { Path } from "./model"
+import type { Base, Path } from "./model"
 
 export type Input = Path
 
-export type Output = PathBase
+export type Output = Base
 
 export default function (in: Input): Output {
     if (!in.directory && in.extension) {
-        return PathBase.Extension
+        return {
+            kind: PathBase.Extension,
+            prefix: 0
+        }
     }
 
     const path = bytes.fromText(in.path)
 
     if (bytes.startsWithText(path, 0, root_prefix)) {
-        return PathBase.Root
+        return {
+            kind: PathBase.Root,
+            prefix: root_prefix.length
+        }
     }
 
     if (in.path == current_directory || in.path == parent_directory) {
-        return PathBase.Relative
+        return {
+            kind: PathBase.Relative,
+            prefix: 0
+        }
     }
 
     const relative = bytes.startsWithText(path, 0, relative_prefix) ||
         bytes.startsWithText(path, 0, parent_prefix)
 
-    return relative ? PathBase.Relative : PathBase.Invalid
+    return {
+        kind: relative ? PathBase.Relative : PathBase.Invalid,
+        prefix: 0
+    }
 }

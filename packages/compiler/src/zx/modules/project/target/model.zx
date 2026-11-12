@@ -19,6 +19,27 @@ export type Path = {
     directory: bool
 }
 
+export type Base = {
+    kind: PathBase,
+    prefix: u64
+}
+
+export type File = {
+    path: string,
+    basename: string,
+    extension: bool,
+    allow_rx: bool
+}
+
+export type FileTarget = {
+    kind: PathBase,
+    prefix: u64,
+    path: string,
+    suffix: string,
+    directory: bool,
+    rx: bool
+}
+
 export enum PackageShape {
     Source,
     Compiled,

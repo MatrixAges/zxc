@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+
+import { current_directory, directory_separator, parent_directory } from "./const"
+
+export type Input = {
+    path: string,
+    basename: string
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.basename == current_directory || in.basename == parent_directory) {
+        return true
+    }
+
+    if (in.path.length == 0) {
+        return false
+    }
+
+    const path = bytes.fromText(in.path)
+
+    return bytes.startsWithText(path, path.length - 1, directory_separator)
+}
