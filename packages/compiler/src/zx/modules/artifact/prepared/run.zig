@@ -6,8 +6,14 @@ const Origins = @import("../../nominal_origins.zig");
 const Error = @import("../model.zig").Error;
 const borrow = @import("../../../ir/canonical/borrow.zig");
 const generated = @import("generated_artifact_prepare");
+const projection = @import("../roots/record.zig");
 
-pub fn execute(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAllocator, analysis: *const Analysis.Result, record: Record) Error!generated.Output {
+const Prepared = struct {
+    output: generated.Output,
+    references: projection.References,
+};
+
+pub fn execute(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAllocator, analysis: *const Analysis.Result, record: Record) Error!Prepared {
     const program = analysis.value.ir;
 
     if (!@import("../../../ir/type_rules.zig").validate(program.types)) return error.InvalidIr;
@@ -15,7 +21,8 @@ pub fn execute(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
 
     const RootInput = std.meta.Child(@import("generated_artifact_roots").Input);
     const Projected = std.meta.Child(@FieldType(RootInput, "record"));
-    const projected = try @import("../roots/record.zig").project(Projected, temporary.allocator(), record);
+    const view = try projection.project(Projected, temporary.allocator(), record);
+    const projected = view.record;
     const roots = try @import("../roots/run.zig").executeProjected(temporary, program, projected);
     const Input = std.meta.Child(generated.Input);
     const Request = std.meta.Child(@FieldType(Input, "request"));
@@ -61,7 +68,7 @@ pub fn execute(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
     };
 
     return switch (result.plan.state.status) {
-        .Ready => result,
+        .Ready => .{ .output = result, .references = view.references },
         .MissingOrigin => error.MissingNominalOrigin,
         .Invalid => error.InvalidModule,
     };

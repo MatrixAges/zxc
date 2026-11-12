@@ -3,6 +3,7 @@ const zx = @import("zx");
 const ir = zx.ir;
 const Model = @import("../../artifact/model.zig");
 const Nodes = @import("../../artifact/nodes.zig");
+const generated = @import("parser_options").generated_parser;
 
 pub const Entry = struct {
     body: ?ir.Function = null,
@@ -35,13 +36,26 @@ pub fn materialize(allocator: std.mem.Allocator, temporary: std.mem.Allocator, m
 
 pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, recursive: ?ir.FunctionId, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
     var nodes: Nodes = .{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = &.{} }, .native_modules = .{ .indexed = &.{} } };
-    const exports = try allocator.alloc(ir.Export, module.exports.len);
     const stores = try nodes.stores(module.stores);
 
-    const state = if (comptime @import("parser_options").generated_parser)
-        try publish(allocator, temporary, exports, module.exports, body, recursive, mapping)
+    const exports, const constant_exports = if (comptime generated) source: {
+        const surface = try @import("../../artifact/surface.zig").linked(temporary, &nodes, module.exports, module.constant_exports);
+
+        break :source .{ surface.exports, surface.constant_exports };
+    } else seed: {
+        const aliases = try allocator.alloc(ir.Export, module.exports.len);
+
+        for (aliases, module.exports) |*item, original| {
+            item.* = .{ .name = try allocator.dupe(u8, original.name), .type_id = try nodes.types.include(original.type_id) };
+        }
+
+        break :seed .{ @as([]const ir.Export, aliases), try nodes.constants(module.constant_exports) };
+    };
+
+    const state = if (comptime generated)
+        try publish(temporary, body, recursive)
     else
-        try publishSeed(allocator, exports, module.exports, body, recursive, nodes.types);
+        publishSeed(body, recursive);
 
     var program: ir.Program = .{
         .file_name = try allocator.dupe(u8, module.path),
@@ -54,7 +68,7 @@ pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, modu
         .body = if (body) |value| value.body else .{},
         .contracts = if (body) |value| value.contracts else .{},
         .exports = exports,
-        .constant_exports = try nodes.constants(module.constant_exports),
+        .constant_exports = constant_exports,
         .functions = tables.functions,
         .native_modules = tables.native_modules,
         .stores = stores,
@@ -67,22 +81,11 @@ pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, modu
     return program;
 }
 
-fn publish(allocator: std.mem.Allocator, temporary: std.mem.Allocator, exports: []ir.Export, source: []const ir.Export, body: ?*const ir.Function, recursive: ?ir.FunctionId, mapping: []const ir.TypeId) Model.Error!State {
-    const generated = @import("generated_artifact_result");
-    const Input = std.meta.Child(generated.Input);
-    const Root = std.meta.Child(@FieldType(Input, "root"));
+fn publish(temporary: std.mem.Allocator, body: ?*const ir.Function, recursive: ?ir.FunctionId) Model.Error!State {
+    const result_header = @import("generated_artifact_result");
+    const Root = std.meta.Child(result_header.Input);
     const Header = std.meta.Child(@typeInfo(@FieldType(Root, "body")).optional.child);
     const Ownership = @FieldType(Header, "ownership");
-    var arena = std.heap.ArenaAllocator.init(temporary);
-    var buffer: [1024]u8 = undefined;
-    var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
-
-    defer arena.deinit();
-
-    const memory = scratch.allocator();
-    const ids = try memory.alloc(u32, source.len);
-
-    for (source, ids) |item, *id| id.* = @backingInt(item.type_id);
 
     const header: ?Header = if (body) |function| .{
         .input_type = @backingInt(function.input_type),
@@ -103,39 +106,29 @@ fn publish(allocator: std.mem.Allocator, temporary: std.mem.Allocator, exports: 
         .recursive = if (recursive) |id| @backingInt(id) else null,
     };
 
-    const input: Input = .{ .root = &root, .ids = ids, .mapping = @ptrCast(mapping) };
-
-    const result = zx.columns.invoke(generated.executeValue, memory, &input) catch |err| switch (@as(anyerror, err)) {
+    const result = zx.columns.invoke(result_header.executeValue, temporary, &root) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory => return error.OutOfMemory,
         else => return error.InvalidModule,
     };
 
-    for (exports, source, result.exports) |*item, original, type_id| {
-        item.* = .{ .name = try allocator.dupe(u8, original.name), .type_id = @fromBackingInt(type_id) };
-    }
-
     return .{
-        .input_type = @fromBackingInt(result.state.header.input_type),
-        .output_type = @fromBackingInt(result.state.header.output_type),
-        .ownership = switch (result.state.header.ownership) {
+        .input_type = @fromBackingInt(result.header.input_type),
+        .output_type = @fromBackingInt(result.header.output_type),
+        .ownership = switch (result.header.ownership) {
             .Copy => .copy,
             .Borrowed => .borrowed,
             .Owned => .owned,
         },
-        .store_mode = switch (result.state.header.store_mode) {
+        .store_mode = switch (result.header.store_mode) {
             .transaction => .transaction,
             .orchestration => .orchestration,
         },
-        .type_only = result.state.type_only,
-        .recursive = if (result.state.recursive) |id| @fromBackingInt(id) else null,
+        .type_only = result.type_only,
+        .recursive = if (result.recursive) |id| @fromBackingInt(id) else null,
     };
 }
 
-fn publishSeed(allocator: std.mem.Allocator, exports: []ir.Export, source: []const ir.Export, body: ?*const ir.Function, recursive: ?ir.FunctionId, mapping: Nodes.TypeMap) Model.Error!State {
-    for (exports, source) |*item, original| {
-        item.* = .{ .name = try allocator.dupe(u8, original.name), .type_id = try mapping.include(original.type_id) };
-    }
-
+fn publishSeed(body: ?*const ir.Function, recursive: ?ir.FunctionId) State {
     const function = body orelse return .{};
 
     return .{

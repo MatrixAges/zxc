@@ -11,7 +11,7 @@ const Output = @typeInfo(@TypeOf(generated.executeValue(undefined, undefined))).
 const FunctionInput = std.meta.Child(functions.Input);
 const FunctionOutput = @typeInfo(@TypeOf(functions.executeValue(undefined, undefined))).error_union.payload;
 
-pub fn columns(nodes: *const Nodes, types: []const u32, calls: []const u32) Error!Output {
+pub fn columns(allocator: std.mem.Allocator, nodes: *const Nodes, types: []const u32, calls: []const u32) Error!Output {
     if (types.len == 0 and calls.len == 0) return .{ .types = &.{}, .functions = &.{} };
 
     const types_view = typeMapping(Mapping, nodes.types);
@@ -24,7 +24,7 @@ pub fn columns(nodes: *const Nodes, types: []const u32, calls: []const u32) Erro
         .function_mapping = &functions_view,
     };
 
-    return zx.columns.invoke(generated.executeValue, nodes.allocator, &input) catch |err| return failure(err);
+    return zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| return failure(err);
 }
 
 pub fn function(nodes: *const Nodes, value: *const ir.Function) Error!FunctionOutput {

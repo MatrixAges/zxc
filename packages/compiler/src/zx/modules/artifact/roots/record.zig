@@ -1,19 +1,37 @@
 const std = @import("std");
 const Record = @import("../../module_record.zig");
+const Error = @import("../model.zig").Error;
 
-pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Record) std.mem.Allocator.Error!Target {
+pub const References = struct {
+    types: []const u32,
+    functions: []const u32,
+};
+
+pub fn Projection(comptime Target: type) type {
+    return struct {
+        record: Target,
+        references: References,
+    };
+}
+
+pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Record) Error!Projection(Target) {
     const Kind = std.meta.Child(@FieldType(Target, "import_kinds"));
-    const declarations = try allocator.alloc(u32, record.exports.len + record.constant_exports.len + record.constant_imports.len);
-    const type_imports = try allocator.alloc(u32, record.type_imports.len);
     var ordinary_count: usize = 0;
 
     for ([_][]const @import("../../function_import.zig"){ record.function_imports, record.reexports.functions }) |bindings| for (bindings) |binding| {
+        if (!binding.valid()) return error.InvalidModule;
         if (binding.intrinsic == null) ordinary_count += 1;
     };
 
+    const declaration_count = record.exports.len + record.constant_exports.len + record.constant_imports.len;
+    const alias_count = declaration_count + record.type_imports.len;
+    const port_count = 2 * ordinary_count;
+    const types = try allocator.alloc(u32, alias_count + port_count);
+    const declarations = types[0..declaration_count];
+    const type_imports = types[declaration_count..alias_count];
+    const function_inputs = types[alias_count..][0..ordinary_count];
+    const function_outputs = types[alias_count + ordinary_count ..];
     const function_ids = try allocator.alloc(u32, ordinary_count);
-    const function_inputs = try allocator.alloc(u32, ordinary_count);
-    const function_outputs = try allocator.alloc(u32, ordinary_count);
     const import_kinds = try allocator.alloc(Kind, record.imports.len);
     const import_specifiers = try allocator.alloc([]const u8, record.imports.len);
 
@@ -45,7 +63,7 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         specifier.* = value.specifier;
     }
 
-    return .{
+    const view: Target = .{
         .path = record.path,
         .start = record.type_range.start,
         .end = record.type_range.end,
@@ -59,4 +77,6 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         .has_body = record.body != .types,
         .body_function = if (record.own_function) |id| @backingInt(id) else if (record.body == .function) @backingInt(record.body.function) else null,
     };
+
+    return .{ .record = view, .references = .{ .types = types, .functions = function_ids } };
 }

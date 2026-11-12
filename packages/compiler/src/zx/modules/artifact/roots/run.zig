@@ -10,7 +10,7 @@ pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program, record: Rec
     const ProjectedRecord = std.meta.Child(@FieldType(Input, "record"));
     const projected = try @import("record.zig").project(ProjectedRecord, arena.allocator(), record);
 
-    return executeProjected(arena, program, projected);
+    return executeProjected(arena, program, projected.record);
 }
 
 pub fn executeProjected(arena: *std.heap.ArenaAllocator, program: ir.Program, projected: anytype) Error![]const bool {

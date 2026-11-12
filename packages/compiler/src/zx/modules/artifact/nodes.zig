@@ -81,7 +81,7 @@ pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
     if (!values.validStructure()) return error.InvalidModule;
 
     if (comptime generated) {
-        const mapped = try @import("nodes/remap.zig").columns(self, values.types, &.{});
+        const mapped = try @import("nodes/remap.zig").columns(self.allocator, self, values.types, &.{});
 
         return own(self.allocator, values, .{ .types = mapped.types });
     }
