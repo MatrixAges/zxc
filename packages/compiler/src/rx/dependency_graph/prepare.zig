@@ -11,7 +11,7 @@ const Issue = @typeInfo(@FieldType(Input, "issues")).pointer.child;
 const Link = struct { node: *const dsl.ast.Node, attribute: *const dsl.ast.Attribute };
 const Result = struct { input: Input, links: []const Link };
 
-pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, sources: []const modules.Source, entries: []const modules.Module) std.mem.Allocator.Error!Result {
+pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, sources: []const modules.Source, entries: []const []const u8) std.mem.Allocator.Error!Result {
     const offsets = try allocator.alloc(u64, sources.len + 1);
     var targets: std.ArrayList(u64) = .empty;
     var issues: std.ArrayList(Issue) = .empty;
@@ -31,7 +31,7 @@ pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, 
 
             if (selection.package_allowed and module_reference.isPackage(value, source.packages)) continue;
 
-            const target = try resolve(allocator, registered, entries[owner].path, value);
+            const target = try resolve(allocator, registered, entries[owner], value);
 
             try targets.append(allocator, target.index);
             try issues.append(allocator, target.issue);

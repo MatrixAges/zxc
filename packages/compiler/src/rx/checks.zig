@@ -1,12 +1,16 @@
 const std = @import("std");
 const dsl = @import("dsl");
 
-pub fn fail(node: dsl.ast.Node, key: []const u8, message: []const u8, reporter: *dsl.Reporter) dsl.Error {
-    for (node.attributes) |item| {
+pub fn fail(input: anytype, key: []const u8, message: []const u8, reporter: *dsl.Reporter) dsl.Error {
+    const node = dsl.ast.view(input);
+
+    for (0..node.attributeCount()) |index| {
+        const item = node.schemaAttribute(index);
+
         if (std.mem.eql(u8, item.name, key)) return reporter.fail(.{
             .code = .context,
             .location = item.value_location,
-            .element = node.name,
+            .element = node.name(),
             .attribute = key,
             .message = message,
         });
@@ -14,23 +18,33 @@ pub fn fail(node: dsl.ast.Node, key: []const u8, message: []const u8, reporter: 
 
     return reporter.fail(.{
         .code = .context,
-        .location = node.location,
-        .element = node.name,
+        .location = node.location(),
+        .element = node.name(),
         .attribute = key,
         .message = message,
     });
 }
 
-pub fn nonEmpty(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
-    try @import("attribute_kind.zig").validate(node, reporter);
+pub fn nonEmpty(input: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
+    const element = node.name();
+    var empty: ?dsl.ast.Attribute = null;
 
-    for (node.attributes) |item| {
-        if (item.kind == .string and @import("attribute_kind.zig").value(node.name, item.name)) continue;
+    for (0..node.attributeCount()) |index| {
+        const item = node.schemaAttribute(index);
+        const selected = try @import("attribute_kind.zig").check(element, item, reporter);
 
-        if (!hasContent(item.value)) {
-            return fail(node, item.name, "RX attribute must not be empty", reporter);
-        }
+        if (empty != null or (item.kind == .string and selected == .Value)) continue;
+        if (!hasContent(item.value)) empty = item;
     }
+
+    if (empty) |item| return reporter.fail(.{
+        .code = .context,
+        .location = item.value_location,
+        .element = element,
+        .attribute = item.name,
+        .message = "RX attribute must not be empty",
+    });
 }
 
 pub fn hasContent(value: []const u8) bool {
@@ -39,35 +53,43 @@ pub fn hasContent(value: []const u8) bool {
     return std.mem.trim(u8, value, " \t\r\n").len != 0;
 }
 
-pub fn attribute(node: dsl.ast.Node, name: []const u8) ?[]const u8 {
-    for (node.attributes) |item| {
-        if (std.mem.eql(u8, item.name, name)) return item.value;
-    }
-
-    return null;
+pub fn attribute(input: anytype, name: []const u8) ?[]const u8 {
+    return if (find(input, name)) |item| item.value else null;
 }
 
-pub fn uniqueChildren(node: dsl.ast.Node, tag: []const u8, key: []const u8, reporter: *dsl.Reporter) dsl.Error!void {
-    for (node.children, 0..) |child, index| {
-        if (!std.mem.eql(u8, child.name, tag)) continue;
+pub fn uniqueChildren(input: anytype, tag: []const u8, key: []const u8, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
+    var children = node.children();
+    var index: usize = 0;
 
-        const name = attribute(child, key).?;
+    while (children.next()) |item| : (index += 1) {
+        const child = dsl.ast.view(item);
 
-        for (node.children[0..index]) |previous| {
-            if (!std.mem.eql(u8, previous.name, tag)) continue;
+        if (!std.mem.eql(u8, child.name(), tag)) continue;
 
-            const current_attribute = find(child, key).?;
-            const previous_attribute = find(previous, key).?;
+        const current = find(child, key).?;
+        var earlier = node.children();
 
-            if (current_attribute.kind == previous_attribute.kind and std.mem.eql(u8, name, attribute(previous, key).?)) {
+        for (0..index) |_| {
+            const previous = dsl.ast.view(earlier.next().?);
+
+            if (!std.mem.eql(u8, previous.name(), tag)) continue;
+
+            const prior = find(previous, key).?;
+
+            if (current.kind == prior.kind and std.mem.eql(u8, current.value, prior.value)) {
                 return fail(child, key, "Duplicate RX declaration", reporter);
             }
         }
     }
 }
 
-fn find(node: dsl.ast.Node, name: []const u8) ?dsl.ast.Attribute {
-    for (node.attributes) |item| {
+fn find(input: anytype, name: []const u8) ?dsl.ast.Attribute {
+    const node = dsl.ast.view(input);
+
+    for (0..node.attributeCount()) |index| {
+        const item = node.schemaAttribute(index);
+
         if (std.mem.eql(u8, item.name, name)) return item;
     }
 
@@ -76,7 +98,7 @@ fn find(node: dsl.ast.Node, name: []const u8) ?dsl.ast.Attribute {
 
 pub fn nonEmptySchema(comptime Schema: type) type {
     return dsl.refine(Schema, struct {
-        fn check(_: Schema.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+        fn check(_: Schema.Data, node: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
             try nonEmpty(node, reporter);
         }
     }.check);

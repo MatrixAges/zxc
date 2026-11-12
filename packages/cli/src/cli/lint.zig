@@ -37,19 +37,23 @@ pub fn checkSource(context: Compile.Context, source: []const u8) !Compile.Status
     const path = context.options.input;
 
     if (std.mem.endsWith(u8, path, ".rx")) {
-        var parsed = try rx.parseXml(context.allocator, source);
+        var parsed: ?rx.document.Parsed = try rx.document.parse(context.allocator, source, true);
 
-        defer parsed.deinit();
+        defer rx.document.release(&parsed);
 
-        if (parsed.value == .diagnostic) return rxDiagnostic(context, parsed.value.diagnostic);
+        if (parsed.?.value == .diagnostic) return rxDiagnostic(context, parsed.?.value.diagnostic);
 
-        var checked = try rx.validate(context.allocator, path, parsed.value.node);
+        const node = rx.document.schemaRoot(&parsed.?);
 
-        defer checked.deinit();
+        {
+            var checked = try rx.validateView(context.allocator, path, node);
 
-        if (checked.value == .diagnostic) return rxDiagnostic(context, checked.value.diagnostic);
+            defer checked.deinit();
 
-        if (try @import("rx_analysis").expression.checkValues(context.allocator, parsed.value.node, path)) |diagnostic| {
+            if (checked.value == .diagnostic) return rxDiagnostic(context, checked.value.diagnostic);
+        }
+
+        if (try @import("rx_analysis").expression.checkValues(context.allocator, node, path)) |diagnostic| {
             defer diagnostic.issue.deinit();
 
             try context.stderr.print("{s}:{d}:{d}: {t}: {s}\n", .{ path, diagnostic.location.line, diagnostic.location.column, diagnostic.issue.code, diagnostic.issue.message });
@@ -57,7 +61,7 @@ pub fn checkSource(context: Compile.Context, source: []const u8) !Compile.Status
             return .failed;
         }
 
-        const formatted = try compiler.formatRx(context.allocator, source, parsed.value.node);
+        const formatted = try rx.document.formatParsed(context.allocator, source, &parsed);
 
         defer context.allocator.free(formatted);
 

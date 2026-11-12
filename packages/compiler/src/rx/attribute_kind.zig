@@ -2,10 +2,6 @@ const std = @import("std");
 const dsl = @import("dsl");
 const Role = if (@import("rx_options").generated_rules) @import("generated_attribute_role").Output else enum { Static, Value, Expression, Type };
 
-pub fn value(element: []const u8, attribute: []const u8) bool {
-    return role(element, attribute) == .Value;
-}
-
 pub fn typeValue(element: []const u8, attribute: []const u8) bool {
     return role(element, attribute) == .Type;
 }
@@ -21,22 +17,30 @@ fn nativeValue(element: []const u8, attribute: []const u8) bool {
     return false;
 }
 
-pub fn validate(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
-    for (node.attributes) |attribute| {
-        const selected = role(node.name, attribute.name);
+pub fn validate(input: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
 
-        if (selected == .Value) continue;
-
-        const expression = selected == .Expression or selected == .Type;
-
-        if ((attribute.kind == .expression) != expression) return reporter.fail(.{
-            .code = .invalid_attribute,
-            .location = attribute.value_location,
-            .element = node.name,
-            .attribute = attribute.name,
-            .message = if (expression) "This attribute requires a braced expression" else "This attribute requires a quoted static string",
-        });
+    for (0..node.attributeCount()) |index| {
+        _ = try check(node.name(), node.schemaAttribute(index), reporter);
     }
+}
+
+pub fn check(element: []const u8, attribute: dsl.ast.Attribute, reporter: *dsl.Reporter) dsl.Error!Role {
+    const selected = role(element, attribute.name);
+
+    if (selected == .Value) return selected;
+
+    const expression = selected == .Expression or selected == .Type;
+
+    if ((attribute.kind == .expression) != expression) return reporter.fail(.{
+        .code = .invalid_attribute,
+        .location = attribute.value_location,
+        .element = element,
+        .attribute = attribute.name,
+        .message = if (expression) "This attribute requires a braced expression" else "This attribute requires a quoted static string",
+    });
+
+    return selected;
 }
 
 fn role(element: []const u8, attribute: []const u8) Role {

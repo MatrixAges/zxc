@@ -11,7 +11,9 @@ const Base = dsl.element("Call", struct {
 
 pub const Call = dsl.refine(Base, check);
 
-fn check(data: Base.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn check(data: Base.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
+
     try checks.nonEmpty(node, reporter);
 
     switch (@import("../schema/call/adapter.zig").check(&.{
@@ -22,7 +24,7 @@ fn check(data: Base.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporte
     })) {
         .None => {},
         .Target => return checks.fail(node, "module", "Call requires exactly one of fn or module", reporter),
-        .Input => return reporter.fail(.{ .code = .missing_attribute, .location = node.location, .element = node.name, .attribute = "in", .message = "Missing required attribute" }),
+        .Input => return reporter.fail(.{ .code = .missing_attribute, .location = node.location(), .element = node.name(), .attribute = "in", .message = "Missing required attribute" }),
         .Setter => return checks.fail(node, "setter", "Store authorization belongs inside the called RX module", reporter),
     }
 

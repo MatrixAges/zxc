@@ -2,7 +2,7 @@ const std = @import("std");
 const dsl = @import("dsl");
 const modules = @import("modules.zig");
 
-pub fn validate(allocator: std.mem.Allocator, backing: std.mem.Allocator, registry: *const modules.Registry, sources: []const modules.Source, entries: []const modules.Module, source_index: *usize, reporter: *dsl.Reporter) dsl.Error![]const usize {
+pub fn validate(allocator: std.mem.Allocator, backing: std.mem.Allocator, registry: *const modules.Registry, sources: []const modules.Source, entries: []const []const u8, source_index: *usize, reporter: *dsl.Reporter) dsl.Error![]const usize {
     if (!@import("rx_options").generated_graph) return @import("dependency_graph/seed.zig").validate(allocator, sources, entries, source_index, reporter);
 
     var arena = std.heap.ArenaAllocator.init(backing);

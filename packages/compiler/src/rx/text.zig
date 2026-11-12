@@ -48,6 +48,10 @@ pub fn parseModules(allocator: std.mem.Allocator, sources: []const Source) std.m
 
     const validated = try modules.validate(allocator, inputs);
 
+    if (validated.value == .data) {
+        for (inputs, parsed.items) |*input, *item| modules.markSchema(input, &item.value.node);
+    }
+
     return .{ .arena = arena, .parsed = parsed.items, .inputs = inputs, .validated = validated, .dependency_order = validated.dependency_order, .value = switch (validated.value) {
         .data => |data| .{ .data = data },
         .diagnostic => |issue| .{ .diagnostic = issue },

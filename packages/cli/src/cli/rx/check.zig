@@ -18,7 +18,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, scratch: std.mem.Allocator,
         defer loaded.deinit();
 
         const modules = loaded.data.modules;
-        var result = try rx.validateModules(allocator, modules);
+        var result = try rx.validateModulePaths(allocator, modules);
 
         defer result.deinit();
 

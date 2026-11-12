@@ -16,7 +16,7 @@ const Frame = struct {
 const Graph = struct {
     allocator: std.mem.Allocator,
     sources: []const modules.Source,
-    entries: []const modules.Module,
+    entries: []const []const u8,
     states: []State,
     reporter: *dsl.Reporter,
     source_index: *usize,
@@ -75,7 +75,7 @@ const Graph = struct {
         if (key) |attribute| {
             if (std.mem.eql(u8, attribute, "module") and @import("../module_reference.zig").isPackage(checks.attribute(node, attribute).?, self.sources[owner].packages)) return null;
 
-            const path = paths.resolve(self.allocator, self.entries[owner].path, checks.attribute(node, attribute).?) catch |err| {
+            const path = paths.resolve(self.allocator, self.entries[owner], checks.attribute(node, attribute).?) catch |err| {
                 if (err == error.OutOfMemory) return error.OutOfMemory;
 
                 return self.fail(owner, node, attribute, "Module reference escapes the project root or is not a valid module path");
@@ -94,7 +94,7 @@ const Graph = struct {
     }
     fn findModule(self: Graph, path: []const u8) ?usize {
         for (self.entries, 0..) |entry, index| {
-            if (std.mem.eql(u8, entry.path, path)) return index;
+            if (std.mem.eql(u8, entry, path)) return index;
         }
 
         return null;
@@ -106,7 +106,7 @@ const Graph = struct {
     }
 };
 
-pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, entries: []const modules.Module, source_index: *usize, reporter: *dsl.Reporter) dsl.Error![]const usize {
+pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, entries: []const []const u8, source_index: *usize, reporter: *dsl.Reporter) dsl.Error![]const usize {
     const states = try allocator.alloc(State, sources.len);
 
     defer allocator.free(states);

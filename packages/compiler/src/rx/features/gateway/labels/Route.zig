@@ -11,7 +11,7 @@ const RouteBase = dsl.element("Route", struct {
 
 pub const Route = dsl.refine(RouteBase, checkRoute);
 
-fn checkRoute(data: RouteBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkRoute(data: RouteBase.Data, node: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
 
     if (!paths.isModuleReference(data.attributes.service)) return checks.fail(node, "service", "Route service must reference a relative module file path", reporter);

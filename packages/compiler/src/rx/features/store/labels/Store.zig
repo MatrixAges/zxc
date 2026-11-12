@@ -13,7 +13,7 @@ const StoreBase = dsl.element("Store", struct {
 
 pub const Store = dsl.refineAlloc(StoreBase, checkStore);
 
-fn checkStore(allocator: std.mem.Allocator, data: StoreBase.Data, node: dsl.ast.Node, context: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkStore(allocator: std.mem.Allocator, data: StoreBase.Data, node: anytype, context: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
 
     if (comptime @import("rx_options").generated_rules) {

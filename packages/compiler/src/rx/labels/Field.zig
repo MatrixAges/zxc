@@ -10,7 +10,7 @@ const FieldBase = dsl.element("Field", struct {
 
 pub const Field = dsl.refine(FieldBase, checkField);
 
-fn checkField(data: FieldBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkField(data: FieldBase.Data, node: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
 
     if (!frontend.binding_path.valid(data.attributes.name) or std.mem.indexOfScalar(u8, data.attributes.name, '.') != null) {

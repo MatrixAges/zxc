@@ -5,7 +5,7 @@ const checks = @import("../checks.zig");
 const Base = dsl.element("Type", struct { from: []const u8, as: []const u8 }, dsl.empty);
 pub const Type = dsl.refine(Base, check);
 
-fn check(data: Base.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn check(data: Base.Data, node: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
 
     if (!@import("../paths.zig").isFunctionReference(data.attributes.from)) {

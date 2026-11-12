@@ -35,6 +35,10 @@ pub fn Result(comptime Schema: type) type {
 }
 
 pub fn validate(comptime Schema: type, allocator: std.mem.Allocator, node: ast.Node, context: anytype) std.mem.Allocator.Error!Result(Schema) {
+    return validateView(Schema, allocator, node, context);
+}
+
+pub fn validateView(comptime Schema: type, allocator: std.mem.Allocator, node: anytype, context: anytype) std.mem.Allocator.Error!Result(Schema) {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
@@ -64,7 +68,7 @@ fn refined(comptime Schema: type, comptime callback: anytype, comptime with_allo
         pub const matches = Schema.matches;
         pub const names = Schema.names;
 
-        pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *Reporter, context: anytype) Error!Data {
+        pub fn decode(allocator: std.mem.Allocator, node: anytype, reporter: *Reporter, context: anytype) Error!Data {
             const data = try Schema.decode(allocator, node, reporter, context);
 
             if (with_allocator) try callback(allocator, data, node, context, reporter) else try callback(data, node, context, reporter);

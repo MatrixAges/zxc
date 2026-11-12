@@ -8,7 +8,9 @@ pub const Groups = struct {
     next: []const ?u32,
 };
 
-pub fn validate(allocator: std.mem.Allocator, children: anytype, node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!Groups {
+pub fn validate(allocator: std.mem.Allocator, children: anytype, input: anytype, reporter: *dsl.Reporter) dsl.Error!Groups {
+    const node = dsl.ast.view(input);
+
     if (children.len == 1 and children[0] == .object) return .{ .first = 0, .starts = &.{0}, .next = &.{null} };
     if (children.len > std.math.maxInt(u32)) return error.OutOfMemory;
 
@@ -70,8 +72,11 @@ pub fn validate(allocator: std.mem.Allocator, children: anytype, node: dsl.ast.N
         .None => return .{ .first = alias_count, .starts = result.groups.starts, .next = result.groups.next },
         .DuplicateType => {
             var current: usize = 0;
+            var sources = node.children();
 
-            for (children, node.children) |child, source| {
+            for (children) |child| {
+                const source = sources.next().?;
+
                 if (child != .type) continue;
                 if (current == index) return checks.fail(source, "as", "Duplicate RX declaration", reporter);
 
@@ -80,13 +85,14 @@ pub fn validate(allocator: std.mem.Allocator, children: anytype, node: dsl.ast.N
 
             unreachable;
         },
-        .LateType => return checks.fail(node.children[index], "from", "Type declarations must precede Store objects", reporter),
+        .LateType => return checks.fail(dsl.ast.childAt(node, index), "from", "Type declarations must precede Store objects", reporter),
         .MissingObject => return checks.fail(node, "", "Store requires at least one Object", reporter),
         .DuplicateField => {
             for (offsets[1..], 0..) |end, fragment| {
                 if (index >= end) continue;
 
-                const field = node.children[alias_count + fragment].children[index - @as(usize, @intCast(offsets[fragment]))];
+                const object = dsl.ast.childAt(node, alias_count + fragment);
+                const field = dsl.ast.childAt(object, index - @as(usize, @intCast(offsets[fragment])));
 
                 return checks.fail(field, "name", "Store object field path is already declared", reporter);
             }
@@ -96,7 +102,9 @@ pub fn validate(allocator: std.mem.Allocator, children: anytype, node: dsl.ast.N
     }
 }
 
-pub fn uniqueFields(allocator: std.mem.Allocator, children: anytype, node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
+pub fn uniqueFields(allocator: std.mem.Allocator, children: anytype, input: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
+
     if (children.len < 2) return;
     if (children.len > std.math.maxInt(u32)) return error.OutOfMemory;
 
@@ -116,5 +124,5 @@ pub fn uniqueFields(allocator: std.mem.Allocator, children: anytype, node: dsl.a
         else => unreachable,
     };
 
-    if (duplicate) |index| return checks.fail(node.children[@intCast(index)], "name", "Duplicate RX declaration", reporter);
+    if (duplicate) |index| return checks.fail(dsl.ast.childAt(node, @intCast(index)), "name", "Duplicate RX declaration", reporter);
 }

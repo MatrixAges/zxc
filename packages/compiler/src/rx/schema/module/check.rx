@@ -1,0 +1,20 @@
+<Module>
+    <Type from="model" as="Schema" />
+
+    <Args in={Schema.Input} out={Schema.Output} />
+
+    <Call fn="../unique" in={$in.aliases} />
+
+    <If on={$ctx.unique != null}>
+        <Return
+            value={{
+                issue: Schema.Issue.DuplicateType,
+                index: $ctx.unique
+            }}
+        />
+    </If>
+
+    <Call fn="order" in={$in} />
+
+    <Return value={$ctx.order} />
+</Module>

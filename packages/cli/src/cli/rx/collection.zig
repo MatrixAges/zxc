@@ -147,7 +147,9 @@ fn loadIn(result: *Result, backing: std.mem.Allocator, options: Options) !?Data 
             return null;
         }
 
-        var checked = try rx.validate(allocator, path, parsed.value.node);
+        const packages = rx.module_reference.dependencies(options.project, absolute);
+        var module: rx.ModuleSource = .{ .path = path, .node = parsed.value.node, .packages = packages, .references = document.references };
+        var checked = try rx.validateSource(backing, &module);
 
         defer checked.deinit();
 
@@ -178,9 +180,6 @@ fn loadIn(result: *Result, backing: std.mem.Allocator, options: Options) !?Data 
 
             continue;
         }
-
-        const packages = rx.module_reference.dependencies(options.project, absolute);
-        const module: rx.ModuleSource = .{ .path = path, .node = parsed.value.node, .packages = packages, .references = document.references };
 
         if (std.mem.endsWith(u8, path, ".store.rx")) {
             try stores.append(allocator, module);

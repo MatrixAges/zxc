@@ -29,18 +29,26 @@ const ModuleBase = dsl.element("Module", struct {
     .@"return" = Return,
 }), .{}));
 
-pub const Module = dsl.refine(ModuleBase, checkModule);
+pub const Module = dsl.refineAlloc(ModuleBase, checkModule);
 
-fn checkModule(data: ModuleBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkModule(allocator: std.mem.Allocator, data: ModuleBase.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
+
     try checks.nonEmpty(node, reporter);
 
     if (data.attributes.@"fn") |reference| {
-        if (node.children.len != 0) return checks.fail(node, "fn", "Module.fn cannot be combined with child declarations or steps", reporter);
+        if (node.childCount() != 0) return checks.fail(node, "fn", "Module.fn cannot be combined with child declarations or steps", reporter);
         if (!@import("../paths.zig").isFunctionReference(reference)) return checks.fail(node, "fn", "Module.fn must reference a ZX source file", reporter);
 
         return;
     }
 
+    if (comptime @import("rx_options").generated_rules) return @import("../schema/module/adapter.zig").check(allocator, data.children, node, reporter);
+
+    return checkSeed(input, reporter);
+}
+
+fn checkSeed(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.uniqueChildren(node, "Type", "as", reporter);
 
     var has_args = false;

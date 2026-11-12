@@ -25,29 +25,29 @@ pub fn element(comptime name: []const u8, comptime Attributes: type, comptime Ch
         pub fn matches(actual: []const u8) bool {
             return std.mem.eql(u8, name, actual);
         }
-        pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
-            if (!matches(node.name)) return reporter.fail(.{
+        pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
+            const node = ast.view(input);
+
+            if (!matches(node.name())) return reporter.fail(.{
                 .code = .unexpected_element,
-                .location = node.location,
-                .element = node.name,
+                .location = node.location(),
+                .element = node.name(),
                 .expected = name,
                 .message = "Element is not allowed at this position",
             });
 
-            const values = try attributes.decode(Attributes, node, reporter);
+            const values = try attributes.decode(Attributes, input, reporter);
 
-            for (node.text) |text| {
-                if (std.mem.trim(u8, text.value, " \t\r\n").len != 0) return reporter.fail(.{
-                    .code = .unexpected_text,
-                    .location = text.location,
-                    .element = node.name,
-                    .message = "Only elements and whitespace are allowed here",
-                });
-            }
+            if (node.unexpectedText()) |location| return reporter.fail(.{
+                .code = .unexpected_text,
+                .location = location,
+                .element = node.name(),
+                .message = "Only elements and whitespace are allowed here",
+            });
 
             return .{
                 .attributes = values,
-                .children = try Children.decode(allocator, node, reporter, context),
+                .children = try Children.decode(allocator, input, reporter, context),
             };
         }
     };

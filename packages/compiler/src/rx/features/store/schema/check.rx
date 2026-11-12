@@ -3,7 +3,7 @@
 
     <Args in={Store.Input} out={Store.Output} />
 
-    <Call fn="unique" in={$in.aliases} />
+    <Call fn="../../../schema/unique" in={$in.aliases} />
 
     <If on={$ctx.unique != null}>
         <Return

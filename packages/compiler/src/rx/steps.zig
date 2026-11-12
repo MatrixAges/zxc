@@ -22,7 +22,9 @@ pub fn child(comptime scope: Scope) type {
     return struct {
         pub const Data = Step;
 
-        pub fn decode(allocator: std.mem.Allocator, node: dsl.ast.Node, reporter: *dsl.Reporter, context: anytype) dsl.Error!Data {
+        pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *dsl.Reporter, context: anytype) dsl.Error!Data {
+            const node = dsl.ast.view(input);
+
             inline for (.{ "call", "task", "parallel", "switch", "if", "emit", "return" }) |tag| {
                 const allowed = comptime switch (scope) {
                     .body => true,
@@ -33,14 +35,14 @@ pub fn child(comptime scope: Scope) type {
                 if (comptime allowed) {
                     const Schema = schema(tag, scope);
 
-                    if (Schema.matches(node.name)) return @unionInit(Data, tag, try Schema.decode(allocator, node, reporter, context));
+                    if (Schema.matches(node.name())) return @unionInit(Data, tag, try Schema.decode(allocator, input, reporter, context));
                 }
             }
 
             return reporter.fail(.{
                 .code = .unexpected_element,
-                .location = node.location,
-                .element = node.name,
+                .location = node.location(),
+                .element = node.name(),
                 .message = "Element is not allowed in this RX execution scope",
             });
         }

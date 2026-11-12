@@ -7,25 +7,34 @@ const Else = @import("Else.zig").Else;
 const IfBase = dsl.element("If", struct { on: []const u8 }, dsl.list(struct {
     pub const Data = union(enum) { step: steps.Step, @"else": Else.Data };
 
-    pub fn decode(allocator: std.mem.Allocator, node: dsl.ast.Node, reporter: *dsl.Reporter, context: anytype) dsl.Error!Data {
-        if (Else.matches(node.name)) return .{ .@"else" = try Else.decode(allocator, node, reporter, context) };
+    pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *dsl.Reporter, context: anytype) dsl.Error!Data {
+        const node = dsl.ast.view(input);
 
-        return .{ .step = try steps.child(.body).decode(allocator, node, reporter, context) };
+        if (Else.matches(node.name())) return .{ .@"else" = try Else.decode(allocator, input, reporter, context) };
+
+        return .{ .step = try steps.child(.body).decode(allocator, input, reporter, context) };
     }
 }, .{ .min = 1 }));
 
 pub const If = dsl.refine(IfBase, checkIf);
 
-fn checkIf(_: IfBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkIf(_: IfBase.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+    const node = dsl.ast.view(input);
+
     try checks.nonEmpty(node, reporter);
 
-    for (node.children, 0..) |child, index| {
-        if (!std.mem.eql(u8, child.name, "Else")) continue;
+    var children = node.children();
+    var index: usize = 0;
 
-        if (index == 0 or index != node.children.len - 1) return reporter.fail(.{
+    while (children.next()) |item| : (index += 1) {
+        const child = dsl.ast.view(item);
+
+        if (!std.mem.eql(u8, child.name(), "Else")) continue;
+
+        if (index == 0 or index != node.childCount() - 1) return reporter.fail(.{
             .code = .context,
-            .location = child.location,
-            .element = child.name,
+            .location = child.location(),
+            .element = child.name(),
             .message = "Else must follow the If body and appear once at the end",
         });
     }

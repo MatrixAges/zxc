@@ -17,11 +17,21 @@ pub fn run(context: Compile.Context, loaded: Loaded) !Compile.Status {
             .root = root,
             .entry = entry,
             .writer = context.stderr,
+            .project = loaded.project,
         })) orelse return .failed;
 
         defer collection.deinit();
 
-        return .success;
+        const functions = try @import("../rx/type_sources.zig").collect(context.allocator, .{
+            .io = context.io,
+            .project = loaded.project,
+            .modules = collection.data.modules,
+            .stores = collection.data.stores,
+            .functions = collection.data.functions,
+            .writer = context.stderr,
+        }) orelse return .failed;
+
+        return if (try @import("../rx/store_types.zig").validate(context.io, context.allocator, collection.data, functions, loaded.project, context.stderr)) .success else .failed;
     }
 
     var analyzed = (try @import("../rx/gateway/analyze.zig").run(context.allocator, .{

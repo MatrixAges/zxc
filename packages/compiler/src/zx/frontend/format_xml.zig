@@ -4,13 +4,13 @@ const dsl = @import("dsl");
 const lint = @import("lint");
 const lex = @import("lexer").lex;
 const indexed = @import("parser_options").generated_parser;
-const Parsed = if (indexed) @import("xml_view.zig").Result else dsl.XmlResult;
+pub const Parsed = if (indexed) @import("xml_view.zig").Result else dsl.XmlResult;
 const Node = if (indexed) @import("xml_view.zig").Node else lint.rx.NodeView;
 
 pub const Result = union(enum) { source: []u8, diagnostic: zx.Diagnostic };
 
 pub fn formatText(allocator: std.mem.Allocator, source: []const u8) std.mem.Allocator.Error!Result {
-    var parsed: ?Parsed = try parse(allocator, source);
+    var parsed: ?Parsed = try parse(allocator, source, false);
 
     defer release(&parsed);
 
@@ -30,8 +30,18 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, node: dsl.ast.No
     return formatWith(allocator, source, lint.rx.NodeView{ .node = node }, &parsed);
 }
 
-fn parse(allocator: std.mem.Allocator, source: []const u8) std.mem.Allocator.Error!Parsed {
-    if (comptime indexed) return @import("xml_view.zig").parse(allocator, source);
+pub fn schemaRoot(parsed: *const Parsed) if (indexed) Node else dsl.ast.Node {
+    if (comptime indexed) return root(parsed);
+
+    return parsed.value.node;
+}
+
+pub fn formatParsed(allocator: std.mem.Allocator, source: []const u8, parsed: *?Parsed) std.mem.Allocator.Error![]u8 {
+    return formatWith(allocator, source, root(&parsed.*.?), parsed);
+}
+
+pub fn parse(allocator: std.mem.Allocator, source: []const u8, comptime schema: bool) std.mem.Allocator.Error!Parsed {
+    if (comptime indexed) return @import("xml_view.zig").parse(allocator, source, schema);
 
     return @import("attribute.zig").parseXml(allocator, source);
 }
@@ -42,7 +52,7 @@ fn root(parsed: *const Parsed) Node {
     return .{ .node = parsed.value.node };
 }
 
-fn release(parsed: *?Parsed) void {
+pub fn release(parsed: *?Parsed) void {
     if (parsed.*) |*value| value.deinit();
 
     parsed.* = null;
@@ -51,7 +61,7 @@ fn release(parsed: *?Parsed) void {
 fn reparse(parsed: *?Parsed, allocator: std.mem.Allocator, source: []const u8) std.mem.Allocator.Error!void {
     release(parsed);
 
-    parsed.* = try parse(allocator, source);
+    parsed.* = try parse(allocator, source, false);
 
     std.debug.assert(parsed.*.?.value != .diagnostic);
 }

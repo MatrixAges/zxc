@@ -15,13 +15,16 @@ pub fn list(comptime Child: type, comptime bounds: Bounds) type {
     return struct {
         pub const Data = []const Child.Data;
 
-        pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
-            if (node.children.len < bounds.min or node.children.len > bounds.max) return countError(node, reporter, bounds);
+        pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
+            const node = ast.view(input);
 
-            const values = try allocator.alloc(Child.Data, node.children.len);
+            if (node.childCount() < bounds.min or node.childCount() > bounds.max) return countError(node, reporter, bounds);
 
-            for (node.children, values) |child, *value| {
-                value.* = try Child.decode(allocator, child, reporter, context);
+            const values = try allocator.alloc(Child.Data, node.childCount());
+            var children = node.children();
+
+            for (values) |*value| {
+                value.* = try Child.decode(allocator, children.next().?, reporter, context);
             }
 
             return values;
@@ -41,13 +44,16 @@ pub fn sequence(comptime schemas: anytype) type {
     return struct {
         pub const Data = @Tuple(&types);
 
-        pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
-            if (node.children.len != schemas.len) return countError(node, reporter, .{ .min = schemas.len, .max = schemas.len });
+        pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
+            const node = ast.view(input);
+
+            if (node.childCount() != schemas.len) return countError(node, reporter, .{ .min = schemas.len, .max = schemas.len });
 
             var values: Data = undefined;
+            var children = node.children();
 
             inline for (schemas, 0..) |Schema, index| {
-                values[index] = try Schema.decode(allocator, node.children[index], reporter, context);
+                values[index] = try Schema.decode(allocator, children.next().?, reporter, context);
             }
 
             return values;
@@ -97,29 +103,33 @@ pub fn choice(comptime schemas: anytype) type {
 
             return false;
         }
-        pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
+        pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
+            const node = ast.view(input);
+
             inline for (fields) |field| {
                 const Schema = @field(schemas, field);
 
-                if (Schema.matches(node.name)) return @unionInit(Data, field, try Schema.decode(allocator, node, reporter, context));
+                if (Schema.matches(node.name())) return @unionInit(Data, field, try Schema.decode(allocator, input, reporter, context));
             }
 
             return reporter.fail(.{
                 .code = .unexpected_element,
-                .location = node.location,
-                .element = node.name,
+                .location = node.location(),
+                .element = node.name(),
                 .message = "Element does not match any allowed alternative",
             });
         }
     };
 }
 
-fn countError(node: ast.Node, reporter: *diagnostic.Reporter, bounds: Bounds) diagnostic.Error {
+fn countError(input: anytype, reporter: *diagnostic.Reporter, bounds: Bounds) diagnostic.Error {
+    const node = ast.view(input);
+
     return reporter.fail(.{
         .code = .child_count,
-        .location = if (node.children.len > bounds.max) node.children[bounds.max].location else node.location,
-        .element = node.name,
-        .child_count = .{ .min = bounds.min, .max = bounds.max, .actual = node.children.len },
+        .location = if (node.childCount() > bounds.max) ast.view(ast.childAt(node, bounds.max)).location() else node.location(),
+        .element = node.name(),
+        .child_count = .{ .min = bounds.min, .max = bounds.max, .actual = node.childCount() },
         .message = "Number of child elements does not match the schema",
     });
 }

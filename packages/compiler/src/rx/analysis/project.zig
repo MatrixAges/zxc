@@ -98,7 +98,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
         source.packages = rx.module_reference.dependencies(options.project, owner);
     }
 
-    const checked = try rx.validateModules(allocator, registered);
+    const checked = try rx.validateModulePaths(allocator, registered);
 
     if (checked.value == .diagnostic) {
         const issue = checked.value.diagnostic;
@@ -120,9 +120,9 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
 
     const modules = try allocator.alloc(rx.ModuleSource, options.modules.len);
 
-    for (registered, checked.value.data, modules) |source, module, *item| {
+    for (registered, checked.value.data, modules) |source, path, *item| {
         item.* = source;
-        item.path = module.path;
+        item.path = path;
     }
 
     const entry_index = if (is_zx) null else prepare.find(modules, entry) orelse return failed(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });

@@ -15,10 +15,14 @@ pub const Result = struct {
     }
 };
 
-pub fn checkValues(allocator: std.mem.Allocator, node: rx.ast.Node, owner: []const u8) std.mem.Allocator.Error!?Diagnostic {
-    for (node.attributes) |attribute| {
+pub fn checkValues(allocator: std.mem.Allocator, input: anytype, owner: []const u8) std.mem.Allocator.Error!?Diagnostic {
+    const node = rx.ast.view(input);
+
+    for (0..node.attributeCount()) |index| {
+        const attribute = node.schemaAttribute(index);
+
         if (attribute.kind != .expression) continue;
-        if (rx.isTypeAttribute(node.name, attribute.name)) continue;
+        if (rx.isTypeAttribute(node.name(), attribute.name)) continue;
 
         var parsed = try @import("attribute.zig").parse(allocator, attribute, owner);
 
@@ -28,7 +32,9 @@ pub fn checkValues(allocator: std.mem.Allocator, node: rx.ast.Node, owner: []con
         if (try @import("attribute.zig").checkStyle(allocator, &parsed)) |issue| return diagnostic(attribute, try issue.clone(allocator));
     }
 
-    for (node.children) |child| {
+    var children = node.children();
+
+    while (children.next()) |child| {
         if (try checkValues(allocator, child, owner)) |issue| return issue;
     }
 

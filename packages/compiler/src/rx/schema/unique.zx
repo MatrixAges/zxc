@@ -9,6 +9,10 @@ export type Input = string[]
 export type Output = u64?
 
 export default function (in: Input): Output {
+    if (in.length < 2) {
+        return null
+    }
+
     const names: Index = {
         keys: [],
         values: [],

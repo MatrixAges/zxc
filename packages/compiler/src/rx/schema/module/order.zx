@@ -1,0 +1,75 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import claim from "core/bytes/index/claim"
+
+import { Issue, Tag } from "./model"
+
+import type { Index } from "core/bytes/index/model"
+import type { Finding, Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const names: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    const finding: Finding? = null
+
+    return loop({
+        names,
+        finding,
+        index: 0,
+        store: 0,
+        args: false,
+        steps: false
+    }, {
+        while: state => state.finding == null && state.index < in.tags.length,
+        next: state => {
+            switch (in.tags[state.index]) {
+                case Tag.Type:
+                    if (state.args || state.steps) {
+                        state.finding = {
+                            issue: Issue.LateType,
+                            index: state.index
+                        }
+                    }
+                case Tag.Args:
+                    if (state.args || state.steps) {
+                        state.finding = {
+                            issue: Issue.MisplacedArgs,
+                            index: state.index
+                        }
+                    }
+
+                    state.args = true
+                case Tag.Store:
+                    state.steps = true
+
+                    if (in.check_store_aliases) {
+                        const entered = claim({
+                            index: state.names,
+                            key: bytes.fromText(in.stores[state.store]),
+                            value: integers.narrow(state.store)
+                        })
+
+                        state.names = entered.index
+
+                        if (entered.previous != null) {
+                            state.finding = {
+                                issue: Issue.DuplicateStore,
+                                index: state.index
+                            }
+                        }
+
+                        state.store += 1
+                    }
+                case Tag.Step:
+                    state.steps = true
+            }
+
+            state.index += 1
+        },
+        return: state => state.finding
+    })
+}

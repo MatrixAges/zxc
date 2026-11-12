@@ -13,18 +13,19 @@ pub const Entry = struct {
 };
 
 pub const Index = opaque {};
+
 const Storage = struct { root: *const ast.Node, entries: []const Entry };
 
 pub fn forNode(index: *const Index, node: *const ast.Node) ?[]const Entry {
     const storage: *const Storage = @ptrCast(@alignCast(index));
-    const root = storage.root;
 
-    if (node.name.ptr != root.name.ptr or node.name.len != root.name.len or
-        node.children.ptr != root.children.ptr or node.children.len != root.children.len or
-        node.attributes.ptr != root.attributes.ptr or node.attributes.len != root.attributes.len or
-        !std.meta.eql(node.location, root.location)) return null;
+    return if (ast.sameStorage(node, storage.root)) storage.entries else null;
+}
 
-    return storage.entries;
+pub fn root(index: *const Index) *const ast.Node {
+    const storage: *const Storage = @ptrCast(@alignCast(index));
+
+    return storage.root;
 }
 
 // The XML parser admits at most 256 nested elements.

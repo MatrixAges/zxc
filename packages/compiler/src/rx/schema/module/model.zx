@@ -1,0 +1,27 @@
+export enum Tag {
+    Type,
+    Args,
+    Store,
+    Step
+}
+
+export enum Issue {
+    DuplicateType,
+    LateType,
+    MisplacedArgs,
+    DuplicateStore
+}
+
+export type Input = {
+    tags: Tag[],
+    aliases: string[],
+    stores: string[],
+    check_store_aliases: bool
+}
+
+export type Finding = {
+    issue: Issue,
+    index: u64
+}
+
+export type Output = Finding?

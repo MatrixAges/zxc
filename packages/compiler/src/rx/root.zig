@@ -2,6 +2,7 @@ const std = @import("std");
 const dsl = @import("dsl");
 pub const ast = dsl.ast;
 pub const parseXml = @import("frontend").parseExpressionXml;
+pub const document = @import("frontend").xml_document;
 pub const parseIndexedXml = @import("frontend").parseIndexedXml;
 pub const XmlResult = dsl.XmlResult;
 pub const attributeLocation = dsl.attributeLocation;
@@ -31,23 +32,38 @@ pub const Document = dsl.choice(.{ .module = Module, .gateway = Gateway, .store 
 pub const Result = dsl.Result(File);
 pub const ModuleResult = @import("modules.zig").Result;
 pub const ModuleSource = @import("modules.zig").Source;
-pub const validateModules = @import("modules.zig").validate;
+const modules = @import("modules.zig");
+pub const validateModules = modules.validate;
+pub const validateModulePaths = modules.validatePaths;
 
 pub fn validate(allocator: std.mem.Allocator, file_name: []const u8, node: ast.Node) std.mem.Allocator.Error!Result {
     return dsl.validate(File, allocator, node, file_name);
 }
 
+pub fn validateView(allocator: std.mem.Allocator, file_name: []const u8, node: anytype) std.mem.Allocator.Error!Result {
+    return dsl.validateView(File, allocator, node, file_name);
+}
+
+pub fn validateSource(allocator: std.mem.Allocator, source: *ModuleSource) std.mem.Allocator.Error!Result {
+    const result = try validate(allocator, source.path, source.node);
+
+    if (result.value == .data and result.value.data == .module) modules.markIndexedSchema(source);
+
+    return result;
+}
+
 const File = struct {
     pub const Data = Document.Data;
 
-    pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *dsl.Reporter, file_name: []const u8) dsl.Error!Data {
+    pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *dsl.Reporter, file_name: []const u8) dsl.Error!Data {
+        const node = dsl.ast.view(input);
         const basename = std.fs.path.basename(file_name);
 
         const expected: []const u8 = switch (@import("schema/file/adapter.zig").classify(basename)) {
             .App => return reporter.fail(.{
                 .code = .context,
-                .location = node.location,
-                .element = node.name,
+                .location = node.location(),
+                .element = node.name(),
                 .message = "app.rx schema has not been defined",
             }),
             .Gateway => "Gateway",
@@ -55,20 +71,20 @@ const File = struct {
             .Module => "Module",
             .Invalid => return reporter.fail(.{
                 .code = .context,
-                .location = node.location,
-                .element = node.name,
+                .location = node.location(),
+                .element = node.name(),
                 .message = "RX source file must have the .rx extension",
             }),
         };
 
-        if (!std.mem.eql(u8, node.name, expected)) return reporter.fail(.{
+        if (!std.mem.eql(u8, node.name(), expected)) return reporter.fail(.{
             .code = .unexpected_element,
-            .location = node.location,
-            .element = node.name,
+            .location = node.location(),
+            .element = node.name(),
             .expected = expected,
             .message = "Root element does not match the RX file kind",
         });
 
-        return Document.decode(allocator, node, reporter, {});
+        return Document.decode(allocator, input, reporter, {});
     }
 };

@@ -10,60 +10,51 @@ pub fn checkType(comptime T: type) void {
     }
 }
 
-pub fn decode(comptime T: type, node: ast.Node, reporter: *diagnostic.Reporter) diagnostic.Error!T {
+pub fn decode(comptime T: type, input: anytype, reporter: *diagnostic.Reporter) diagnostic.Error!T {
+    const node = ast.view(input);
     const info = @typeInfo(T).@"struct";
+    var slots: [info.field_names.len]usize = @splat(0);
 
-    for (node.attributes, 0..) |attribute, index| {
-        var known = false;
+    for (0..node.attributeCount()) |index| {
+        const attribute = node.schemaAttribute(index);
 
-        inline for (info.field_names) |field_name| {
-            if (std.mem.eql(u8, field_name, attribute.name)) known = true;
-        }
-
-        if (!known) return reporter.fail(.{
+        const slot = for (info.field_names, 0..) |field_name, ordinal| {
+            if (std.mem.eql(u8, field_name, attribute.name)) break ordinal;
+        } else return reporter.fail(.{
             .code = .unknown_attribute,
             .location = attribute.location,
-            .element = node.name,
+            .element = node.name(),
             .attribute = attribute.name,
             .message = "Attribute is not allowed on this element",
         });
 
-        for (node.attributes[0..index]) |previous| {
-            if (std.mem.eql(u8, previous.name, attribute.name)) return reporter.fail(.{
-                .code = .duplicate_attribute,
-                .location = attribute.location,
-                .element = node.name,
-                .attribute = attribute.name,
-                .message = "Attribute occurs more than once",
-            });
-        }
+        if (slots[slot] != 0) return reporter.fail(.{
+            .code = .duplicate_attribute,
+            .location = attribute.location,
+            .element = node.name(),
+            .attribute = attribute.name,
+            .message = "Attribute occurs more than once",
+        });
+
+        slots[slot] = index + 1;
     }
 
     var result: T = undefined;
 
-    inline for (info.field_names, info.field_types, info.field_attrs) |field_name, field_type, field_attrs| {
-        var found = false;
-
-        for (node.attributes) |attribute| {
-            if (!std.mem.eql(u8, field_name, attribute.name)) continue;
-
+    inline for (info.field_names, info.field_types, info.field_attrs, slots) |field_name, field_type, field_attrs, index| {
+        if (index != 0) {
+            const attribute = node.schemaAttribute(index - 1);
             const source = if (attribute.kind == .expression) std.mem.trim(u8, attribute.value, " \t\r\n") else attribute.value;
 
             @field(result, field_name) = convert(field_type, source) catch return reporter.fail(.{
                 .code = .invalid_attribute,
                 .location = attribute.value_location,
-                .element = node.name,
+                .element = node.name(),
                 .attribute = attribute.name,
                 .expected = @typeName(field_type),
                 .message = "Attribute value does not match its declared type",
             });
-
-            found = true;
-
-            break;
-        }
-
-        if (!found) {
+        } else {
             if (field_attrs.defaultValue(field_type)) |value| {
                 @field(result, field_name) = value;
             } else if (@typeInfo(field_type) == .optional) {
@@ -71,8 +62,8 @@ pub fn decode(comptime T: type, node: ast.Node, reporter: *diagnostic.Reporter) 
             } else {
                 return reporter.fail(.{
                     .code = .missing_attribute,
-                    .location = node.location,
-                    .element = node.name,
+                    .location = node.location(),
+                    .element = node.name(),
                     .attribute = field_name,
                     .expected = @typeName(field_type),
                     .message = "Required attribute is missing",
