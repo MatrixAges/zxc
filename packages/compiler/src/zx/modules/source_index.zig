@@ -1,20 +1,16 @@
 const std = @import("std");
-const zx = @import("zx");
-pub const Map = zx.bytes.Map(usize);
+pub const Map = if (@import("parser_options").generated_parser) @import("source_index/fixed.zig") else @import("source_index/seed.zig");
 
 /// The map and canonical keys belong to the surrounding analysis arena.
 pub fn buildIn(allocator: std.mem.Allocator, sources: anytype, root: []const u8) std.mem.Allocator.Error!*const Map {
     const result = try allocator.create(Map);
 
-    result.* = .empty;
-
-    try result.ensureTotalCapacity(allocator, @intCast(sources.len));
+    result.* = try Map.init(allocator, sources.len);
 
     for (sources, 0..) |source, index| {
         const path = try std.fs.path.resolve(allocator, &.{ root, source.path });
-        const found = result.getOrPutAssumeCapacity(path);
 
-        if (found.found_existing) allocator.free(path) else found.value_ptr.* = index;
+        if (!result.claim(index, path)) allocator.free(path);
     }
 
     return result;

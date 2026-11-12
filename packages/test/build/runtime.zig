@@ -181,6 +181,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
             });
 
             standard.addImport("sha256_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("sha256_backend"));
+            standard.addImport("bytes_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("bytes_backend"));
             program.addImport("zxc_abi", abi);
             program.addImport("zxc_standard", standard);
         }

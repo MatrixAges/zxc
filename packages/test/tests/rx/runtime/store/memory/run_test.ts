@@ -63,9 +63,12 @@ test(`generated Store memory consumer ${source} (${optimize})`, () => {
             'zxc_abi',
             '--dep',
             'sha256_backend',
+            '--dep',
+            'bytes_backend',
             `-Mzxc_standard=${resolve(standard_root)}`
         )
         argv.push(`-O${optimize}`, `-Msha256_backend=${join(dirname(resolve(standard_root)), 'crypto/sha256.zig')}`)
+        argv.push(`-O${optimize}`, `-Mbytes_backend=${join(dirname(resolve(standard_root)), 'bytes/fast.zig')}`)
     }
 
     if (fixture_source) {

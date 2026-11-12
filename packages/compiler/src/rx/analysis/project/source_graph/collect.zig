@@ -10,7 +10,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidGraph};
 allocator: std.mem.Allocator,
 options: project.Options,
 modules: []model.Module,
-paths: @import("zx").bytes.Map(usize),
+paths: *const project.source_index.Map,
 edges: std.ArrayList(model.Edge) = .empty,
 owner: usize = 0,
 issue: ?Diagnostic = null,

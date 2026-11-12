@@ -1,4 +1,5 @@
 const std = @import("std");
+const fast = @import("bytes_backend");
 
 pub fn join(allocator: std.mem.Allocator, separator: []const u8, values: []const []const u8) std.mem.Allocator.Error![]const u8 {
     return std.mem.join(allocator, separator, values);
@@ -76,16 +77,14 @@ pub fn startsWithTextIgnoreAsciiCase(haystack: []const u8, prefix: []const u8) b
     return prefix.len <= haystack.len and std.ascii.eqlIgnoreCase(haystack[0..prefix.len], prefix);
 }
 
-pub fn equals(left: []const u8, right: []const u8) bool {
-    return std.mem.eql(u8, left, right);
-}
+pub const equals = fast.equal;
 
 pub fn lessThan(left: []const u8, right: []const u8) bool {
     return std.mem.lessThan(u8, left, right);
 }
 
 pub fn hash(in: []const u8) u64 {
-    return std.hash.Wyhash.hash(0, in);
+    return fast.hash(0, in);
 }
 
 pub fn readU32(in: []const u8, offset: u64, little_endian: bool) error{IndexOutOfBounds}!u32 {

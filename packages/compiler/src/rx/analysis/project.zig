@@ -49,7 +49,6 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options
         },
     };
 
-    options.project.source_index = try frontend.project.source_index.buildIn(allocator, options.sources, options.project.root_dir);
     var local = frontend.project.ParseCache{ .allocator = allocator };
 
     defer local.deinit();
@@ -88,7 +87,10 @@ const Derived = union(enum) { frame: @import("project/history.zig").Frame, diagn
 
 /// Everything the module analysis needs besides the ZX function bodies: the source graph, the Store registry, the
 /// signatures and the RX constraints. It lives as long as `allocator`, since a later analysis may reuse it.
-fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!Derived {
+fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options: Options, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!Derived {
+    var options = raw_options;
+    options.project.source_index = try frontend.project.source_index.buildIn(allocator, options.sources, options.project.root_dir);
+
     const registered = try allocator.dupe(rx.ModuleSource, options.modules);
 
     for (registered) |*source| {

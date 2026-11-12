@@ -4,7 +4,7 @@ const flow = @import("flow.zig");
 const paths = @import("paths.zig");
 const graph = @import("module_graph.zig");
 const generated_graph = @import("rx_options").generated_graph;
-pub const Registry = if (generated_graph) @import("dependency_graph/registry.zig") else void;
+pub const Registry = if (generated_graph) @import("frontend").project.source_index.Map else void;
 
 pub const Source = struct {
     path: []const u8,

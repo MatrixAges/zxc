@@ -106,7 +106,7 @@ const Project = struct {
     empty_context_digest: ?[32]u8 = null,
     units: []Unit,
     /// Each unit path to the first unit with it.
-    unit_indices: @import("zx").bytes.Map(usize) = .empty,
+    unit_indices: source_index.Map = .empty,
     options: Options,
     reporter: *zx.Reporter,
     types: ir.TypeStorage = .{},
@@ -178,6 +178,7 @@ const Project = struct {
     fn deinitScratch(self: *Project) void {
         const allocator = self.arena.child_allocator;
 
+        self.unit_indices.deinit(allocator);
         for (self.load_frames.items) |*frame| frame.imported_names.deinit(allocator);
 
         self.load_frames.deinit(allocator);
@@ -622,12 +623,10 @@ const Project = struct {
     fn indexUnits(self: *Project) std.mem.Allocator.Error!bool {
         var unique = true;
 
-        try self.unit_indices.ensureTotalCapacity(self.allocator, @intCast(self.units.len));
+        self.unit_indices = try source_index.Map.init(self.arena.child_allocator, self.units.len);
 
         for (self.units, 0..) |unit, index| {
-            const entry = self.unit_indices.getOrPutAssumeCapacity(unit.path);
-
-            if (entry.found_existing) unique = false else entry.value_ptr.* = index;
+            if (!self.unit_indices.claim(index, unit.path)) unique = false;
         }
 
         return unique;

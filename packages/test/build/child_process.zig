@@ -48,6 +48,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
     });
 
     standard.addImport("sha256_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("sha256_backend"));
+    standard.addImport("bytes_backend", b.dependency("zxc_std", .{ .target = target, .optimize = optimize }).module("bytes_backend"));
 
     const program = b.createModule(.{
         .root_source_file = source,

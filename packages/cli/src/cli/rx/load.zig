@@ -1,7 +1,7 @@
 const std = @import("std");
 const rx = @import("rx");
 
-pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !?[]const rx.TextSource {
+pub fn load(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator, entry: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !?[]const rx.TextSource {
     const project = try @import("../project.zig").load(io, allocator, entry, config_path);
 
     if (project.diagnostic) |message| {
@@ -47,6 +47,7 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_
             .modules = loaded.data.modules,
             .stores = loaded.data.stores,
             .project = project.project,
+            .scratch_allocator = backing,
         });
 
         defer graph.deinit();
@@ -62,10 +63,20 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_
 
     if (!try @import("store_types.zig").validate(io, allocator, loaded.data, functions, project.project, writer)) return null;
 
-    for (functions) |function| {
-        const path = try std.fs.path.resolve(allocator, &.{ root, function.path });
+    {
+        var scratch = std.heap.ArenaAllocator.init(backing);
 
-        if (!try @import("function.zig").validate(io, allocator, path, function.source, config_path, loaded.data.modules, writer)) return null;
+        defer scratch.deinit();
+
+        const temporary = scratch.allocator();
+
+        for (functions) |function| {
+            const path = try std.fs.path.resolve(temporary, &.{ root, function.path });
+
+            if (!try @import("function.zig").validate(io, temporary, path, function.source, config_path, loaded.data.modules, writer)) return null;
+
+            _ = scratch.reset(.retain_capacity);
+        }
     }
 
     var libraries = @import("../library/inputs.zig"){ .allocator = allocator };

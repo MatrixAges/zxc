@@ -32,9 +32,9 @@ pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
 fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!model.Value {
     const modules = try allocator.alloc(model.Module, options.sources.len + options.modules.len + options.stores.len);
-    var paths: @import("zx").bytes.Map(usize) = .empty;
+    var paths = try frontend.project.source_index.Map.init(backing, modules.len);
 
-    defer paths.deinit(allocator);
+    defer paths.deinit(backing);
 
     for (modules, 0..) |*module, index| {
         const is_zx = index < options.sources.len;
@@ -55,11 +55,9 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
         }
 
         const path = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source_path });
-        const registered = try paths.getOrPut(allocator, path);
 
-        if (registered.found_existing) return failure(allocator, if (is_store) source_path else path, location, if (is_store) "Store definition path is already registered" else "source paths must be unique after normalization across RX, ZX and Store definitions");
+        if (!paths.claim(index, path)) return failure(allocator, if (is_store) source_path else path, location, if (is_store) "Store definition path is already registered" else "source paths must be unique after normalization across RX, ZX and Store definitions");
 
-        registered.value_ptr.* = index;
         module.* = .{ .path = path, .source = if (is_zx) .{ .zx = source_index } else if (is_store) .{ .store = source_index } else .{ .rx = source_index } };
     }
 
@@ -77,9 +75,9 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     for (roots[1 + options.additional_roots.len ..], 0..) |*root, index| root.* = options.sources.len + options.modules.len + index;
 
-    var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = paths };
+    var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = &paths };
 
-    if (collector.options.source_index == null) collector.options.source_index = &collector.paths;
+    if (collector.options.source_index == null) collector.options.source_index = &paths;
 
     @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;

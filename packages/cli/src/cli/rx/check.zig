@@ -1,7 +1,7 @@
 const std = @import("std");
 const rx = @import("rx");
 
-pub fn run(io: std.Io, allocator: std.mem.Allocator, paths: []const []const u8, writer: *std.Io.Writer) !bool {
+pub fn run(io: std.Io, allocator: std.mem.Allocator, scratch: std.mem.Allocator, paths: []const []const u8, writer: *std.Io.Writer) !bool {
     if (paths.len > 0 and std.mem.eql(u8, paths[0], "--entry")) {
         if (paths.len != 2 and (paths.len != 4 or !std.mem.eql(u8, paths[2], "--project"))) {
             try writer.writeAll("check-rx --entry requires one RX file and optional --project pkg.yaml\n");
@@ -13,7 +13,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, paths: []const []const u8, 
 
         defer arena.deinit();
 
-        const sources = try @import("load.zig").load(io, arena.allocator(), paths[1], if (paths.len == 4) paths[3] else null, writer) orelse return false;
+        const sources = try @import("load.zig").load(io, arena.allocator(), scratch, paths[1], if (paths.len == 4) paths[3] else null, writer) orelse return false;
 
         return validate(allocator, sources, writer);
     }

@@ -36,7 +36,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/path_segments/normalize.rx", .name = "paths", .owner = .rx },
     .{ .path = "rx/path_segments/walk.zx", .name = "path_write", .owner = .rx },
     .{ .path = "rx/dependency_graph/validate.rx", .name = "graph", .owner = .rx },
-    .{ .path = "core/bytes/index/fixed.zx", .name = "rx_module_registry", .owner = .rx },
+    .{ .path = "core/bytes/index/fixed.zx", .name = "fixed_byte_index" },
     .{ .path = "rx/dependency_graph/reference/rule.zx", .name = "rx_reference_rule", .owner = .rx },
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/references/call_signature.zx", .name = "rx_call_signature", .owner = .rx_analysis },
