@@ -1,0 +1,76 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import claim from "core/bytes/index/claim"
+
+import type { Index } from "core/bytes/index/model"
+import type { Groups } from "./model"
+
+export type Input = string[]
+
+export type Output = Groups
+
+export default function (in: Input): Output {
+    if (in.length == 0) {
+        return {
+            starts: [],
+            next: []
+        }
+    }
+
+    const first: u32 = 0
+    const missing: u32? = null
+
+    if (in.length == 1) {
+        return {
+            starts: [first],
+            next: [missing]
+        }
+    }
+
+    const names: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    const starts: u32[] = []
+    const tails: u32[] = []
+
+    return loop({
+        names,
+        starts,
+        tails,
+        next: in.map(name => missing)[0],
+        index: 0
+    }, {
+        while: state => state.index < in.length,
+        next: state => {
+            const position = integers.narrow(state.index)
+            const group = claim({
+                index: state.names,
+                key: bytes.fromText(in[state.index]),
+                value: integers.narrow(state.starts.length)
+            })
+
+            state.names = group.index
+            const previous = group.previous
+
+            if (previous == null) {
+                state.starts = state.starts.push(position)[0]
+                state.tails = state.tails.push(position)[0]
+            } else {
+                const index = integers.widen(previous)
+                const tail = integers.widen(state.tails[index])
+
+                state.next[tail] = position
+                state.tails[index] = position
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            starts: state.starts,
+            next: state.next
+        })
+    })
+}

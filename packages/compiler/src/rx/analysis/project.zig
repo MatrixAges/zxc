@@ -178,7 +178,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Opt
     const rx_modules = graph_modules[options.sources.len..][0..modules.len];
     const store_modules = graph_modules[options.sources.len + modules.len ..];
     const indexed = try source_graph.Signatures.init(allocator, backing, dependencies.value.graph, signatures.modules);
-    const registry = try @import("store/registry.zig").loadSignatures(allocator, options.stores, project.context, store_modules, indexed);
+    const registry = try @import("store/registry.zig").loadSignaturesIn(allocator, backing, options.stores, project.context, store_modules, indexed);
 
     if (registry == .diagnostic) return .{ .diagnostic = registry.diagnostic };
 

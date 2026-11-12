@@ -1,0 +1,15 @@
+export type Input = {
+    fragments: string[],
+    expressions: string[]
+}
+
+export type Groups = {
+    starts: u32[],
+    next: u32?[]
+}
+
+export type Output = {
+    groups: Groups,
+    names: string[],
+    ends: u64[]
+}

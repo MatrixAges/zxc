@@ -9,16 +9,23 @@ pub const Data = struct { definitions: []Store.Definition, context: frontend.Con
 pub const Value = union(enum) { data: Data, diagnostic: target.Diagnostic };
 
 pub fn load(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context) std.mem.Allocator.Error!Value {
-    return loadIn(allocator, sources, context, &.{}, null);
+    return loadIn(allocator, allocator, sources, context, &.{}, null);
 }
 
 pub fn loadSignatures(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context, modules: []const Graph.Module, signatures: Signatures) std.mem.Allocator.Error!Value {
-    return loadIn(allocator, sources, context, modules, signatures);
+    return loadSignaturesIn(allocator, allocator, sources, context, modules, signatures);
 }
 
-fn loadIn(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context, modules: []const Graph.Module, signatures: ?Signatures) std.mem.Allocator.Error!Value {
+pub fn loadSignaturesIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context, modules: []const Graph.Module, signatures: Signatures) std.mem.Allocator.Error!Value {
+    return loadIn(allocator, backing, sources, context, modules, signatures);
+}
+
+fn loadIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, sources: []const rx.ModuleSource, context: frontend.Context, modules: []const Graph.Module, signatures: ?Signatures) std.mem.Allocator.Error!Value {
     const definitions = try allocator.alloc(Store.Definition, sources.len);
+    var paths: std.StringHashMapUnmanaged(void) = .empty;
     var shared = context;
+
+    defer paths.deinit(backing);
 
     for (sources, definitions, 0..) |source, *definition, index| {
         const imports = @import("../project/type_imports.zig");
@@ -26,17 +33,17 @@ fn loadIn(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, contex
 
         if (aliases == .diagnostic) return .{ .diagnostic = aliases.diagnostic };
 
-        const result = try Store.analyze(allocator, .{ .owner = source.path, .node = source.node, .types = shared.types, .nominal_types = shared.nominal_types, .native_modules = shared.native_modules, .aliases = aliases.imports });
+        const result = try Store.analyzeIn(allocator, backing, .{ .owner = source.path, .node = source.node, .types = shared.types, .nominal_types = shared.nominal_types, .native_modules = shared.native_modules, .aliases = aliases.imports });
 
-        if (result.value == .diagnostic) return .{ .diagnostic = result.value.diagnostic };
+        if (result == .diagnostic) return .{ .diagnostic = result.diagnostic };
 
-        definition.* = result.value.definition;
+        definition.* = result.definition;
 
-        for (definitions[0..index]) |previous| if (std.mem.eql(u8, previous.source_path, definition.source_path)) {
+        if (signatures == null and (try paths.getOrPut(backing, definition.source_path)).found_existing) {
             const failed = try target.failure(allocator, .{ .path = source.path, .location = source.node.location, .code = "module", .message = "Store definition path is already registered" });
 
             return .{ .diagnostic = failed.diagnostic };
-        };
+        }
 
         shared.types = definition.types;
     }

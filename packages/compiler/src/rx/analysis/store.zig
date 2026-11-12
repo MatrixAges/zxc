@@ -6,6 +6,7 @@ const zx = @import("zx");
 const target = @import("call/target.zig");
 const expression = @import("expression.zig");
 const initializer = @import("store/initializer.zig");
+const Layout = @import("store/layout.zig");
 pub const registry = @import("store/registry.zig");
 pub const Options = struct { aliases: []const zx.ir.Export = &.{}, owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = .{}, native_modules: zx.ir.NativeModuleTable = .{} };
 pub const Binding = struct { name: []const u8, slot: zx.ir.StoreSlot };
@@ -28,13 +29,18 @@ pub fn analyze(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
 
     errdefer arena.deinit();
 
-    const value = try analyzeIn(arena.allocator(), options);
+    const value = try analyzeIn(arena.allocator(), allocator, options);
 
     return .{ .arena = arena, .value = value };
 }
 
-fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Value {
-    var checked = try dsl.validate(rx.store.Store, allocator, options.node, {});
+pub fn analyzeIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Value {
+    var scratch = std.heap.ArenaAllocator.init(backing);
+
+    defer scratch.deinit();
+
+    const temporary = scratch.allocator();
+    var checked = try dsl.validate(rx.store.Store, temporary, options.node, {});
 
     defer checked.deinit();
 
@@ -50,58 +56,39 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
         return failure(allocator, options.owner, options.node.location, "module", "Store definition must have a project-relative .store.rx path");
     };
 
-    const resolved = try @import("store/type.zig").resolve(allocator, path, options.node, .{ .types = options.types, .nominal_types = options.nominal_types, .native_modules = options.native_modules }, options.aliases);
+    const layout = try Layout.build(temporary, options.node);
+    const resolved = try @import("store/type.zig").resolve(allocator, temporary, path, layout, .{ .types = options.types, .nominal_types = options.nominal_types, .native_modules = options.native_modules }, options.aliases);
 
     if (resolved == .diagnostic) return diagnostic(allocator, path, resolved.diagnostic);
 
     var types = resolved.resolved.types;
-    const values = try @import("project/type_imports.zig").values(allocator, types, options.aliases);
-    var objects: std.ArrayList(Object) = .empty;
+    const values = try @import("project/type_imports.zig").values(temporary, types.view(), options.aliases);
+    const native_modules = try frontend.native_context.copy(allocator, options.native_modules);
+    const objects = try allocator.alloc(Object, layout.starts.len);
 
-    for (options.node.children) |node| {
-        if (!std.mem.eql(u8, node.name, "Object")) continue;
+    for (layout.starts, objects) |first, *object| {
+        const initialized = try initializer.compile(allocator, backing, .{
+            .owner = path,
+            .layout = layout,
+            .first = first,
+            .field_types = resolved.resolved.fields,
+            .types = &types,
+            .native_modules = native_modules,
+            .aliases = values,
+        });
 
-        const name = target.attribute(node, "name").value;
-        var seen = false;
+        if (initialized == .diagnostic) return diagnostic(allocator, path, initialized.diagnostic);
 
-        for (objects.items) |object| if (std.mem.eql(u8, object.name, name)) {
-            seen = true;
-        };
+        const name = target.attribute(layout.fragments[first], "name").value;
 
-        if (seen) continue;
-
-        var fields: std.ArrayList(initializer.Field) = .empty;
-
-        for (resolved.resolved.fields) |field| {
-            if (!std.mem.eql(u8, field.object, name)) continue;
-
-            const initial = try expression.compile(allocator, path, target.attribute(field.node, "value"), .{ .types = types, .native_modules = options.native_modules, .aliases = values, .expected = field.type_id });
-
-            if (initial.value == .diagnostic) return diagnostic(allocator, path, initial.value.diagnostic);
-
-            types = initial.value.ir.types;
-
-            try fields.append(allocator, .{ .name = target.attribute(field.node, "name").value, .type_id = field.type_id, .initial = initial.value.ir });
-        }
-
-        var reporter: zx.Reporter = .{};
-
-        const program = initializer.build(allocator, path, fields.items, types, options.native_modules, &reporter) catch |err| {
-            if (err == error.OutOfMemory) return error.OutOfMemory;
-
-            const issue = reporter.diagnostic.?;
-
-            return failure(allocator, path, node.location, @tagName(issue.code), issue.message);
-        };
-
-        types = program.types;
-
-        try objects.append(allocator, .{ .name = try allocator.dupe(u8, name), .initial = program });
+        object.* = .{ .name = try allocator.dupe(u8, name), .initial = initialized.program };
     }
 
-    for (objects.items) |*object| object.initial.types = types;
+    const complete = types.view();
 
-    return .{ .definition = .{ .source_path = try allocator.dupe(u8, path), .name = try allocator.dupe(u8, checked.value.data.attributes.name), .version = checked.value.data.attributes.version, .types = types, .objects = objects.items } };
+    for (objects) |*object| object.initial.types = complete;
+
+    return .{ .definition = .{ .source_path = path, .name = try allocator.dupe(u8, checked.value.data.attributes.name), .version = checked.value.data.attributes.version, .types = complete, .objects = objects } };
 }
 
 fn diagnostic(allocator: std.mem.Allocator, path: []const u8, issue: expression.Diagnostic) std.mem.Allocator.Error!Value {

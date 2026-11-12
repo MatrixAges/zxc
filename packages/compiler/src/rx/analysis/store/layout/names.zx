@@ -1,0 +1,9 @@
+import { field_prefix } from "./const"
+
+export type Input = string[]
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    return in.map((expression, index) => `${field_prefix}${index}`)[0]
+}

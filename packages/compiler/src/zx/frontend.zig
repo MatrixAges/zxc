@@ -34,6 +34,7 @@ pub const type_views = @import("type_views");
 pub const type_table = @import("analysis/type_table.zig");
 pub const parseInteger = @import("analysis/integer.zig").parse;
 pub const validateTypes = @import("ir/type_rules.zig").validate;
+pub const validateNominalTypes = @import("analysis/semantic/origins.zig").valid;
 pub const binding_path = @import("analysis/binding_path.zig");
 pub const native_context = @import("modules/native_context.zig");
 pub const native_link = @import("modules/link/native.zig");

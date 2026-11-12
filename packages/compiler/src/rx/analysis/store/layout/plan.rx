@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Output} />
+
+    <Call fn="group" in={$in.fragments} />
+    <Call fn="names" in={$in.expressions} />
+
+    <Call
+        fn="../../project/contracts/plan"
+        in={{
+            names: $ctx.names,
+            expressions: $in.expressions
+        }}
+    />
+
+    <Return
+        value={{
+            groups: $ctx.group,
+            names: $ctx.names,
+            ends: $ctx.plan
+        }}
+    />
+</Module>

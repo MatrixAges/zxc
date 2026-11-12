@@ -11,13 +11,14 @@ pub const Binding = struct { name: []const u8, type_id: ir.TypeId };
 /// `borrow_types` states that `types` comes from validated programs and outlives the result: the result then
 /// borrows its strings, and the table is re-validated only in internal builds. `type_storage`, with `borrow_types`,
 /// is the storage `types` views whole: the expression then extends it in place rather than copying the table. The
-/// storage only grows, so tables viewed from it earlier stay valid.
+/// caller can provide `type_allocator` to keep the extended storage alive independently of the result arena.
 /// Linking programs reserve symbol 0 for the environment. Their value bindings follow consecutively in
 /// `bindings` order. Unit bindings do not allocate a symbol.
 pub const Options = struct {
     types: ir.TypeTable = .{},
     borrow_types: bool = false,
     type_storage: ?*ir.TypeStorage = null,
+    type_allocator: ?std.mem.Allocator = null,
     native_modules: ir.NativeModuleTable = .{},
     aliases: []const ir.Export = &.{},
     constants: []const ir.Constant = &.{},

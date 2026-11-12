@@ -41,8 +41,13 @@ pub fn expression(allocator: std.mem.Allocator, output: *const Output, options: 
 fn extended(allocator: std.mem.Allocator, output: *const Output, options: Options) std.mem.Allocator.Error!ir.TypeTable {
     var types = if (options.type_storage) |storage| storage.* else if (options.borrow_types) try type_table.columns(allocator, options.types) else try type_table.storage(allocator, options.types);
 
-    try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
-    if (options.type_storage) |storage| storage.* = types;
+    defer if (options.type_storage) |storage| {
+        storage.* = types;
+    };
+
+    const backing = options.type_allocator orelse allocator;
+
+    try types.appendDelta(backing, try type_table.copy(backing, borrow.columns(ir.TypeTable, output.type_delta.*)));
 
     return types.view();
 }

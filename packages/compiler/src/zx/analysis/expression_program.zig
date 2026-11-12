@@ -53,7 +53,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         .allocator = allocator,
         .reporter = reporter,
         .constants = options.constants,
-        .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{}, .aliases = options.aliases },
+        .types = .{ .allocator = options.type_allocator orelse allocator, .reporter = reporter, .declarations = &.{}, .aliases = options.aliases },
     };
 
     if (options.type_storage) |storage| {
