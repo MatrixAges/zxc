@@ -1,0 +1,85 @@
+import integers from "std:integer"
+
+import { max_u32 } from "../../const"
+import {
+    initial_capacity,
+    capacity_growth,
+    load_numerator,
+    load_denominator
+} from "./const"
+import grow from "./grow"
+import probe from "./probe"
+
+export type Input = {
+    count: u64,
+    keys: u32[],
+    buckets: u32[],
+    key: u32
+}
+
+export type Output = {
+    count: u64,
+    keys: u32[],
+    buckets: u32[],
+    position: u64,
+    found: bool
+}
+
+export default function (in: Input): Output {
+    const capacity = in.buckets.length
+
+    const slot = match {
+        capacity == 0 => 0,
+        _ => probe(in.omit(["count"]))
+    }
+
+    if (capacity > 0) {
+        const previous = in.buckets[slot]
+
+        if (previous != max_u32) {
+            return {
+                count: in.count,
+                keys: in.keys,
+                buckets: in.buckets,
+                position: integers.widen(previous),
+                found: true
+            }
+        }
+    }
+
+    const count = in.count + 1
+    const position = integers.narrow(count) - 1
+    const limit = capacity * load_numerator / load_denominator
+    const needs_growth = count > limit
+
+    const buckets = match {
+        needs_growth => grow({
+            count: in.count,
+            keys: in.keys,
+            capacity: capacity == 0 ? initial_capacity : capacity * capacity_growth
+        }),
+        _ => in.buckets
+    }
+
+    const destination = match {
+        needs_growth => probe({
+            keys: in.keys,
+            buckets,
+            key: in.key
+        }),
+        _ => slot
+    }
+
+    const keys = match {
+        in.count < in.keys.length => in.keys.with(in.count, in.key),
+        _ => in.keys.push(in.key)[0]
+    }
+
+    return {
+        count,
+        keys,
+        buckets: buckets.with(destination, position),
+        position: integers.widen(position),
+        found: false
+    }
+}

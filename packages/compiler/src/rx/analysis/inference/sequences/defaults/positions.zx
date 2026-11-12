@@ -1,0 +1,74 @@
+import integers from "std:integer"
+
+import intern from "./intern"
+
+import type { Input as Source } from "./model"
+
+export type Input = {
+    source: Source,
+    pending: u64[],
+    keys: u32[],
+    buckets: u32[]
+}
+
+export type Output = {
+    candidates: u32[],
+    elements: u32[]
+}
+
+export default function (in: Input): Output {
+    const candidates: u32[] = []
+    const elements: u32[] = []
+
+    return loop({
+        keys: in.keys,
+        buckets: in.buckets,
+        candidates,
+        elements,
+        next: 0,
+        element: 0,
+        open: false
+    }, {
+        while: state => state.next < in.pending.length,
+        next: state => {
+            const position = in.pending[state.next]
+            const parents = in.source.graph.parents
+            const classes = in.source.classes
+            const children = in.source.sequences.elements[position]
+
+            if (state.open && state.element == children.length) {
+                state.next += 1
+                state.open = false
+            } else {
+                const value = match {
+                    state.open => children[state.element],
+                    _ => in.source.sequences.values[position]
+                }
+                const entry = intern({
+                    parents,
+                    classes,
+                    keys: state.keys,
+                    buckets: state.buckets,
+                    value
+                })
+                const index = integers.narrow(entry.position)
+
+                state.keys = entry.keys
+                state.buckets = entry.buckets
+
+                if (state.open) {
+                    state.elements = state.elements.push(index)[0]
+                    state.element += 1
+                } else {
+                    state.candidates = state.candidates.push(index)[0]
+                    state.element = 0
+                    state.open = true
+                }
+            }
+        },
+        return: state => ({
+            candidates: state.candidates,
+            elements: state.elements
+        })
+    })
+}

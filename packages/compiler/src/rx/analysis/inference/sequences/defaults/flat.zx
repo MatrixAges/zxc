@@ -1,39 +1,54 @@
-import integers from "std:integer"
+import get from "core/integer/index/get"
 
+import canonical from "./canonical"
 import { Route } from "./model"
 
-import type { Input as Graph, Output as Selection } from "./model"
+import type { Input as Source, Output as Selection } from "./model"
 
-export type Input = Graph
+export type Input = {
+    source: Source,
+    pending: u64[],
+    keys: u32[],
+    buckets: u32[]
+}
 
 export type Output = Selection
 
 export default function (in: Input): Output {
-    const position = loop(0, {
-        while: item => item < in.candidates.length &&
-            integers.widen(in.candidates[item]) < in.direct,
-        next: item => {
-            item += 1
+    const index = {
+        count: in.keys.length,
+        keys: in.keys,
+        buckets: in.buckets
+    }
+
+    return loop({
+        next: 0,
+        position: 0,
+        route: Route.Recursive
+    }, {
+        while: state => state.next < in.pending.length && state.route == Route.Recursive,
+        next: state => {
+            state.position = in.pending[state.next]
+
+            const key = canonical({
+                parents: in.source.graph.parents,
+                classes: in.source.classes,
+                value: in.source.sequences.values[state.position]
+            })
+            const previous = get({
+                index,
+                key
+            })
+
+            if (previous == null) {
+                state.route = Route.Select
+            }
+
+            state.next += 1
         },
-        return: item => item
+        return: state => ({
+            route: state.route,
+            position: state.position
+        })
     })
-
-    if (position < in.candidates.length) {
-        return {
-            route: Route.Select,
-            position
-        }
-    }
-
-    if (position == 0) {
-        return {
-            route: Route.Empty,
-            position
-        }
-    }
-
-    return {
-        route: Route.Recursive,
-        position: position - 1
-    }
 }

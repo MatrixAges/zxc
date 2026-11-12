@@ -87,11 +87,6 @@ pub fn representative(self: Self, graph: *Graph, id: Graph.Id) zx.Error!?Graph.I
     return self.lookup(@backingInt(try payload(graph, id)));
 }
 
-/// Available to the Source solver while the graph revision still matches this assignment base.
-pub fn stableRoot(self: Self, graph: *const Graph, id: Graph.Id) Graph.Id {
-    return self.lookup(self.payloads.at(@backingInt(id))) orelse graph.root(id);
-}
-
 fn lookup(self: Self, index: usize) ?Graph.Id {
     const value = self.representatives[self.parents[index]] orelse return null;
 

@@ -5,15 +5,20 @@ const Sequence = @import("../../sequences.zig").Sequence;
 
 pub fn apply(graph: *Graph, base: Base) zx.Error!bool {
     var unresolved: ?Sequence = null;
+    const sequences = graph.sequences.slice();
 
-    for (graph.sequences.items) |sequence| {
+    for (0..sequences.len) |index| {
+        const sequence = sequences.get(index);
+
         if (graph.shape(sequence.value) != .sequence) continue;
 
         unresolved = sequence;
 
         var nested = false;
 
-        for (graph.sequences.items) |parent| {
+        for (0..sequences.len) |parent_index| {
+            const parent = sequences.get(parent_index);
+
             if (graph.shape(parent.value) != .sequence) continue;
 
             for (parent.elements) |element| {

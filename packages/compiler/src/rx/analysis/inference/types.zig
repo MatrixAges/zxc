@@ -34,7 +34,7 @@ assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
 constructions: std.MultiArrayList(@import("construction.zig").Object) = .empty,
 construction_parts: std.MultiArrayList(@import("construction.zig").Part) = .empty,
 selections: std.MultiArrayList(@import("selection.zig").Selection) = .empty,
-sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
+sequences: std.MultiArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.MultiArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
 revision: usize = 0,
@@ -236,7 +236,10 @@ pub fn finish(self: *Self) zx.Error!void {
         try Bindings.validateUses(self);
         try Bindings.propagate(self, false);
         try @import("non_null.zig").propagate(self, false);
-        for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
+
+        const sequences = self.sequences.slice();
+
+        for (0..sequences.len) |index| try @import("sequences.zig").propagate(self, sequences.get(index));
         for (0..self.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.constructions.get(index), false);
         for (0..self.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.selections.get(index), false);
         try Projections.applyLengths(self);

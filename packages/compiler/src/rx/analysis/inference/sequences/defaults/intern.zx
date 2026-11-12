@@ -1,0 +1,41 @@
+import insert from "core/integer/index/insert_columns"
+
+import canonical from "./canonical"
+
+import type { U32Buffer } from "std:memory"
+import type { Classes } from "./model"
+
+export type Input = {
+    parents: U32Buffer,
+    classes: Classes,
+    keys: u32[],
+    buckets: u32[],
+    value: u32
+}
+
+export type Output = {
+    keys: u32[],
+    buckets: u32[],
+    position: u64
+}
+
+export default function (in: Input): Output {
+    const key = canonical({
+        parents: in.parents,
+        classes: in.classes,
+        value: in.value
+    })
+
+    const result = insert({
+        count: in.keys.length,
+        keys: in.keys,
+        buckets: in.buckets,
+        key
+    })
+
+    return {
+        keys: result.keys,
+        buckets: result.buckets,
+        position: result.position
+    }
+}

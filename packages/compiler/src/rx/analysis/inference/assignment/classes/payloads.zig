@@ -6,9 +6,6 @@ const nesting_limit = 256;
 pub const Columns = struct {
     initial: []const u32 = &.{},
     registered: []const u32 = &.{},
-    pub fn at(self: Columns, index: usize) u32 {
-        return if (index < self.initial.len) self.initial[index] else self.registered[index - self.initial.len];
-    }
 };
 
 pub fn collect(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Columns {

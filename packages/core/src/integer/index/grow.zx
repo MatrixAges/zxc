@@ -3,14 +3,13 @@ import integers from "std:integer"
 import { max_u32 } from "../../const"
 import probe from "./probe"
 
-import type { Index } from "./model"
-
 export type Input = {
-    index: Index,
+    count: u64,
+    keys: u32[],
     capacity: u64
 }
 
-export type Output = Index
+export type Output = u32[]
 
 export default function (in: Input): Output {
     const empty: u32[] = []
@@ -25,16 +24,17 @@ export default function (in: Input): Output {
         return: state => state.values
     })
 
-    const filled = loop({
+    return loop({
         buckets,
         position: 0
     }, {
-        while: state => state.position < in.index.count,
+        while: state => state.position < in.count,
         next: state => {
+            const key = in.keys[state.position]
             const slot = probe({
-                keys: in.index.keys,
+                keys: in.keys,
                 buckets: state.buckets,
-                key: in.index.keys[state.position]
+                key
             })
 
             state.buckets = state.buckets.with(
@@ -45,10 +45,4 @@ export default function (in: Input): Output {
         },
         return: state => state.buckets
     })
-
-    return {
-        count: in.index.count,
-        keys: in.index.keys,
-        buckets: filled
-    }
 }

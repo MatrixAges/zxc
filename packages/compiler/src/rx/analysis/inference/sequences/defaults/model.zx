@@ -1,3 +1,6 @@
+import type { U32Buffer } from "std:memory"
+import type { Kind } from "../../unification/model"
+
 export enum Reach {
     Absent,
     Present,
@@ -16,14 +19,38 @@ export type Edges = {
     children: u32[]
 }
 
-export type Input = {
+export type Reachability = {
     candidates: u32[],
     elements: u32[],
-    direct: u64,
     edges: Edges
 }
 
 export type Output = {
     route: Route,
     position: u64
+}
+
+export type Graph = {
+    parents: U32Buffer,
+    kinds: Kind[],
+    arguments: u32[],
+    members: u32[][]
+}
+
+export type Classes = {
+    initial: u32[],
+    registered: u32[],
+    groups: u32[],
+    representatives: u32?[]
+}
+
+export type Sequences = {
+    values: u32[],
+    elements: u32[][]
+}
+
+export type Input = {
+    graph: Graph,
+    classes: Classes,
+    sequences: Sequences
 }

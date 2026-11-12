@@ -1,0 +1,97 @@
+import integers from "std:integer"
+
+import { Kind } from "../../unification/model"
+import intern from "./intern"
+
+import type { Classes, Graph } from "./model"
+
+export type Input = {
+    graph: Graph,
+    classes: Classes,
+    keys: u32[],
+    buckets: u32[]
+}
+
+export type Output = {
+    keys: u32[],
+    buckets: u32[],
+    offsets: u64[],
+    children: u32[]
+}
+
+export default function (in: Input): Output {
+    const offsets: u64[] = []
+    const children: u32[] = []
+
+    const expanded = loop({
+        keys: in.keys,
+        buckets: in.buckets,
+        offsets,
+        children,
+        node: 0,
+        child: 0,
+        open: false
+    }, {
+        while: state => state.node < state.keys.length,
+        next: state => {
+            const root = integers.widen(state.keys[state.node])
+            const kind = in.graph.kinds[root]
+            const unary = kind == Kind.List || kind == Kind.Optional
+            const members = in.graph.members[root]
+            const count = unary ? 1 : members.length
+
+            if (state.open) {
+                if (state.child == count) {
+                    state.node += 1
+                    state.open = false
+                } else {
+                    const value = match {
+                        unary => in.graph.arguments[root],
+                        _ => members[state.child]
+                    }
+                    const entry = intern({
+                        parents: in.graph.parents,
+                        classes: in.classes,
+                        keys: state.keys,
+                        buckets: state.buckets,
+                        value
+                    })
+
+                    state.keys = entry.keys
+                    state.buckets = entry.buckets
+                    state.children =
+                        state.children.push(integers.narrow(entry.position))[0]
+                    state.child += 1
+                }
+            } else if (count > 0 && state.offsets.length < state.node) {
+                state.offsets = state.offsets.push(0)[0]
+            } else {
+                if (count > 0 || state.children.length > 0) {
+                    state.offsets = state.offsets.push(state.children.length)[0]
+                }
+
+                if (count == 0) {
+                    state.node += 1
+                } else {
+                    state.child = 0
+                    state.open = true
+                }
+            }
+        },
+        return: state => state.pick([
+            "keys",
+            "buckets",
+            "offsets",
+            "children"
+        ])
+    })
+
+    if (expanded.children.length == 0) {
+        return expanded
+    }
+
+    return {
+        ...expanded,
+        offsets: expanded.offsets.push(expanded.children.length)[0]
+    }
+}

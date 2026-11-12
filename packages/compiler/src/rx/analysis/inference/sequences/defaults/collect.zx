@@ -1,0 +1,72 @@
+import integers from "std:integer"
+
+import root from "../../forest/borrowed_root"
+import { Kind } from "../../unification/model"
+import intern from "./intern"
+
+import type { Input as Source } from "./model"
+
+export type Input = Source
+
+export type Output = {
+    pending: u64[],
+    keys: u32[],
+    buckets: u32[]
+}
+
+export default function (in: Input): Output {
+    const pending: u64[] = []
+    const keys: u32[] = []
+    const buckets: u32[] = []
+
+    return loop({
+        pending,
+        keys,
+        buckets,
+        sequence: 0,
+        element: 0,
+        open: false
+    }, {
+        while: state => state.sequence < in.sequences.values.length,
+        next: state => {
+            if (state.open) {
+                const elements = in.sequences.elements[state.sequence]
+
+                if (state.element == elements.length) {
+                    state.open = false
+                    state.sequence += 1
+                } else {
+                    const entry = intern({
+                        parents: in.graph.parents,
+                        classes: in.classes,
+                        keys: state.keys,
+                        buckets: state.buckets,
+                        value: elements[state.element]
+                    })
+
+                    state.keys = entry.keys
+                    state.buckets = entry.buckets
+                    state.element += 1
+                }
+            } else {
+                const value = root({
+                    parents: in.graph.parents,
+                    value: in.sequences.values[state.sequence]
+                })
+
+                if (in.graph.kinds[integers.widen(value)] == Kind.Sequence) {
+                    state.pending = state.pending.push(state.sequence)[0]
+                    state.element = 0
+                    state.open = true
+                } else {
+                    state.sequence += 1
+                }
+            }
+        },
+        return: state => ({
+            pending: state.pending,
+            keys: state.keys,
+            buckets: state.buckets
+        })
+    })
+}

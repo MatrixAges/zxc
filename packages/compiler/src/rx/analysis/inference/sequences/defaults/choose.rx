@@ -3,13 +3,69 @@
 
     <Args in={SequenceDefault.Input} out={SequenceDefault.Output} />
 
-    <If on={$in.edges.children.length == 0}>
-        <Call fn="flat" in={$in} />
+    <Call fn="collect" in={$in} />
+
+    <If on={$ctx.collect.pending.length == 0}>
+        <Return
+            value={{
+                route: SequenceDefault.Route.Empty,
+                position: 0
+            }}
+        />
+    </If>
+
+    <Call
+        fn="expand"
+        in={{
+            ...$ctx.collect.omit(["pending"]),
+            graph: $in.graph,
+            classes: $in.classes
+        }}
+    />
+
+    <If on={$ctx.expand.children.length == 0}>
+        <Call
+            fn="flat"
+            in={{
+                ...$ctx.expand.pick([
+                    "keys",
+                    "buckets"
+                ]),
+                source: $in,
+                pending: $ctx.collect.pending
+            }}
+        />
 
         <Return value={$ctx.flat} />
     </If>
 
-    <Call fn="choose" in={$in} />
+    <Call
+        fn="positions"
+        in={{
+            ...$ctx.expand.pick([
+                "keys",
+                "buckets"
+            ]),
+            source: $in,
+            pending: $ctx.collect.pending
+        }}
+    />
 
-    <Return value={$ctx.choose} />
+    <Call
+        fn="choose"
+        in={{
+            ...$ctx.positions,
+            edges: $ctx.expand.pick([
+                "offsets",
+                "children"
+            ])
+        }}
+    />
+
+    <Return
+        value={{
+            route: $ctx.choose.route,
+            position: $ctx.collect.pending[$ctx.choose.position]
+        }}
+    />
 </Module>

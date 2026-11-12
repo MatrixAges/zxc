@@ -1,0 +1,37 @@
+import integers from "std:integer"
+
+import root from "../../forest/borrowed_root"
+
+import type { U32Buffer } from "std:memory"
+import type { Classes } from "./model"
+
+export type Input = {
+    classes: Classes,
+    parents: U32Buffer,
+    value: u32
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const classes = in.classes
+    const position = integers.widen(in.value)
+    const count = classes.initial.length
+
+    const payload = match {
+        position < count => classes.initial[position],
+        _ => classes.registered[position - count]
+    }
+
+    const group = classes.groups[integers.widen(payload)]
+    const representative = classes.representatives[integers.widen(group)]
+
+    if (representative != null) {
+        return representative
+    }
+
+    return root({
+        parents: in.parents,
+        value: in.value
+    })
+}

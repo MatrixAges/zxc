@@ -48,6 +48,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "core/integer/index/empty", .entry = "core/integer/index/empty.zx" },
     .{ .specifier = "core/integer/index/get", .entry = "core/integer/index/get.zx" },
     .{ .specifier = "core/integer/index/insert", .entry = "core/integer/index/insert.zx" },
+    .{ .specifier = "core/integer/index/insert_columns", .entry = "core/integer/index/insert_columns.zx" },
     .{ .specifier = "core/integer/index/remove", .entry = "core/integer/index/remove.zx" },
     .{ .specifier = "core/constant/model", .entry = "core/constant/model.zx" },
     .{ .specifier = "core/constant/lookup", .entry = "core/constant/lookup.zx" },
