@@ -18,7 +18,6 @@ export default function (in: Input): Output {
                 nodes,
                 attributes: in.tree.attributes,
                 text: in.tree.text,
-                children: in.tree.children,
                 parts: in.tree.parts
             },
             frames: in.frames,
@@ -33,13 +32,8 @@ export default function (in: Input): Output {
 
     const popped = in.frames.pop()
     const parent = popped[1] ?? empty()
-    const head = in.tree.children.length + 1
+    const head = result + 1
     const count = parent.child_count + 1
-
-    const children = in.tree.children.push({
-        value: result,
-        previous: parent.children
-    })[0]
 
     return {
         source: in.source,
@@ -47,7 +41,6 @@ export default function (in: Input): Output {
             nodes,
             attributes: in.tree.attributes,
             text: in.tree.text,
-            children: children,
             parts: in.tree.parts
         },
         frames: popped[0],

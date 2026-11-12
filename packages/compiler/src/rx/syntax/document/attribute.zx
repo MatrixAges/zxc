@@ -45,7 +45,7 @@ export default function (in: Input): Output {
     const repeated = duplicate({
         source: in.source,
         attributes: in.tree.attributes,
-        head: in.frame.attributes,
+        start: in.frame.attribute_start,
         name: {
             start: offset,
             end

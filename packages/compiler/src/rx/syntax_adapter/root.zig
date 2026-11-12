@@ -6,65 +6,68 @@ pub fn location(input: anytype) dsl.ast.Location {
     return .{ .offset = @intCast(input.offset), .line = @intCast(input.line), .column = @intCast(input.column) };
 }
 
-pub fn convert(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !dsl.ast.Node {
-    const nodes = try temporary.alloc(dsl.ast.Node, input.tree.nodes.len);
+pub fn convert(comptime layout: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !dsl.ast.Node {
+    const tree = input.tree;
+    const slots = try temporary.alloc(u64, tree.nodes.len + tree.text.len);
+    const node_slots = slots[0..tree.nodes.len];
+    const text_slots = slots[tree.nodes.len..];
+    const Parameter = @typeInfo(@TypeOf(layout)).@"fn".param_types[1].?;
+    const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
 
-    for (input.tree.nodes, nodes) |node, *output| {
-        const attributes = try allocator.alloc(dsl.ast.Attribute, @intCast(node.attribute_count));
-        var head = node.attributes;
-        var remaining = attributes.len;
+    const layout_input: Input = .{
+        .nodes = tree.nodes,
+        .text = tree.text,
+        .root = input.control.result,
+        .node_slots = @ptrCast(&node_slots),
+        .text_slots = @ptrCast(&text_slots),
+    };
 
-        while (remaining != 0) {
-            remaining -= 1;
-            const item = input.tree.attributes[@intCast(head - 1)];
-            const raw = source[@intCast(item.value.span.start)..@intCast(item.value.span.end)];
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
 
-            attributes[remaining] = .{
-                .kind = if (item.expression) .expression else .string,
-                .name = source[@intCast(item.name.start)..@intCast(item.name.end)],
-                .value = try value.convert(allocator, source, input.tree.parts, item.value),
-                .location = location(item.location),
-                .value_location = location(item.value_location),
-                .raw_value = raw,
-            };
+    layout(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &layout_input else layout_input) catch unreachable;
 
-            head = item.previous;
-        }
+    const nodes = try allocator.alloc(dsl.ast.Node, tree.nodes.len);
+    const attributes = try allocator.alloc(dsl.ast.Attribute, tree.attributes.len);
+    const text = try allocator.alloc(dsl.ast.Text, tree.text.len);
 
-        const text = try allocator.alloc(dsl.ast.Text, @intCast(node.text_count));
-
-        head = node.text;
-        remaining = text.len;
-
-        while (remaining != 0) {
-            remaining -= 1;
-
-            const item = input.tree.text[@intCast(head - 1)];
-            text[remaining] = .{ .value = try value.convert(allocator, source, input.tree.parts, item.value), .location = location(item.location) };
-            head = item.previous;
-        }
-
-        const children = try allocator.alloc(dsl.ast.Node, @intCast(node.child_count));
-
-        head = node.children;
-        remaining = children.len;
-
-        while (remaining != 0) {
-            remaining -= 1;
-
-            const item = input.tree.children[@intCast(head - 1)];
-            children[remaining] = nodes[@intCast(item.value)];
-            head = item.previous;
-        }
-
+    for (tree.attributes, attributes) |item, *output| {
         output.* = .{
-            .name = source[@intCast(node.name.start)..@intCast(node.name.end)],
-            .location = location(node.location),
-            .attributes = attributes,
-            .children = children,
-            .text = text,
+            .kind = if (item.expression) .expression else .string,
+            .name = source[@intCast(item.name.start)..@intCast(item.name.end)],
+            .value = try value.convert(allocator, source, tree.parts, item.value),
+            .location = location(item.location),
+            .value_location = location(item.value_location),
+            .raw_value = source[@intCast(item.value.span.start)..@intCast(item.value.span.end)],
         };
     }
 
-    return nodes[@intCast(input.control.result)];
+    for (tree.text, text_slots) |item, slot| {
+        text[@intCast(slot)] = .{
+            .value = try value.convert(allocator, source, tree.parts, item.value),
+            .location = location(item.location),
+        };
+    }
+
+    var child_start: usize = 1;
+    var text_start: usize = 0;
+
+    for (tree.nodes, node_slots) |node, slot| {
+        const attribute_start: usize = @intCast(node.attribute_start);
+        const attribute_count: usize = @intCast(node.attribute_count);
+        const child_count: usize = @intCast(node.child_count);
+        const text_count: usize = @intCast(node.text_count);
+
+        nodes[@intCast(slot)] = .{
+            .name = source[@intCast(node.name.start)..@intCast(node.name.end)],
+            .location = location(node.location),
+            .attributes = attributes[attribute_start..][0..attribute_count],
+            .children = nodes[child_start..][0..child_count],
+            .text = text[text_start..][0..text_count],
+        };
+
+        child_start += child_count;
+        text_start += text_count;
+    }
+
+    return nodes[0];
 }

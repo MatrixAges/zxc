@@ -6,7 +6,7 @@ import type { Attribute } from "./model"
 export type Input = {
     source: u8[],
     attributes: Attribute[],
-    head: u64,
+    start: u64,
     name: Span
 }
 
@@ -16,25 +16,23 @@ export default function (in: Input): Output {
     return loop({
         source: in.source,
         attributes: in.attributes,
-        head: in.head,
+        cursor: in.attributes.length,
+        start: in.start,
         name: in.name,
         found: false
     }, {
-        while: value => !value.found && value.head != 0,
+        while: value => !value.found && value.cursor > value.start,
         next: value => {
-            const attribute = value.attributes[value.head - 1]
+            value.cursor -= 1
+
+            const attribute = value.attributes[value.cursor]
             const found = equal({
                 source: value.source,
                 left: value.name,
                 right: attribute.name
             })
-            const head = attribute.previous
 
-            value = {
-                ...value,
-                head,
-                found
-            }
+            value.found = found
         },
         return: state => state.found
     })

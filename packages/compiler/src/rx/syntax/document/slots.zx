@@ -1,0 +1,63 @@
+import memory from "std:memory"
+
+import type { U64Buffer } from "std:memory"
+import type { Node, Text } from "./model"
+
+export type Input = {
+    nodes: Node[],
+    text: Text[],
+    root: u64,
+    node_slots: U64Buffer,
+    text_slots: U64Buffer
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    memory.writeU64(in.node_slots, in.root, 0)
+
+    const layout = loop({
+        index: 0,
+        child_end: 1,
+        text_end: 0
+    }, {
+        while: state => state.index < in.nodes.length,
+        next: state => {
+            const node = in.nodes[state.index]
+            const child_end = state.child_end + node.child_count
+            const text_end = state.text_end + node.text_count
+
+            const children = loop({
+                head: node.children,
+                cursor: child_end
+            }, {
+                while: child => child.head != 0,
+                next: child => {
+                    const index = child.head - 1
+
+                    child.cursor -= 1
+                    memory.writeU64(in.node_slots, index, child.cursor)
+                    child.head = in.nodes[index].previous_sibling
+                }
+            })
+
+            const text = loop({
+                head: node.text,
+                cursor: text_end
+            }, {
+                while: item => item.head != 0,
+                next: item => {
+                    const index = item.head - 1
+
+                    item.cursor -= 1
+                    memory.writeU64(in.text_slots, index, item.cursor)
+                    item.head = in.text[index].previous
+                }
+            })
+
+            state.index += 1
+            state.child_end = child_end
+            state.text_end = text_end
+        }
+    })
+}

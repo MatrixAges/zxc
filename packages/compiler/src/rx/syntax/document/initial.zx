@@ -2,7 +2,7 @@ import {no_diagnostic} from "../../../const"
 import { Phase, ValueKind } from "./model"
 
 import type { Part } from "../model"
-import type { State, Node, Attribute, Text, Child } from "./model"
+import type { State, Node, Attribute, Text } from "./model"
 
 export type Input = {
     source: u8[],
@@ -16,7 +16,6 @@ export default function (in: Input): Output {
     const nodes: Node[] = []
     const attributes: Attribute[] = []
     const text: Text[] = []
-    const children: Child[] = []
     const parts: Part[] = []
     const frames: Node[] = []
 
@@ -28,7 +27,6 @@ export default function (in: Input): Output {
             nodes,
             attributes,
             text,
-            children,
             parts
         },
         frames,
@@ -42,12 +40,13 @@ export default function (in: Input): Output {
                 line: 1,
                 column: 1
             },
-            attributes: 0,
+            attribute_start: 0,
             attribute_count: 0,
             children: 0,
             child_count: 0,
             text: 0,
-            text_count: 0
+            text_count: 0,
+            previous_sibling: 0
         },
         control: {
             phase: failed ? Phase.Done : Phase.Prelude,

@@ -7,7 +7,6 @@ import { missing_closing_tag } from "../diagnostic/const"
 import starts from "../starts"
 import advance from "./advance"
 import close from "./close"
-import empty from "./empty"
 import fail from "./fail"
 import { ValueKind } from "./model"
 import open from "./open"
@@ -81,7 +80,7 @@ export default function (in: Input): Output {
             source: in.source,
             tree: in.tree,
             frames: in.frames.push(in.frame)[0],
-            frame: empty(),
+            frame: in.frame,
             control: in.control
         })
     }

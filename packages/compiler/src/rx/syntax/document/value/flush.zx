@@ -20,8 +20,7 @@ export default function (in: Input): Output {
             end
         },
         character: false,
-        codepoint: 0,
-        previous: in.control.value_head
+        codepoint: 0
     })[0]
 
     return {
@@ -30,7 +29,6 @@ export default function (in: Input): Output {
             nodes: in.tree.nodes,
             attributes: in.tree.attributes,
             text: in.tree.text,
-            children: in.tree.children,
             parts: parts
         },
         frames: in.frames,

@@ -66,12 +66,13 @@ export default function (in: Input): Output {
                 end
             },
             location,
-            attributes: 0,
+            attribute_start: state.tree.attributes.length,
             attribute_count: 0,
             children: 0,
             child_count: 0,
             text: 0,
-            text_count: 0
+            text_count: 0,
+            previous_sibling: state.frame.children
         },
         control: {
             ...state.control,

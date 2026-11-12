@@ -22,8 +22,7 @@ export type Attribute = {
     name: Span,
     value: Value,
     location: Location,
-    value_location: Location,
-    previous: u64
+    value_location: Location
 }
 
 export type Text = {
@@ -32,27 +31,22 @@ export type Text = {
     previous: u64
 }
 
-export type Child = {
-    value: u64,
-    previous: u64
-}
-
 export type Node = {
     name: Span,
     location: Location,
-    attributes: u64,
+    attribute_start: u64,
     attribute_count: u64,
     children: u64,
     child_count: u64,
     text: u64,
-    text_count: u64
+    text_count: u64,
+    previous_sibling: u64
 }
 
 export type Tree = {
     nodes: Node[],
     attributes: Attribute[],
     text: Text[],
-    children: Child[],
     parts: Part[]
 }
 

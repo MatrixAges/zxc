@@ -23,8 +23,7 @@ export default function (in: Input): Output {
             end: 0
         },
         character: true,
-        codepoint: in.codepoint,
-        previous: state.control.value_head
+        codepoint: in.codepoint
     })[0]
 
     return advance({
@@ -34,7 +33,6 @@ export default function (in: Input): Output {
                 nodes: state.tree.nodes,
                 attributes: state.tree.attributes,
                 text: state.tree.text,
-                children: state.tree.children,
                 parts: parts
             },
             frames: state.frames,

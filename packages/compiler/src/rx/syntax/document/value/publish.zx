@@ -19,7 +19,6 @@ export default function (in: Input): Output {
     }
 
     if (in.state.control.value_kind == ValueKind.Attribute) {
-        const head = in.state.tree.attributes.length + 1
         const count = in.state.frame.attribute_count + 1
 
         const attributes = in.state.tree.attributes.push({
@@ -34,8 +33,7 @@ export default function (in: Input): Output {
                 line: in.state.control.attribute_location.line,
                 column: in.state.control.attribute_location.column
             },
-            value_location,
-            previous: in.state.frame.attributes
+            value_location
         })[0]
 
         return {
@@ -44,13 +42,11 @@ export default function (in: Input): Output {
                 nodes: in.state.tree.nodes,
                 attributes: attributes,
                 text: in.state.tree.text,
-                children: in.state.tree.children,
                 parts: in.state.tree.parts
             },
             frames: in.state.frames,
             frame: {
                 ...in.state.frame,
-                attributes: head,
                 attribute_count: count
             },
             control: {
@@ -75,7 +71,6 @@ export default function (in: Input): Output {
             nodes: in.state.tree.nodes,
             attributes: in.state.tree.attributes,
             text: text,
-            children: in.state.tree.children,
             parts: in.state.tree.parts
         },
         frames: in.state.frames,
