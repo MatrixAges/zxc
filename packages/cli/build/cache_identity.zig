@@ -18,7 +18,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     const tool = b.addExecutable(.{ .name = "cache-identity", .root_module = b.createModule(.{
         .root_source_file = b.path("build/cache_identity/digest.zig"),
         .target = b.graph.host,
-        .optimize = .ReleaseFast,
+        .optimize = .ReleaseSmall,
     }) });
 
     const run = b.addRunArtifact(tool);

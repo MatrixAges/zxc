@@ -1,0 +1,28 @@
+<Module>
+    <Type from="model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Output} />
+
+    <Call
+        fn="transport"
+        in={{
+            types: $in.types,
+            positions: $in.positions
+        }}
+    />
+
+    <Call
+        fn="rows"
+        in={{
+            source_types: $ctx.transport,
+            parameters: $in.parameters
+        }}
+    />
+
+    <Return
+        value={{
+            source_types: $ctx.transport,
+            rows: $ctx.rows
+        }}
+    />
+</Module>

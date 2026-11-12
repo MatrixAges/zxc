@@ -13,6 +13,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 
 allocator: std.mem.Allocator,
 scratch: std.mem.Allocator,
+binding_allocator: std.mem.Allocator,
 owner: []const u8,
 
 aliases: []const zx.ir.Export = &.{},
@@ -45,6 +46,8 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                 const calls = try self.allocator.alloc(usize, branches.len);
                 var outputs: std.ArrayList(frontend.expressions.Binding) = .empty;
 
+                defer outputs.deinit(self.binding_allocator);
+
                 for (branches, calls) |branch, *compiled_call| {
                     compiled_call.* = switch (branch) {
                         .call => |index| try self.call(self.loaded[index]),
@@ -64,12 +67,12 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                         return error.InvalidFlow;
                     }
 
-                    try outputs.appendSlice(self.allocator, self.bindings.items[count..]);
+                    try outputs.appendSlice(self.binding_allocator, self.bindings.items[count..]);
 
                     self.bindings.shrinkRetainingCapacity(count);
                 }
 
-                try self.bindings.appendSlice(self.allocator, outputs.items);
+                try self.bindings.appendSlice(self.binding_allocator, outputs.items);
 
                 break :parallel .{ .parallel = calls };
             },
@@ -92,7 +95,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 
                 self.bindings.shrinkRetainingCapacity(count);
 
-                if (published) |binding| try self.bindings.append(self.allocator, .{ .name = binding.name, .type_id = binding.type_id });
+                if (published) |binding| try self.bindings.append(self.binding_allocator, .{ .name = binding.name, .type_id = binding.type_id });
 
                 break :scope .{ .task = task_step };
             },
@@ -237,7 +240,7 @@ fn viewed(storage: zx.ir.TypeStorage, types: zx.ir.TypeTable) bool {
 fn call(self: *Self, loaded: Module.Loaded) Error!usize {
     const count = self.bindings.items.len;
 
-    for (loaded.getters) |getter| try self.bindings.append(self.allocator, .{ .name = getter.name, .type_id = getter.slot.type_id });
+    for (loaded.getters) |getter| try self.bindings.append(self.binding_allocator, .{ .name = getter.name, .type_id = getter.slot.type_id });
 
     const argument = if (target.optionalAttribute(loaded.node, "in")) |attribute| try self.value(attribute, loaded.function.program.input_type) else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
 
@@ -249,7 +252,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
     self.next_binding += 1;
 
     if (binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) {
-        try self.bindings.append(self.allocator, .{ .name = binding.name, .type_id = binding.type_id });
+        try self.bindings.append(self.binding_allocator, .{ .name = binding.name, .type_id = binding.type_id });
 
         out = binding.name;
     }
@@ -263,10 +266,4 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
 pub fn assumeNonNull(self: *Self, expression_value: anytype) zx.Error!void {
     try @import("condition.zig").publish(self.allocator, expression_value, self.bindings.items, false, &self.nonnull);
-}
-
-pub fn isNonNull(self: *const Self, name: []const u8) bool {
-    for (self.nonnull.items) |fact| if (std.mem.eql(u8, fact, name)) return true;
-
-    return false;
 }

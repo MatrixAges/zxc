@@ -1,0 +1,31 @@
+import { kind_optional } from "core/type_table/const"
+
+export type Input = {
+    type_id: u32,
+    kind: u8,
+    first: u32,
+    name: string,
+    facts: string[]
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    if (in.kind != kind_optional) {
+        return in.type_id
+    }
+
+    const present = loop({
+        position: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.position < in.facts.length,
+        next: state => {
+            state.found = in.facts[state.position] == in.name
+            state.position += 1
+        },
+        return: state => state.found
+    })
+
+    return present ? in.first : in.type_id
+}

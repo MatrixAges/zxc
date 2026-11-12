@@ -26,10 +26,6 @@ pub fn init(allocator: std.mem.Allocator, types: []const zx.ir.TypeId) std.mem.A
     return .{ .marked = marked, .remaining = types.len };
 }
 
-pub fn observe(self: *Self, references: []const u32) void {
-    self.observeMapped(references, null);
-}
-
 pub fn observeMapped(self: *Self, references: []const u32, mapping: ?[]const u32) void {
     if (self.remaining == 0 or references.len == 0) return;
 

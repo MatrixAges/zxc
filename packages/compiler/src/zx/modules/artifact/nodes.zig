@@ -9,11 +9,13 @@ pub const TypeMap = union(enum) {
     collect: if (@import("parser_options").generated_parser) void else *Types,
     mapped: []const ir.TypeId,
     planned: []const u64,
+    identity: u32,
     pub fn include(self: TypeMap, id: ir.TypeId) Error!ir.TypeId {
         return switch (self) {
             .collect => |types| if (comptime @import("parser_options").generated_parser) unreachable else types.include(id),
             .mapped => |mapping| if (@backingInt(id) < mapping.len) mapping[@backingInt(id)] else error.InvalidModule,
             .planned => |mapping| if (@backingInt(id) < mapping.len and mapping[@backingInt(id)] != 0) @fromBackingInt(@intCast(mapping[@backingInt(id)] - 1)) else error.InvalidModule,
+            .identity => |count| if (@backingInt(id) < count) id else error.InvalidModule,
         };
     }
 };

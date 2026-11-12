@@ -1,0 +1,38 @@
+import integers from "std:integer"
+
+import type { Rows } from "./model"
+
+export type Input = {
+    source_types: u32[],
+    parameters: u32[]
+}
+
+export type Output = Rows
+
+export default function (in: Input): Output {
+    const empty: u32 = 0
+    const elements = in.parameters.map(type_id => empty)[0]
+    const count = in.parameters.length
+
+    return loop({
+        elements,
+        position: 0,
+        cursor: 1 + count,
+        narrows: false
+    }, {
+        while: state => state.position < count,
+        next: state => {
+            const position = state.position
+            const narrowed = in.source_types[position] != in.parameters[position]
+
+            state.cursor += narrowed ? 2 : 1
+            state.elements[position] = integers.narrow(state.cursor - 1)
+            state.narrows = state.narrows || narrowed
+            state.position += 1
+        },
+        return: state => ({
+            elements: state.elements,
+            narrows: state.narrows
+        })
+    })
+}

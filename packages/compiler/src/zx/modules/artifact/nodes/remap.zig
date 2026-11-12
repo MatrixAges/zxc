@@ -14,6 +14,7 @@ pub fn columns(nodes: *const Nodes, types: []const u32, functions: []const u32) 
         .collect => unreachable,
         .mapped => |ids| .{ .kind = .Dense, .dense = @ptrCast(ids), .sparse = &.{}, .planned = &.{}, .first = 0, .prefix = 0, .count = 0 },
         .planned => |ids| .{ .kind = .Planned, .dense = &.{}, .sparse = &.{}, .planned = ids, .first = 0, .prefix = 0, .count = 0 },
+        .identity => |count| .{ .kind = .Range, .dense = &.{}, .sparse = &.{}, .planned = &.{}, .first = 0, .prefix = 0, .count = count },
     };
 
     const function_mapping: Mapping = switch (nodes.functions) {

@@ -4,12 +4,13 @@ const rx = @import("rx");
 const zx = @import("zx");
 const Flow = @import("flow_compile.zig");
 const Captures = @import("task_captures.zig");
+const Layout = @import("task_captures/layout.zig");
 
 pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Error!usize {
     const node = branch.node;
     const allocator = parent.allocator;
     const environment = parent.bindings.items;
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena = std.heap.ArenaAllocator.init(parent.scratch);
     var buffer: [std.heap.page_size_min / 8]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
 
@@ -19,6 +20,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
     const children = try temporary.alloc(zx.ir.TypeId, environment.len);
 
     for (environment, children) |binding, *child| child.* = binding.type_id;
+    if (!Layout.admits(parent.types, children)) return failure(parent, node, .{ .code = .ownership, .span = .{ .start = 0, .end = 0 }, .message = "tasks cannot be placed in tuples" });
 
     var reporter: zx.Reporter = .{};
 
@@ -29,18 +31,13 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
         .items = try parent.takeTypeStorage(),
     };
 
-    const environment_type = types.tuple(children) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
-
-        return failure(parent, node, reporter.diagnostic.?);
-    };
-
     const output_type = parent.tasks[branch.id];
     var captures = try Captures.init(temporary, children);
 
     var nested = Flow{
         .allocator = allocator,
         .scratch = parent.scratch,
+        .binding_allocator = temporary,
         .owner = parent.owner,
         .aliases = parent.aliases,
         .types = types.items.view(),
@@ -59,15 +56,9 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     types.items = .{};
 
-    try nested.bindings.appendSlice(allocator, environment);
+    try nested.bindings.appendSlice(temporary, environment);
 
-    if (parent.nonnull.items.len != 0) {
-        for (nested.bindings.items) |*binding| {
-            const target_type = nested.types.at(@backingInt(binding.type_id));
-
-            if (target_type == .optional and parent.isNonNull(binding.name)) binding.type_id = target_type.optional;
-        }
-    }
+    Layout.narrow(nested.types, nested.bindings.items, parent.nonnull.items);
 
     const body = nested.steps(branch.body) catch |err| {
         parent.issue = nested.issue;
@@ -95,11 +86,19 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     types.items = try nested.takeTypeStorage();
 
+    const layout = try Layout.plan(temporary, children, positions, selected_types);
+
     const input_type = types.tuple(selected_types) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failure(parent, node, reporter.diagnostic.?);
     };
+
+    const environment_type = if (layout.narrows) types.tuple(layout.source_types) catch |err| {
+        if (err == error.OutOfMemory) return error.OutOfMemory;
+
+        return failure(parent, node, reporter.diagnostic.?);
+    } else input_type;
 
     parent.type_storage = types.items;
     parent.types = parent.type_storage.view();
@@ -130,9 +129,9 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     if (frontend.checks_internal_ir) if (try frontend.validateIrExtending(allocator, program, parent.verified_functions)) |issue| return failure(parent, node, issue);
 
-    const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, environment, input_type, selected, positions, .{ .start = node.location.offset, .end = node.location.offset });
+    const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, input_type, selected, layout, .{ .start = node.location.offset, .end = node.location.offset });
 
-    if (parent.captures) |outer| outer.observe(argument.expressions.references);
+    if (parent.captures) |outer| outer.observeMapped(argument.expressions.references, positions);
 
     var out: ?[]const u8 = null;
     const binding = parent.results[parent.next_binding];
@@ -142,7 +141,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
     if (binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) {
         out = binding.name;
 
-        try parent.bindings.append(allocator, .{ .name = binding.name, .type_id = binding.type_id });
+        try parent.bindings.append(parent.binding_allocator, .{ .name = binding.name, .type_id = binding.type_id });
     }
 
     const index = parent.calls.items.len;

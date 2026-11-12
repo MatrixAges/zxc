@@ -65,18 +65,26 @@ pub fn importFunction(self: *Self, program: ir.Program, initializers: []const St
 
     const base_count = self.base_functions.count();
 
+    if (base_count > program.functions.count()) return error.InvalidModule;
     if (self.shared and !@import("frontend").project.artifact.function_table.hasPrefix(program.functions, self.base_functions)) return error.InvalidModule;
 
     const Nodes = @import("frontend").ArtifactNodes;
-    const types = try self.allocator.alloc(ir.TypeId, self.types.count());
-    const functions = try self.allocator.alloc(?ir.FunctionId, program.functions.count());
-    const native_modules = try self.allocator.alloc(?ir.NativeModuleId, self.native_modules.count());
+    const type_count = std.math.cast(u32, self.types.count()) orelse return error.OutOfMemory;
+    const function_count = std.math.cast(u32, program.functions.count()) orelse return error.OutOfMemory;
+    const native_count = std.math.cast(u32, self.native_modules.count()) orelse return error.OutOfMemory;
+    const local_count = std.math.cast(u32, self.functions.count()) orelse return error.OutOfMemory;
+    const root = std.math.add(u32, local_count, function_count) catch return error.OutOfMemory;
 
-    for (types, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
-    for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(if (index < base_count) index else self.functions.count() + index));
-    for (native_modules, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
-
-    var nodes = Nodes{ .allocator = self.allocator, .types = .{ .mapped = types }, .functions = .{ .indexed = functions }, .native_modules = .{ .indexed = native_modules } };
+    var nodes = Nodes{
+        .allocator = self.allocator,
+        .types = .{ .identity = type_count },
+        .functions = .{ .range = .{
+            .first = @intCast(base_count + local_count),
+            .count = function_count,
+            .prefix = @intCast(base_count),
+        } },
+        .native_modules = .{ .range = .{ .first = 0, .count = native_count } },
+    };
 
     for (base_count..program.functions.count()) |function_row| {
         const function = program.functions.at(function_row);
@@ -86,16 +94,14 @@ pub fn importFunction(self: *Self, program: ir.Program, initializers: []const St
     }
 
     for (initializers) |initial| {
-        if (@backingInt(initial.function) >= functions.len) return error.InvalidModule;
-
         var mapped = initial;
 
-        mapped.function = functions[@backingInt(initial.function)].?;
+        mapped.function = nodes.functionId(initial.function) catch return error.InvalidModule;
 
         try self.initializer(mapped);
     }
 
-    const id: ir.FunctionId = @fromBackingInt(@intCast(base_count + self.functions.count()));
+    const id: ir.FunctionId = @fromBackingInt(root);
 
     const main = nodes.function(.{
         .file_name = program.file_name,

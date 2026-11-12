@@ -25,9 +25,14 @@ pub const Options = struct {
 };
 
 pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
+    var scope = std.heap.ArenaAllocator.init(scratch);
+
+    defer scope.deinit();
+
     var flow = @import("flow_compile.zig"){
         .allocator = allocator,
         .scratch = scratch,
+        .binding_allocator = scope.allocator(),
         .owner = options.owner,
         .aliases = options.aliases,
         .types = options.types,
@@ -41,7 +46,7 @@ pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options
         .unit_input = options.input_type == @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void)))),
     };
 
-    if (options.input_type != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) try flow.bindings.append(allocator, .{ .name = "$in", .type_id = options.input_type });
+    if (options.input_type != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) try flow.bindings.append(flow.binding_allocator, .{ .name = "$in", .type_id = options.input_type });
 
     const steps = flow.steps(options.steps) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;

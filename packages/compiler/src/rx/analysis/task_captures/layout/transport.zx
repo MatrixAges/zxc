@@ -1,0 +1,14 @@
+import integers from "std:integer"
+
+export type Input = {
+    types: u32[],
+    positions: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const types = in.types
+
+    return in.positions.map(position => types[integers.widen(position)])[0]
+}
