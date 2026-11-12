@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Routes" />
+
+    <Args in={Routes.Input} out={Routes.Output} />
+
+    <Call
+        fn="validate"
+        in={{
+            parts: $in.parts,
+            groups: $in.groups
+        }}
+    />
+
+    <Call
+        fn="measure"
+        in={{
+            lengths: $ctx.validate,
+            parents: $in.parents
+        }}
+    />
+
+    <Return value={$ctx.measure} />
+</Module>

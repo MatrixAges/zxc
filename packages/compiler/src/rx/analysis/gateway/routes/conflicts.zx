@@ -1,0 +1,80 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import claim from "core/bytes/index/claim"
+import { max_u16 } from "core/const"
+
+import { Issue } from "./model"
+
+import type { Index } from "core/bytes/index/model"
+import type { Conflict } from "./model"
+
+export type Input = {
+    paths: string[],
+    groups: bool[],
+    methods: u32?[],
+    services: bool[]
+}
+
+export type Output = Conflict
+
+export default function (in: Input): Output {
+    const names: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    const masks: u64[] = []
+
+    return loop({
+        names,
+        masks,
+        issue: Issue.None,
+        row: 0
+    }, {
+        while: state => state.issue == Issue.None && state.row < in.paths.length,
+        next: state => {
+            if (!in.groups[state.row]) {
+                const method = in.methods[state.row]
+                const mask = match {
+                    method == null => integers.widenShort(max_u16),
+                    _ => integers.bitMask(integers.widen(method))
+                }
+                const entered = claim({
+                    index: state.names,
+                    key: bytes.fromText(in.paths[state.row]),
+                    value: integers.narrow(state.masks.length)
+                })
+
+                state.names = entered.index
+
+                const previous = entered.previous
+
+                if (previous != null) {
+                    const index = integers.widen(previous)
+                    const existing = state.masks[index]
+
+                    if (integers.andBits(existing, mask) != 0) {
+                        state.issue = Issue.Overlap
+                    } else {
+                        state.masks[index] = integers.orBits(existing, mask)
+                    }
+                } else {
+                    state.masks = state.masks.push(mask)[0]
+                }
+
+                if (state.issue == Issue.None && !in.services[state.row]) {
+                    state.issue = Issue.Service
+                }
+            }
+
+            if (state.issue == Issue.None) {
+                state.row += 1
+            }
+        },
+        return: state => ({
+            issue: state.issue,
+            row: state.row
+        })
+    })
+}

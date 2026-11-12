@@ -1,0 +1,18 @@
+export type Input = {
+    parts: string[],
+    groups: bool[],
+    parents: u32?[]
+}
+
+export type Output = u64[]
+
+export enum Issue {
+    None,
+    Overlap,
+    Service
+}
+
+export type Conflict = {
+    issue: Issue,
+    row: u64
+}

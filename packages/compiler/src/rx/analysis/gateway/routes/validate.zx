@@ -1,0 +1,34 @@
+import path from "./path"
+
+export type Input = {
+    parts: string[],
+    groups: bool[]
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const lengths: u64[] = []
+
+    return loop({
+        lengths,
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < in.parts.length,
+        next: state => {
+            const length = path({
+                path: in.parts[state.index],
+                group: in.groups[state.index]
+            })
+
+            if (length == null) {
+                state.valid = false
+            } else {
+                state.lengths = state.lengths.push(length)[0]
+                state.index += 1
+            }
+        },
+        return: state => state.lengths
+    })
+}

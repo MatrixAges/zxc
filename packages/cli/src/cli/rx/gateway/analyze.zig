@@ -38,7 +38,7 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
     defer loaded.deinit();
 
     const source = loaded.data.gateway orelse return error.ExpectedGateway;
-    var analyzed = try gateway.analyze(allocator, .{ .owner = source.path, .node = source.node });
+    var analyzed = loaded.takeGateway() orelse try gateway.analyze(allocator, .{ .owner = source.path, .node = source.node });
     var transferred = false;
 
     defer if (!transferred) analyzed.deinit();

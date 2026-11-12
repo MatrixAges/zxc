@@ -1,0 +1,61 @@
+import bytes from "std:bytes"
+import { ascii_colon, ascii_open_bracket } from "core/ascii/const"
+import { ascii_digit_first, ascii_digit_last } from "core/const"
+
+import { ipv6_port_separator, max_header_bytes } from "./const"
+
+export type Input = {
+    header_bytes: u32,
+    listen: string
+}
+
+export enum Issue {
+    None,
+    Header,
+    Listen
+}
+
+export type Output = Issue
+
+export default function (in: Input): Output {
+    if (in.header_bytes == 0 || in.header_bytes > max_header_bytes) {
+        return Issue.Header
+    }
+
+    const address = bytes.fromText(in.listen)
+
+    if (address.length == 0) {
+        return Issue.Listen
+    }
+
+    const separator = match address[0] {
+        ascii_open_bracket => bytes.indexOfText(address, 0, ipv6_port_separator),
+        _ => bytes.indexOfScalar(address, 0, ascii_colon)
+    }
+
+    if (separator == null) {
+        return Issue.Listen
+    }
+
+    const length = address[0] == ascii_open_bracket ? ipv6_port_separator.length : 1
+    const start = separator + length
+
+    if (start == address.length) {
+        return Issue.Listen
+    }
+
+    const valid = loop({
+        index: start,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < address.length,
+        next: state => {
+            const byte = address[state.index]
+            state.valid = byte >= ascii_digit_first && byte <= ascii_digit_last
+            state.index += 1
+        },
+        return: state => state.valid
+    })
+
+    return valid ? Issue.None : Issue.Listen
+}

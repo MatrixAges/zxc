@@ -1,36 +1,49 @@
 const std = @import("std");
 const rx = @import("rx");
 const compiler = @import("compiler");
+const gateway = @import("rx_analysis").gateway;
 const Inputs = @import("../watch/inputs.zig");
 pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, project: compiler.project.Options = .{ .entry = "" }, parse_cache: ?*compiler.project.ParseCache = null, libraries: ?*@import("../library/inputs.zig") = null };
-pub const GatewaySource = struct { path: []const u8, source: []const u8, node: rx.ast.Node };
+pub const GatewaySource = struct { path: []const u8, node: rx.ast.Node };
 pub const Data = struct { gateway: ?GatewaySource = null, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, sources: []const rx.TextSource, functions: []const rx.TextSource };
 
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
     data: Data,
+    gateway_analysis: ?gateway.Result = null,
     pub fn deinit(self: *Result) void {
+        if (self.gateway_analysis) |*analysis| analysis.deinit();
+
         self.arena.deinit();
 
         self.* = undefined;
     }
+
+    pub fn takeGateway(self: *Result) ?gateway.Result {
+        const analysis = self.gateway_analysis;
+
+        self.gateway_analysis = null;
+
+        return analysis;
+    }
 };
 
 pub fn load(allocator: std.mem.Allocator, options: Options) !?Result {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var result: Result = .{ .arena = std.heap.ArenaAllocator.init(allocator), .data = undefined };
 
-    errdefer arena.deinit();
+    errdefer result.deinit();
 
-    const data = try loadIn(arena.allocator(), options) orelse {
-        arena.deinit();
+    result.data = try loadIn(&result, allocator, options) orelse {
+        result.deinit();
 
         return null;
     };
 
-    return .{ .arena = arena, .data = data };
+    return result;
 }
 
-fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
+fn loadIn(result: *Result, backing: std.mem.Allocator, options: Options) !?Data {
+    const allocator = result.arena.allocator();
     const io = options.io;
     const writer = options.writer;
     const root = try std.fs.path.resolve(allocator, &.{options.root});
@@ -143,20 +156,26 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
             return null;
         }
 
-        if (std.mem.endsWith(u8, path, ".gateway.rx")) gateway_source = .{ .path = path, .source = source, .node = parsed.value.node };
+        const is_gateway = std.mem.endsWith(u8, path, ".gateway.rx");
+        var collector = @import("references/collector.zig"){ .allocator = allocator, .options = project, .owner = absolute, .queue = &queue, .queued = &queued, .io = io, .inputs = options.inputs, .libraries = options.libraries, .writer = writer };
 
-        if (std.mem.endsWith(u8, path, ".gateway.rx") and (checked.value.data.gateway.attributes.protocol orelse .http) == .http) {
-            var gateway = try @import("rx_analysis").gateway.analyze(allocator, .{ .owner = path, .node = parsed.value.node });
+        if (is_gateway) gateway_source = .{ .path = path, .node = parsed.value.node };
 
-            defer gateway.deinit();
+        if (is_gateway and (checked.value.data.gateway.attributes.protocol orelse .http) == .http) {
+            result.gateway_analysis = try gateway.analyze(backing, .{ .owner = path, .node = parsed.value.node, .validated_attributes = checked.value.data.gateway.attributes });
+            const analysis = &result.gateway_analysis.?;
 
-            if (gateway.value == .diagnostic) {
-                const issue = gateway.value.diagnostic;
+            if (analysis.value == .diagnostic) {
+                const issue = analysis.value.diagnostic;
 
                 try writer.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
 
                 return null;
             }
+
+            for (analysis.value.definition.routes) |route| try collector.local(route.service, route.location, .dependency);
+
+            continue;
         }
 
         if (std.mem.endsWith(u8, path, ".store.rx")) {
@@ -165,12 +184,10 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
 
         const packages = rx.module_reference.dependencies(options.project, absolute);
 
-        if (!std.mem.endsWith(u8, path, ".gateway.rx") and !std.mem.endsWith(u8, path, ".store.rx")) {
+        if (!is_gateway and !std.mem.endsWith(u8, path, ".store.rx")) {
             try sources.append(allocator, .{ .path = path, .source = source, .packages = packages });
             try modules.append(allocator, .{ .path = path, .node = parsed.value.node, .packages = packages });
         }
-
-        var collector = @import("references/collector.zig"){ .allocator = allocator, .options = project, .owner = absolute, .queue = &queue, .queued = &queued, .io = io, .inputs = options.inputs, .libraries = options.libraries, .writer = writer };
 
         @import("rx_analysis").project.source_graph.references.collect(&collector, .{ .path = path, .node = parsed.value.node, .packages = packages }) catch |err| {
             if (err == error.InvalidSourceGraph) return null;

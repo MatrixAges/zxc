@@ -1,0 +1,82 @@
+import bytes from "std:bytes"
+import {
+    ascii_asterisk,
+    ascii_backslash,
+    ascii_close_brace,
+    ascii_colon,
+    ascii_hash,
+    ascii_open_brace,
+    ascii_percent,
+    ascii_printable_last,
+    ascii_question,
+    ascii_slash,
+    ascii_space
+} from "core/ascii/const"
+import { hexadecimal_radix } from "core/const"
+
+import digit from "../../../syntax/entity/digit"
+import { percent_escape_bytes } from "./const"
+
+export type Input = {
+    path: string,
+    group: bool
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const path = bytes.fromText(in.path)
+
+    if (path.length == 0 || path[0] != ascii_slash) {
+        return null
+    }
+
+    const result = loop({
+        index: 1,
+        end: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < path.length,
+        next: state => {
+            const index = state.index
+            const byte = path[index]
+            const literal = match byte {
+                ascii_asterisk => false,
+                ascii_backslash => false,
+                ascii_close_brace => false,
+                ascii_hash => false,
+                ascii_open_brace => false,
+                ascii_question => false,
+                _ => byte > ascii_space && byte <= ascii_printable_last
+            }
+            const parameter = byte == ascii_colon && path[index - 1] == ascii_slash
+
+            if (!literal || parameter) {
+                state.valid = false
+            } else if (byte == ascii_percent) {
+                if (path.length - index < percent_escape_bytes) {
+                    state.valid = false
+                } else {
+                    const high = digit(path[index + 1])
+                    const low = digit(path[index + 2])
+
+                    state.valid = high < hexadecimal_radix && low < hexadecimal_radix
+                    state.index += percent_escape_bytes
+                    state.end = state.index
+                }
+            } else {
+                state.index += 1
+
+                if (byte != ascii_slash) {
+                    state.end = state.index
+                }
+            }
+        }
+    })
+
+    if (!result.valid) {
+        return null
+    }
+
+    return in.group ? result.end : path.length
+}

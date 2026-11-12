@@ -1,0 +1,31 @@
+import integers from "std:integer"
+
+export type Input = {
+    lengths: u64[],
+    parents: u32?[]
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const lengths: u64[] = []
+
+    return loop({
+        lengths,
+        index: 0
+    }, {
+        while: state => state.index < in.lengths.length,
+        next: state => {
+            const parent = in.parents[state.index]
+            const prefix = match {
+                parent != null => state.lengths[integers.widen(parent)],
+                _ => 0
+            }
+            const length = prefix + in.lengths[state.index]
+
+            state.lengths = state.lengths.push(length)[0]
+            state.index += 1
+        },
+        return: state => state.lengths
+    })
+}
