@@ -17,23 +17,22 @@ pub fn bind(builder: *Builder, input_type: ir.TypeId, captures: []const Binding,
     }
 }
 
-pub fn argument(allocator: std.mem.Allocator, owner: []const u8, types: ir.TypeTable, environment_type: ir.TypeId, environment: []const Binding, input_type: ir.TypeId, captures: []const Binding, span: zx.Span) std.mem.Allocator.Error!ir.Program {
+pub fn argument(allocator: std.mem.Allocator, owner: []const u8, types: ir.TypeTable, environment_type: ir.TypeId, environment: []const Binding, input_type: ir.TypeId, captures: []const Binding, positions: []const u32, span: zx.Span) std.mem.Allocator.Error!ir.Program {
     var builder = Builder{ .allocator = allocator, .types = types, .native_modules = .{} };
 
     try bind(&builder, environment_type, environment, span);
 
     const elements = try allocator.alloc(ir.ExprId, captures.len);
 
-    for (captures, elements) |capture, *value| {
-        for (environment, builder.bindings.items) |binding, symbol| {
-            if (!std.mem.eql(u8, binding.name, capture.name)) continue;
+    for (captures, positions, elements) |capture, position, *value| {
+        const binding = environment[position];
+        const symbol = builder.bindings.items[position];
 
-            const reference = try builder.expression(.{ .type_id = binding.type_id, .span = span, .value = .{ .reference = symbol } });
+        std.debug.assert(std.mem.eql(u8, binding.name, capture.name));
 
-            value.* = if (binding.type_id == capture.type_id) reference else try builder.expression(.{ .type_id = capture.type_id, .span = span, .value = .{ .optional_value = reference } });
+        const reference = try builder.expression(.{ .type_id = binding.type_id, .span = span, .value = .{ .reference = symbol } });
 
-            break;
-        } else unreachable;
+        value.* = if (binding.type_id == capture.type_id) reference else try builder.expression(.{ .type_id = capture.type_id, .span = span, .value = .{ .optional_value = reference } });
     }
 
     const result = try builder.expression(.{ .type_id = input_type, .span = span, .value = .{ .tuple = elements } });

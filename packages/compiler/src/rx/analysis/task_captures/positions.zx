@@ -1,0 +1,30 @@
+import integers from "std:integer"
+
+export type Input = {
+    marked: bool[],
+    type_ids: u32[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const empty: u32 = 0
+    const positions = in.type_ids.map(type_id => empty)[0]
+
+    return loop({
+        positions,
+        cursor: 0,
+        written: 0
+    }, {
+        while: state => state.written < state.positions.length,
+        next: state => {
+            if (in.marked[state.cursor]) {
+                state.positions[state.written] = integers.narrow(state.cursor)
+                state.written += 1
+            }
+
+            state.cursor += 1
+        },
+        return: state => state.positions
+    })
+}

@@ -1,64 +1,90 @@
 const std = @import("std");
-const ir = @import("zx").ir;
-const Binding = @import("frontend").expressions.Binding;
-const Module = @import("module.zig");
-const Flow = @import("program/flow.zig");
+const zx = @import("zx");
+const Self = @This();
+const enabled = @import("rx_options").generated_graph;
+const mark = if (enabled) @import("generated_rx_task_capture_mark") else void;
+const Marked = if (enabled) @FieldType(@typeInfo(@TypeOf(mark.executeState)).@"fn".param_types[1].?, "marked") else []bool;
 
-pub fn select(allocator: std.mem.Allocator, bindings: []const Binding, calls: []const Module.Call, body: []const Flow.Step) std.mem.Allocator.Error![]const Binding {
-    var captures: std.ArrayList(Binding) = .empty;
+marked: Marked,
+remaining: usize,
+pub fn init(allocator: std.mem.Allocator, types: []const zx.ir.TypeId) std.mem.Allocator.Error!Self {
+    if (comptime enabled) {
+        const rule = @import("generated_rx_task_capture_init");
 
-    for (bindings) |binding| {
-        var used = steps(body, binding.name);
+        const marked = rule.executeState(allocator, .{ .items = @ptrCast(types), .storage = .plain }) catch |err| switch (@as(anyerror, err)) {
+            error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
+            else => unreachable,
+        };
 
-        for (calls) |call| used = used or reads(call.argument, binding.name);
-        if (used) try captures.append(allocator, binding);
+        return .{ .marked = marked, .remaining = types.len };
     }
 
-    return captures.items;
+    const marked = try allocator.alloc(bool, types.len);
+
+    @memset(marked, false);
+
+    return .{ .marked = marked, .remaining = types.len };
 }
 
-fn reads(program: ir.Program, name: []const u8) bool {
-    for (0..program.body.block().len) |statement_index| {
-        const statement = program.body.block().at(statement_index);
+pub fn observe(self: *Self, references: []const u32) void {
+    if (self.remaining == 0 or references.len == 0) return;
 
-        if (statement != .constant) break;
+    if (comptime !enabled) {
+        for (references) |symbol| {
+            if (symbol == 0 or symbol > self.marked.len) continue;
 
-        const symbol = statement.constant.symbol;
-        const value = program.expression(statement.constant.value);
+            const position = symbol - 1;
 
-        if (value.value != .tuple_field or !std.mem.eql(u8, program.symbols.at(@backingInt(symbol)).name, name)) continue;
-
-        const environment = program.expression(value.value.tuple_field.target);
-
-        if (environment.value != .reference or @backingInt(environment.value.reference) != 0) continue;
-
-        for (0..program.expressions.count()) |expression_index| {
-            const expression = program.expressions.at(expression_index);
-
-            if (expression.value == .reference and expression.value.reference == symbol) return true;
-        }
-    }
-
-    return false;
-}
-
-fn steps(body: []const Flow.Step, name: []const u8) bool {
-    for (body) |step| switch (step) {
-        .result => |program| if (reads(program, name)) return true,
-        .task => |task| {
-            if (steps(task.body, name)) return true;
-            if (task.output) |output| if (reads(output.value, name)) return true;
-        },
-        .selection => |selection| {
-            if (reads(selection.subject, name)) return true;
-
-            for (selection.cases) |case| {
-                if (case.value) |value| if (reads(value, name)) return true;
-                if (steps(case.body, name)) return true;
+            if (!self.marked[position]) {
+                self.marked[position] = true;
+                self.remaining -= 1;
             }
-        },
-        .call, .parallel => {},
-    };
 
-    return false;
+            if (self.remaining == 0) break;
+        }
+
+        return;
+    }
+
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+    const result = mark.executeState(empty.allocator(), .{
+        .references = .{ .items = references, .storage = .plain },
+        .marked = self.marked,
+        .remaining = self.remaining,
+        .cursor = 0,
+    }) catch unreachable;
+
+    std.debug.assert(result.marked.items.ptr == self.marked.items.ptr);
+
+    self.marked = result.marked;
+    self.remaining = @intCast(result.remaining);
+}
+
+pub fn positions(self: Self, allocator: std.mem.Allocator, types: []const zx.ir.TypeId) std.mem.Allocator.Error![]const u32 {
+    const count = types.len - self.remaining;
+
+    if (count == 0) return &.{};
+
+    if (comptime enabled) {
+        const rule = @import("generated_rx_task_capture_positions");
+        const input: std.meta.Child(rule.Input) = .{ .marked = self.marked.items, .type_ids = @ptrCast(types[0..count]) };
+
+        return zx.columns.invoke(rule.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+            error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
+            else => unreachable,
+        };
+    }
+
+    const selected = try allocator.alloc(u32, count);
+    var written: usize = 0;
+
+    for (self.marked, 0..) |marked, index| {
+        if (!marked) continue;
+
+        selected[written] = @intCast(index);
+        written += 1;
+    }
+
+    return selected;
 }

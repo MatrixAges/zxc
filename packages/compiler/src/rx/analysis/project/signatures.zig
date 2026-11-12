@@ -7,7 +7,7 @@ pub const Signature = struct {
     input_type: zx.ir.TypeId,
     output_type: zx.ir.TypeId,
     bindings: []const Module.Binding,
-    tasks: []const @import("../flow_compile.zig").TaskType,
+    tasks: []const zx.ir.TypeId,
 };
 
 pub fn resolve(graph: *Graph, states: States) zx.Error![]const Signature {
@@ -19,9 +19,9 @@ pub fn resolve(graph: *Graph, states: States) zx.Error![]const Signature {
 
         for (state.bindings, bindings) |binding, *item| item.* = .{ .name = binding.name, .type_id = try graph.resolve(binding.value) };
 
-        const tasks = try graph.allocator.alloc(@import("../flow_compile.zig").TaskType, state.tasks.len);
+        const tasks = try graph.allocator.alloc(zx.ir.TypeId, state.tasks.len);
 
-        for (state.tasks, tasks) |task, *resolved| resolved.* = .{ .id = task.id, .output_type = try graph.resolve(task.output) };
+        for (state.tasks) |task| tasks[task.id] = try graph.resolve(task.output);
 
         signature.* = .{ .input_type = try graph.resolve(state.input), .output_type = try graph.resolve(state.output), .bindings = bindings, .tasks = tasks };
     }

@@ -1,0 +1,39 @@
+import integers from "std:integer"
+
+export type Input = {
+    references: u32[],
+    marked: bool[],
+    remaining: u64,
+    cursor: u64
+}
+
+export type Output = {
+    marked: bool[],
+    remaining: u64
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.remaining != 0 &&
+            state.cursor < state.references.length,
+        next: state => {
+            const symbol = integers.widen(state.references[state.cursor])
+            const captured = symbol > 0 && symbol <= state.marked.length
+
+            if (captured) {
+                const position = symbol - 1
+
+                if (!state.marked[position]) {
+                    state.marked[position] = true
+                    state.remaining -= 1
+                }
+            }
+
+            state.cursor += 1
+        },
+        return: state => ({
+            marked: state.marked,
+            remaining: state.remaining
+        })
+    })
+}

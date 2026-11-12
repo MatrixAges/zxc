@@ -7,8 +7,8 @@ const Prepared = @import("project/flow.zig");
 const Flow = @import("program/flow.zig");
 const expression = @import("expression.zig");
 const target = @import("call/target.zig");
+const Captures = @import("task_captures.zig");
 const Self = @This();
-pub const TaskType = struct { id: usize, output_type: zx.ir.TypeId };
 pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 
 allocator: std.mem.Allocator,
@@ -24,7 +24,9 @@ verified_functions: zx.ir.FunctionTable = .{},
 output_type: zx.ir.TypeId,
 loaded: []const Module.Loaded,
 results: []const Module.Binding,
-tasks: []const TaskType = &.{},
+tasks: []const zx.ir.TypeId = &.{},
+
+captures: ?*Captures = null,
 bindings: std.ArrayList(frontend.expressions.Binding) = .empty,
 nonnull: std.ArrayList([]const u8) = .empty,
 calls: std.ArrayList(Module.Call) = .empty,
@@ -157,11 +159,7 @@ fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Erro
 }
 
 fn valueParsed(self: *Self, parsed: *const frontend.ExpressionInput.Result, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
-    if (!viewed(self.type_storage, self.types)) {
-        self.type_storage = .{};
-
-        try self.type_storage.appendDelta(self.allocator, self.types);
-    }
+    try self.ensureTypeStorage();
 
     const compiled = try expression.compileParsed(self.allocator, parsed, attribute, .{ .types = self.types, .borrow_types = true, .type_storage = &self.type_storage, .native_modules = self.native_modules, .aliases = self.aliases, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected }, true);
 
@@ -171,12 +169,36 @@ fn valueParsed(self: *Self, parsed: *const frontend.ExpressionInput.Result, attr
         return error.InvalidFlow;
     }
 
-    self.types = compiled.value.ir.types;
+    const program = compiled.value.ir;
 
-    return compiled.value.ir;
+    self.types = program.types;
+
+    if (self.captures) |captures| captures.observe(program.expressions.references);
+
+    return program;
 }
 
-/// Whether `types` is the whole of `storage`; a parallel task replaces the table with one of its own.
+pub fn takeTypeStorage(self: *Self) Error!zx.ir.TypeStorage {
+    try self.ensureTypeStorage();
+
+    const storage = self.type_storage;
+
+    self.type_storage = .{};
+
+    return storage;
+}
+
+fn ensureTypeStorage(self: *Self) Error!void {
+    if (viewed(self.type_storage, self.types)) return;
+
+    self.type_storage = .{};
+
+    try self.type_storage.appendDelta(self.allocator, self.types);
+
+    self.types = self.type_storage.view();
+}
+
+/// Whether `types` is already backed by this flow's append-only storage.
 fn viewed(storage: zx.ir.TypeStorage, types: zx.ir.TypeTable) bool {
     inline for (@typeInfo(zx.ir.TypeStorage).@"struct".field_names) |name| {
         const column = @field(storage, name).items;

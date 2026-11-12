@@ -13,7 +13,7 @@ pub const Options = struct {
     calls: []const Module.Loaded,
     steps: []const @import("project/flow.zig").Step,
     bindings: []const Module.Binding,
-    tasks: []const @import("flow_compile.zig").TaskType = &.{},
+    tasks: []const zx.ir.TypeId = &.{},
     types: zx.ir.TypeTable,
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
     native_modules: zx.ir.NativeModuleTable = .{},

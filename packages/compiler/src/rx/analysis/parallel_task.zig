@@ -3,26 +3,31 @@ const frontend = @import("frontend");
 const rx = @import("rx");
 const zx = @import("zx");
 const Flow = @import("flow_compile.zig");
+const Captures = @import("task_captures.zig");
 
 pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Error!usize {
     const node = branch.node;
     const allocator = parent.allocator;
-    const captures = try allocator.dupe(frontend.expressions.Binding, parent.bindings.items);
     const environment = parent.bindings.items;
-    const children = try allocator.alloc(zx.ir.TypeId, captures.len);
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    var buffer: [std.heap.page_size_min / 8]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
 
-    for (captures, children) |*capture, *child| {
-        child.* = capture.type_id;
+    defer arena.deinit();
 
-        const target_type = parent.types.at(@backingInt(capture.type_id));
+    const temporary = scratch.allocator();
+    const children = try temporary.alloc(zx.ir.TypeId, environment.len);
 
-        if (parent.isNonNull(capture.name) and target_type == .optional) capture.type_id = target_type.optional;
-    }
+    for (environment, children) |binding, *child| child.* = binding.type_id;
 
     var reporter: zx.Reporter = .{};
-    var types = frontend.types{ .allocator = allocator, .reporter = &reporter, .declarations = &.{} };
 
-    try types.items.appendDelta(allocator, parent.types);
+    var types = frontend.types{
+        .allocator = allocator,
+        .reporter = &reporter,
+        .declarations = &.{},
+        .items = try parent.takeTypeStorage(),
+    };
 
     const environment_type = types.tuple(children) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
@@ -30,17 +35,38 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
         return failure(parent, node, reporter.diagnostic.?);
     };
 
-    var output_type: ?zx.ir.TypeId = null;
+    const output_type = parent.tasks[branch.id];
+    var captures = try Captures.init(temporary, children);
 
-    for (parent.tasks) |task| {
-        if (task.id == branch.id) output_type = task.output_type;
+    var nested = Flow{
+        .allocator = allocator,
+        .owner = parent.owner,
+        .aliases = parent.aliases,
+        .types = types.items.view(),
+        .type_storage = types.items,
+        .native_modules = parent.native_modules,
+        .shared_functions = parent.shared_functions,
+        .verified_functions = parent.verified_functions,
+        .output_type = output_type,
+        .loaded = parent.loaded,
+        .results = parent.results,
+        .tasks = parent.tasks,
+        .captures = &captures,
+        .next_binding = parent.next_binding,
+        .unit_input = parent.unit_input,
+    };
+
+    types.items = .{};
+
+    try nested.bindings.appendSlice(allocator, environment);
+
+    if (parent.nonnull.items.len != 0) {
+        for (nested.bindings.items) |*binding| {
+            const target_type = nested.types.at(@backingInt(binding.type_id));
+
+            if (target_type == .optional and parent.isNonNull(binding.name)) binding.type_id = target_type.optional;
+        }
     }
-
-    std.debug.assert(output_type != null);
-
-    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .aliases = parent.aliases, .types = types.items.view(), .native_modules = parent.native_modules, .shared_functions = parent.shared_functions, .verified_functions = parent.verified_functions, .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
-
-    try nested.bindings.appendSlice(allocator, captures);
 
     const body = nested.steps(branch.body) catch |err| {
         parent.issue = nested.issue;
@@ -49,7 +75,6 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
     };
 
     parent.next_binding = nested.next_binding;
-    parent.types = nested.types;
 
     for (nested.calls.items) |*call| {
         if (call.getters.len != 0 or !try frontend.isParallelSafe(allocator, call.callee)) return failure(parent, node, .{ .code = .unsupported, .span = .{ .start = node.location.offset, .end = node.location.offset }, .message = "Parallel Task requires pure computation without Store access or native external calls" });
@@ -58,14 +83,16 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
         call.argument.types = nested.types;
     }
 
-    const selected = try @import("task_captures.zig").select(allocator, captures, nested.calls.items, body);
-    const selected_types = try allocator.alloc(zx.ir.TypeId, selected.len);
+    const positions = try captures.positions(temporary, children);
+    const selected = try temporary.alloc(frontend.expressions.Binding, positions.len);
+    const selected_types = try temporary.alloc(zx.ir.TypeId, positions.len);
 
-    for (selected, selected_types) |capture, *child| child.* = capture.type_id;
+    for (positions, selected, selected_types) |position, *capture, *child| {
+        capture.* = nested.bindings.items[position];
+        child.* = capture.type_id;
+    }
 
-    types.items = .{};
-
-    try types.items.appendDelta(allocator, nested.types);
+    types.items = try nested.takeTypeStorage();
 
     const input_type = types.tuple(selected_types) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
@@ -73,7 +100,8 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
         return failure(parent, node, reporter.diagnostic.?);
     };
 
-    parent.types = types.items.view();
+    parent.type_storage = types.items;
+    parent.types = parent.type_storage.view();
 
     const native_modules = if (parent.shared_functions != null) parent.native_modules else @import("module_native.zig").merge(allocator, nested.calls.items, parent.types, parent.native_modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
@@ -83,7 +111,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     const owner = try std.fmt.allocPrint(allocator, "{s}#parallel-task-{d}", .{ parent.owner, branch.id });
 
-    const lowered = @import("program.zig").lower(allocator, .{ .owner = owner, .types = parent.types, .input_type = input_type, .output_type = output_type.?, .captures = selected, .calls = nested.calls.items, .native_modules = native_modules, .shared_functions = parent.shared_functions, .steps = body }) catch |err| {
+    const lowered = @import("program.zig").lower(allocator, .{ .owner = owner, .types = parent.types, .input_type = input_type, .output_type = output_type, .captures = selected, .calls = nested.calls.items, .native_modules = native_modules, .shared_functions = parent.shared_functions, .steps = body }) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failure(parent, node, .{ .code = if (err == error.IncompleteFlow or err == error.UnreachableFlow) .return_path else .contract, .span = .{ .start = node.location.offset, .end = node.location.offset }, .message = if (err == error.IncompleteFlow) "every Parallel Task path must return its output" else "Parallel Task expressions cannot be linked" });
@@ -101,7 +129,10 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     if (frontend.checks_internal_ir) if (try frontend.validateIrExtending(allocator, program, parent.verified_functions)) |issue| return failure(parent, node, issue);
 
-    const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, environment, input_type, selected, .{ .start = node.location.offset, .end = node.location.offset });
+    const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, environment, input_type, selected, positions, .{ .start = node.location.offset, .end = node.location.offset });
+
+    if (parent.captures) |outer| outer.observe(argument.expressions.references);
+
     var out: ?[]const u8 = null;
     const binding = parent.results[parent.next_binding];
 
