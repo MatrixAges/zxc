@@ -6,6 +6,7 @@ const Module = @import("module.zig");
 const Graph = @import("inference/types.zig");
 const SourceMap = @import("source_map.zig");
 const prepare = @import("project/prepare.zig");
+const Inputs = @import("project/call_inputs.zig");
 const target = @import("call/target.zig");
 pub const source_graph = @import("project/source_graph.zig");
 pub const History = @import("project/history.zig").History;
@@ -55,13 +56,16 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options
 
     const cache = options.parse_cache orelse &local;
     const earlier = if (options.history) |record| if (record.bodies_only) if (record.previous) |*value| value.derived else null else null else null;
+    var inputs: Inputs = .{ .arena = .init(backing) };
 
-    const derived = earlier orelse switch (try derive(allocator, backing, options, cache)) {
+    defer inputs.arena.deinit();
+
+    const derived = earlier orelse switch (try derive(allocator, backing, options, cache, &inputs)) {
         .frame => |frame| frame,
         .diagnostic => |issue| return remap(allocator, options, issue),
     };
 
-    var result = try @import("project/mixed.zig").compile(allocator, backing, derived, options.modules, options.sources, options.exports, cache, options.history);
+    var result = try @import("project/mixed.zig").compile(allocator, backing, derived, options.modules, options.sources, options.exports, cache, options.history, &inputs);
 
     if (result == .diagnostic) return remap(allocator, options, result.diagnostic);
 
@@ -87,7 +91,7 @@ const Derived = union(enum) { frame: @import("project/history.zig").Frame, diagn
 
 /// Everything the module analysis needs besides the ZX function bodies: the source graph, the Store registry, the
 /// signatures and the RX constraints. It lives as long as `allocator`, since a later analysis may reuse it.
-fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options: Options, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!Derived {
+fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options: Options, cache: *frontend.project.ParseCache, inputs: *Inputs) std.mem.Allocator.Error!Derived {
     var options = raw_options;
     options.project.source_index = try frontend.project.source_index.buildIn(allocator, options.sources, options.project.root_dir);
 
@@ -199,7 +203,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
 
     project.context = registry.data.context;
 
-    const prepared = try prepare.loadSignatures(allocator, backing, modules, rx_modules, project, registry.data.definitions, indexed);
+    const prepared = try prepare.loadSignatures(allocator, backing, modules, rx_modules, project, registry.data.definitions, indexed, inputs);
 
     if (prepared == .diagnostic) return .{ .diagnostic = prepared.diagnostic };
 
@@ -211,7 +215,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
 
     var reporter: zx.Reporter = .{};
     var graph = Graph.init(allocator, backing, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
-    const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map) catch |err| return reported(allocator, source_map, reporter, err);
+    const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs) catch |err| return reported(allocator, source_map, reporter, err);
 
     graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
 

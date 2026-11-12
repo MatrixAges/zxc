@@ -68,38 +68,22 @@ pub fn compileParsed(allocator: std.mem.Allocator, parsed: *const frontend.Expre
 
     if (analyzed.value == .diagnostic) return .{ .arena = analyzed.arena, .value = .{ .diagnostic = diagnostic(attribute, analyzed.value.diagnostic) } };
 
-    var program = analyzed.value.ir;
-    const temporary = analyzed.arena.allocator();
-    var expressions = program.expressions;
-    const expression_starts = try temporary.alloc(u64, expressions.count());
-    const expression_ends = try temporary.alloc(u64, expressions.count());
-    var symbols = program.symbols;
-    const starts = try temporary.alloc(u64, symbols.count());
-    const ends = try temporary.alloc(u64, symbols.count());
+    const program = analyzed.value.ir;
 
-    for (expressions.span_start, expressions.span_end, expression_starts, expression_ends) |start, end, *mapped_start, *mapped_end| {
-        const span = sourceSpan(attribute, .{ .start = @intCast(start), .end = @intCast(end) });
-
-        mapped_start.* = span.start;
-        mapped_end.* = span.end;
-    }
-
-    expressions.span_start = expression_starts;
-    expressions.span_end = expression_ends;
-
-    for (symbols.span_start, symbols.span_end, starts, ends) |start, end, *mapped_start, *mapped_end| {
-        const span = sourceSpan(attribute, .{ .start = @intCast(start), .end = @intCast(end) });
-
-        mapped_start.* = span.start;
-        mapped_end.* = span.end;
-    }
-
-    symbols.span_start = starts;
-    symbols.span_end = ends;
-    program.expressions = expressions;
-    program.symbols = symbols;
+    // The expression analyzer publishes its own span columns, even when borrowing types.
+    relocate(attribute, @constCast(program.expressions.span_start), @constCast(program.expressions.span_end));
+    relocate(attribute, @constCast(program.symbols.span_start), @constCast(program.symbols.span_end));
 
     return .{ .arena = analyzed.arena, .value = .{ .ir = program } };
+}
+
+fn relocate(attribute: rx.ast.Attribute, starts: []u64, ends: []u64) void {
+    for (starts, ends) |*start, *end| {
+        const span = sourceSpan(attribute, .{ .start = @intCast(start.*), .end = @intCast(end.*) });
+
+        start.* = span.start;
+        end.* = span.end;
+    }
 }
 
 fn diagnostic(attribute: rx.ast.Attribute, issue: zx.Diagnostic) Diagnostic {

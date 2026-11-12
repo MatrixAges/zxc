@@ -3,6 +3,7 @@ const frontend = @import("frontend");
 const ir = @import("zx").ir;
 const State = @import("state.zig");
 const Loading = @import("../prepare.zig");
+const Inputs = @import("../call_inputs.zig");
 const Signature = @import("../signatures.zig").Signature;
 const Module = @import("../../module.zig");
 const Source = frontend.project.artifact.source_link;
@@ -22,7 +23,7 @@ pub const Prepared = struct {
     initializers: usize,
 };
 
-pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, index: usize, module: Loading.Module, signature: Signature) State.Error!Result {
+pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, index: usize, module: Loading.Module, signature: Signature, arguments: Inputs.Module) State.Error!Result {
     state.owner = index;
 
     const ids = try @import("callees.zig").load(state, cache, sources, module);
@@ -31,7 +32,7 @@ pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []co
     if (!entry) _ = state.scratch.reset(.retain_capacity);
 
     const allocator = if (entry) state.allocator else state.scratch.allocator();
-    const prepared = try prepare(state, allocator, index, module, signature, ids);
+    const prepared = try prepare(state, allocator, index, module, signature, ids, arguments);
     const result = try lower(state, allocator, prepared);
 
     if (result == .diagnostic) {
@@ -46,15 +47,16 @@ pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []co
 }
 
 /// Binds the calls of `module` to the functions `ids` names, over the shared tables as they stand.
-pub fn prepare(state: *State, allocator: std.mem.Allocator, index: usize, module: Loading.Module, signature: Signature, ids: []const ir.FunctionId) State.Error!Prepared {
+pub fn prepare(state: *State, allocator: std.mem.Allocator, index: usize, module: Loading.Module, signature: Signature, ids: []const ir.FunctionId, arguments: Inputs.Module) State.Error!Prepared {
     const base_view = state.functions.view();
     const base = try base_view.snapshot(allocator);
     const calls = try allocator.alloc(Module.Loaded, module.calls.len);
 
-    for (module.calls, ids, calls) |call, id, *loaded| {
+    for (module.calls, ids, calls, 0..) |call, id, *loaded, position| {
         loaded.* = .{
             .node = call.node,
             .getters = call.getters,
+            .argument = Inputs.input(arguments, position),
             .function = .{
                 .id = id,
                 .program = try @import("function.zig").view(state, id, base),

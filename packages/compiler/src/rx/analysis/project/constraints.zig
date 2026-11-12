@@ -6,13 +6,14 @@ const Graph = @import("../inference/types.zig");
 const Expression = @import("../inference/expression.zig");
 const SourceMap = @import("../source_map.zig");
 const Prepared = @import("prepare.zig");
+const Inputs = @import("call_inputs.zig");
 const target = @import("../call/target.zig");
 const paths = frontend.binding_path;
 const State = struct { input: Graph.Id, output: Graph.Id, input_fixed: bool, bindings: []const Expression.Binding = &.{}, tasks: []const Task = &.{} };
 pub const States = std.MultiArrayList(State).Slice;
 pub const Task = struct { id: usize, output: Graph.Id };
 
-pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap) zx.Error!States {
+pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap, arguments: *const Inputs) zx.Error!States {
     var storage: std.MultiArrayList(State) = .empty;
 
     try storage.ensureTotalCapacity(graph.allocator, modules.len);
@@ -61,7 +62,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
             .span_offset = source_map.base(index),
         };
 
-        var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = output };
+        var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = output, .arguments = arguments.module(index) };
 
         if (module.shortcut) |call_index| {
             const call = module.calls[call_index];
@@ -101,6 +102,7 @@ const Walker = struct {
     expression: *Expression,
     module: Prepared.Module,
     states: States,
+    arguments: Inputs.Module,
     output: Graph.Id,
     bindings: std.ArrayList(Expression.Binding) = .empty,
     returned: bool = false,
@@ -109,14 +111,14 @@ const Walker = struct {
         const expression = self.expression;
 
         for (sequence) |step| switch (step.value) {
-            .call => |index| try self.call(self.module.calls[index]),
+            .call => |index| try self.call(index),
             .parallel => |branches| {
                 const count = expression.bindings.items.len;
                 var outputs: std.ArrayList(Expression.Binding) = .empty;
 
                 for (branches) |branch| {
                     switch (branch) {
-                        .call => |index| try self.call(self.module.calls[index]),
+                        .call => |index| try self.call(index),
                         .task => |task| {
                             const parent_output = self.output;
                             const parent_returned = self.returned;
@@ -211,7 +213,8 @@ const Walker = struct {
             },
         };
     }
-    fn call(self: *Walker, invocation: Prepared.Call) zx.Error!void {
+    fn call(self: *Walker, index: usize) zx.Error!void {
+        const invocation = self.module.calls[index];
         const expression = self.expression;
         const graph = expression.graph;
         const attribute = target.optionalAttribute(invocation.node, "in");
@@ -229,7 +232,10 @@ const Walker = struct {
 
             for (invocation.getters) |getter| try expression.bindings.append(graph.allocator, .{ .name = getter.name, .value = try graph.known(getter.slot.type_id, span) });
 
-            _ = try inferAttribute(expression, self.module.source.path, value, input);
+            _ = if (Inputs.input(self.arguments, index)) |parsed|
+                try inferParsedAttribute(expression, parsed, value, input)
+            else
+                try inferAttribute(expression, self.module.source.path, value, input);
 
             expression.bindings.shrinkRetainingCapacity(count);
         } else try graph.unify(input, try graph.scalar(.void, span), span);
@@ -268,7 +274,7 @@ const Walker = struct {
 };
 
 fn inferAttribute(expression: *Expression, owner: []const u8, attribute: rx.ast.Attribute, expected: ?Graph.Id) zx.Error!Graph.Id {
-    var parsed = try @import("../attribute.zig").parse(expression.graph.allocator, attribute, owner);
+    var parsed = try @import("../attribute.zig").parseBorrowed(expression.graph.scratch, attribute, owner);
 
     defer parsed.deinit();
 
@@ -288,7 +294,7 @@ fn inferParsedAttribute(expression: *Expression, parsed: *const frontend.Express
     return switch (parsed.*) {
         .native => |result| expression.infer(result.value.parsed.expression, expected),
         .indexed => |result| if (@import("frontend").ExpressionInput.indexed_enabled) block: {
-            var scratch = std.heap.ArenaAllocator.init(allocator);
+            var scratch = std.heap.ArenaAllocator.init(expression.graph.scratch);
 
             defer scratch.deinit();
 

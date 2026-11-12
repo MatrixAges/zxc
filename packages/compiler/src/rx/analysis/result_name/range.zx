@@ -1,0 +1,62 @@
+import bytes from "std:bytes"
+import { ascii_backslash, ascii_dot, ascii_slash } from "core/ascii/const"
+
+import { module_extension, rx_extension } from "../../../zx/modules/path/const"
+import { native_suffix, native_suffix_length, short_suffix_length } from "./const"
+
+export type Input = string
+
+export type Output = {
+    start: u64,
+    end: u64
+}
+
+export default function (in: Input): Output {
+    const source = bytes.fromText(in)
+
+    const start = loop({
+        index: source.length,
+        start: 0
+    }, {
+        while: state => state.index != 0 && state.start == 0,
+        next: state => {
+            const byte = source[state.index - 1]
+
+            if (byte == ascii_slash || byte == ascii_backslash) {
+                state.start = state.index
+            }
+
+            state.index -= 1
+        },
+        return: state => state.start
+    })
+
+    const end = source.length
+    const dot = bytes.lastIndexOfScalar(source, ascii_dot)
+
+    if (dot != null && dot >= start) {
+        const length = end - dot
+
+        const recognized = match length {
+            short_suffix_length => bytes.startsWithText(
+                source,
+                dot,
+                module_extension
+            ) || bytes.startsWithText(source, dot, rx_extension),
+            native_suffix_length => bytes.startsWithText(source, dot, native_suffix),
+            _ => false
+        }
+
+        if (recognized) {
+            return {
+                start,
+                end: dot
+            }
+        }
+    }
+
+    return {
+        start,
+        end
+    }
+}

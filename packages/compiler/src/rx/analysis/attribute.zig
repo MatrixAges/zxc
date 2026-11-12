@@ -5,9 +5,20 @@ const frontend = @import("frontend");
 const lint = @import("lint");
 
 pub fn parse(allocator: std.mem.Allocator, attribute: rx.ast.Attribute, owner: []const u8) std.mem.Allocator.Error!frontend.ExpressionInput.Result {
+    return parseWithOwnership(allocator, attribute, owner, false);
+}
+
+pub fn parseBorrowed(allocator: std.mem.Allocator, attribute: rx.ast.Attribute, owner: []const u8) std.mem.Allocator.Error!frontend.ExpressionInput.Result {
+    return parseWithOwnership(allocator, attribute, owner, true);
+}
+
+fn parseWithOwnership(allocator: std.mem.Allocator, attribute: rx.ast.Attribute, owner: []const u8, comptime borrowed: bool) std.mem.Allocator.Error!frontend.ExpressionInput.Result {
     var result: frontend.ExpressionInput.Result = switch (attribute.kind) {
         .string => .{ .native = try frontend.stringExpression(allocator, attribute.value, owner) },
-        .expression => try frontend.parseExpressionInput(allocator, attribute.value, owner),
+        .expression => if (borrowed)
+            try frontend.parseBorrowedExpressionInput(allocator, attribute.value, owner)
+        else
+            try frontend.parseExpressionInput(allocator, attribute.value, owner),
     };
 
     errdefer result.deinit();

@@ -3,6 +3,7 @@ const frontend = @import("frontend");
 const rx = @import("rx");
 const target = @import("../call/target.zig");
 const Libraries = @import("../call/library_bindings.zig");
+const Inputs = @import("call_inputs.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
 const Action = rx.IndexedFlow.Operation;
@@ -16,7 +17,7 @@ pub const Module = struct { source: rx.ModuleSource, shortcut: ?usize = null, ca
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
-pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures) std.mem.Allocator.Error!Value {
+pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures, inputs: *Inputs) std.mem.Allocator.Error!Value {
     const plans = try allocator.alloc(Module, modules.len);
 
     var loader = Loader{
@@ -24,15 +25,17 @@ pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, 
         .backing = backing,
         .project = initial_project,
         .signatures = signatures,
+        .inputs = inputs,
         .libraries = .{ .allocator = allocator, .scratch = std.heap.ArenaAllocator.init(backing) },
     };
 
     defer loader.libraries.scratch.deinit();
 
-    for (modules, registered, plans) |source, module, *plan| {
+    for (modules, registered, plans, 0..) |source, module, *plan, index| {
         loader.owner = source.path;
         loader.references = .{ .remaining = module.dependencies };
         loader.calls = .empty;
+        loader.arguments = .empty;
         loader.task_count = 0;
         loader.deferred_shortcut = null;
 
@@ -52,6 +55,7 @@ pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, 
         const imported = try @import("type_imports.zig").collect(allocator, source, module, signatures);
 
         if (imported == .diagnostic) return .{ .diagnostic = imported.diagnostic };
+        try inputs.publish(modules.len, index, loader.arguments.items);
 
         plan.* = .{ .source = source, .shortcut = loader.deferred_shortcut, .calls = loader.calls.items, .steps = steps, .type_imports = imported.imports, .value_imports = try @import("type_imports.zig").values(allocator, loader.project.context.types, imported.imports) };
     }
@@ -87,6 +91,8 @@ const Loader = struct {
     project: frontend.project.Options,
     signatures: Signatures,
     libraries: Libraries,
+    inputs: *Inputs,
+    arguments: std.ArrayList(?*const frontend.ExpressionInput.Result) = .empty,
     references: Graph.References = .{ .remaining = &.{} },
     owner: []const u8 = "",
     flow: ?rx.IndexedFlow = null,
@@ -255,7 +261,8 @@ const Loader = struct {
     }
     fn call(self: *Loader, node: rx.ast.Node) Error!usize {
         const index = self.calls.items.len;
-        const authorized = try @import("../store/call.zig").analyze(self.allocator, self.backing, self.owner, node, self.stores);
+        const input = if (target.optionalAttribute(node, "in")) |value| try self.inputs.parse(value, self.owner) else null;
+        const authorized = try @import("../store/call.zig").analyze(self.allocator, self.backing, self.owner, node, self.stores, input);
 
         if (authorized == .diagnostic) {
             self.issue = authorized.diagnostic;
@@ -279,6 +286,16 @@ const Loader = struct {
             .edge = edge,
             .callee = callee,
         });
+
+        if (input) |parsed| {
+            const first = self.arguments.items.len;
+
+            try self.arguments.resize(self.inputs.arena.allocator(), index + 1);
+
+            @memset(self.arguments.items[first..index], null);
+
+            self.arguments.items[index] = parsed;
+        }
 
         return index;
     }

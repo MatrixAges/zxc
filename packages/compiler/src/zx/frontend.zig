@@ -10,6 +10,7 @@ pub const analyzeModule = @import("analysis/analyze.zig").analyzeModule;
 pub const ParseResult = @import("frontend/parse.zig").Result;
 pub const ExpressionInput = @import("frontend/expression_result.zig");
 pub const parseExpressionInput = @import("frontend/parse_expression.zig").parseInput;
+pub const parseBorrowedExpressionInput = @import("frontend/parse_expression.zig").parseBorrowedInput;
 pub const parseExpression = @import("frontend/parse_expression.zig").parse;
 pub const formatXml = @import("frontend/format_xml.zig").format;
 pub const formatXmlText = @import("frontend/format_xml.zig").formatText;

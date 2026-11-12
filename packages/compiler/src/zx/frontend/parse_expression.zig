@@ -24,24 +24,29 @@ pub const Result = struct {
 pub const InputResult = @import("expression_result.zig").Result;
 
 pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!Result {
-    const result = try parseWithMode(false, allocator, source, file_name);
+    const result = try parseWithMode(false, true, allocator, source, file_name);
 
     return result.native;
 }
 
 pub fn parseInput(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!InputResult {
-    return parseWithMode(true, allocator, source, file_name);
+    return parseWithMode(true, true, allocator, source, file_name);
 }
 
-fn parseWithMode(comptime indexed: bool, allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!InputResult {
+/// The caller keeps the source and filename alive until it releases the parse result.
+pub fn parseBorrowedInput(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!InputResult {
+    return parseWithMode(true, false, allocator, source, file_name);
+}
+
+fn parseWithMode(comptime indexed: bool, copy_input: bool, allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!InputResult {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
 
     var reporter: zx.Reporter = .{};
     const temporary = arena.allocator();
-    const owned_source = try temporary.dupe(u8, source);
-    const owned_name = try temporary.dupe(u8, file_name);
+    const owned_source = if (copy_input) try temporary.dupe(u8, source) else source;
+    const owned_name = if (copy_input) try temporary.dupe(u8, file_name) else file_name;
 
     if (@import("parser_options").generated_parser) {
         const generated = @import("generated_expression");

@@ -160,7 +160,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
-    var parsed = try @import("attribute.zig").parse(self.allocator, attribute, self.owner);
+    var parsed = try @import("attribute.zig").parseBorrowed(self.scratch, attribute, self.owner);
 
     defer parsed.deinit();
 
@@ -242,7 +242,15 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
     for (loaded.getters) |getter| try self.bindings.append(self.binding_allocator, .{ .name = getter.name, .type_id = getter.slot.type_id });
 
-    const argument = if (target.optionalAttribute(loaded.node, "in")) |attribute| try self.value(attribute, loaded.function.program.input_type) else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
+    const input = target.optionalAttribute(loaded.node, "in");
+
+    const argument = if (input) |attribute| value: {
+        const expected = loaded.function.program.input_type;
+
+        if (loaded.argument) |parsed| break :value try self.valueParsed(parsed, attribute, expected);
+
+        break :value try self.value(attribute, expected);
+    } else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
 
     self.bindings.shrinkRetainingCapacity(count);
 
@@ -259,7 +267,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
     const index = self.calls.items.len;
 
-    try self.calls.append(self.allocator, .{ .function_id = loaded.function.id, .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "in") == null, .out = out, .getters = loaded.getters });
+    try self.calls.append(self.allocator, .{ .function_id = loaded.function.id, .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = input == null, .out = out, .getters = loaded.getters });
 
     return index;
 }

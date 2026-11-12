@@ -12,8 +12,22 @@ pub fn resolve(node: rx.ast.Node) Result {
     }
 
     const attribute = target.optionalAttribute(node, "fn") orelse target.attribute(node, "module");
-    const separator = std.mem.lastIndexOfAny(u8, attribute.value, "/\\");
-    var name = attribute.value[if (separator) |index| index + 1 else 0..];
+    const name = if (comptime @import("rx_options").generated_graph) generated(attribute.value) else seed(attribute.value);
+
+    return .{ .name = name, .attribute = attribute };
+}
+
+fn generated(value: []const u8) []const u8 {
+    const rule = @import("generated_rx_result_name_range");
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    const range = rule.executeValue(empty.allocator(), value) catch unreachable;
+
+    return value[@intCast(range.start)..@intCast(range.end)];
+}
+
+fn seed(value: []const u8) []const u8 {
+    const separator = std.mem.lastIndexOfAny(u8, value, "/\\");
+    var name = value[if (separator) |index| index + 1 else 0..];
 
     for ([_][]const u8{ ".zx", ".rx", ".zig" }) |suffix| {
         if (std.mem.endsWith(u8, name, suffix)) {
@@ -23,5 +37,5 @@ pub fn resolve(node: rx.ast.Node) Result {
         }
     }
 
-    return .{ .name = name, .attribute = attribute };
+    return name;
 }

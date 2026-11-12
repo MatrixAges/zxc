@@ -43,7 +43,13 @@ pub const Result = struct {
     }
 };
 
-pub const Loaded = struct { getters: []const @import("store.zig").Binding = &.{}, node: rx.ast.Node, function: target.Function };
+pub const Loaded = struct {
+    getters: []const @import("store.zig").Binding = &.{},
+    node: rx.ast.Node,
+    function: target.Function,
+    argument: ?*const frontend.ExpressionInput.Result = null,
+};
+
 pub const Binding = struct { name: []const u8, type_id: zx.ir.TypeId };
 
 pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Result {

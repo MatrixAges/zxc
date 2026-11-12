@@ -5,9 +5,10 @@ const zx = @import("zx");
 const Module = @import("../module.zig");
 const Frame = @import("history.zig").Frame;
 const State = @import("mixed/state.zig");
+const Inputs = @import("call_inputs.zig");
 
 /// Analyzes and links every module in dependency order over the shared tables `derived` starts them from.
-pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived: Frame, selected: []const rx.ModuleSource, sources: []const frontend.project.Source, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache, record: ?*@import("history.zig").History) std.mem.Allocator.Error!Module.Value {
+pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived: Frame, selected: []const rx.ModuleSource, sources: []const frontend.project.Source, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache, record: ?*@import("history.zig").History, arguments: *const Inputs) std.mem.Allocator.Error!Module.Value {
     const dependencies = derived.dependencies;
     const loaded = derived.loaded;
     const resolved = derived.resolved;
@@ -39,7 +40,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
                 batch += 1;
             }
 
-            start += try ahead.analyze(&state, cache, sources, derived, &reuse, dependencies.order[start..end]);
+            start += try ahead.analyze(&state, cache, sources, derived, &reuse, dependencies.order[start..end], arguments);
         }
 
         state.owner = index;
@@ -80,7 +81,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
                     _ = state.scratch.reset(.retain_capacity);
 
                     break :ready rx_module.link(&state, state.scratch.allocator(), lowered.prepared, lowered.contract);
-                } else rx_module.compile(&state, cache, sources, index, loaded.modules[source], resolved[source]);
+                } else rx_module.compile(&state, cache, sources, index, loaded.modules[source], resolved[source], arguments.module(source));
 
                 const result = linked catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;

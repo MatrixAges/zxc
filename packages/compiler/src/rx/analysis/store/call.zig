@@ -11,19 +11,17 @@ const generated = @import("rx_options").generated_graph;
 pub const Authorization = struct { getters: []const Store.Binding, setter: ?target.Setter = null };
 pub const Value = union(enum) { authorized: Authorization, diagnostic: target.Diagnostic };
 
-pub fn analyze(allocator: std.mem.Allocator, backing: std.mem.Allocator, owner: []const u8, node: rx.ast.Node, bindings: []const Store.Binding) std.mem.Allocator.Error!Value {
+pub fn analyze(allocator: std.mem.Allocator, backing: std.mem.Allocator, owner: []const u8, node: rx.ast.Node, bindings: []const Store.Binding, argument: ?*const frontend.ExpressionInput.Result) std.mem.Allocator.Error!Value {
     var reads: std.ArrayList(Store.Binding) = .empty;
 
     if (target.optionalAttribute(node, "in")) |input| {
-        var parsed = try @import("../attribute.zig").parse(backing, input, owner);
-
-        defer parsed.deinit();
+        const parsed = argument.?;
 
         if (parsed.diagnostic()) |issue| {
             return failure(allocator, owner, input, issue.span.start, @tagName(issue.code), issue.message);
         }
 
-        if (bindings.len != 0) switch (parsed) {
+        if (bindings.len != 0) switch (parsed.*) {
             .native => |result| try collectReads(allocator, &reads, result.value.parsed.expression, bindings),
             .indexed => |result| if (frontend.ExpressionInput.indexed_enabled) indexed: {
                 if (comptime generated) {

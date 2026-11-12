@@ -12,6 +12,7 @@ const Zx = @import("zx.zig");
 const Rx = @import("rx.zig");
 const Module = @import("../../module.zig");
 const Frame = @import("../history.zig").Frame;
+const Inputs = @import("../call_inputs.zig");
 const Self = @This();
 
 arenas: []std.heap.ArenaAllocator,
@@ -57,7 +58,7 @@ pub fn deinit(self: *Self) void {
 
 /// Analyzes a bounded prefix of the run and returns its module count. Runs below the parallel minimum are left to
 /// their turn; only successfully prepared modules consume the batch's parallel slots.
-pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, reuse: *const Reuse, modules: []const usize) std.mem.Allocator.Error!usize {
+pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, reuse: *const Reuse, modules: []const usize, arguments: *const Inputs) std.mem.Allocator.Error!usize {
     for (self.items.items) |item| self.positions[item.index()] = none;
     for (self.arenas) |*arena| _ = arena.reset(.retain_capacity);
 
@@ -88,7 +89,7 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
 
         state.owner = index;
 
-        const item = prepare(self, state, cache, sources, derived, index) catch |err| switch (err) {
+        const item = prepare(self, state, cache, sources, derived, index, arguments) catch |err| switch (err) {
             error.OutOfMemory => return error.OutOfMemory,
             else => {
                 state.issue = issue;
@@ -142,7 +143,7 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
     return consumed;
 }
 
-fn prepare(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, index: usize) State.Error!?Item {
+fn prepare(self: *Self, state: *State, cache: *frontend.project.ParseCache, sources: []const frontend.project.Source, derived: Frame, index: usize, arguments: *const Inputs) State.Error!?Item {
     switch (state.graph.modules[index].source) {
         .store => return null,
         .zx => return .{ .zx = .{ .prepared = try Zx.prepare(state, cache, sources, index, null) } },
@@ -154,7 +155,7 @@ fn prepare(self: *Self, state: *State, cache: *frontend.project.ParseCache, sour
 
             const ids = try callees.load(state, cache, sources, module);
 
-            return .{ .rx = .{ .prepared = try Rx.prepare(state, self.bindings.allocator(), index, module, derived.resolved[source], ids) } };
+            return .{ .rx = .{ .prepared = try Rx.prepare(state, self.bindings.allocator(), index, module, derived.resolved[source], ids, arguments.module(source)) } };
         },
     }
 }
