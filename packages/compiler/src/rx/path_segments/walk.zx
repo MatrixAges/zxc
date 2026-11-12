@@ -1,0 +1,45 @@
+import bytes from "std:bytes"
+import memory from "std:memory"
+
+import scan from "./scan"
+
+import type { Position, Walk } from "./model"
+
+export type Input = Walk
+
+export type Output = Position
+
+export default function (in: Input): Output {
+    const suffix = bytes.fromText(in.suffix)
+    const target = in.target
+    const capacity = in.capacity
+
+    if (target != null && suffix.length != 0) {
+        const copied =
+            memory.copyBytes(
+                target,
+                capacity - suffix.length,
+                suffix,
+                0,
+                suffix.length
+            )
+    }
+
+    const tail = scan({
+        source: in.path,
+        initial: {
+            parents: 0,
+            length: suffix.length,
+            attached: in.attached
+        },
+        capacity,
+        target
+    })
+
+    return scan({
+        source: in.directory,
+        initial: tail,
+        capacity,
+        target
+    })
+}

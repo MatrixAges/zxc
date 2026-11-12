@@ -1,9 +1,10 @@
 const std = @import("std");
+const generated_paths = @import("rx_options").generated_paths;
 
 pub const Error = error{ InvalidPath, OutOfMemory };
 
 pub fn isModuleFile(path: []const u8) bool {
-    if (@import("rx_options").generated_paths) return @import("path_kind/adapter.zig").check(path, &.{}, .ModuleFile);
+    if (generated_paths) return @import("path_kind/adapter.zig").check(path, &.{}, .ModuleFile);
 
     const name = std.fs.path.basename(path);
 
@@ -16,6 +17,7 @@ pub fn isModuleFile(path: []const u8) bool {
 }
 
 pub fn normalize(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
+    if (generated_paths) return @import("path_segments/adapter.zig").normalize(allocator, path, .ModuleFile, "");
     if (!isModuleFile(path)) return error.InvalidPath;
 
     return normalizeSegments(allocator, path);
@@ -30,11 +32,7 @@ pub fn normalizeStore(allocator: std.mem.Allocator, path: []const u8) Error![]co
 }
 
 fn normalizeSpecial(allocator: std.mem.Allocator, path: []const u8, suffix: []const u8) Error![]const u8 {
-    if (@import("rx_options").generated_paths) {
-        if (!@import("path_kind/adapter.zig").check(path, suffix, .SpecialFile)) return error.InvalidPath;
-
-        return normalizeSegments(allocator, path);
-    }
+    if (generated_paths) return @import("path_segments/adapter.zig").normalize(allocator, path, .SpecialFile, suffix);
 
     const name = std.fs.path.basename(path);
 
@@ -46,8 +44,6 @@ fn normalizeSpecial(allocator: std.mem.Allocator, path: []const u8, suffix: []co
 }
 
 fn normalizeSegments(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
-    if (@import("rx_options").generated_paths) return @import("path_segments/adapter.zig").normalize(allocator, path);
-
     var segments: std.ArrayList([]const u8) = .empty;
 
     defer segments.deinit(allocator);
@@ -68,7 +64,7 @@ fn normalizeSegments(allocator: std.mem.Allocator, path: []const u8) Error![]con
 }
 
 pub fn isModuleReference(path: []const u8) bool {
-    if (@import("rx_options").generated_paths) return @import("path_kind/adapter.zig").check(path, &.{}, .ModuleReference);
+    if (generated_paths) return @import("path_kind/adapter.zig").check(path, &.{}, .ModuleReference);
     if (std.mem.endsWith(u8, path, ".rx")) return isModuleFile(path);
 
     const name = std.fs.path.basename(path);
@@ -81,9 +77,10 @@ pub fn isModuleReference(path: []const u8) bool {
 }
 
 pub fn resolve(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
-    if (!isModuleReference(reference)) return error.InvalidPath;
-
     const directory = std.fs.path.dirname(owner) orelse ".";
+
+    if (generated_paths) return @import("path_segments/adapter.zig").resolve(allocator, directory, reference, .ModuleReference, "");
+    if (!isModuleReference(reference)) return error.InvalidPath;
 
     const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
         directory,
@@ -97,22 +94,22 @@ pub fn resolve(allocator: std.mem.Allocator, owner: []const u8, reference: []con
 }
 
 pub fn resolveStore(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
-    if (@import("rx_options").generated_paths) {
-        if (!@import("path_kind/adapter.zig").check(reference, &.{}, .StoreReference)) return error.InvalidPath;
-    } else {
-        const name = std.fs.path.basename(reference);
+    const directory = std.fs.path.dirname(owner) orelse ".";
 
-        if (reference.len == 0 or reference[0] == '/' or reference[reference.len - 1] == '/' or
-            std.mem.indexOfAny(u8, reference, "\\:\x00") != null or
-            std.mem.eql(u8, name, ".") or std.mem.eql(u8, name, "..")) return error.InvalidPath;
-    }
+    if (generated_paths) return @import("path_segments/adapter.zig").resolve(allocator, directory, reference, .StoreReference, "");
+
+    const name = std.fs.path.basename(reference);
+
+    if (reference.len == 0 or reference[0] == '/' or reference[reference.len - 1] == '/' or
+        std.mem.indexOfAny(u8, reference, "\\:\x00") != null or
+        std.mem.eql(u8, name, ".") or std.mem.eql(u8, name, "..")) return error.InvalidPath;
 
     const has_suffix = std.mem.endsWith(u8, reference, ".store.rx");
 
-    if (!@import("rx_options").generated_paths and std.mem.endsWith(u8, reference, ".rx") and !has_suffix) return error.InvalidPath;
+    if (std.mem.endsWith(u8, reference, ".rx") and !has_suffix) return error.InvalidPath;
 
     const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
-        std.fs.path.dirname(owner) orelse ".",
+        directory,
         reference,
         if (has_suffix) "" else ".store.rx",
     });
@@ -123,7 +120,7 @@ pub fn resolveStore(allocator: std.mem.Allocator, owner: []const u8, reference: 
 }
 
 pub fn isFunctionReference(reference: []const u8) bool {
-    if (@import("rx_options").generated_paths) {
+    if (generated_paths) {
         return @import("path_kind/adapter.zig").check(reference, &.{}, .FunctionReference);
     }
 
@@ -133,10 +130,13 @@ pub fn isFunctionReference(reference: []const u8) bool {
 }
 
 pub fn resolveFunction(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
+    const directory = std.fs.path.dirname(owner) orelse ".";
+
+    if (generated_paths) return @import("path_segments/adapter.zig").resolve(allocator, directory, reference, .FunctionReference, "");
     if (!isFunctionReference(reference)) return error.InvalidPath;
 
     const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
-        std.fs.path.dirname(owner) orelse ".",
+        directory,
         reference,
         if (std.mem.endsWith(u8, reference, "/")) "index.zx" else if (std.mem.eql(u8, std.fs.path.basename(reference), ".") or std.mem.eql(u8, std.fs.path.basename(reference), "..")) "/index.zx" else if (std.mem.endsWith(u8, reference, ".zx")) "" else ".zx",
     });

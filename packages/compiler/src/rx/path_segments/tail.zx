@@ -1,0 +1,115 @@
+import { ascii_slash } from "core/ascii/const"
+
+import {
+    current_directory,
+    parent_directory,
+    rx_suffix,
+    store_suffix
+} from "../../const"
+import { index_file, module_extension } from "../../zx/modules/path/const"
+import admit from "../path_kind/admit"
+import ends from "../path_kind/ends"
+import equal from "../path_kind/equal"
+import { Kind } from "../path_kind/model"
+import name from "../path_kind/name"
+
+import type { Request, Tail } from "./model"
+
+export type Input = Request
+
+export type Output = Tail
+
+export default function (in: Input): Output {
+    const start = name(in.path)
+
+    const admitted = admit({
+        path: in.path,
+        kind: in.kind,
+        suffix: in.suffix,
+        start
+    })
+
+    const invalid_base =
+        in.directory.length != 0 && name(in.directory) == in.directory.length
+
+    if (!admitted || invalid_base) {
+        return {
+            valid: false,
+            suffix: "",
+            attached: false
+        }
+    }
+
+    if (in.kind == Kind.ModuleReference) {
+        const has_suffix = ends({
+            source: in.path,
+            pattern: rx_suffix
+        })
+
+        return {
+            valid: true,
+            suffix: has_suffix ? "" : rx_suffix,
+            attached: !has_suffix
+        }
+    }
+
+    if (in.kind == Kind.StoreReference) {
+        const has_suffix = ends({
+            source: in.path,
+            pattern: store_suffix
+        })
+
+        const has_name = in.path.length - start > store_suffix.length
+
+        return {
+            valid: !has_suffix || has_name,
+            suffix: has_suffix ? "" : store_suffix,
+            attached: !has_suffix
+        }
+    }
+
+    if (in.kind == Kind.FunctionReference) {
+        const trailing_slash = in.path[in.path.length - 1] == ascii_slash
+
+        const current = equal({
+            source: in.path,
+            start,
+            pattern: current_directory
+        })
+
+        const parent = equal({
+            source: in.path,
+            start,
+            pattern: parent_directory
+        })
+
+        const directory = trailing_slash || current || parent
+
+        if (directory) {
+            return {
+                valid: true,
+                suffix: index_file,
+                attached: false
+            }
+        }
+
+        const has_suffix = ends({
+            source: in.path,
+            pattern: module_extension
+        })
+
+        const has_name = in.path.length - start > module_extension.length
+
+        return {
+            valid: !has_suffix || has_name,
+            suffix: has_suffix ? "" : module_extension,
+            attached: !has_suffix
+        }
+    }
+
+    return {
+        valid: true,
+        suffix: "",
+        attached: false
+    }
+}

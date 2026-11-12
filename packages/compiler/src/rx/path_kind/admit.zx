@@ -1,0 +1,107 @@
+import { ascii_slash } from "core/ascii/const"
+
+import {
+    app_name,
+    current_directory,
+    gateway_name_suffix,
+    parent_directory,
+    rx_suffix,
+    store_name_suffix,
+    store_suffix
+} from "../../const"
+import ends from "./ends"
+import equal from "./equal"
+import { Kind } from "./model"
+import moduleFile from "./module_file"
+
+export type Input = {
+    path: u8[],
+    kind: Kind,
+    suffix: string,
+    start: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const start = in.start
+
+    if (start == in.path.length) {
+        return false
+    }
+
+    if (in.kind == Kind.FunctionReference) {
+        return !ends({
+            source: in.path,
+            pattern: rx_suffix
+        })
+    }
+
+    if (in.path[in.path.length - 1] == ascii_slash) {
+        return false
+    }
+
+    if (in.kind == Kind.SpecialFile) {
+        return in.path.length - start > in.suffix.length && ends({
+            source: in.path,
+            pattern: in.suffix
+        })
+    }
+
+    if (in.kind == Kind.ModuleFile) {
+        return moduleFile({
+            source: in.path,
+            start
+        })
+    }
+
+    const rx = ends({
+        source: in.path,
+        pattern: rx_suffix
+    })
+
+    if (in.kind == Kind.ModuleReference && rx) {
+        return moduleFile({
+            source: in.path,
+            start
+        })
+    }
+
+    if (equal({
+        source: in.path,
+        start,
+        pattern: current_directory
+    }) || equal({
+        source: in.path,
+        start,
+        pattern: parent_directory
+    })) {
+        return false
+    }
+
+    switch (in.kind) {
+        case Kind.ModuleReference:
+            return !equal({
+                source: in.path,
+                start,
+                pattern: app_name
+            }) &&
+                !ends({
+                    source: in.path,
+                    pattern: gateway_name_suffix
+                }) &&
+                !ends({
+                    source: in.path,
+                    pattern: store_name_suffix
+                })
+        case Kind.StoreReference:
+            return !rx || ends({
+                source: in.path,
+                pattern: store_suffix
+            })
+        case Kind.FunctionReference:
+            return !rx
+        default:
+            return false
+    }
+}

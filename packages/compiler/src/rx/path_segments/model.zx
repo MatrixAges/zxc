@@ -1,17 +1,37 @@
-export type Span = {
-    start: u64,
-    end: u64,
-    parent: bool
+import type { U8Buffer } from "std:memory"
+import type { Kind } from "../path_kind/model"
+
+export type Request = {
+    directory: u8[],
+    path: u8[],
+    kind: Kind,
+    suffix: string
 }
 
-export type State = {
-    offset: u64,
-    start: u64,
-    dots: bool,
-    segments: Span[]
+export type Tail = {
+    valid: bool,
+    suffix: string,
+    attached: bool
 }
 
-export type Resolution = {
+export type Plan = {
+    valid: bool,
+    suffix: string,
+    attached: bool,
+    length: u64
+}
+
+export type Position = {
     parents: u64,
-    segments: Span[]
+    length: u64,
+    attached: bool
+}
+
+export type Walk = {
+    directory: u8[],
+    path: u8[],
+    suffix: string,
+    attached: bool,
+    capacity: u64,
+    target?: U8Buffer
 }

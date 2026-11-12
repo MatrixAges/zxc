@@ -1,26 +1,96 @@
-import finish from "./finish"
-import tick from "./tick"
+import bytes from "std:bytes"
+import memory from "std:memory"
+import { ascii_dot, ascii_slash } from "core/ascii/const"
 
-import type { State, Span } from "./model"
+import { directory_separator } from "../../zx/modules/path/const"
 
-export type Input = u8[]
+import type { U8Buffer } from "std:memory"
+import type { Position } from "./model"
 
-export type Output = Span[]
+export type Input = {
+    source: u8[],
+    initial: Position,
+    capacity: u64,
+    target?: U8Buffer
+}
+
+export type Output = Position
 
 export default function (in: Input): Output {
-    const segments: Span[] = []
+    const source = in.source
+    const target = in.target
+    const capacity = in.capacity
+    const separator = bytes.fromText(directory_separator)
 
-    const initial: State = {
-        offset: 0,
-        start: 0,
-        dots: true,
-        segments
-    }
+    return loop({
+        offset: source.length,
+        parents: in.initial.parents,
+        length: in.initial.length,
+        attached: in.initial.attached
+    }, {
+        while: state => state.offset != 0,
+        next: state => {
+            const end = state.offset
+            const start = loop({
+                offset: end
+            }, {
+                while: segment =>
+                    segment.offset != 0 && source[segment.offset - 1] != ascii_slash,
+                next: segment => {
+                    segment.offset -= 1
+                },
+                return: segment => segment.offset
+            })
 
-    const computed_state = finish(in.reduce((state, byte) => tick({
-        state,
-        byte
-    }), initial)[1])
+            state.offset = start == 0 ? 0 : start - 1
 
-    return computed_state.segments
+            const width = end - start
+
+            if (width != 0) {
+                const dot = source[start] == ascii_dot
+                const current = dot && width == 1
+                const parent = dot && width == 2 && source[start + 1] == ascii_dot
+
+                if (parent) {
+                    state.parents += 1
+                } else if (!current) {
+                    if (state.parents != 0) {
+                        state.parents -= 1
+                    } else {
+                        if (state.length != 0 && !state.attached) {
+                            state.length += 1
+
+                            if (target != null) {
+                                const copied = memory.copyBytes(
+                                    target,
+                                    capacity - state.length,
+                                    separator,
+                                    0,
+                                    separator.length
+                                )
+                            }
+                        }
+
+                        state.length += width
+                        state.attached = false
+
+                        if (target != null) {
+                            const copied = memory.copyBytes(
+                                target,
+                                capacity - state.length,
+                                source,
+                                start,
+                                end
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        return: state => ({
+            parents: state.parents,
+            length: state.length,
+            attached: state.attached
+        })
+    })
 }

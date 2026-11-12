@@ -1,10 +1,39 @@
 <Module>
-    <Type from="resolve" as="Resolve" />
+    <Type from="model" as="Path" />
 
-    <Args in={u8[]} out={Resolve.Output} />
+    <Args in={Path.Request} out={Path.Plan} />
 
-    <Call fn="scan" in={$in} />
-    <Call fn="resolve" in={$ctx.scan} />
+    <Call fn="tail" in={$in} />
 
-    <Return value={$ctx.resolve} />
+    <If on={!$ctx.tail.valid}>
+        <Return
+            value={{
+                valid: false,
+                suffix: "",
+                attached: false,
+                length: 0
+            }}
+        />
+    </If>
+
+    <Call
+        fn="walk"
+        in={{
+            directory: $in.directory,
+            path: $in.path,
+            suffix: $ctx.tail.suffix,
+            attached: $ctx.tail.attached,
+            capacity: 0,
+            target: null
+        }}
+    />
+
+    <Return
+        value={{
+            valid: $ctx.walk.parents == 0,
+            suffix: $ctx.tail.suffix,
+            attached: $ctx.tail.attached,
+            length: $ctx.walk.length
+        }}
+    />
 </Module>
