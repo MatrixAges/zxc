@@ -7,8 +7,9 @@ const Input = std.meta.Child(generated.Input);
 const Program = std.meta.Child(@FieldType(Input, "program"));
 const Functions = std.meta.Child(@FieldType(Program, "functions"));
 const Unit = std.meta.Child(@typeInfo(@FieldType(Input, "units")).pointer.child);
+const unwrap = @import("../function_analysis/abi.zig").unwrap;
 
-/// Runs the generated inline expansion and owns every rebuilt unit in the caller allocator.
+/// The returned program borrows unchanged storage from the input. The arena owns replacements.
 pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!ir.Program {
     if (program.functions.count() == 0) return program;
 
@@ -48,39 +49,53 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
         else => unreachable,
     };
 
+    if (output.len == 0) return program;
+
     var result = program;
-    var storage: ir.FunctionStorage = .{};
+    var function_changes = output;
+    const last = unwrap(output[output.len - 1]);
 
-    for (0..program.functions.count()) |index| {
-        var function = program.functions.at(index);
-        const rebuilt = @import("../function_analysis/abi.zig").unwrap(output[index]);
-
-        if (rebuilt.changed) {
-            const owned = try own(allocator, rebuilt);
-            function.symbols = owned.symbols;
-            function.expressions = owned.expressions;
-            function.body = owned.body;
-        }
-
-        try storage.append(allocator, function);
-    }
-
-    result.functions = try storage.finish(allocator);
-
-    const entry = @import("../function_analysis/abi.zig").unwrap(output[program.functions.count()]);
-
-    if (entry.changed) {
-        const owned = try own(allocator, entry);
-
+    if (last.unit == program.functions.count()) {
+        const owned = try own(allocator, last);
         result.symbols = owned.symbols;
         result.expressions = owned.expressions;
         result.body = owned.body;
+        function_changes = output[0 .. output.len - 1];
     }
+
+    if (function_changes.len != 0) result.functions = try publishFunctions(allocator, program.functions, function_changes);
 
     return result;
 }
 
 const Owned = struct { symbols: ir.SymbolTable, expressions: ir.ExpressionTable, body: ir.ControlBody };
+
+fn publishFunctions(allocator: std.mem.Allocator, source: ir.FunctionTable, changes: anytype) std.mem.Allocator.Error!ir.FunctionTable {
+    const symbols = try allocator.dupe(*const ir.SymbolTable, source.symbols);
+    const expressions = try allocator.dupe(*const ir.ExpressionTable, source.expressions);
+    const control = try allocator.dupe(*const ir.ControlTable, source.control);
+    const roots = try allocator.dupe(?u32, source.roots);
+    const owned = try allocator.alloc(Owned, changes.len);
+
+    for (changes, owned) |change, *row| {
+        const rebuilt = unwrap(change);
+        const index: usize = @intCast(rebuilt.unit);
+        row.* = try own(allocator, rebuilt);
+        symbols[index] = &row.symbols;
+        expressions[index] = &row.expressions;
+        control[index] = row.body.control;
+        roots[index] = rebuilt.root;
+    }
+
+    var result = source;
+
+    result.symbols = symbols;
+    result.expressions = expressions;
+    result.control = control;
+    result.roots = roots;
+
+    return result;
+}
 
 fn own(allocator: std.mem.Allocator, rebuilt: anytype) std.mem.Allocator.Error!Owned {
     const control = try allocator.create(ir.ControlTable);

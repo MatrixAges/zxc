@@ -23,17 +23,20 @@
         in={{
             types: $in.program.types,
             units: $in.units,
-            pure: $ctx.pure,
-            limit: 4096
+            pure: $ctx.pure
         }}
     />
+
+    <If on={!$ctx.plan.available}>
+        <Return value={[]} />
+    </If>
 
     <Call
         fn="apply"
         in={{
             types: $in.program.types,
             units: $in.units,
-            plan: $ctx.plan
+            plan: $ctx.plan.costs
         }}
     />
 

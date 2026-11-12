@@ -1,6 +1,6 @@
 import { type_id_void, type_id_bool } from "core/const"
 
-import {inline_budget} from "../../const"
+import { inline_budget } from "../../const"
 import scalar from "../types/scalar"
 import rebuild from "./rebuild"
 import selection from "./selection"
@@ -12,7 +12,7 @@ import type { Table } from "core/type_table/model"
 import type { Unit } from "../unit"
 
 export type Rebuilt = {
-    changed: bool,
+    unit: u64,
     symbols: Symbols,
     expressions: Expressions,
     control: Control,
@@ -29,10 +29,6 @@ export type Output = Rebuilt[]
 
 export default function (in: Input): Output {
     const results: Rebuilt[] = []
-
-    if (in.units.length == 1) {
-        return results
-    }
 
     const void_type = scalar({
         kinds: in.types.kinds,
@@ -57,18 +53,12 @@ export default function (in: Input): Output {
     }, {
         while: current => current.index < current.units.length,
         next: current => {
-            const unit = current.units[current.index]
-            const unchanged: Rebuilt = {
-                changed: false,
-                symbols: unit.symbols,
-                expressions: unit.expressions,
-                control: unit.control,
-                root: 0
-            }
+            const index = current.index
+            const unit = current.units[index]
+            const calls = unit.expressions.call_functions
+            const eligible = unit.stores.paths.length == 0 && calls.length != 0
 
-            if (unit.stores.paths.length != 0) {
-                current.results = current.results.push(unchanged)[0]
-            } else {
+            if (eligible) {
                 const selected = selection({
                     types: current.types,
                     unit,
@@ -76,9 +66,7 @@ export default function (in: Input): Output {
                     limit: inline_budget
                 })
 
-                if (!selected.selected) {
-                    current.results = current.results.push(unchanged)[0]
-                } else {
+                if (selected.selected) {
                     const rebuilt = rebuild({
                         types: current.types,
                         units: current.units,
@@ -86,21 +74,19 @@ export default function (in: Input): Output {
                         limit: inline_budget,
                         void_type: current.void_type,
                         bool_type: current.bool_type,
-                        unit: current.index,
+                        unit: index,
                         marked: selected.marked
                     })
 
-                    current.results =
-                        current.results.push(match {
-                            rebuilt.failed => unchanged,
-                            _ => {
-                                changed: true,
-                                symbols: rebuilt.symbols,
-                                expressions: rebuilt.expressions,
-                                control: rebuilt.control,
-                                root: rebuilt.root
-                            }
+                    if (!rebuilt.failed) {
+                        current.results = current.results.push({
+                            unit: index,
+                            symbols: rebuilt.symbols,
+                            expressions: rebuilt.expressions,
+                            control: rebuilt.control,
+                            root: rebuilt.root
                         })[0]
+                    }
                 }
             }
 

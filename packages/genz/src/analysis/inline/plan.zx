@@ -1,6 +1,7 @@
 import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
 
+import { inline_budget } from "../../const"
 import simple from "../control/simple"
 import primitive from "../types/primitive"
 
@@ -10,19 +11,21 @@ import type { Unit } from "../unit"
 export type Input = {
     types: Table,
     units: Unit[],
-    pure: bool[],
-    limit: u64
+    pure: bool[]
 }
 
-export type Output = u64[]
+export type Output = {
+    costs: u64[],
+    available: bool
+}
 
 export default function (in: Input): Output {
     return loop({
         types: in.types,
         units: in.units,
         pure: in.pure,
-        limit: in.limit,
         costs: in.pure.map(value => 0)[0],
+        available: false,
         index: 0
     }, {
         while: current => current.index < current.pure.length,
@@ -64,12 +67,11 @@ export default function (in: Input): Output {
                     table,
                     costs: current.costs,
                     index: current.index,
-                    limit: current.limit,
                     cost: table.kinds.length + unit.symbols.names.length + 1,
                     position: 0
                 }, {
                     while: items =>
-                        items.cost <= items.limit &&
+                        items.cost <= inline_budget &&
                         items.position < items.table.kinds.length,
                     next: items => {
                         if (
@@ -85,7 +87,7 @@ export default function (in: Input): Output {
                                 )
 
                             items.cost = match {
-                                child >= items.index => items.limit + 1,
+                                child >= items.index => inline_budget + 1,
                                 _ => items.cost + items.costs[child]
                             }
                         }
@@ -95,13 +97,17 @@ export default function (in: Input): Output {
                     return: state => state.cost
                 })
 
-                if (counted <= current.limit) {
+                if (counted <= inline_budget) {
                     current.costs[current.index] = counted
+                    current.available = true
                 }
             }
 
             current.index += 1
         },
-        return: state => state.costs
+        return: state => ({
+            costs: state.costs,
+            available: state.available
+        })
     })
 }
