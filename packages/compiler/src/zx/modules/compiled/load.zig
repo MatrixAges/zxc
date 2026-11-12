@@ -19,6 +19,11 @@ pub const Destination = struct {
     native_modules: *ir.NativeModuleStorage,
 };
 
+pub const CallScratch = struct {
+    functions: std.mem.Allocator,
+    temporary: std.mem.Allocator,
+};
+
 pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
     if (comptime !@import("parser_options").generated_parser) {
         var result = try @import("seed_load.zig").load(allocator, .{
@@ -34,7 +39,17 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
         return result;
     }
 
-    return @import("host/root.zig").loadOptions(allocator, options);
+    return @import("host/root.zig").loadOptions(allocator, options, null);
+}
+
+/// Links the function graph for RX signature checking. Generated loads publish only
+/// the shared types and native modules, with remapped functions in the call workspace.
+pub fn loadCalls(allocator: std.mem.Allocator, scratch: CallScratch, options: Options) !model.Loaded {
+    std.debug.assert(options.selected == null);
+
+    if (comptime !@import("parser_options").generated_parser) return load(allocator, options);
+
+    return @import("host/root.zig").loadOptions(allocator, options, scratch);
 }
 
 fn selectSeed(allocator: std.mem.Allocator, exports: []const model.Export, selected: []const model.PublicReference) ![]const model.Export {

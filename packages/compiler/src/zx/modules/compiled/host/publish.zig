@@ -5,7 +5,7 @@ const Destination = @import("../load.zig").Destination;
 const Output = std.meta.Child(@import("generated_compiled_library").Output);
 const borrow = @import("../../../ir/canonical/borrow.zig");
 
-pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: Destination) std.mem.Allocator.Error!model.Loaded {
+pub fn apply(allocator: std.mem.Allocator, function_allocator: std.mem.Allocator, output: *const Output, destination: Destination) std.mem.Allocator.Error!model.Loaded {
     try @import("../../../analysis/semantic/merging/commit.zig").append(allocator, destination.types, &destination.origins.items, output.types.*, output.origins.*);
 
     const natives = borrow.columns(ir.NativeModuleTable, output.natives.*);
@@ -17,7 +17,7 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, destination: D
     const functions = borrow.columns(ir.FunctionTable, output.functions.*);
 
     for (0..functions.count()) |index| {
-        try destination.functions.append(allocator, try @import("function.zig").copy(allocator, functions.at(index)));
+        try destination.functions.append(function_allocator, try @import("function.zig").copy(function_allocator, functions.at(index)));
     }
 
     const aliased = output.aliases.names.len != 0;

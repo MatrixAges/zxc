@@ -2,6 +2,7 @@ const std = @import("std");
 const frontend = @import("frontend");
 const rx = @import("rx");
 const target = @import("../call/target.zig");
+const Libraries = @import("../call/library_bindings.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
 const Action = rx.IndexedFlow.Operation;
@@ -17,7 +18,16 @@ pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
 pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures) std.mem.Allocator.Error!Value {
     const plans = try allocator.alloc(Module, modules.len);
-    var loader = Loader{ .allocator = allocator, .backing = backing, .project = initial_project, .signatures = signatures };
+
+    var loader = Loader{
+        .allocator = allocator,
+        .backing = backing,
+        .project = initial_project,
+        .signatures = signatures,
+        .libraries = .{ .allocator = allocator, .scratch = std.heap.ArenaAllocator.init(backing) },
+    };
+
+    defer loader.libraries.scratch.deinit();
 
     for (modules, registered, plans) |source, module, *plan| {
         loader.owner = source.path;
@@ -76,6 +86,7 @@ const Loader = struct {
     backing: std.mem.Allocator,
     project: frontend.project.Options,
     signatures: Signatures,
+    libraries: Libraries,
     references: Graph.References = .{ .remaining = &.{} },
     owner: []const u8 = "",
     flow: ?rx.IndexedFlow = null,
@@ -294,11 +305,10 @@ const Loader = struct {
     fn compiledCallee(self: *Loader, node: rx.ast.Node, selected: frontend.project.compiled.Target, setter: ?target.Setter) Error!Callee {
         if ((target.optionalAttribute(node, "setter") != null) != (setter != null) or self.project.context.stores.len != 0) return self.fail(node.location, "capability", "Store calls require explicit per-call authorization from module declarations");
 
-        const result = try @import("../call/compiled.zig").load(self.allocator, .{
+        const result = try self.libraries.bind(&self.project, .{
             .owner = self.owner,
-            .call = node,
-            .project = self.project,
-            .setter = setter,
+            .location = target.attribute(node, "module").value_location,
+            .setter = setter != null,
             .selected = selected,
         });
 
@@ -308,13 +318,7 @@ const Loader = struct {
             return error.InvalidFlow;
         }
 
-        const function = result.function;
-
-        self.project.context.types = function.program.types;
-        self.project.context.nominal_types = function.nominal_types;
-        self.project.context.native_modules = function.program.native_modules;
-
-        return .{ .signature = .{ .input_type = function.program.input_type, .output_type = function.program.output_type } };
+        return .{ .signature = result.ports };
     }
     fn fail(self: *Loader, location: rx.ast.Location, code: []const u8, message: []const u8) Error {
         const result = try target.failure(self.allocator, .{ .path = self.owner, .location = location, .code = code, .message = message });

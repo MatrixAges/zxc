@@ -12,7 +12,7 @@ pub fn validate(allocator: std.mem.Allocator, graph: model.Graph) (std.mem.Alloc
 
     var input: Input = undefined;
 
-    try input.init(arena.allocator(), &graph, "", "", null, false, null);
+    try input.init(arena.allocator(), &graph, "", "", null, false, null, false);
 
     const result = generated.execute(&arena, &input.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
@@ -22,7 +22,7 @@ pub fn validate(allocator: std.mem.Allocator, graph: model.Graph) (std.mem.Alloc
     if (result.status != 0) return error.InvalidLibrary;
 }
 
-pub fn loadOptions(allocator: std.mem.Allocator, options: load_model.Options) !model.Loaded {
+pub fn loadOptions(allocator: std.mem.Allocator, options: load_model.Options, call_scratch: ?load_model.CallScratch) !model.Loaded {
     var types = try @import("../../../analysis/type_table.zig").storage(allocator, options.types);
     var origins = try @import("origins.zig").copy(allocator, options.nominal_types);
 
@@ -31,22 +31,22 @@ pub fn loadOptions(allocator: std.mem.Allocator, options: load_model.Options) !m
         .origins = &origins,
         .functions = options.functions,
         .native_modules = options.native_modules,
-    }, true, options.selected);
+    }, true, options.selected, call_scratch);
 }
 
 pub fn load(allocator: std.mem.Allocator, library: model.Library, destination: Destination) !model.Loaded {
-    return loadPrepared(allocator, library, destination, false, null);
+    return loadPrepared(allocator, library, destination, false, null, null);
 }
 
-fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destination: Destination, seed: bool, selected: ?[]const model.PublicReference) !model.Loaded {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destination: Destination, seed: bool, selected: ?[]const model.PublicReference, call_scratch: ?load_model.CallScratch) !model.Loaded {
+    var arena = std.heap.ArenaAllocator.init(if (call_scratch) |scratch| scratch.temporary else allocator);
 
     defer arena.deinit();
 
     const graph = model.Graph{ .program = library.program, .exports = library.exports, .nominal_types = library.nominal_types, .store_initializers = library.store_initializers };
     var input: Input = undefined;
 
-    try input.init(arena.allocator(), &graph, library.instance, library.artifact, destination, seed, selected);
+    try input.init(arena.allocator(), &graph, library.instance, library.artifact, destination, seed, selected, call_scratch == null);
 
     const result = generated.execute(&arena, &input.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
@@ -66,5 +66,5 @@ fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destinatio
         else => unreachable,
     }
 
-    return @import("publish.zig").apply(allocator, result, destination);
+    return @import("publish.zig").apply(allocator, if (call_scratch) |scratch| scratch.functions else allocator, result, destination);
 }

@@ -3,6 +3,7 @@ const frontend = @import("frontend");
 const zx = @import("zx");
 const target = @import("target.zig");
 const compiled = frontend.project.compiled;
+const wrapper = @import("compiled_wrapper.zig");
 
 pub const Options = struct {
     owner: []const u8,
@@ -42,42 +43,16 @@ pub fn load(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Er
 
     const exported = loaded.exports[0];
 
-    switch (@import("compiled_admission.zig").check(exported.function, &functions, options.setter != null)) {
-        .Executable => {},
-        .MissingFunction => return fail(allocator, options, "module", "Call.module requires an executable public module"),
-        .Setter => return fail(allocator, options, "capability", "Call.module cannot grant a setter; Store authorization belongs inside the published RX module"),
-        .Transaction => return fail(allocator, options, "capability", "compiled Store transactions require an explicit authorized RX module"),
-    }
+    if (wrapper.reject(exported.function, &functions, options.setter != null)) |issue| return fail(allocator, options, issue.code, issue.message);
 
-    const id = exported.function.?;
-    const function = functions.at(@backingInt(id));
-    const stores = try allocator.alloc(u32, function.stores.count());
-
-    for (stores, 0..) |*slot, slot_index| slot.* = @intCast(slot_index);
-
-    const span = zx.Span{ .start = attribute.value_location.offset, .end = attribute.value_location.offset };
-    const is_void = function.input_type == @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))));
-    const symbols = try zx.ir.SymbolTable.fromValues(allocator, &.{.{ .name = "$in", .type_id = function.input_type, .span = span }});
-
-    const expressions = try zx.ir.ExpressionTable.fromValues(allocator, &.{
-        .{ .type_id = function.input_type, .span = span, .value = if (is_void) .unit else .{ .reference = @fromBackingInt(@intCast(0)) } },
-        .{ .type_id = function.output_type, .span = span, .value = .{ .call = .{ .function = id, .argument = @fromBackingInt(@intCast(0)), .stores = stores } } },
-    });
-
-    const program = zx.ir.Program{
+    const program = try wrapper.build(allocator, .{
         .file_name = try std.fmt.allocPrint(allocator, "rx.module:{s}", .{exported.path}),
+        .offset = attribute.value_location.offset,
+        .id = exported.function.?,
         .types = loaded.types,
-        .stores = function.stores,
-        .store_mode = function.store_mode,
-        .input_type = function.input_type,
-        .output_type = function.output_type,
-        .output_ownership = function.output_ownership,
-        .symbols = symbols,
-        .expressions = expressions,
-        .body = try zx.ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@intCast(1)) }}),
         .functions = functions.view(),
         .native_modules = native_modules.view(),
-    };
+    });
 
     if (try frontend.validateIr(allocator, program)) |issue| return fail(allocator, options, @tagName(issue.code), issue.message);
 
