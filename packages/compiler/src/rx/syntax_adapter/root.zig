@@ -1,6 +1,6 @@
 const std = @import("std");
 const dsl = @import("dsl");
-const value = @import("value.zig");
+pub const values = @import("value.zig");
 pub const references = @import("references.zig");
 
 const Document = struct { node: dsl.ast.Node, references: ?*const references.Index = null };
@@ -29,18 +29,18 @@ pub fn convert(comptime layout: anytype, comptime decode: anytype, comptime scan
 
     layout(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &layout_input else layout_input) catch unreachable;
 
-    const decoded = try value.materialize(decode, allocator, source, tree.parts, input.control.decoded_length);
+    const decoded = try values.materialize(decode, allocator, source, tree.parts, input.control.decoded_length);
     const nodes = try allocator.alloc(dsl.ast.Node, tree.nodes.len);
     const attributes = try allocator.alloc(dsl.ast.Attribute, tree.attributes.len);
     const text = try allocator.alloc(dsl.ast.Text, tree.text.len);
 
     for (tree.attributes, attributes) |item, *output| {
-        const raw = value.raw(source, item.value);
+        const raw = values.raw(source, item.value);
 
         output.* = .{
             .kind = if (item.expression) .expression else .string,
             .name = source[@intCast(item.name.start)..@intCast(item.name.end)],
-            .value = value.select(raw, decoded, item.value),
+            .value = values.select(raw, decoded, item.value),
             .location = location(item.location),
             .value_location = location(item.value_location),
             .raw_value = raw,
@@ -49,7 +49,7 @@ pub fn convert(comptime layout: anytype, comptime decode: anytype, comptime scan
 
     for (tree.text, text_slots) |item, slot| {
         text[@intCast(slot)] = .{
-            .value = value.select(value.raw(source, item.value), decoded, item.value),
+            .value = values.select(values.raw(source, item.value), decoded, item.value),
             .location = location(item.location),
         };
     }

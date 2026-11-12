@@ -19,6 +19,7 @@ pub const AnalysisResult = frontend.AnalysisResult;
 pub const library = @import("library/root.zig");
 pub const zig = @import("backends/zig.zig");
 pub const Diagnostic = zx.Diagnostic;
+pub const formatRx = frontend.formatXml;
 pub const validateIr = frontend.validateIr;
 pub const verification = @import("verification/root.zig");
 pub const hardware = @import("backends/hardware/root.zig");
@@ -104,18 +105,10 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []con
     }
 
     if (std.mem.endsWith(u8, file_name, ".rx")) {
-        var parsed = try frontend.parseExpressionXml(allocator, source);
-
-        defer parsed.deinit();
-
-        if (parsed.value == .diagnostic) {
-            const issue = parsed.value.diagnostic;
-            const diagnostic = Diagnostic{ .code = .syntax, .span = .{ .start = issue.location.offset, .end = issue.location.offset }, .message = issue.message };
-
-            return .{ .diagnostic = try diagnostic.clone(allocator) };
-        }
-
-        return .{ .source = try frontend.formatXml(allocator, source, parsed.value.node) };
+        return switch (try frontend.formatXmlText(allocator, source)) {
+            .source => |formatted| .{ .source = formatted },
+            .diagnostic => |issue| .{ .diagnostic = issue },
+        };
     }
 
     var parsed = try frontend.parseModule(allocator, source, file_name);

@@ -1,17 +1,28 @@
 const std = @import("std");
 const dsl = @import("dsl");
+const NodeView = @import("node_view.zig");
 const spacing = @import("../spacing.zig");
 const rule = @import("layout_rule");
 const bounds = @import("rx_bounds");
 const indentation = @import("../indentation/root.zig");
 const width = @import("../layout/root.zig").use_default_width;
+const tag_scratch_bytes = 2048;
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, node: dsl.ast.Node) std.mem.Allocator.Error![]u8 {
+    return formatView(allocator, source, NodeView{ .node = node });
+}
+
+pub fn formatView(allocator: std.mem.Allocator, source: []const u8, node: anytype) std.mem.Allocator.Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
-    var planner = Planner{ .allocator = arena.allocator(), .source = source };
+    var planner = Planner{
+        .allocator = arena.allocator(),
+        .backing = allocator,
+        .source = source,
+        .newline = if (std.mem.indexOf(u8, source, "\r\n") != null) "\r\n" else "\n",
+    };
 
     try planner.element(node, 0);
 
@@ -20,37 +31,52 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, node: dsl.ast.No
 
 const Planner = struct {
     allocator: std.mem.Allocator,
+    backing: std.mem.Allocator,
     source: []const u8,
+    newline: []const u8,
     edits: std.ArrayList(spacing.Edit) = .empty,
-    fn element(self: *Planner, node: dsl.ast.Node, level: usize) std.mem.Allocator.Error!void {
-        if (node.attributes.len != 0) try self.tag(node, level);
-        for (node.children) |child| try self.element(child, level + 1);
+    fn element(self: *Planner, node: anytype, level: usize) std.mem.Allocator.Error!void {
+        if (node.attributeCount() != 0) try self.tag(node, level);
+
+        var children = node.children();
+
+        while (children.next()) |child| try self.element(child, level + 1);
     }
-    fn tag(self: *Planner, node: dsl.ast.Node, level: usize) std.mem.Allocator.Error!void {
-        const tokens = try self.allocator.alloc(rule.Token, node.attributes.len + 2);
-        const start = node.location.offset;
-        const head_end = start + node.name.len + 1;
+    fn tag(self: *Planner, node: anytype, level: usize) std.mem.Allocator.Error!void {
+        var storage: [tag_scratch_bytes]u8 align(@alignOf(rule.Token)) = undefined;
+        var buffer = std.heap.BufferFirstAllocator.init(&storage, self.backing);
+        var scratch = std.heap.ArenaAllocator.init(buffer.allocator());
+
+        defer scratch.deinit();
+
+        const temporary = scratch.allocator();
+        const count = node.attributeCount();
+        const location = node.location();
+        const tokens = try temporary.alloc(rule.Token, count + 2);
+        const start = location.offset;
+        const head_end = start + node.name().len + 1;
         var force = false;
 
         tokens[0] = .{ .text = self.source[start..head_end], .start = start, .end = head_end, .opening = true };
 
-        for (node.attributes, 0..) |attribute, index| {
-            const end = attribute.value_location.offset + attribute.raw_value.?.len + 1;
-            const text = self.source[attribute.location.offset..end];
+        for (0..count) |index| {
+            const attribute = node.attribute(index);
+            const end = attribute.value_offset + attribute.raw.?.len + 1;
+            const text = self.source[attribute.offset..end];
             const newline = std.mem.indexOfScalar(u8, text, '\n') != null;
             const previous_end: usize = @intCast(tokens[index].end);
-            force = force or newline or std.mem.indexOfScalar(u8, self.source[previous_end..attribute.location.offset], '\n') != null;
+            force = force or newline or std.mem.indexOfScalar(u8, self.source[previous_end..attribute.offset], '\n') != null;
 
             tokens[index + 1] = .{
                 .text = text,
-                .start = attribute.location.offset,
+                .start = attribute.offset,
                 .end = end,
-                .separator = index + 1 < node.attributes.len,
+                .separator = index + 1 < count,
                 .gap = 1,
             };
         }
 
-        const end: usize = @intCast(tokens[node.attributes.len].end);
+        const end: usize = @intCast(tokens[count].end);
         const open = bounds.opening(self.source, end);
         tokens[0].object = force;
 
@@ -62,8 +88,8 @@ const Planner = struct {
             .gap = @intFromBool(open.marker > end),
         };
 
-        const planned = try rule.plan(self.allocator, tokens, .{ .width = width, .level = level, .prefix = node.location.column - 1 - @min(node.location.column - 1, level * indentation.width) });
-        const newline: []const u8 = if (std.mem.indexOf(u8, self.source, "\r\n") != null) "\r\n" else "\n";
+        const planned = try rule.plan(temporary, tokens, .{ .width = width, .level = level, .prefix = location.column - 1 - @min(location.column - 1, level * indentation.width) });
+        const newline = self.newline;
 
         for (planned) |item| {
             if (item.index == 0) continue;

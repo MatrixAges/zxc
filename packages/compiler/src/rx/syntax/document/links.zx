@@ -1,0 +1,37 @@
+import memory from "std:memory"
+
+import type { U64Buffer } from "std:memory"
+import type { Node } from "./model"
+
+export type Input = {
+    nodes: Node[],
+    first: U64Buffer,
+    next: U64Buffer
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const links = loop(0, {
+        while: row => row < in.nodes.length,
+        next: row => {
+            const siblings = loop({
+                remaining: in.nodes[row].children,
+                first: 0
+            }, {
+                while: state => state.remaining != 0,
+                next: state => {
+                    const child = state.remaining - 1
+
+                    memory.writeU64(in.next, child, state.first)
+                    state.first = state.remaining
+                    state.remaining = in.nodes[child].previous_sibling
+                },
+                return: state => state.first
+            })
+
+            memory.writeU64(in.first, row, siblings)
+            row += 1
+        }
+    })
+}

@@ -17,38 +17,19 @@ pub fn parseIndexedXml(allocator: std.mem.Allocator, source: []const u8) std.mem
 fn parseDocument(allocator: std.mem.Allocator, source: []const u8, comptime indexed: bool) std.mem.Allocator.Error!IndexedXml {
     if (!@import("parser_options").generated_parser) return .{ .xml = try dsl.parseXmlWith(allocator, source, boundary) };
 
-    const generated = @import("generated_xml");
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
 
-    var scratch = std.heap.ArenaAllocator.init(allocator);
+    var parsed = try @import("xml_syntax.zig").parse(allocator, source);
 
-    defer scratch.deinit();
+    defer parsed.deinit();
 
-    const output = generated.execute(&scratch, &.{ .source = source, .expressions = true }) catch |err| switch (err) {
-        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
-        else => {
-            const message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated XML parser failed with {s}", .{@errorName(err)});
+    if (parsed.value == .diagnostic) {
+        var issue = parsed.value.diagnostic;
+        issue.message = try arena.allocator().dupe(u8, issue.message);
 
-            return .{ .xml = .{ .arena = arena, .value = .{ .diagnostic = .{
-                .code = .syntax,
-                .location = .{ .offset = 0, .line = 1, .column = 1 },
-                .element = "",
-                .message = message,
-            } } } };
-        },
-    };
-
-    if (output.control.message.len != 0) {
-        const message = try arena.allocator().dupe(u8, output.control.message);
-
-        return .{ .xml = .{ .arena = arena, .value = .{ .diagnostic = .{
-            .code = .syntax,
-            .location = adapter.location(output.control.issue),
-            .element = "",
-            .message = message,
-        } } } };
+        return .{ .xml = .{ .arena = arena, .value = .{ .diagnostic = issue } } };
     }
 
     const owned_source = try arena.allocator().dupe(u8, source);
@@ -58,9 +39,9 @@ fn parseDocument(allocator: std.mem.Allocator, source: []const u8, comptime inde
         @import("generated_xml_decode").executeValue,
         if (indexed) @import("generated_xml_references").executeValue else null,
         arena.allocator(),
-        scratch.allocator(),
+        parsed.arena.allocator(),
         owned_source,
-        output,
+        parsed.value.document,
     );
 
     return .{ .xml = .{ .arena = arena, .value = .{ .node = document.node } }, .references = document.references };

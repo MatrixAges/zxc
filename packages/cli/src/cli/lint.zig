@@ -57,11 +57,11 @@ pub fn checkSource(context: Compile.Context, source: []const u8) !Compile.Status
             return .failed;
         }
 
-        const formatted = try compiler.format(context.allocator, source, path);
+        const formatted = try compiler.formatRx(context.allocator, source, parsed.value.node);
 
-        defer formatted.deinit(context.allocator);
+        defer context.allocator.free(formatted);
 
-        if (!std.mem.eql(u8, source, formatted.source)) {
+        if (!std.mem.eql(u8, source, formatted)) {
             try context.stderr.print("{s}: {s}\n", .{ path, lint.source.formatting_required });
 
             return .failed;

@@ -4,9 +4,15 @@ const zx = @import("zx");
 const spacing = @import("../spacing.zig");
 const bounds = @import("rx_bounds");
 pub const structure = @import("layout.zig").format;
+pub const structureView = @import("layout.zig").formatView;
+pub const NodeView = @import("node_view.zig");
 const indentation = @import("../indentation/root.zig");
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, node: dsl.ast.Node) std.mem.Allocator.Error![]u8 {
+    return formatView(allocator, source, NodeView{ .node = node });
+}
+
+pub fn formatView(allocator: std.mem.Allocator, source: []const u8, node: anytype) std.mem.Allocator.Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
@@ -28,16 +34,17 @@ const Planner = struct {
     allocator: std.mem.Allocator,
     source: []const u8,
     edits: std.ArrayList(spacing.Edit) = .empty,
-    fn element(self: *Planner, node: dsl.ast.Node, level: usize, structural: bool) std.mem.Allocator.Error!zx.Span {
-        const start = node.location.offset;
+    fn element(self: *Planner, node: anytype, level: usize, structural: bool) std.mem.Allocator.Error!zx.Span {
+        const start = node.location().offset;
+        const count = node.attributeCount();
 
         if (structural) try self.indent(start, level);
-        for (node.attributes) |attribute| try self.indent(attribute.location.offset, level + 1);
+        for (0..count) |index| try self.indent(node.attribute(index).offset, level + 1);
 
-        const after_attributes = if (node.attributes.len == 0) start else block: {
-            const last = node.attributes[node.attributes.len - 1];
+        const after_attributes = if (count == 0) start else block: {
+            const last = node.attribute(count - 1);
 
-            break :block last.value_location.offset + last.raw_value.?.len + 1;
+            break :block last.value_offset + last.raw.?.len + 1;
         };
 
         const open = bounds.opening(self.source, after_attributes);
@@ -45,23 +52,21 @@ const Planner = struct {
         try self.indent(open.marker, level);
         if (open.self_closing) return .{ .start = start, .end = open.end };
 
-        var whitespace_only = true;
-
-        for (node.text) |text| {
-            if (std.mem.trim(u8, text.value, " \t\r\n").len != 0) whitespace_only = false;
-        }
-
+        const whitespace_only = node.whitespaceOnly();
         var previous_end = open.end;
         var previous_span: zx.Span = .{ .start = start, .end = open.end };
+        var previous: ?@TypeOf(node) = null;
+        var children = node.children();
 
-        for (node.children, 0..) |child, index| {
+        while (children.next()) |child| {
             const span = try self.element(child, level + 1, whitespace_only);
-            const separate = index != 0 and (multiline(self.source, previous_span) or multiline(self.source, span) or !sameShape(node.children[index - 1], child));
+            const separate = if (previous) |before| multiline(self.source, previous_span) or multiline(self.source, span) or !sameShape(before, child) else false;
 
             if (whitespace_only) try self.gap(previous_end, span.start, separate, level + 1);
 
             previous_end = span.end;
             previous_span = span;
+            previous = child;
         }
 
         const close = bounds.closing(self.source, previous_end);
@@ -104,14 +109,17 @@ fn multiline(source: []const u8, span: zx.Span) bool {
     return std.mem.indexOfScalar(u8, source[span.start..span.end], '\n') != null;
 }
 
-fn sameShape(left: dsl.ast.Node, right: dsl.ast.Node) bool {
-    if (!std.mem.eql(u8, left.name, right.name) or left.attributes.len != right.attributes.len or left.children.len != right.children.len) return false;
+fn sameShape(left: anytype, right: @TypeOf(left)) bool {
+    if (!std.mem.eql(u8, left.name(), right.name()) or left.attributeCount() != right.attributeCount() or left.childCount() != right.childCount()) return false;
 
-    for (left.attributes, right.attributes) |a, b| {
-        if (!std.mem.eql(u8, a.name, b.name)) return false;
+    for (0..left.attributeCount()) |index| {
+        if (!std.mem.eql(u8, left.attribute(index).name, right.attribute(index).name)) return false;
     }
 
-    for (left.children, right.children) |a, b| if (!sameShape(a, b)) return false;
+    var a = left.children();
+    var b = right.children();
+
+    while (a.next()) |child| if (!sameShape(child, b.next().?)) return false;
 
     return true;
 }
