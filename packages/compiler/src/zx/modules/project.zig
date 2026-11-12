@@ -383,9 +383,16 @@ const Project = struct {
             try frame.signature_members.append(self.allocator, member);
         };
     }
+
     fn memberSignatures(self: *Project, allocator: std.mem.Allocator, members: []const FunctionImport) std.mem.Allocator.Error![]const Signature.Member {
         const result = try allocator.alloc(Signature.Member, members.len);
 
+        self.writeMemberSignatures(members, result);
+
+        return result;
+    }
+
+    fn writeMemberSignatures(self: *const Project, members: []const FunctionImport, result: []Signature.Member) void {
         for (members, result) |member, *signature| {
             if (member.intrinsic) |operation| {
                 signature.* = .{ .name = member.name, .ports = null, .intrinsic = operation };
@@ -394,32 +401,36 @@ const Project = struct {
                 signature.* = .{ .name = member.name, .ports = .{ .input_type = member.input_type.?, .output_type = member.output_type.? }, .has_store = function.stores.count() != 0 };
             }
         }
-
-        return result;
     }
     fn publishSignature(self: *Project, frame: *LoadFrame, signature: *Signature.Result) zx.Error!void {
-        const native = try self.memberSignatures(self.allocator, frame.export_functions.items);
-        const forwarded = try PublicExports.merge(Signature.Member, self.allocator, frame.signature_members.items, native);
-        const own: []const Signature.Member = if (!signature.type_only) try self.allocator.dupe(Signature.Member, &.{.{ .name = "", .ports = signature.ports, .has_store = signature.has_store }}) else &.{};
+        const own: usize = @intFromBool(!signature.type_only);
+        const forwarded = frame.signature_members.items;
+        const native = frame.export_functions.items;
+        const members = try self.allocator.alloc(Signature.Member, own + forwarded.len + native.len);
+
+        if (own != 0) members[0] = .{ .name = "", .ports = signature.ports, .has_store = signature.has_store };
+
+        @memcpy(members[own..][0..forwarded.len], forwarded);
+        self.writeMemberSignatures(native, members[own + forwarded.len ..]);
+
         signature.exports = try PublicExports.merge(ir.Export, self.allocator, signature.exports, frame.export_aliases.items);
         signature.constant_exports = try PublicExports.merge(ir.Constant, self.allocator, signature.constant_exports, frame.export_constants.items);
-        signature.members = try PublicExports.merge(Signature.Member, self.allocator, own, forwarded);
+        signature.members = members;
 
-        if (frame.export_aliases.items.len + frame.export_constants.items.len + forwarded.len != 0) try PublicExports.validate(self.allocator, signature.exports, signature.constant_exports, signature.members, self.reporter);
+        if (frame.export_aliases.items.len + frame.export_constants.items.len + forwarded.len + native.len == 0) return;
 
-        for (signature.members) |member| {
-            if (member.name.len != 0) continue;
+        const selected = try PublicExports.plan(self.allocator, self.arena.child_allocator, signature.exports, signature.constant_exports, members, self.reporter) orelse return;
+        const member = members[selected];
 
-            const ports = member.ports orelse {
-                if (member.source != null or member.intrinsic != null) continue;
+        const ports = member.ports orelse {
+            if (member.source != null or member.intrinsic != null) return;
 
-                return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source");
-            };
+            return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source");
+        };
 
-            signature.ports = ports;
-            signature.has_store = member.has_store;
-            signature.type_only = false;
-        }
+        signature.ports = ports;
+        signature.has_store = member.has_store;
+        signature.type_only = false;
     }
 
     fn finishInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!void {
@@ -501,16 +512,18 @@ const Project = struct {
             };
         }
 
-        const own: []const FunctionImport = if (unit.function) |id| try self.allocator.dupe(FunctionImport, &.{.{ .name = "", .id = id, .input_type = program.input_type, .output_type = program.output_type }}) else &.{};
+        const own: ?FunctionImport = if (unit.function) |id| .{ .name = "", .id = id, .input_type = program.input_type, .output_type = program.output_type } else null;
         unit.exports = try PublicExports.merge(ir.Export, self.allocator, program.exports, frame.export_aliases.items);
         unit.constants = try PublicExports.merge(ir.Constant, self.allocator, program.constant_exports, frame.export_constants.items);
-        unit.members = try PublicExports.merge(FunctionImport, self.allocator, own, frame.export_functions.items);
+        unit.members = try PublicExports.prepend(FunctionImport, self.allocator, own, frame.export_functions.items);
 
-        if (frame.export_aliases.items.len + frame.export_constants.items.len + frame.export_functions.items.len != 0) try PublicExports.validate(self.allocator, unit.exports, unit.constants, unit.members, self.reporter);
+        if (frame.export_aliases.items.len + frame.export_constants.items.len + frame.export_functions.items.len != 0) {
+            const selected = try PublicExports.plan(self.allocator, self.arena.child_allocator, unit.exports, unit.constants, unit.members, self.reporter);
 
-        if (unit.function == null) for (unit.members) |member| {
-            if (member.name.len == 0) unit.function = member.id;
-        };
+            if (unit.function == null) if (selected) |member| {
+                unit.function = unit.members[member].id;
+            };
+        }
 
         try self.modules.append(self.allocator, .{
             .path = unit.path,
@@ -590,12 +603,12 @@ const Project = struct {
             if (!std.mem.eql(u8, exported.name, target.name)) continue;
 
             const function = if (exported.function) |id| self.functions.at(@backingInt(id)) else null;
-            const own: []const FunctionImport = if (exported.function) |id| try self.allocator.dupe(FunctionImport, &.{.{ .name = "", .id = id, .input_type = function.?.input_type, .output_type = function.?.output_type }}) else &.{};
+            const own: ?FunctionImport = if (exported.function) |id| .{ .name = "", .id = id, .input_type = function.?.input_type, .output_type = function.?.output_type } else null;
 
             return .{
                 .exports = exported.types,
                 .constant_exports = exported.constants,
-                .members = try PublicExports.merge(FunctionImport, self.allocator, own, exported.members),
+                .members = try PublicExports.prepend(FunctionImport, self.allocator, own, exported.members),
             };
         }
 

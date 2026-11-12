@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Exports" />
+
+    <Args in={Exports.Input} out={Exports.Output} />
+
+    <Call fn="duplicate" in={$in.names} />
+
+    <If on={$ctx.duplicate != null}>
+        <Return
+            value={{
+                duplicate: $ctx.duplicate,
+                default_member: null
+            }}
+        />
+    </If>
+
+    <Call fn="default_member" in={$in} />
+
+    <Return
+        value={{
+            duplicate: null,
+            default_member: $ctx.default_member
+        }}
+    />
+</Module>

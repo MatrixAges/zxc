@@ -13,8 +13,24 @@ pub fn merge(comptime T: type, allocator: std.mem.Allocator, own: []const T, for
     return result;
 }
 
-pub fn validate(allocator: std.mem.Allocator, types: []const zx.ir.Export, constants: []const zx.ir.Constant, functions: anytype, reporter: *zx.Reporter) zx.Error!void {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+pub fn prepend(comptime T: type, allocator: std.mem.Allocator, own: ?T, forwarded: []const T) std.mem.Allocator.Error![]const T {
+    const value = own orelse return forwarded;
+    const result = try allocator.alloc(T, forwarded.len + 1);
+
+    result[0] = value;
+
+    @memcpy(result[1..], forwarded);
+
+    return result;
+}
+
+const Plan = struct {
+    duplicate: ?u64 = null,
+    default_member: ?u64 = null,
+};
+
+pub fn plan(allocator: std.mem.Allocator, backing: std.mem.Allocator, types: []const zx.ir.Export, constants: []const zx.ir.Constant, functions: anytype, reporter: *zx.Reporter) zx.Error!?usize {
+    var arena = std.heap.ArenaAllocator.init(backing);
 
     defer arena.deinit();
 
@@ -29,18 +45,38 @@ pub fn validate(allocator: std.mem.Allocator, types: []const zx.ir.Export, const
         }
     }
 
-    if (@import("parser_options").generated_parser) {
-        const valid = @import("generated_public_names").executeValue(temporary, names) catch |err| switch (err) {
-            error.OutOfMemory => return error.OutOfMemory,
-            else => return reporter.fail(.contract, .{ .start = 0, .end = 0 }, "public export name validation failed"),
+    const first_function = types.len + constants.len;
+    const selected = try select(temporary, names, first_function);
+
+    if (selected.duplicate) |duplicate| {
+        const name = names[@intCast(duplicate)];
+
+        return reporter.fail(.name, .{ .start = 0, .end = 0 }, try std.fmt.allocPrint(allocator, "duplicate public export: {s}", .{if (name.len == 0) "default" else name}));
+    }
+
+    return if (selected.default_member) |member| @as(usize, @intCast(member)) else null;
+}
+
+fn select(allocator: std.mem.Allocator, names: []const []const u8, first_function: usize) std.mem.Allocator.Error!Plan {
+    if (comptime @import("parser_options").generated_parser) {
+        const generated = @import("generated_project_public_exports");
+        const input: std.meta.Child(generated.Input) = .{ .names = names, .first_function = first_function };
+
+        const output = zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (err) {
+            error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
+            else => unreachable,
         };
 
-        if (valid) return;
+        return .{ .duplicate = output.duplicate, .default_member = output.default_member };
     }
 
     var seen: std.StringHashMapUnmanaged(void) = .empty;
 
-    for (names) |name| {
-        if ((try seen.getOrPut(temporary, name)).found_existing) return reporter.fail(.name, .{ .start = 0, .end = 0 }, try std.fmt.allocPrint(allocator, "duplicate public export: {s}", .{if (name.len == 0) "default" else name}));
+    for (names, 0..) |name, index| {
+        if ((try seen.getOrPut(allocator, name)).found_existing) return .{ .duplicate = index };
     }
+
+    for (names[first_function..], 0..) |name, index| if (name.len == 0) return .{ .default_member = index };
+
+    return .{};
 }
