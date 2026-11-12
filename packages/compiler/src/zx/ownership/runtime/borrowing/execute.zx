@@ -29,6 +29,7 @@ export default function (in: Input): Output {
         expressions: in.expressions,
         layout: in.layout,
         memo: in.memory.memo,
+        memo_history: in.memory.memo_history,
         permanent: in.permanent,
         states: in.memory.states,
         trail: in.memory.trail,
@@ -69,6 +70,7 @@ export default function (in: Input): Output {
         facts: result.facts,
         states: result.states,
         memo: result.memo,
+        memo_history: result.memo_history,
         trail: result.trail.splice(0, 0, [])[1]
     }
 }

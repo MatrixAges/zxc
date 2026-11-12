@@ -1,8 +1,8 @@
 <Module>
     <Type from="ir/references" as="References" />
-    <Type from="runtime/execute" as="Execute" />
+    <Type from="result" as="Result" />
 
-    <Args in={References.Input} out={Execute.Output} />
+    <Args in={References.Input} out={Result.Output} />
 
     <Call module="./initialize" in={$in} />
 
@@ -21,5 +21,15 @@
         }}
     />
 
-    <Return value={$ctx.execute} />
+    <Call
+        fn="result"
+        in={{
+            ...$ctx.execute,
+            count: $in.expressions.kinds.length,
+            start: $in.expressions.span_start,
+            end: $in.expressions.span_end
+        }}
+    />
+
+    <Return value={$ctx.result} />
 </Module>

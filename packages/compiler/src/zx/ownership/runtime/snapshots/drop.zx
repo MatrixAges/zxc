@@ -14,10 +14,8 @@ export default function (in: Input): Output {
 
     return {
         facts: in.stack.facts.splice(0, in.stack.state_first[in.frame], [])[1],
-        memo: in.stack.memo.splice(0, in.stack.memo_first[in.frame], [])[1],
         state_first: in.stack.state_first.splice(0, in.frame, [])[1],
         state_count: in.stack.state_count.splice(0, in.frame, [])[1],
-        memo_first: in.stack.memo_first.splice(0, in.frame, [])[1],
-        memo_count: in.stack.memo_count.splice(0, in.frame, [])[1]
+        memo_first: in.stack.memo_first.splice(0, in.frame, [])[1]
     }
 }

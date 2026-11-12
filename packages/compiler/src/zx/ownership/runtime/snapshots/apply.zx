@@ -1,4 +1,5 @@
 import bind from "../../facts/bind"
+import { fact_copy, fact_loaned, first_product_fact } from "../../facts/const"
 import rewrite from "../../facts/rewrite"
 import { RewriteAction } from "../../facts/rewrite/model"
 import nextRoot from "../../places/next_root"
@@ -24,45 +25,32 @@ export type Output = Memory
 
 export default function (in: Input): Output {
     if (in.action == Action.RestoreMemo) {
-        const first = in.stack.memo_first[in.frame]
-
-        if (in.memory.memo.length == 0) {
-            return in.memory
-        }
-
-        const memo = restoreMemo({
-            memo: in.memory.memo,
-            saved: in.stack.memo,
-            first
+        return restoreMemo({
+            memory: in.memory,
+            first: in.stack.memo_first[in.frame]
         })
-
-        return {
-            ...in.memory,
-            memo: memo
-        }
     }
 
+    const action = in.action
+    const types = in.types
+    const references = in.references
+    const layout = in.layout
+    const saved_facts = in.stack.facts
+
     const state_first = match {
-        in.action == Action.ReleaseAllLoans => 0,
+        action == Action.ReleaseAllLoans => 0,
         _ => in.stack.state_first[in.frame]
     }
 
     const rewrite_action =
-        match in.action {
+        match action {
             Action.MergeStates => RewriteAction.Join,
             Action.ReleaseNewLoans => RewriteAction.ReleaseNewLoans,
             _ => RewriteAction.ReleaseAllLoans
         }
 
     return loop({
-        types: in.types,
-        references: in.references,
-        layout: in.layout,
         memory: in.memory,
-        saved: in.stack,
-        state_first,
-        action: in.action,
-        rewrite_action,
         count: in.memory.facts.length,
         index: nextRoot({
             parents: in.layout.parents,
@@ -73,32 +61,37 @@ export default function (in: Input): Output {
         while: current => current.index < current.count,
         next: current => {
             const saved = match {
-                current.action == Action.ReleaseAllLoans => 0,
-                _ => current.saved.facts[current.state_first + current.index]
+                action == Action.ReleaseAllLoans => fact_copy,
+                _ => saved_facts[state_first + current.index]
             }
-            const unchanged = current.action != Action.ReleaseAllLoans &&
-                saved == current.memory.facts[current.index] &&
-                current.layout.references[current.index]
+            const left = current.memory.facts[current.index]
+            const unloaned = left < first_product_fact && left != fact_loaned
+            const unchanged = match action {
+                Action.ReleaseAllLoans => unloaned,
+                Action.ReleaseNewLoans =>
+                    unloaned || left == saved || saved == fact_loaned,
+                _ => left == saved
+            }
 
             if (!unchanged) {
                 const changed = match {
-                    current.action == Action.RestoreStates => {
+                    action == Action.RestoreStates => {
                         forest: current.memory.forest,
                         fact: saved
                     },
                     _ => rewrite({
-                        types: current.types,
-                        references: current.references,
+                        types,
+                        references,
                         forest: current.memory.forest,
-                        left: current.memory.facts[current.index],
+                        left,
                         right: saved,
-                        action: current.rewrite_action
+                        action: rewrite_action
                     })
                 }
                 const bound = bind({
-                    types: current.types,
-                    references: current.references,
-                    layout: current.layout,
+                    types,
+                    references,
+                    layout,
                     storage: {
                         forest: changed.forest,
                         facts: current.memory.facts,
@@ -117,7 +110,7 @@ export default function (in: Input): Output {
             }
 
             current.index = nextRoot({
-                parents: current.layout.parents,
+                parents: layout.parents,
                 first: current.index + 1,
                 end: current.count
             })

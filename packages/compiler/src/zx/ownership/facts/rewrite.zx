@@ -30,16 +30,19 @@ export type Output = Result
 
 export default function (in: Input): Output {
     const empty: u64[] = []
+    const types = in.types
+    const references = in.references
+    const action = in.action
 
     const paired =
-        in.action == RewriteAction.Join || in.action == RewriteAction.ReleaseNewLoans
+        action == RewriteAction.Join || action == RewriteAction.ReleaseNewLoans
 
     const right = paired ? in.right : fact_copy
 
     const condition = preserved({
         left: in.left,
         right,
-        action: in.action
+        action
     })
 
     if (condition) {
@@ -54,7 +57,7 @@ export default function (in: Input): Output {
             forest: in.forest,
             left: in.left,
             right,
-            action: in.action
+            action
         })
 
         return {
@@ -64,11 +67,7 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        types: in.types,
-        references: in.references,
         forest: in.forest,
-        action: in.action,
-        paired,
         left: [in.left],
         right: [right],
         indices: [0],
@@ -96,7 +95,7 @@ export default function (in: Input): Output {
             const unchanged = preserved({
                 left,
                 right,
-                action: current.action
+                action
             })
 
             const uniform_pair = left < first_product_fact && right < first_product_fact
@@ -115,7 +114,7 @@ export default function (in: Input): Output {
                         forest: current.forest,
                         left,
                         right,
-                        action: current.action
+                        action
                     })
                 }
 
@@ -140,13 +139,13 @@ export default function (in: Input): Output {
 
                 if (index < count) {
                     const child_type = fieldType({
-                        types: current.types,
+                        types,
                         type_id,
                         index
                     })
 
                     const reference =
-                        current.references[integers.widen(
+                        references[integers.widen(
                             child_type
                         )]
                     const child_left = project({
@@ -156,7 +155,7 @@ export default function (in: Input): Output {
                         reference
                     })
                     const child_right = match {
-                        current.paired => project({
+                        paired => project({
                             forest: current.forest,
                             fact: right,
                             index,
@@ -189,11 +188,11 @@ export default function (in: Input): Output {
                     const shell = state({
                         left: left_shell,
                         right: right_shell,
-                        action: current.action
+                        action
                     })
                     const unchanged = same({
-                        types: current.types,
-                        references: current.references,
+                        types,
+                        references,
                         forest: current.forest,
                         fact: left,
                         type_id,

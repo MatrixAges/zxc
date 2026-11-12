@@ -1,0 +1,65 @@
+import { Ownership } from "core/symbol_table/model"
+
+import {
+    consumed_owner,
+    contract_code,
+    incomplete_check,
+    invalid_location,
+    invalid_result,
+    ownership_code
+} from "./const"
+import { State } from "./places/model"
+
+export type Input = {
+    complete: bool,
+    failed: bool,
+    expression: u64,
+    output: State,
+    stores_owned: bool,
+    count: u64,
+    start: u64[],
+    end: u64[]
+}
+
+export type Output = {
+    ownership: Ownership,
+    stores_owned: bool,
+    code: string,
+    message: string,
+    start: u64,
+    end: u64
+}
+
+export default function (in: Input): Output {
+    const index = in.expression
+    const consumed = in.complete && in.failed && index < in.count
+
+    const message = match {
+        !in.complete => incomplete_check,
+        consumed => consumed_owner,
+        in.failed => invalid_location,
+        in.output == State.Loaned => invalid_result,
+        in.output == State.Moved => invalid_result,
+        _ => ""
+    }
+
+    const valid = message == ""
+
+    return {
+        ownership: match {
+            !valid => Ownership.Copy,
+            in.output == State.Copy => Ownership.Copy,
+            in.output == State.Owned => Ownership.Owned,
+            _ => Ownership.Borrowed
+        },
+        stores_owned: in.stores_owned,
+        code: match {
+            valid => "",
+            consumed => ownership_code,
+            _ => contract_code
+        },
+        message,
+        start: consumed ? in.start[index] : 0,
+        end: consumed ? in.end[index] : 0
+    }
+}

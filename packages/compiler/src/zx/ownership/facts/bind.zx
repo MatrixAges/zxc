@@ -28,10 +28,11 @@ export default function (in: Input): Output {
         return in.storage
     }
 
+    const types = in.types
+    const references = in.references
+    const layout = in.layout
+
     const result = loop({
-        types: in.types,
-        references: in.references,
-        layout: in.layout,
         forest: in.storage.forest,
         facts: in.storage.facts,
         states: in.storage.states,
@@ -51,19 +52,19 @@ export default function (in: Input): Output {
                     fact: current.fact
                 })
 
-                const parent = current.layout.parents[current.id]
+                const parent = layout.parents[current.id]
 
                 if (parent == 0) {
                     current.root = current.id
                     current.ascending = false
                 } else {
                     const changed = replace({
-                        types: current.types,
-                        references: current.references,
+                        types,
+                        references,
                         forest: current.forest,
                         fact: current.facts[parent - 1],
-                        type_id: current.layout.types[parent - 1],
-                        index: current.layout.field_indices[current.id],
+                        type_id: layout.types[parent - 1],
+                        index: layout.field_indices[current.id],
                         value: current.fact
                     })
 
@@ -73,13 +74,13 @@ export default function (in: Input): Output {
                 }
             } else if (!current.leaving) {
                 if (current.id != current.root) {
-                    const child_fact_input = current.layout.parents[current.id] - 1
+                    const child_fact_input = layout.parents[current.id] - 1
 
                     const child_fact = project({
                         forest: current.forest,
                         fact: current.facts[child_fact_input],
-                        index: current.layout.field_indices[current.id],
-                        reference: current.layout.references[current.id]
+                        index: layout.field_indices[current.id],
+                        reference: layout.references[current.id]
                     })
 
                     current.facts[current.id] = child_fact
@@ -89,7 +90,7 @@ export default function (in: Input): Output {
                     })
                 }
 
-                const child = current.layout.children[current.id]
+                const child = layout.children[current.id]
 
                 if (child == 0) {
                     current.leaving = true
@@ -99,10 +100,10 @@ export default function (in: Input): Output {
             } else if (current.id == current.root) {
                 current.active = false
             } else {
-                const sibling = current.layout.siblings[current.id]
+                const sibling = layout.siblings[current.id]
 
                 if (sibling == 0) {
-                    current.id = current.layout.parents[current.id] - 1
+                    current.id = layout.parents[current.id] - 1
                 } else {
                     current.id = sibling - 1
                     current.leaving = false

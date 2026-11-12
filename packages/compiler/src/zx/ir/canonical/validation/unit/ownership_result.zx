@@ -1,36 +1,18 @@
 import { Ownership } from "core/symbol_table/model"
 
-import { State } from "../../../../ownership/places/model"
-
-import type { Outcome } from "../../../../ownership/runtime/work/model"
+import type { Output as Result } from "../../../../ownership/result"
 
 export type Input = {
-    outcome: Outcome,
+    outcome: Result,
     declared: Ownership
 }
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const is_loaned = in.outcome.output == State.Loaned
-    const is_moved = in.outcome.output == State.Moved
-
-    const condition = (
-        - !in.outcome.complete
-        - or in.outcome.failed
-        - or is_loaned
-        - or is_moved
-    )
-
-    if (condition) {
+    if (in.outcome.message != "") {
         return false
     }
 
-    const actual = match in.outcome.output {
-        State.Copy => Ownership.Copy,
-        State.Owned => Ownership.Owned,
-        _ => Ownership.Borrowed
-    }
-
-    return in.declared == Ownership.Borrowed || in.declared == actual
+    return in.declared == Ownership.Borrowed || in.declared == in.outcome.ownership
 }

@@ -18,6 +18,7 @@ export default function (in: Input): Output {
             facts: in.facts,
             states: in.states,
             memo: in.memo,
+            memo_history: in.memo_history,
             trail: in.trail
         },
         id: in.root,
@@ -31,6 +32,7 @@ export default function (in: Input): Output {
         facts: memory.facts,
         states: memory.states,
         memo: memory.memo,
+        memo_history: memory.memo_history,
         trail: memory.trail,
         phase: Phase.Done
     }

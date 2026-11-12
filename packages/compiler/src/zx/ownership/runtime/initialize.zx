@@ -52,6 +52,7 @@ export default function (in: Input): Output {
         facts: allocated.facts,
         states: allocated.states,
         memo: allocated.memo,
+        memo_history: numbers,
         trail: numbers
     }
 
@@ -72,11 +73,9 @@ export default function (in: Input): Output {
         memory: initialized,
         snapshots: {
             facts: numbers,
-            memo: numbers,
             state_first: numbers,
             state_count: numbers,
-            memo_first: numbers,
-            memo_count: numbers
+            memo_first: numbers
         }
     }
 }

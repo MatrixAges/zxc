@@ -1,23 +1,24 @@
+import type { Memory } from "../model"
+
 export type Input = {
-    memo: u64[],
-    saved: u64[],
+    memory: Memory,
     first: u64
 }
 
-export type Output = u64[]
+export type Output = Memory
 
 export default function (in: Input): Output {
-    return loop({
-        memo: in.memo,
-        saved: in.saved,
-        first: in.first,
-        index: 0
-    }, {
-        while: current => current.index < current.memo.length,
+    const first = in.first
+
+    return loop(in.memory, {
+        while: current => current.memo_history.length > first,
         next: current => {
-            current.memo[current.index] = current.saved[current.first + current.index]
-            current.index += 1
-        },
-        return: state => state.memo
+            const index = current.memo_history.length - 2
+            const expression = current.memo_history[index]
+
+            current.memo[expression] = current.memo_history[index + 1]
+            current.memo_history = current.memo_history.pop()[0]
+            current.memo_history = current.memo_history.pop()[0]
+        }
     })
 }
