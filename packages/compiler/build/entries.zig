@@ -41,6 +41,8 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/store/access/read.rx", .name = "rx_store_reads", .owner = .rx_analysis },
     .{ .path = "rx/analysis/store/access/setter.zx", .name = "rx_store_setter", .owner = .rx_analysis },
     .{ .path = "rx/analysis/store/layout/plan.rx", .name = "rx_store_layout", .owner = .rx_analysis },
+    .{ .path = "rx/features/store/schema/check.rx", .name = "rx_store_schema", .owner = .rx },
+    .{ .path = "rx/features/store/schema/unique.zx", .name = "rx_store_unique", .owner = .rx },
     .{ .path = "rx/analysis/store/layout/field_positions.zx", .name = "rx_store_field_positions", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/input_defaults/mark.zx", .name = "rx_input_default_marks", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/input_defaults/next.zx", .name = "rx_next_input_default", .owner = .rx_analysis },

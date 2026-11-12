@@ -1,0 +1,75 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import claim from "core/bytes/index/claim"
+
+import type { Index } from "core/bytes/index/model"
+
+export type Input = {
+    first: u32,
+    next: u32?[],
+    offsets: u64[],
+    fields: string[]
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const names: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    const row = in.offsets[integers.widen(in.first)]
+    const fragment: u32? = in.first
+    const duplicate: u64? = null
+    const earlier: u32? = null
+
+    return loop({
+        names,
+        row,
+        fragment,
+        duplicate,
+        earlier
+    }, {
+        while: state => state.fragment != null,
+        next: state => {
+            const fragment = state.fragment
+
+            if (fragment != null) {
+                const entered = claim({
+                    index: state.names,
+                    key: bytes.fromText(in.fields[state.row]),
+                    value: fragment
+                })
+
+                state.names = entered.index
+
+                const previous = entered.previous
+                const earlier = state.earlier
+
+                if (previous != null) {
+                    if (earlier == null || previous < earlier) {
+                        state.duplicate = state.row
+                        state.earlier = previous
+                    }
+                }
+
+                state.row += 1
+                const index = integers.widen(fragment)
+
+                if (state.row == in.offsets[index + 1]) {
+                    const next = in.next[index]
+
+                    if (state.duplicate == null && next != null) {
+                        state.fragment = next
+                        state.row = in.offsets[integers.widen(next)]
+                    } else {
+                        state.fragment = null
+                    }
+                }
+            }
+        },
+        return: state => state.duplicate
+    })
+}

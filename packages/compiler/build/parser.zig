@@ -38,6 +38,12 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         .{ .path = directories[3], .prefix = "genz/" },
     };
 
+    var tracked: [roots.len][]const std.Build.LazyPath = undefined;
+
+    for (roots, directories, &tracked) |root, directory, *inputs| {
+        inputs.* = sourceInputs(b, root, directory) catch @panic("unable to track RX and ZX bootstrap sources");
+    }
+
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
     for ([_]entries.Set{ .main, .checks, .constant_seed, .snapshot_seed, .partition_seed, .ordered, .collections, .growth, .host }) |set| {
         const run = generatorRun(b, executable, stage0);
@@ -98,7 +104,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
                 trackSources(b, run, genz_dependency.path(renewals), renewal_directory) catch @panic("unable to track renewal sources");
             } else {
-                trackSources(b, run, roots[2], directories[2]) catch @panic("unable to track index sources");
+                addSources(run, tracked[2]);
 
                 inline for (.{ "src/analysis/state/locals", "src/analysis/state/queries" }) |relative_state| {
                     const state_directory = genz_dependency.builder.root.joinString(b.allocator, relative_state) catch @panic("out of memory");
@@ -111,8 +117,8 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
                 trackSources(b, run, genz_dependency.path(history), history_directory) catch @panic("unable to track transfer history");
             }
-        } else for (roots, directories) |root, directory| {
-            trackSources(b, run, root, directory) catch @panic("unable to track RX and ZX bootstrap sources");
+        } else for (tracked) |inputs| {
+            addSources(run, inputs);
         }
 
         const directory = run.addOutputDirectoryArg(@tagName(set));
@@ -165,6 +171,14 @@ fn generatorRun(b: *std.Build, seed: *std.Build.Step.Compile, stage0: []const u8
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
+    addSources(run, try sourceInputs(b, root, absolute));
+}
+
+fn addSources(run: *std.Build.Step.Run, inputs: []const std.Build.LazyPath) void {
+    for (inputs) |input| run.addFileInput(input);
+}
+
+fn sourceInputs(b: *std.Build, root: std.Build.LazyPath, absolute: []const u8) ![]const std.Build.LazyPath {
     var directory = try std.Io.Dir.cwd().openDir(b.graph.io, absolute, .{ .iterate = true });
 
     defer directory.close(b.graph.io);
@@ -186,7 +200,11 @@ fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPat
 
     std.mem.sort([]const u8, paths.items, {}, lessThan);
 
-    for (paths.items) |path| run.addFileInput(root.path(b, path));
+    const inputs = try b.allocator.alloc(std.Build.LazyPath, paths.items.len);
+
+    for (paths.items, inputs) |path, *input| input.* = root.path(b, path);
+
+    return inputs;
 }
 
 fn lessThan(_: void, left: []const u8, right: []const u8) bool {

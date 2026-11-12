@@ -1,0 +1,41 @@
+import { Issue } from "./model"
+
+export type Input = bool[]
+
+export type Output = {
+    issue: Issue,
+    index: u64
+}
+
+export default function (in: Input): Output {
+    const first = loop({
+        index: 0,
+        has_object: false,
+        late: false
+    }, {
+        while: state => !state.late && state.index < in.length,
+        next: state => {
+            if (in[state.index]) {
+                state.late = state.has_object
+            } else {
+                state.has_object = true
+            }
+
+            if (!state.late) {
+                state.index += 1
+            }
+        }
+    })
+
+    if (first.late) {
+        return {
+            issue: Issue.LateType,
+            index: first.index
+        }
+    }
+
+    return {
+        issue: first.has_object ? Issue.None : Issue.MissingObject,
+        index: 0
+    }
+}

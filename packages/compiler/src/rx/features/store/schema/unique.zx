@@ -1,0 +1,43 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import claim from "core/bytes/index/claim"
+
+import type { Index } from "core/bytes/index/model"
+
+export type Input = string[]
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const names: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    const duplicate: u64? = null
+
+    return loop({
+        names,
+        duplicate,
+        index: 0
+    }, {
+        while: state => state.duplicate == null && state.index < in.length,
+        next: state => {
+            const entered = claim({
+                index: state.names,
+                key: bytes.fromText(in[state.index]),
+                value: integers.narrow(state.index)
+            })
+
+            state.names = entered.index
+
+            if (entered.previous != null) {
+                state.duplicate = state.index
+            }
+
+            state.index += 1
+        },
+        return: state => state.duplicate
+    })
+}

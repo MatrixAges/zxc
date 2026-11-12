@@ -3,7 +3,6 @@
 
     <Args in={Layout.Input} out={Layout.Output} />
 
-    <Call fn="group" in={$in.fragments} />
     <Call fn="names" in={$in.expressions} />
 
     <Call
@@ -16,7 +15,6 @@
 
     <Return
         value={{
-            groups: $ctx.group,
             names: $ctx.names,
             ends: $ctx.plan
         }}

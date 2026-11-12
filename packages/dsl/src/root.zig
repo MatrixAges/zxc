@@ -51,6 +51,14 @@ pub fn validate(comptime Schema: type, allocator: std.mem.Allocator, node: ast.N
 }
 
 pub fn refine(comptime Schema: type, comptime callback: anytype) type {
+    return refined(Schema, callback, false);
+}
+
+pub fn refineAlloc(comptime Schema: type, comptime callback: anytype) type {
+    return refined(Schema, callback, true);
+}
+
+fn refined(comptime Schema: type, comptime callback: anytype, comptime with_allocator: bool) type {
     return struct {
         pub const Data = Schema.Data;
         pub const matches = Schema.matches;
@@ -59,7 +67,7 @@ pub fn refine(comptime Schema: type, comptime callback: anytype) type {
         pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *Reporter, context: anytype) Error!Data {
             const data = try Schema.decode(allocator, node, reporter, context);
 
-            try callback(data, node, context, reporter);
+            if (with_allocator) try callback(allocator, data, node, context, reporter) else try callback(data, node, context, reporter);
 
             return data;
         }

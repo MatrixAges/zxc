@@ -40,7 +40,8 @@ pub fn analyzeIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, optio
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-    var checked = try dsl.validate(rx.store.Store, temporary, options.node, {});
+    var groups: ?rx.store.Groups = null;
+    var checked = try dsl.validate(rx.store.Store, temporary, options.node, &groups);
 
     defer checked.deinit();
 
@@ -56,7 +57,7 @@ pub fn analyzeIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, optio
         return failure(allocator, options.owner, options.node.location, "module", "Store definition must have a project-relative .store.rx path");
     };
 
-    const layout = try Layout.build(temporary, options.node);
+    const layout = try Layout.build(temporary, options.node, groups);
     const resolved = try @import("store/type.zig").resolve(allocator, temporary, path, layout, .{ .types = options.types, .nominal_types = options.nominal_types, .native_modules = options.native_modules }, options.aliases);
 
     if (resolved == .diagnostic) return diagnostic(allocator, path, resolved.diagnostic);

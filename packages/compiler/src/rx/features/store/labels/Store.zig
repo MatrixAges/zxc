@@ -3,16 +3,31 @@ const dsl = @import("dsl");
 const checks = @import("../../../checks.zig");
 const Object = @import("Object.zig").Object;
 const Type = @import("../../../labels/Type.zig").Type;
+const schema = @import("../schema/adapter.zig");
+pub const Groups = schema.Groups;
 
 const StoreBase = dsl.element("Store", struct {
     name: []const u8,
     version: u32,
 }, dsl.list(dsl.choice(.{ .type = Type, .object = Object }), .{ .min = 1 }));
 
-pub const Store = dsl.refine(StoreBase, checkStore);
+pub const Store = dsl.refineAlloc(StoreBase, checkStore);
 
-fn checkStore(_: StoreBase.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkStore(allocator: std.mem.Allocator, data: StoreBase.Data, node: dsl.ast.Node, context: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.nonEmpty(node, reporter);
+
+    if (comptime @import("rx_options").generated_rules) {
+        const groups = try schema.validate(allocator, data.children, node, reporter);
+
+        if (comptime @TypeOf(context) == *?Groups) context.* = groups;
+
+        return;
+    }
+
+    return checkSeed(node, reporter);
+}
+
+fn checkSeed(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
     try checks.uniqueChildren(node, "Type", "as", reporter);
 
     var has_objects = false;

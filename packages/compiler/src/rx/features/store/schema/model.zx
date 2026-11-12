@@ -1,0 +1,26 @@
+export type Groups = {
+    starts: u32[],
+    next: u32?[]
+}
+
+export enum Issue {
+    None,
+    DuplicateType,
+    LateType,
+    MissingObject,
+    DuplicateField
+}
+
+export type Input = {
+    tags: bool[],
+    aliases: string[],
+    objects: string[],
+    fields: string[],
+    offsets: u64[]
+}
+
+export type Output = {
+    issue: Issue,
+    index: u64,
+    groups: Groups
+}

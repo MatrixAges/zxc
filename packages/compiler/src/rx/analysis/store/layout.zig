@@ -14,22 +14,14 @@ next: []const ?u32,
 names: []const []const u8,
 ends: []const u64,
 text: []const u8,
-pub fn build(allocator: std.mem.Allocator, store: rx.ast.Node) std.mem.Allocator.Error!Self {
-    var first: usize = 0;
-
-    while (first < store.children.len and std.mem.eql(u8, store.children[first].name, "Type")) : (first += 1) {}
-
-    const fragments = store.children[first..];
-
-    if (fragments.len > std.math.maxInt(u32)) return error.OutOfMemory;
-
+pub fn build(allocator: std.mem.Allocator, store: rx.ast.Node, groups: ?rx.store.Groups) std.mem.Allocator.Error!Self {
+    const grouping = groups orelse try @import("layout/seed.zig").group(allocator, store.children);
+    const fragments = store.children[grouping.first..];
     const offsets = try allocator.alloc(usize, fragments.len + 1);
-    const names = try allocator.alloc([]const u8, fragments.len);
     var count: usize = 0;
 
-    for (fragments, offsets[0..fragments.len], names) |fragment, *offset, *name| {
+    for (fragments, offsets[0..fragments.len]) |fragment, *offset| {
         offset.* = count;
-        name.* = target.attribute(fragment, "name").value;
         count = std.math.add(usize, count, fragment.children.len) catch return error.OutOfMemory;
     }
 
@@ -46,17 +38,17 @@ pub fn build(allocator: std.mem.Allocator, store: rx.ast.Node) std.mem.Allocator
     }
 
     const columns: Columns = if (comptime generated)
-        try source(allocator, names, expressions)
+        try source(allocator, expressions)
     else
-        try @import("layout/seed.zig").plan(allocator, names, expressions);
+        try @import("layout/seed.zig").plan(allocator, expressions);
 
     return .{
         .fragments = fragments,
         .offsets = offsets,
         .fields = fields,
         .expressions = expressions,
-        .starts = columns.starts,
-        .next = columns.next,
+        .starts = grouping.starts,
+        .next = grouping.next,
         .names = columns.names,
         .ends = columns.ends,
         .text = columns.text,
@@ -64,16 +56,14 @@ pub fn build(allocator: std.mem.Allocator, store: rx.ast.Node) std.mem.Allocator
 }
 
 pub const Columns = struct {
-    starts: []const u32,
-    next: []const ?u32,
     names: []const []const u8,
     ends: []const u64,
     text: []const u8,
 };
 
-fn source(allocator: std.mem.Allocator, fragments: []const []const u8, expressions: []const []const u8) std.mem.Allocator.Error!Columns {
+fn source(allocator: std.mem.Allocator, expressions: []const []const u8) std.mem.Allocator.Error!Columns {
     const rule = @import("generated_rx_store_layout");
-    const input: std.meta.Child(rule.Input) = .{ .fragments = fragments, .expressions = expressions };
+    const input: std.meta.Child(rule.Input) = .{ .expressions = expressions };
 
     const planned = zx.columns.invoke(rule.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
@@ -96,7 +86,7 @@ fn source(allocator: std.mem.Allocator, fragments: []const []const u8, expressio
 
     std.debug.assert(writer.end == text.len);
 
-    return .{ .starts = planned.groups.starts, .next = planned.groups.next, .names = planned.names, .ends = planned.ends, .text = text };
+    return .{ .names = planned.names, .ends = planned.ends, .text = text };
 }
 
 pub fn typeStart(self: Self, index: usize) usize {

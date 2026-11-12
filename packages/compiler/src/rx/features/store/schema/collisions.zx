@@ -1,0 +1,48 @@
+import integers from "std:integer"
+
+import groupCollision from "./group_collision"
+
+import type { Groups } from "./model"
+
+export type Input = {
+    groups: Groups,
+    fields: string[],
+    offsets: u64[]
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const duplicate: u64? = null
+
+    return loop({
+        duplicate,
+        index: 0
+    }, {
+        while: state => state.index < in.groups.starts.length,
+        next: state => {
+            const first = in.groups.starts[state.index]
+            const next = in.groups.next[integers.widen(first)]
+
+            if (next != null) {
+                const result = groupCollision({
+                    first,
+                    next: in.groups.next,
+                    offsets: in.offsets,
+                    fields: in.fields
+                })
+
+                const previous = state.duplicate
+
+                if (result != null) {
+                    if (previous == null || result < previous) {
+                        state.duplicate = result
+                    }
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.duplicate
+    })
+}

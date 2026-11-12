@@ -1,0 +1,74 @@
+<Module>
+    <Type from="model" as="Store" />
+
+    <Args in={Store.Input} out={Store.Output} />
+
+    <Call fn="unique" in={$in.aliases} />
+
+    <If on={$ctx.unique != null}>
+        <Return
+            value={{
+                issue: Store.Issue.DuplicateType,
+                index: $ctx.unique,
+                groups: {
+                    starts: [],
+                    next: []
+                }
+            }}
+        />
+    </If>
+
+    <Call fn="order" in={$in.tags} />
+
+    <If on={$ctx.order.issue != Store.Issue.None}>
+        <Return
+            value={{
+                issue: $ctx.order.issue,
+                index: $ctx.order.index,
+                groups: {
+                    starts: [],
+                    next: []
+                }
+            }}
+        />
+    </If>
+
+    <Call fn="group" in={$in.objects} />
+
+    <If on={$ctx.group.starts.length == $in.objects.length}>
+        <Return
+            value={{
+                issue: Store.Issue.None,
+                index: 0,
+                groups: $ctx.group
+            }}
+        />
+    </If>
+
+    <Call
+        fn="collisions"
+        in={{
+            groups: $ctx.group,
+            fields: $in.fields,
+            offsets: $in.offsets
+        }}
+    />
+
+    <If on={$ctx.collisions != null}>
+        <Return
+            value={{
+                issue: Store.Issue.DuplicateField,
+                index: $ctx.collisions,
+                groups: $ctx.group
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            issue: Store.Issue.None,
+            index: 0,
+            groups: $ctx.group
+        }}
+    />
+</Module>
