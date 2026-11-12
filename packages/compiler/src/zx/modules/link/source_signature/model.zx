@@ -1,12 +1,6 @@
 import type { Index } from "core/bytes/index/model"
-import type { Ownership } from "core/symbol_table/model"
 import type { Bindings, Signatures } from "../dependencies/model"
-
-export enum Status {
-    Ready,
-    Invalid,
-    Conflict
-}
+import type { Ports } from "../signature/ports"
 
 export enum Visibility {
     Found,
@@ -21,28 +15,12 @@ export type Edge = {
     files: string[]
 }
 
-export type Ports = {
-    input_type: u32,
-    output_type: u32,
-    ownership: Ownership
-}
-
-export type Signature = {
+export type Request = {
     path: string,
     key: u8[],
-    ports: Ports
-}
-
-export type Request = {
-    signature: Signature,
-    types: u32[],
+    ports: Ports,
     registry: Index,
     edges: Edge[],
     functions: u32?[],
     linked: Signatures
-}
-
-export type Output = {
-    status: Status,
-    id?: u32
 }

@@ -155,8 +155,10 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
 
     const function = if (module.function) |value| try nodes.function(value) else null;
     const body = if (function) |*value| value else null;
+    const result = @import("../link/result/host.zig");
+    const header = try result.publish(temporary, body, null);
 
-    var program = try @import("../link/result/host.zig").assemble(allocator, temporary, module, body, null, .{
+    var program = try result.assemble(allocator, temporary, module, body, header, .{
         .types = types.items.view(),
         .functions = current.functions,
         .native_modules = current.native_modules,

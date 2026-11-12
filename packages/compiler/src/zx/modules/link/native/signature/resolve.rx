@@ -1,14 +1,15 @@
 <Module>
     <Type from="model" as="Signature" />
+    <Type from="../../signature/decision" as="Link" />
 
-    <Args in={Signature.Lookup} out={Signature.Decision} />
+    <Args in={Signature.Lookup} out={Link.Decision} />
 
     <Call fn="find" in={$in} />
 
     <If on={$ctx.find == null}>
         <Return
             value={{
-                status: Signature.Status.Insert,
+                status: Link.Status.Insert,
                 row: $in.signatures.files.length
             }}
         />
@@ -24,7 +25,7 @@
 
     <Return
         value={{
-            status: $ctx.check ? Signature.Status.Reuse : Signature.Status.Conflict,
+            status: $ctx.check ? Link.Status.Reuse : Link.Status.Conflict,
             row: $ctx.find ?? 0
         }}
     />

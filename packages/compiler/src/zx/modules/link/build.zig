@@ -45,7 +45,13 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
         id.* = try native.append(self.allocator, &self.native_modules, item, &nodes);
     }
 
-    try self.bindSignatures(index, function_mapping[0..value.functions.count()], &nodes);
+    const imports = function_mapping[0..value.functions.count()];
+
+    if (comptime @import("parser_options").generated_parser) {
+        try @import("signature/host.zig").bind(self, index, imports, native_mapping, &nodes);
+    } else {
+        try self.bindSignaturesSeed(index, imports, &nodes);
+    }
 
     if (comptime @import("parser_options").generated_parser) {
         try @import("dependencies/host.zig").verify(self, index, function_mapping);
@@ -69,47 +75,32 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
     return null;
 }
 
-fn bindSignatures(self: *Self, index: usize, mapping: []?ir.FunctionId, nodes: *Nodes) Error!void {
+fn bindSignaturesSeed(self: *Self, index: usize, mapping: []?ir.FunctionId, nodes: *Nodes) Error!void {
     const value = &self.modules[index];
-    const generated = @import("parser_options").generated_parser;
-    const source = if (generated) @import("source_signature/host.zig") else void;
-    var arena = std.heap.ArenaAllocator.init(self.temporary);
-    var buffer: [2048]u8 = undefined;
-    var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
-
-    defer arena.deinit();
-
-    const memory = scratch.allocator();
-    var edges: if (generated) ?source.Edges else void = if (generated) null else {};
 
     for (mapping, 0..) |*id, row| {
         const signature = value.functions.at(row);
+        const input = try nodes.types.include(signature.input_type);
+        const output = try nodes.types.include(signature.output_type);
 
         if (signature.external) |external| {
-            const input = try nodes.types.include(signature.input_type);
-            const output = try nodes.types.include(signature.output_type);
-
             if (external.member.len == 0) return error.InvalidModule;
 
-            id.* = try self.importExternal(signature, input, output, external, nodes);
-        } else if (comptime generated) {
-            if (edges == null) edges = try source.project(self, memory, index);
+            id.* = try self.importExternalSeed(signature, input, output, try nodes.external(external));
 
-            id.* = try source.resolve(self, memory, index, edges.?, signature);
-        } else {
-            const input = try nodes.types.include(signature.input_type);
-            const output = try nodes.types.include(signature.output_type);
-            const target = self.findSeed(signature.file_name) orelse return error.InvalidModule;
-
-            if (!self.sourceDependencySeed(value, signature.file_name)) return error.InvalidModule;
-
-            const target_id = self.module_functions[target] orelse return error.InvalidModule;
-            const callee = self.functions.at(@backingInt(target_id));
-
-            if (callee.input_type != input or callee.output_type != output or callee.output_ownership != signature.output_ownership) return error.ConflictingInterface;
-
-            id.* = target_id;
+            continue;
         }
+
+        const target = self.findSeed(signature.file_name) orelse return error.InvalidModule;
+
+        if (!self.sourceDependencySeed(value, signature.file_name)) return error.InvalidModule;
+
+        const target_id = self.module_functions[target] orelse return error.InvalidModule;
+        const callee = self.functions.at(@backingInt(target_id));
+
+        if (callee.input_type != input or callee.output_type != output or callee.output_ownership != signature.output_ownership) return error.ConflictingInterface;
+
+        id.* = target_id;
     }
 }
 
@@ -234,29 +225,6 @@ fn checkExportsSeed(values: []const ir.Export, mapping: Nodes.TypeMap) Error!voi
     }
 }
 
-fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, output: ir.TypeId, implementation: ir.External, nodes: *Nodes) Error!ir.FunctionId {
-    if (comptime !@import("parser_options").generated_parser) return self.importExternalSeed(signature, input, output, try nodes.external(implementation));
-
-    var mapped = implementation;
-
-    mapped.module = try nodes.native_modules.get(implementation.module);
-
-    var resolved = signature;
-    resolved.input_type = input;
-    resolved.output_type = output;
-
-    const plan = try @import("native/signature.zig").resolve(self.temporary, self.native_modules.view(), self.functions.view(), resolved, mapped);
-    const id: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(plan.row)));
-
-    switch (plan.status) {
-        .Reuse => return id,
-        .Conflict => return error.ConflictingInterface,
-        .Insert => try self.appendExternal(resolved, try nodes.external(implementation)),
-    }
-
-    return id;
-}
-
 fn importExternalSeed(self: *Self, signature: model.Signature, input: ir.TypeId, output: ir.TypeId, implementation: ir.External) Error!ir.FunctionId {
     for (0..self.functions.count()) |index| {
         const existing = self.functions.at(index);
@@ -279,7 +247,7 @@ fn importExternalSeed(self: *Self, signature: model.Signature, input: ir.TypeId,
     return id;
 }
 
-fn appendExternal(self: *Self, signature: model.Signature, implementation: ir.External) Error!void {
+pub fn appendExternal(self: *Self, signature: model.Signature, implementation: ir.External) Error!void {
     try self.functions.append(self.allocator, .{
         .file_name = try self.allocator.dupe(u8, signature.file_name),
         .input_type = signature.input_type,

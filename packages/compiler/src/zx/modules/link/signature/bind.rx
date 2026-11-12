@@ -1,0 +1,87 @@
+<Module>
+    <Type from="model" as="Signature" />
+    <Type from="decision" as="Link" />
+
+    <Args in={Signature.Request} out={Signature.Binding} />
+
+    <Call
+        fn="ports"
+        in={{
+            ports: $in.ports,
+            types: $in.types
+        }}
+    />
+
+    <If on={$in.external != null}>
+        <Call
+            fn="native"
+            in={{
+                external: $in.external,
+                ids: $in.native_ids
+            }}
+        />
+
+        <If on={$ctx.native == null}>
+            <Return
+                value={{
+                    status: Link.Status.Invalid,
+                    row: 0,
+                    native_id: null,
+                    input_type: $ctx.ports.input_type,
+                    output_type: $ctx.ports.output_type
+                }}
+            />
+        </If>
+
+        <Call
+            module="../native/signature/resolve"
+            in={{
+                modules: $in.modules,
+                signatures: $in.linked,
+                value: {
+                    ...$in.external,
+                    module_id: $ctx.native ?? 0
+                },
+                input_type: $ctx.ports.input_type,
+                output_type: $ctx.ports.output_type,
+                ownership: $ctx.ports.ownership
+            }}
+        />
+
+        <Return
+            value={{
+                ...$ctx.resolve,
+                native_id: $ctx.native,
+                input_type: $ctx.ports.input_type,
+                output_type: $ctx.ports.output_type
+            }}
+        />
+    </If>
+
+    <Call
+        module="../source_signature/resolve"
+        in={{
+            path: $in.path,
+            key: $in.key,
+            ports: $ctx.ports,
+            registry: $in.registry,
+            edges: $in.edges,
+            functions: $in.functions,
+            linked: $in.linked.pick([
+                "files",
+                "input_types",
+                "output_types",
+                "ownership"
+            ])
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.resolve,
+            native_id: null,
+            input_type: $ctx.ports.input_type,
+            output_type: $ctx.ports.output_type
+        }}
+    />
+</Module>

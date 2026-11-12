@@ -191,9 +191,8 @@ pub fn external(self: *Self, value: ir.External) Error!ir.External {
     return self.externalMapped(value, try self.native_modules.get(value.module));
 }
 
-fn externalMapped(self: *Self, value: ir.External, module: ir.NativeModuleId) Error!ir.External {
+pub fn externalMapped(self: *Self, value: ir.External, module: ir.NativeModuleId) Error!ir.External {
     var result = value;
-
     result.module = module;
     result.member = try self.strings(value.member);
     result.errors = if (value.errors) |errors| try self.strings(errors) else null;

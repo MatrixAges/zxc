@@ -1,0 +1,16 @@
+import { Placement } from "./model"
+
+export type Input = {
+    has_body: bool,
+    stores: u64
+}
+
+export type Output = Placement
+
+export default function (in: Input): Output {
+    if (in.stores != 0) {
+        return Placement.Invalid
+    }
+
+    return in.has_body ? Placement.Append : Placement.Skip
+}

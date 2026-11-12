@@ -1,6 +1,12 @@
 import integers from "std:integer"
 
-import type { Ports } from "./model"
+import type { Ownership } from "core/symbol_table/model"
+
+export type Ports = {
+    input_type: u32,
+    output_type: u32,
+    ownership: Ownership
+}
 
 export type Input = {
     ports: Ports,

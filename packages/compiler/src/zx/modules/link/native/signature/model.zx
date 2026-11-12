@@ -27,14 +27,3 @@ export type Row = {
     request: Lookup,
     index: u64
 }
-
-export enum Status {
-    Insert,
-    Reuse,
-    Conflict
-}
-
-export type Decision = {
-    status: Status,
-    row: u64
-}

@@ -1,5 +1,6 @@
 import type { StoreMode } from "core/function_table/complete"
 import type { Ownership } from "core/symbol_table/model"
+import type { Input as Calls } from "../placement/recursive"
 
 export type Header = {
     input_type: u32,
@@ -11,6 +12,11 @@ export type Header = {
 export type Root = {
     body?: Header,
     recursive?: u32
+}
+
+export type Entry = {
+    body?: Header,
+    calls?: Calls
 }
 
 export type State = {

@@ -28,6 +28,10 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     defer temporary.deinit();
 
+    var module_scratch = std.heap.ArenaAllocator.init(allocator);
+
+    defer module_scratch.deinit();
+
     const owned = arena.allocator();
     const scratch = temporary.allocator();
     const plan = try graph.prepare(scratch, modules, entry);
@@ -43,43 +47,37 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         mappings[index] = try types.appendFrom(scratch, source.types, source.nominal_types, 0);
     }
 
-    var builder = Builder{ .allocator = owned, .temporary = scratch, .modules = modules, .plan = plan, .type_mappings = mappings, .module_functions = function_ids };
-    var selected: result.Entry = .{};
+    var builder = Builder{ .allocator = owned, .temporary = module_scratch.allocator(), .modules = modules, .plan = plan, .type_mappings = mappings, .module_functions = function_ids };
+    const entry_position = order.len - 1;
 
-    for (order, 0..) |index, position| {
+    for (order[0..entry_position]) |index| {
         const module = &modules[index];
         const function = try builder.module(index);
-        const id: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
 
-        const action = try @import("link/placement.zig").select(
-            scratch,
-            position + 1 == order.len,
-            module.stores.count(),
-            if (function) |*body| body else null,
-            id,
-        );
+        _ = module_scratch.reset(.retain_capacity);
 
-        switch (action) {
+        switch (@import("link/placement.zig").select(module.stores.count(), function != null)) {
             .Invalid => return error.InvalidModule,
             .Skip => {},
-            .Entry => selected.body = function,
             .Append => {
-                function_ids[index] = id;
-
-                try builder.functions.append(owned, function.?);
-            },
-            .RecursiveEntry => {
-                selected.body = function;
-                selected.recursive = id;
+                function_ids[index] = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
 
                 try builder.functions.append(owned, function.?);
             },
         }
     }
 
-    const entry_index = order[order.len - 1];
+    const entry_index = order[entry_position];
+    const function = try builder.module(entry_index);
+    const body = if (function) |*value| value else null;
+    const candidate: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
+    _ = module_scratch.reset(.free_all);
 
-    const program = try result.materialize(owned, scratch, &modules[entry_index], &selected, .{
+    const header = try result.publish(scratch, body, candidate);
+
+    if (header.recursive != null) try builder.functions.append(owned, function.?);
+
+    const program = try result.materialize(owned, scratch, &modules[entry_index], body, header, .{
         .types = types.items.view(),
         .functions = builder.functions.view(),
         .native_modules = builder.native_modules.view(),

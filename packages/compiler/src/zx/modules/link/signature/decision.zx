@@ -1,0 +1,11 @@
+export enum Status {
+    Reuse,
+    Insert,
+    Invalid,
+    Conflict
+}
+
+export type Decision = {
+    status: Status,
+    row: u64
+}

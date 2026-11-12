@@ -1,29 +1,22 @@
 <Module>
     <Type from="model" as="Source" />
+    <Type from="../signature/decision" as="Link" />
 
-    <Args in={Source.Request} out={Source.Output} />
-
-    <Call
-        fn="remap"
-        in={{
-            ports: $in.signature.ports,
-            types: $in.types
-        }}
-    />
+    <Args in={Source.Request} out={Link.Decision} />
 
     <Call
         fn="../graph/locate"
         in={{
             index: $in.registry,
-            key: $in.signature.key
+            key: $in.key
         }}
     />
 
     <If on={$ctx.locate == null}>
         <Return
             value={{
-                status: Source.Status.Invalid,
-                id: null
+                status: Link.Status.Invalid,
+                row: 0
             }}
         />
     </If>
@@ -32,15 +25,15 @@
         fn="visible"
         in={{
             edges: $in.edges,
-            path: $in.signature.path
+            path: $in.path
         }}
     />
 
     <If on={!$ctx.visible}>
         <Return
             value={{
-                status: Source.Status.Invalid,
-                id: null
+                status: Link.Status.Invalid,
+                row: 0
             }}
         />
     </If>
@@ -48,8 +41,8 @@
     <If on={$in.functions[$ctx.locate ?? 0] == null}>
         <Return
             value={{
-                status: Source.Status.Invalid,
-                id: null
+                status: Link.Status.Invalid,
+                row: 0
             }}
         />
     </If>
@@ -57,7 +50,7 @@
     <Call
         fn="compatible"
         in={{
-            ports: $ctx.remap,
+            ports: $in.ports,
             linked: $in.linked,
             id: $in.functions[$ctx.locate ?? 0] ?? 0
         }}
@@ -65,8 +58,8 @@
 
     <Return
         value={{
-            status: $ctx.compatible ? Source.Status.Ready : Source.Status.Conflict,
-            id: $in.functions[$ctx.locate ?? 0]
+            status: $ctx.compatible != null ? Link.Status.Reuse : Link.Status.Conflict,
+            row: $ctx.compatible ?? 0
         }}
     />
 </Module>

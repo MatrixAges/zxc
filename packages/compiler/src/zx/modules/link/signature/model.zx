@@ -1,0 +1,29 @@
+import type { Index } from "core/bytes/index/model"
+import type { Modules } from "core/native_module_table/model"
+import type { Table } from "core/signature_table/model"
+import type { External } from "../native/signature/model"
+import type { Edge } from "../source_signature/model"
+import type { Status } from "./decision"
+import type { Ports } from "./ports"
+
+export type Request = {
+    path: string,
+    key: u8[],
+    ports: Ports,
+    external?: External,
+    types: u32[],
+    modules: Modules,
+    native_ids: u32?[],
+    linked: Table,
+    registry: Index,
+    edges: Edge[],
+    functions: u32?[]
+}
+
+export type Binding = {
+    status: Status,
+    row: u64,
+    native_id?: u32,
+    input_type: u32,
+    output_type: u32
+}

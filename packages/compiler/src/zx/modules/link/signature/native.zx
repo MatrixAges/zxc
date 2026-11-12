@@ -1,0 +1,22 @@
+import integers from "std:integer"
+
+import type { External } from "../native/signature/model"
+
+export type Input = {
+    external: External,
+    ids: u32?[]
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const { external, ids } = in
+
+    const row = integers.widen(external.module_id)
+
+    if (external.member.length == 0 || row >= ids.length) {
+        return null
+    }
+
+    return ids[row]
+}

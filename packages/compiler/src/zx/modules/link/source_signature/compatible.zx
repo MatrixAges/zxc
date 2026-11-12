@@ -1,7 +1,7 @@
 import integers from "std:integer"
 
 import type { Signatures } from "../dependencies/model"
-import type { Ports } from "./model"
+import type { Ports } from "../signature/ports"
 
 export type Input = {
     ports: Ports,
@@ -9,7 +9,7 @@ export type Input = {
     id: u32
 }
 
-export type Output = bool
+export type Output = u64?
 
 export default function (in: Input): Output {
     const row = integers.widen(in.id)
@@ -20,5 +20,7 @@ export default function (in: Input): Output {
     const same_output = ports.output_type == linked.output_types[row]
     const same_owner = ports.ownership == linked.ownership[row]
 
-    return same_input && same_output && same_owner
+    const compatible = same_input && same_output && same_owner
+
+    return compatible ? row : null
 }
