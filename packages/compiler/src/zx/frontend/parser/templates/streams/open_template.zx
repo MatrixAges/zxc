@@ -16,23 +16,33 @@ export default function (in: Input): Output {
         _ => in.active
     }
 
+    const lexer = active.lexer
+    const failed = lexer.diagnostic.message != ""
+    const diagnostic: u64? = failed ? in.diagnostics.length : null
+    const diagnostics = failed ? in.diagnostics.push(lexer.diagnostic)[0] : in.diagnostics
+
     const parents = in.parents.push({
-        session: active,
-        start: in.offset
+        present: active.present,
+        session_start: active.start,
+        template_start: in.offset,
+        tokens: lexer.tokens,
+        comments: lexer.comments,
+        token_templates: active.token_templates,
+        line_break: lexer.line_break,
+        symbol: lexer.symbol,
+        dollar: lexer.dollar,
+        diagnostic
     })[0]
 
     return {
+        ...in,
         active: session({
             start: 0,
             end: in.length,
             present: false
         }),
-        parents: parents,
-        interpolations: in.interpolations,
-        events: in.events,
-        event_index: in.event_index,
-        offset: in.offset,
-        length: in.length,
+        parents,
+        diagnostics,
         skip: true
     }
 }

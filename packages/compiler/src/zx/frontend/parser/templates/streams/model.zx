@@ -1,4 +1,5 @@
-import type { LexerState } from "../../../lexer/model"
+import type { Diagnostic, LexerState } from "../../../lexer/model"
+import type { Span, Symbol, Token } from "../../../lexer/token_model"
 import type { Event, Interpolation } from "../model"
 
 export type Session = {
@@ -9,13 +10,22 @@ export type Session = {
 }
 
 export type Suspended = {
-    session: Session,
-    start: u64
+    present: bool,
+    session_start: u64,
+    template_start: u64,
+    tokens: Token[],
+    comments: Span[],
+    token_templates: u64[],
+    line_break: bool,
+    symbol: Symbol,
+    dollar: bool,
+    diagnostic?: u64
 }
 
 export type State = {
     active: Session
     parents: Suspended[]
+    diagnostics: Diagnostic[]
     interpolations: Interpolation[]
     events: Event[]
     event_index: u64

@@ -1,5 +1,6 @@
 import session from "./session"
 
+import type { Diagnostic } from "../../../lexer/model"
 import type { Event, Interpolation } from "../model"
 import type { State, Suspended } from "./model"
 
@@ -12,6 +13,7 @@ export type Output = State
 
 export default function (in: Input): Output {
     const parents: Suspended[] = []
+    const diagnostics: Diagnostic[] = []
     const interpolations: Interpolation[] = []
 
     return {
@@ -21,6 +23,7 @@ export default function (in: Input): Output {
             present: false
         }),
         parents,
+        diagnostics,
         interpolations,
         events: in.events,
         event_index: 0,

@@ -1,5 +1,4 @@
 import resume from "./resume"
-import session from "./session"
 
 import type { State } from "./model"
 
@@ -13,30 +12,18 @@ export type Output = State
 export default function (in: Input): Output {
     const popped = in.state.parents.pop()
 
-    const parent = popped[1] ?? {
-        session: session({
-            start: 0,
-            end: in.state.length,
-            present: false
-        }),
-        start: 0
-    }
-
     const active = resume({
-        session: parent.session,
-        start: parent.start,
+        parent: popped[1],
+        diagnostics: in.state.diagnostics,
+        length: in.state.length,
         end: in.state.offset + 1,
         template: in.template
     })
 
     return {
-        active: active,
+        ...in.state,
+        active,
         parents: popped[0],
-        interpolations: in.state.interpolations,
-        events: in.state.events,
-        event_index: in.state.event_index,
-        offset: in.state.offset,
-        length: in.state.length,
         skip: true
     }
 }

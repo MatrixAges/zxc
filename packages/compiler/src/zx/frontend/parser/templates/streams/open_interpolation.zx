@@ -8,17 +8,11 @@ export type Output = State
 
 export default function (in: Input): Output {
     return {
+        ...in,
         active: session({
             start: in.offset,
             end: in.length,
             present: true
-        }),
-        parents: in.parents,
-        interpolations: in.interpolations,
-        events: in.events,
-        event_index: in.event_index,
-        offset: in.offset,
-        length: in.length,
-        skip: in.skip
+        })
     }
 }

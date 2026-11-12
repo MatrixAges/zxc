@@ -20,17 +20,13 @@ export default function (in: Input): Output {
     const interpolations = in.interpolations.push(completed)[0]
 
     return {
+        ...in,
         active: session({
             start: 0,
             end: in.length,
             present: false
         }),
-        parents: in.parents,
-        interpolations: interpolations,
-        events: in.events,
-        event_index: in.event_index,
-        offset: in.offset,
-        length: in.length,
+        interpolations,
         skip: true
     }
 }

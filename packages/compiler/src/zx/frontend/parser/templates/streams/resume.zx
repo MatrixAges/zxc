@@ -1,12 +1,14 @@
 import emit from "../../../lexer/emit"
-import { Mode } from "../../../lexer/model"
+import initial from "../../../lexer/initial"
+import session from "./session"
 
-import type { LexerState } from "../../../lexer/model"
-import type { Session } from "./model"
+import type { Diagnostic, LexerState } from "../../../lexer/model"
+import type { Session, Suspended } from "./model"
 
 export type Input = {
-    session: Session,
-    start: u64,
+    parent?: Suspended,
+    diagnostics: Diagnostic[],
+    length: u64,
     end: u64,
     template: u64
 }
@@ -14,33 +16,45 @@ export type Input = {
 export type Output = Session
 
 export default function (in: Input): Output {
-    if (!in.session.present) {
-        return in.session
+    const parent = in.parent
+
+    if (parent == null || !parent.present) {
+        return session({
+            start: 0,
+            end: in.length,
+            present: false
+        })
     }
 
+    const base = initial({
+        start: in.end,
+        end: in.end
+    })
+
+    const diagnostic = parent.diagnostic
+
     const lexer: LexerState = {
-        ...in.session.lexer,
-        warmed: 0,
-        ahead_one: 0,
-        ahead_two: 0,
-        offset: in.end,
-        source_length: in.end,
-        skip_until: in.end,
-        mode: Mode.Idle
+        ...base,
+        tokens: parent.tokens,
+        comments: parent.comments,
+        line_break: parent.line_break,
+        symbol: parent.symbol,
+        dollar: parent.dollar,
+        diagnostic: diagnostic != null ? in.diagnostics[diagnostic] : base.diagnostic
     }
 
     if (lexer.diagnostic.message != "") {
         return {
             present: true,
-            start: in.session.start,
+            start: parent.session_start,
             lexer,
-            token_templates: in.session.token_templates
+            token_templates: parent.token_templates
         }
     }
 
     const emitted = emit({
         kind: "template",
-        start: in.start,
+        start: parent.template_start,
         end: in.end,
         comment: false,
         state: lexer
@@ -48,8 +62,8 @@ export default function (in: Input): Output {
 
     return {
         present: true,
-        start: in.session.start,
+        start: parent.session_start,
         lexer: emitted,
-        token_templates: in.session.token_templates.push(in.template)[0]
+        token_templates: parent.token_templates.push(in.template)[0]
     }
 }
