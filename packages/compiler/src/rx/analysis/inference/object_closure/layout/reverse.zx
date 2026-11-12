@@ -1,0 +1,71 @@
+export type Input = {
+    keys: u32[],
+    sizes: u64[],
+    sources: u64[]
+}
+
+export type Output = {
+    offsets: u64[],
+    dependents: u64[]
+}
+
+export default function (in: Input): Output {
+    const zero: u64 = 0
+    const counted = in.keys.map(key => zero)[0]
+
+    const counts = loop({
+        offsets: counted.push(zero)[0],
+        edge: 0
+    }, {
+        while: state => state.edge < in.sources.length,
+        next: state => {
+            const node = in.sources[state.edge]
+
+            state.offsets[node] += 1
+            state.edge += 1
+        },
+        return: state => state.offsets
+    })
+
+    const ends = loop({
+        offsets: counts,
+        total: 0,
+        node: 0
+    }, {
+        while: state => state.node < state.offsets.length,
+        next: state => {
+            state.total += state.offsets[state.node]
+            state.offsets[state.node] = state.total
+            state.node += 1
+        },
+        return: state => state.offsets
+    })
+
+    return loop({
+        offsets: ends,
+        dependents: in.sources.map(source => zero)[0],
+        rule: in.sizes.length,
+        edge: in.sources.length,
+        remaining: 0
+    }, {
+        while: state => state.rule != 0 || state.remaining != 0,
+        next: state => {
+            if (state.remaining == 0) {
+                state.rule -= 1
+                state.remaining = in.sizes[state.rule]
+            } else {
+                state.edge -= 1
+                state.remaining -= 1
+
+                const node = in.sources[state.edge]
+
+                state.offsets[node] -= 1
+                state.dependents[state.offsets[node]] = state.rule
+            }
+        },
+        return: state => ({
+            offsets: state.offsets,
+            dependents: state.dependents
+        })
+    })
+}

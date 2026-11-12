@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="Layout" />
+
+    <Args in={Layout.Input} out={Layout.Output} />
+
+    <Call
+        fn="known"
+        in={$in.pick([
+            "kinds",
+            "keys"
+        ])}
+    />
+
+    <Call fn="reverse" in={$in.omit(["kinds"])} />
+
+    <Return
+        value={{
+            ...$ctx.reverse,
+            known: $ctx.known
+        }}
+    />
+</Module>

@@ -12,7 +12,9 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
 
     try collect(graph, object.result, &names, object.span);
 
-    for (object.parts) |part| {
+    for (0..@as(usize, @intCast(object.count))) |index| {
+        const part = object.part(graph, index);
+
         if (part.name) |name| {
             try names.put(graph.allocator, name, {});
         } else {
@@ -29,11 +31,11 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
         const target = try graph.field(object.result, name.*, object.span);
         var provider: ?Provider = null;
         var ambiguous = false;
-        var index = object.parts.len;
+        var index: usize = @intCast(object.count);
 
         while (index != 0) {
             index -= 1;
-            const part = object.parts[index];
+            const part = object.part(graph, index);
 
             if (part.name) |explicit| {
                 if (!std.mem.eql(u8, explicit, name.*)) continue;

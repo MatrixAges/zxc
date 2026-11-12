@@ -1,0 +1,100 @@
+import intern from "./intern"
+
+import type { Columns, Normalized as Output } from "./model"
+
+export type Input = {
+    columns: Columns,
+    parents: u32[],
+    keys: u32[],
+    buckets: u32[],
+    sizes: u64[],
+    results: u64[],
+    sources: u64[],
+    rule: u64,
+    part: u64,
+    end: u64,
+    first: u64,
+    open: bool
+}
+
+export default function (in: Input): Output {
+    const columns = in.columns
+    const constructions = columns.construction_results.length
+    const rules = constructions + columns.selection_results.length
+
+    return loop(in, {
+        while: state => state.rule < rules,
+        next: state => {
+            if (state.open) {
+                if (state.part == state.end) {
+                    state.sizes =
+                        state.sizes.push(state.sources.length - state.first)[0]
+                    state.rule += 1
+                    state.open = false
+                } else {
+                    if (columns.part_names[state.part] == null) {
+                        const source = intern({
+                            parents: state.parents,
+                            keys: state.keys,
+                            buckets: state.buckets,
+                            node: columns.part_values[state.part]
+                        })
+
+                        state.parents = source.parents
+                        state.keys = source.keys
+                        state.buckets = source.buckets
+                        state.sources = state.sources.push(source.position)[0]
+                    }
+
+                    state.part += 1
+                }
+            } else {
+                const construction = state.rule < constructions
+                const node = match {
+                    construction => columns.construction_results[state.rule],
+                    _ => columns.selection_results[state.rule - constructions]
+                }
+                const result = intern({
+                    parents: state.parents,
+                    keys: state.keys,
+                    buckets: state.buckets,
+                    node
+                })
+
+                state.parents = result.parents
+                state.keys = result.keys
+                state.buckets = result.buckets
+                state.results = state.results.push(result.position)[0]
+
+                if (construction) {
+                    state.part = columns.part_first[state.rule]
+                    state.end = state.part + columns.part_count[state.rule]
+                    state.first = state.sources.length
+                    state.open = true
+                } else {
+                    const source = intern({
+                        parents: state.parents,
+                        keys: state.keys,
+                        buckets: state.buckets,
+                        node: columns.selection_sources[state.rule - constructions]
+                    })
+
+                    state.parents = source.parents
+                    state.keys = source.keys
+                    state.buckets = source.buckets
+                    state.sources = state.sources.push(source.position)[0]
+                    state.sizes = state.sizes.push(1)[0]
+                    state.rule += 1
+                }
+            }
+        },
+        return: state => ({
+            parents: state.parents,
+            keys: state.keys,
+            buckets: state.buckets,
+            sizes: state.sizes,
+            results: state.results,
+            sources: state.sources
+        })
+    })
+}

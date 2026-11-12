@@ -21,7 +21,7 @@ pub fn prove(self: *Self, graph: *const Graph, value: Graph.Id, query: Query) st
     const root = graph.root(value);
 
     if (graph.nodes.items(.kind)[@backingInt(root)] == .Known) return true;
-    if (graph.constructions.items.len == 0 and graph.selections.items.len == 0) return false;
+    if (graph.constructions.len == 0 and graph.selections.len == 0) return false;
     if (!@import("rx_options").generated_graph) return @import("object_closure/seed.zig").prove(graph, root, query, 0);
 
     const allocator = self.arena.allocator();
@@ -35,7 +35,7 @@ pub fn prove(self: *Self, graph: *const Graph, value: Graph.Id, query: Query) st
     }
 
     const snapshot = &self.snapshot.?;
-    const index = snapshot.positions.get(root) orelse return false;
+    const index = snapshot.position(root) orelse return false;
 
     const cached = switch (query) {
         .spread => &self.spread,
@@ -51,7 +51,7 @@ pub fn prove(self: *Self, graph: *const Graph, value: Graph.Id, query: Query) st
             .results = snapshot.results,
             .offsets = snapshot.offsets,
             .dependents = snapshot.dependents,
-            .constructions = graph.constructions.items.len,
+            .constructions = graph.constructions.len,
             .spread = query == .spread,
         }) catch |err| switch (err) {
             error.OutOfMemory, error.Overflow => return error.OutOfMemory,
@@ -60,7 +60,7 @@ pub fn prove(self: *Self, graph: *const Graph, value: Graph.Id, query: Query) st
 
         cached.* = ready;
 
-        if (graph.selections.items.len == 0) {
+        if (graph.selections.len == 0) {
             self.spread = ready;
             self.selection = ready;
         }

@@ -1,0 +1,33 @@
+import type { Kind } from "../../unification/model"
+
+export type Columns = {
+    construction_results: u32[],
+    part_first: u64[],
+    part_count: u64[],
+    part_names: string?[],
+    part_values: u32[],
+    selection_results: u32[],
+    selection_sources: u32[]
+}
+
+export type Input = {
+    kinds: Kind[],
+    keys: u32[],
+    sizes: u64[],
+    sources: u64[]
+}
+
+export type Normalized = {
+    parents: u32[],
+    keys: u32[],
+    buckets: u32[],
+    sizes: u64[],
+    results: u64[],
+    sources: u64[]
+}
+
+export type Output = {
+    known: bool[],
+    offsets: u64[],
+    dependents: u64[]
+}

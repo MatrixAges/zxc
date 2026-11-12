@@ -1,0 +1,40 @@
+import insert from "core/integer/index/insert"
+
+import representative from "../../forest/representative"
+
+export type Input = {
+    parents: u32[],
+    keys: u32[],
+    buckets: u32[],
+    node: u32
+}
+
+export type Output = {
+    parents: u32[],
+    keys: u32[],
+    buckets: u32[],
+    position: u64
+}
+
+export default function (in: Input): Output {
+    const root = representative({
+        parents: in.parents,
+        value: in.node
+    })
+
+    const entry = insert({
+        index: {
+            count: in.keys.length,
+            keys: in.keys,
+            buckets: in.buckets
+        },
+        key: root.item
+    })
+
+    return {
+        parents: root.parents,
+        keys: entry.index.keys,
+        buckets: entry.index.buckets,
+        position: entry.position
+    }
+}

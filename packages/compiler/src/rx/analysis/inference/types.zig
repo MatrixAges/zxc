@@ -31,8 +31,9 @@ binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
 binding_lookups: std.ArrayList(Bindings.Lookup) = .empty,
 assignments: std.MultiArrayList(Assignment.Edge) = .empty,
 assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
-constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
-selections: std.ArrayList(@import("selection.zig").Selection) = .empty,
+constructions: std.MultiArrayList(@import("construction.zig").Object) = .empty,
+construction_parts: std.MultiArrayList(@import("construction.zig").Part) = .empty,
+selections: std.MultiArrayList(@import("selection.zig").Selection) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.MultiArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
@@ -236,8 +237,8 @@ pub fn finish(self: *Self) zx.Error!void {
         try Bindings.propagate(self, false);
         try @import("non_null.zig").propagate(self, false);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
-        for (self.constructions.items) |object| try @import("construction.zig").propagate(self, &object_closure, object, false);
-        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, &object_closure, selection, false);
+        for (0..self.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.constructions.get(index), false);
+        for (0..self.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.selections.get(index), false);
         try Projections.applyLengths(self);
         try @import("index.zig").replay(self);
         if (revision != self.revision) continue;
@@ -255,9 +256,9 @@ pub fn finish(self: *Self) zx.Error!void {
         if (try @import("index.zig").defaultLists(self)) continue;
         try @import("non_null.zig").propagate(self, true);
         if (revision != self.revision) continue;
-        for (self.selections.items) |selection| try @import("selection.zig").propagate(self, &object_closure, selection, true);
+        for (0..self.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.selections.get(index), true);
         if (revision != self.revision) continue;
-        for (self.constructions.items) |object| try @import("construction.zig").propagate(self, &object_closure, object, true);
+        for (0..self.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.constructions.get(index), true);
         if (revision != self.revision) continue;
 
         break;

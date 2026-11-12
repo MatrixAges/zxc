@@ -43,7 +43,7 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
             .Skip => {},
             .Bind => try graph.expect(direct.?, target, object.span),
             .Infer => {
-                const part = object.parts[@intCast(plan.candidate.part)];
+                const part = object.part(graph, @intCast(plan.candidate.part));
                 const value = try graph.field(part.value, name.*, object.span);
 
                 try graph.expect(value, target, object.span);
@@ -60,14 +60,15 @@ fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator,
 
     try result_fields.register(allocator, names);
 
-    const count = object.parts.len;
+    const count: usize = @intCast(object.count);
+    const first: usize = @intCast(object.first);
+    const part_names = graph.construction_parts.items(.name)[first..][0..count];
 
-    const spreads = for (object.parts) |part| {
-        if (part.name == null) break true;
+    const spreads = for (part_names) |name| {
+        if (name == null) break true;
     } else false;
 
     const spread_columns = if (spreads) count else 0;
-    const explicit = try allocator.alloc(?[]const u8, count);
     const fields = try allocator.alloc([]const []const u8, spread_columns);
     const roots = try allocator.alloc(u64, spread_columns);
     const open = try allocator.alloc(bool, spread_columns);
@@ -78,15 +79,14 @@ fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator,
     @memset(open, false);
     @memset(aliases, false);
 
-    for (object.parts, explicit, 0..) |part, *name, index| {
-        name.* = part.name;
-
-        if (part.name) |value| {
+    for (part_names, 0..) |name, index| {
+        if (name) |value| {
             try names.put(allocator, value, {});
 
             continue;
         }
 
+        const part = object.part(graph, index);
         const root = graph.root(part.value);
         const shape = graph.shapeAt(@backingInt(root));
 
@@ -107,11 +107,11 @@ fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator,
         if (!alias) fields[index] = source.names();
     }
 
-    return .{ .explicit = explicit, .fields = fields, .roots = roots, .open = open, .aliases = aliases };
+    return .{ .explicit = part_names, .fields = fields, .roots = roots, .open = open, .aliases = aliases };
 }
 
 fn concrete(graph: *Graph, object: Object, target: Graph.Id, parts: Parts, part_index: usize, field_index: usize) zx.Error!Graph.Id {
-    const part = object.parts[part_index];
+    const part = object.part(graph, part_index);
 
     if (part.name != null) return part.value;
     if (parts.aliases[part_index]) return target;

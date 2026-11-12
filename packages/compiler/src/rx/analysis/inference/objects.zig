@@ -8,9 +8,11 @@ const Construction = @import("construction.zig");
 pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Error!Graph.Id {
     const span = self.sourceSpan(expression.span);
     const fields = syntax.value(expression).object;
-    const parts = try self.graph.allocator.alloc(Construction.Part, fields.len);
+    const first = self.graph.construction_parts.len;
 
-    for (parts, 0..) |*part, index| {
+    try self.graph.construction_parts.resize(self.graph.allocator, first + fields.len);
+
+    for (0..fields.len) |index| {
         const field = syntax.item(fields, index);
         var hint: ?Graph.Id = null;
 
@@ -26,11 +28,13 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
             if (final_field) hint = try self.graph.field(expected.?, field.name.text, self.sourceSpan(field.name.span));
         }
 
-        part.* = .{
+        const part: Construction.Part = .{
             .name = if (field.spread) null else try self.graph.allocator.dupe(u8, field.name.text),
             .value = try self.infer(field.value, hint),
             .span = self.sourceSpan(field.value.span),
         };
+
+        self.graph.construction_parts.set(first + index, part);
 
         if (field.spread and self.graph.shape(part.value) == .unknown) {
             try self.graph.unify(part.value, try self.graph.add(.{ .object = .{} }, part.span), part.span);
@@ -41,7 +45,7 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
 
     if (expected) |target| try self.graph.expect(result, target, span);
 
-    try self.graph.constructions.append(self.graph.allocator, .{ .result = result, .parts = parts, .span = span });
+    try self.graph.constructions.append(self.graph.allocator, .{ .result = result, .first = first, .count = fields.len, .span = span });
 
     return result;
 }
