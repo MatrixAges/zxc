@@ -1,0 +1,20 @@
+import type { U32Buffer } from "std:memory"
+import type { Tag } from "../../schema/execution/model"
+import type { Node } from "../../syntax/document/model"
+
+export type View = {
+    nodes: Node[],
+    slots: u64[],
+    facts: U32Buffer
+}
+
+export type Children = {
+    view: View,
+    head: u64
+}
+
+export type Input = {
+    view: View,
+    row: u64,
+    tag: Tag
+}

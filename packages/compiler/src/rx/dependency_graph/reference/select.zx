@@ -1,6 +1,7 @@
 import name from "./name"
-import rule from "./rule"
+import target from "./target"
 
+import type { Tag } from "../../schema/execution/model"
 import type { Attribute, Node } from "../../syntax/document/model"
 import type { Reference } from "./model"
 
@@ -8,7 +9,8 @@ export type Input = {
     source: u8[],
     node: Node,
     attributes: Attribute[],
-    row: u64
+    row: u64,
+    tag: Tag
 }
 
 export type Output = Reference?
@@ -17,10 +19,8 @@ export default function (in: Input): Output {
     const source = in.source
     const node = in.node
 
-    const rule = rule({
-        source,
-        start: node.name.start,
-        end: node.name.end,
+    const rule = target({
+        tag: in.tag,
         graph_only: false
     })
 

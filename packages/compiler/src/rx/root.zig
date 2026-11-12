@@ -33,6 +33,7 @@ pub const Document = dsl.choice(.{ .module = Module, .gateway = Gateway, .store 
 pub const Result = dsl.Result(File);
 pub const ModuleResult = @import("modules.zig").Result;
 pub const ModuleSource = @import("modules.zig").Source;
+pub const IndexedFlow = @import("modules.zig").IndexedFlow;
 const modules = @import("modules.zig");
 pub const validateModules = modules.validate;
 pub const validateModulePaths = modules.validatePaths;

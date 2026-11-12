@@ -1,23 +1,38 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
 import memory from "std:memory"
 
+import classify from "../../schema/execution/tag"
+import project from "../flow/project"
 import select from "./select"
 
-import type { U64Buffer } from "std:memory"
+import type { U32Buffer, U64Buffer } from "std:memory"
 import type { Attribute, Node } from "../../syntax/document/model"
 import type { Reference } from "./model"
 
 export type Input = {
-    source: u8[],
+    source: string,
     nodes: Node[],
     attributes: Attribute[],
     root: u64,
-    parents: U64Buffer
+    parents: U64Buffer,
+    slots: u64[],
+    facts: U32Buffer,
+    project_flow: bool
 }
 
 export type Output = Reference[]
 
 export default function (in: Input): Output {
     const parents = in.parents
+    const source = bytes.fromText(in.source)
+
+    const view = {
+        nodes: in.nodes,
+        slots: in.slots,
+        facts: in.facts
+    }
+
     const references: Reference[] = []
 
     return loop({
@@ -36,11 +51,24 @@ export default function (in: Input): Output {
                 state.depth += 1
                 state.next = node.children
             } else {
+                const name =
+                    encoding.sliceBytes(in.source, node.name.start, node.name.end)
+                const tag = classify(name)
+
+                if (in.project_flow) {
+                    project({
+                        view,
+                        row,
+                        tag
+                    })
+                }
+
                 const reference = select({
-                    source: in.source,
+                    source,
                     node,
                     attributes: in.attributes,
-                    row
+                    row,
+                    tag
                 })
 
                 if (reference != null) {

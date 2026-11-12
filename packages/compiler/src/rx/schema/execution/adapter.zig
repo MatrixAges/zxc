@@ -19,6 +19,7 @@ pub const Tag = if (generated) rule.Output else enum {
     Default,
     Emit,
     Return,
+    Route,
 };
 
 const Input = if (generated) std.meta.Child(rule.Input) else void;

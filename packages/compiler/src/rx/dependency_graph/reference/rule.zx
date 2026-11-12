@@ -1,130 +1,16 @@
-import {
-    attribute_fn,
-    attribute_from,
-    attribute_module,
-    attribute_service,
-    tag_call,
-    tag_import,
-    tag_module,
-    tag_route,
-    tag_store,
-    tag_type
-} from "./const"
-import { Role, Target } from "./model"
-import name from "./name"
+import encoding from "std:encoding"
+
+import { Tag } from "../../schema/execution/model"
+import classify from "../../schema/execution/tag"
+import select from "./target"
 
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {
-    const graph_only = in.graph_only
-    const source = in.source
-    const start = in.start
-    const end = in.end
+    const name = encoding.sliceBytes(in.source, in.start, in.end)
 
-    const imported = name({
-        source,
-        start,
-        end,
-        name: tag_import
+    return select({
+        tag: classify(name),
+        graph_only: in.graph_only
     })
-
-    const called = !imported && name({
-        source,
-        start,
-        end,
-        name: tag_call
-    })
-
-    return match {
-        imported => {
-            primary: attribute_from,
-            fallback: "",
-            target: Target.Module,
-            fallback_target: Target.Module,
-            role: Role.Dependency,
-            required: true,
-            package_allowed: false,
-            graph: true
-        },
-        called => {
-            primary: attribute_module,
-            fallback: graph_only ? "" : attribute_fn,
-            target: Target.Module,
-            fallback_target: Target.Function,
-            role: Role.Call,
-            required: !graph_only,
-            package_allowed: true,
-            graph: true
-        },
-        !graph_only && name({
-            source,
-            start,
-            end,
-            name: tag_module
-        }) => {
-            primary: attribute_fn,
-            fallback: "",
-            target: Target.Function,
-            fallback_target: Target.Function,
-            role: Role.Call,
-            required: false,
-            package_allowed: false,
-            graph: false
-        },
-        !graph_only && name({
-            source,
-            start,
-            end,
-            name: tag_type
-        }) => {
-            primary: attribute_from,
-            fallback: "",
-            target: Target.Function,
-            fallback_target: Target.Function,
-            role: Role.TypeImport,
-            required: true,
-            package_allowed: true,
-            graph: false
-        },
-        !graph_only && name({
-            source,
-            start,
-            end,
-            name: tag_store
-        }) => {
-            primary: attribute_from,
-            fallback: "",
-            target: Target.Store,
-            fallback_target: Target.Store,
-            role: Role.Dependency,
-            required: false,
-            package_allowed: false,
-            graph: false
-        },
-        !graph_only && name({
-            source,
-            start,
-            end,
-            name: tag_route
-        }) => {
-            primary: attribute_service,
-            fallback: "",
-            target: Target.Module,
-            fallback_target: Target.Module,
-            role: Role.Dependency,
-            required: true,
-            package_allowed: false,
-            graph: false
-        },
-        _ => {
-            primary: "",
-            fallback: "",
-            target: Target.Module,
-            fallback_target: Target.Module,
-            role: Role.Dependency,
-            required: false,
-            package_allowed: false,
-            graph: false
-        }
-    }
 }

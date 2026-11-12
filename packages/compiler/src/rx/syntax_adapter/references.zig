@@ -13,8 +13,34 @@ pub const Entry = struct {
 };
 
 pub const Index = opaque {};
+const Storage = struct { root: *const ast.Node, entries: []const Entry, flow: []const Fact };
 
-const Storage = struct { root: *const ast.Node, entries: []const Entry };
+pub const Fact = packed struct(u32) {
+    returns: bool,
+    terminates: bool,
+    unreachable_step: bool,
+    declaration: bool,
+    alternate: bool,
+    padding: u27 = 0,
+};
+
+pub const Flow = struct {
+    base: [*]const ast.Node,
+    facts: []const Fact,
+    pub fn get(self: Flow, node: *const ast.Node) Fact {
+        const offset = @intFromPtr(node) - @intFromPtr(self.base);
+
+        return self.facts[offset / @sizeOf(ast.Node)];
+    }
+};
+
+pub fn flowForNode(index: *const Index, node: *const ast.Node) ?Flow {
+    const storage: *const Storage = @ptrCast(@alignCast(index));
+
+    if (storage.flow.len == 0 or !ast.sameStorage(node, storage.root)) return null;
+
+    return .{ .base = @ptrCast(storage.root), .facts = storage.flow };
+}
 
 pub fn forNode(index: *const Index, node: *const ast.Node) ?[]const Entry {
     const storage: *const Storage = @ptrCast(@alignCast(index));
@@ -36,6 +62,8 @@ pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: st
     const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
     var storage: [xml_nesting_limit]u64 = undefined;
     const parents: []u64 = &storage;
+    const project_flow = std.mem.eql(u8, nodes[0].name, "Module");
+    const facts = try allocator.alloc(u32, if (project_flow) nodes.len else 0);
 
     const scan_input: Input = .{
         .source = source,
@@ -43,6 +71,9 @@ pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: st
         .attributes = input.tree.attributes,
         .root = input.control.result,
         .parents = @ptrCast(&parents),
+        .slots = slots,
+        .facts = @ptrCast(&facts),
+        .project_flow = project_flow,
     };
 
     const rows = scan(temporary, if (@typeInfo(Parameter) == .pointer) &scan_input else scan_input) catch |err| switch (err) {
@@ -63,7 +94,7 @@ pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: st
 
     const index = try allocator.create(Storage);
 
-    index.* = .{ .root = &nodes[0], .entries = entries };
+    index.* = .{ .root = &nodes[0], .entries = entries, .flow = @ptrCast(facts) };
 
     return @ptrCast(index);
 }

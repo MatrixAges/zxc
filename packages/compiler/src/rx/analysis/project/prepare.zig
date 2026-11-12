@@ -30,6 +30,7 @@ pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, 
         if (references == .diagnostic) return .{ .diagnostic = references.diagnostic };
 
         loader.stores = references.bindings;
+        loader.flow = source.indexedFlow();
 
         const steps = loader.moduleBody(source.node) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
@@ -77,6 +78,7 @@ const Loader = struct {
     signatures: Signatures,
     references: Graph.References = .{ .remaining = &.{} },
     owner: []const u8 = "",
+    flow: ?rx.IndexedFlow = null,
     stores: []const Store.Binding = &.{},
     calls: std.ArrayList(Call) = .empty,
     task_count: usize = 0,
@@ -112,7 +114,13 @@ const Loader = struct {
     fn steps(self: *Loader, nodes: []const rx.ast.Node) Error!Flow.Sequence {
         var sequence: Flow.Sequence = .{};
 
-        for (nodes) |node| {
+        for (nodes) |*node| {
+            const flags = if (self.flow) |flow| flow.get(node) else null;
+
+            if (flags) |fact| {
+                if (fact.declaration) continue;
+            }
+
             const tag = rx.execution.admit(node.name, .Any);
 
             switch (tag) {
@@ -120,7 +128,9 @@ const Loader = struct {
                 else => {},
             }
 
-            if (sequence.exits.terminates) return self.fail(node.location, "return_path", "steps after a terminating Return, Switch or If are unreachable");
+            const unreachable_step = if (flags) |fact| fact.unreachable_step else sequence.exits.terminates;
+
+            if (unreachable_step) return self.fail(node.location, "return_path", "steps after a terminating Return, Switch or If are unreachable");
 
             var exits: Flow.Exits = .{};
 
@@ -128,21 +138,21 @@ const Loader = struct {
                 .Return => result: {
                     exits = Flow.Exits.returned;
 
-                    break :result .{ .result = target.attribute(node, "value") };
+                    break :result .{ .result = target.attribute(node.*, "value") };
                 },
-                .Call => .{ .call = try self.call(node) },
+                .Call => .{ .call = try self.call(node.*) },
                 .Task => task: {
                     const body = try self.taskBody(node, false);
 
                     exits = body.exits;
 
-                    break :task .{ .task = .{ .node = node, .body = body.steps.items } };
+                    break :task .{ .task = .{ .node = node.*, .body = body.steps.items } };
                 },
-                .Parallel => .{ .parallel = try self.parallel(node) },
+                .Parallel => .{ .parallel = try self.parallel(node.*) },
                 .Switch, .If => selection: {
-                    const subject = target.attribute(node, "on");
+                    const subject = target.attribute(node.*, "on");
                     var branches: Flow.BranchExits = .{};
-                    const cases = if (tag == .Switch) try self.switchCases(node, &branches) else try self.ifCases(node, subject, &branches);
+                    const cases = if (tag == .Switch) try self.switchCases(node.*, &branches) else try self.ifCases(node.*, subject, &branches);
 
                     exits = branches.finish();
 
@@ -151,7 +161,11 @@ const Loader = struct {
                 else => return self.fail(node.location, "unsupported", "RX execution supports Store declarations, Call, Return, Task, Switch, If and pure Parallel branches; events require host linking"),
             };
 
-            try sequence.append(self.allocator, value, exits);
+            if (flags == null) {
+                try sequence.append(self.allocator, value, exits);
+            } else {
+                try sequence.steps.append(self.allocator, .{ .value = value });
+            }
         }
 
         return sequence;
@@ -159,8 +173,9 @@ const Loader = struct {
     fn switchCases(self: *Loader, node: rx.ast.Node, exits: *Flow.BranchExits) Error![]const Flow.Case {
         const cases = try self.allocator.alloc(Flow.Case, node.children.len);
 
-        for (node.children, cases) |child, *case| {
-            const value = if (rx.execution.admit(child.name, .Any) == .Case) target.attribute(child, "value") else null;
+        for (node.children, cases) |*child, *case| {
+            const default = if (self.flow) |flow| flow.get(child).alternate else rx.execution.admit(child.name, .Any) == .Default;
+            const value = if (default) null else target.attribute(child.*, "value");
 
             case.* = try self.selectionCase(value, child.children, exits);
         }
@@ -168,8 +183,8 @@ const Loader = struct {
         return cases;
     }
     fn ifCases(self: *Loader, node: rx.ast.Node, subject: rx.ast.Attribute, exits: *Flow.BranchExits) Error![]const Flow.Case {
-        const last = node.children[node.children.len - 1];
-        const has_else = rx.execution.admit(last.name, .Any) == .Else;
+        const last = &node.children[node.children.len - 1];
+        const has_else = if (self.flow) |flow| flow.get(last).alternate else rx.execution.admit(last.name, .Any) == .Else;
         const body = if (has_else) node.children[0 .. node.children.len - 1] else node.children;
         const cases = try self.allocator.alloc(Flow.Case, if (has_else) 2 else 1);
         const value = rx.ast.Attribute{ .name = "value", .value = "true", .kind = .expression, .location = subject.location, .value_location = subject.value_location };
@@ -182,16 +197,16 @@ const Loader = struct {
     fn selectionCase(self: *Loader, value: ?rx.ast.Attribute, nodes: []const rx.ast.Node, exits: *Flow.BranchExits) Error!Flow.Case {
         const body = try self.steps(nodes);
 
-        exits.add(value == null, body.exits);
+        if (self.flow == null) exits.add(value == null, body.exits);
 
         return .{ .value = value, .body = body.steps.items };
     }
     fn parallel(self: *Loader, node: rx.ast.Node) Error![]const Flow.Branch {
         const branches = try self.allocator.alloc(Flow.Branch, node.children.len);
 
-        for (node.children, branches) |child, *branch| {
+        for (node.children, branches) |*child, *branch| {
             if (rx.execution.admit(child.name, .Any) == .Call) {
-                branch.* = .{ .call = try self.call(child) };
+                branch.* = .{ .call = try self.call(child.*) };
 
                 continue;
             }
@@ -200,16 +215,17 @@ const Loader = struct {
             self.task_count += 1;
             const body = try self.taskBody(child, true);
 
-            branch.* = .{ .task = .{ .id = id, .node = child, .body = body.steps.items } };
+            branch.* = .{ .task = .{ .id = id, .node = child.*, .body = body.steps.items } };
         }
 
         return branches;
     }
-    fn taskBody(self: *Loader, node: rx.ast.Node, parallel_task: bool) Error!Flow.Sequence {
+    fn taskBody(self: *Loader, node: *const rx.ast.Node, parallel_task: bool) Error!Flow.Sequence {
         var body = try self.steps(node.children);
-        const output = target.optionalAttribute(node, "out") orelse return body;
+        const output = target.optionalAttribute(node.*, "out") orelse return body;
+        const returns = if (self.flow) |flow| flow.get(node).returns else body.exits.returns;
 
-        if (body.exits.returns) return self.fail(output.value_location, "return_path", "Task.out and Return cannot both define the same task output");
+        if (returns) return self.fail(output.value_location, "return_path", "Task.out and Return cannot both define the same task output");
         if (parallel_task) try body.append(self.allocator, .{ .result = output }, Flow.Exits.returned);
 
         return body;

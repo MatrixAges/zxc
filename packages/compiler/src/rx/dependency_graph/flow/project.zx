@@ -1,0 +1,38 @@
+import memory from "std:memory"
+
+import { Tag } from "../../schema/execution/model"
+import conditional from "./conditional"
+import { alternate, declaration, returns, terminates } from "./const"
+import selection from "./selection"
+import sequence from "./sequence"
+
+import type { Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const view = in.view
+
+    const children = {
+        view,
+        head: view.nodes[in.row].children
+    }
+
+    const flags = match in.tag {
+        Tag.Module => sequence(children),
+        Tag.Type => declaration,
+        Tag.Args => declaration,
+        Tag.Store => declaration,
+        Tag.Import => declaration,
+        Tag.Task => sequence(children),
+        Tag.Case => sequence(children),
+        Tag.Else => sequence(children) + alternate,
+        Tag.Default => sequence(children) + alternate,
+        Tag.If => conditional(children),
+        Tag.Switch => selection(children),
+        Tag.Return => returns + terminates,
+        _ => 0
+    }
+
+    memory.writeU32(view.facts, view.slots[in.row], flags)
+}

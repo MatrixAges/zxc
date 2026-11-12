@@ -6,6 +6,7 @@ const graph = @import("module_graph.zig");
 const references = @import("frontend").xml_references;
 const generated_graph = @import("rx_options").generated_graph;
 pub const Registry = if (generated_graph) @import("frontend").project.source_index.Map else void;
+pub const IndexedFlow = references.Flow;
 pub const ValidatedSchema = opaque {};
 
 pub const Source = struct {
@@ -18,6 +19,11 @@ pub const Source = struct {
         const index = self.references orelse return null;
 
         return references.forNode(index, &self.node);
+    }
+    pub fn indexedFlow(self: *const Source) ?IndexedFlow {
+        const index = self.references orelse return null;
+
+        return references.flowForNode(index, &self.node);
     }
 };
 

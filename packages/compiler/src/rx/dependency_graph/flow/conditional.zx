@@ -1,0 +1,47 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import { alternate, returns, terminates } from "./const"
+import sequence from "./sequence"
+
+import type { Children } from "./model"
+
+export type Input = Children
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    if (in.head == 0) {
+        return 0
+    }
+
+    const row = in.head - 1
+    const view = in.view
+    const fallback = memory.readU32(view.facts, view.slots[row])
+
+    const has_else =
+        integers.andBits(integers.widen(fallback), integers.widen(alternate))
+
+    if (has_else == 0) {
+        const body = sequence(in)
+
+        return integers.narrow(
+            integers.andBits(
+                integers.widen(body),
+                integers.widen(returns)
+            )
+        )
+    }
+
+    const body = sequence({
+        view,
+        head: view.nodes[row].previous_sibling
+    })
+
+    const either = integers.orBits(integers.widen(body), integers.widen(fallback))
+    const both = integers.andBits(integers.widen(body), integers.widen(fallback))
+    const result = integers.andBits(either, integers.widen(returns))
+    const end = integers.andBits(both, integers.widen(terminates))
+
+    return integers.narrow(result + end)
+}

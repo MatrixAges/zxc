@@ -1,0 +1,50 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import { declaration, returns, terminates, unreachable } from "./const"
+
+import type { Children } from "./model"
+
+export type Input = Children
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const view = in.view
+
+    const summary = loop({
+        row: in.head,
+        following: 0,
+        has_return: false,
+        ends: false
+    }, {
+        while: state => state.row != 0,
+        next: state => {
+            const row = state.row - 1
+            const slot = view.slots[row]
+            const flags = integers.widen(memory.readU32(view.facts, slot))
+            state.row = view.nodes[row].previous_sibling
+
+            if (integers.andBits(flags, integers.widen(declaration)) == 0) {
+                const stop = integers.andBits(flags, integers.widen(terminates)) != 0
+
+                if (state.following == 0) {
+                    state.ends = stop
+                } else if (stop) {
+                    const next = state.following - 1
+                    const previous = memory.readU32(view.facts, next)
+                    memory.writeU32(view.facts, next, previous + unreachable)
+                }
+
+                const yields = integers.andBits(flags, integers.widen(returns)) != 0
+                state.has_return = state.has_return || yields
+                state.following = slot + 1
+            }
+        }
+    })
+
+    const result = summary.has_return ? returns : 0
+    const end = summary.ends ? terminates : 0
+
+    return result + end
+}
