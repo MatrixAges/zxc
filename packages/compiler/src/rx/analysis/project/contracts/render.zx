@@ -1,0 +1,30 @@
+import bytes from "std:bytes"
+
+import { assignment, declaration, newline } from "./const"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    writer: Writer,
+    names: string[],
+    expressions: string[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < in.names.length,
+        next: state => {
+            bytes.write(in.writer, bytes.fromText(declaration))
+            bytes.write(in.writer, bytes.fromText(in.names[state.index]))
+            bytes.write(in.writer, bytes.fromText(assignment))
+            bytes.write(in.writer, bytes.fromText(in.expressions[state.index]))
+            bytes.write(in.writer, bytes.fromText(newline))
+
+            state.index += 1
+        }
+    })
+}

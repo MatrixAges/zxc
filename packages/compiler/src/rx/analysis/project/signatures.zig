@@ -1,7 +1,7 @@
 const zx = @import("zx");
 const Module = @import("../module.zig");
 const Graph = @import("../inference/types.zig");
-const State = @import("constraints.zig").State;
+const States = @import("constraints.zig").States;
 
 pub const Signature = struct {
     input_type: zx.ir.TypeId,
@@ -10,10 +10,11 @@ pub const Signature = struct {
     tasks: []const @import("../flow_compile.zig").TaskType,
 };
 
-pub fn resolve(graph: *Graph, states: []const State) zx.Error![]const Signature {
+pub fn resolve(graph: *Graph, states: States) zx.Error![]const Signature {
     const signatures = try graph.allocator.alloc(Signature, states.len);
 
-    for (states, signatures) |state, *signature| {
+    for (signatures, 0..) |*signature, index| {
+        const state = states.get(index);
         const bindings = try graph.allocator.alloc(Module.Binding, state.bindings.len);
 
         for (state.bindings, bindings) |binding, *item| item.* = .{ .name = binding.name, .type_id = try graph.resolve(binding.value) };

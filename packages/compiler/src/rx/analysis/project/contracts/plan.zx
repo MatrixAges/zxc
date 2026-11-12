@@ -1,0 +1,35 @@
+import bytes from "std:bytes"
+
+import { assignment, declaration, newline } from "./const"
+
+export type Input = {
+    names: string[],
+    expressions: string[]
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const header = declaration.length + assignment.length
+    const initial: u64 = 0
+
+    return loop({
+        ends: in.names.map(name => initial)[0],
+        offset: initial,
+        index: 0
+    }, {
+        while: state => state.index < in.names.length,
+        next: state => {
+            const index = state.index
+            const name = in.names[index]
+            const expression = in.expressions[index]
+            const start = state.offset + header + name.length
+            const end = start + bytes.fromText(expression).length + newline.length
+
+            state.ends[index] = end
+            state.offset = end
+            state.index += 1
+        },
+        return: state => state.ends
+    })
+}

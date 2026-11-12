@@ -1,0 +1,22 @@
+<Module>
+    <Type from="model" as="ArgsSource" />
+
+    <Args in={ArgsSource.Input} out={ArgsSource.Output} />
+
+    <Call fn="names" in={$in.owners} />
+
+    <Call
+        fn="plan"
+        in={{
+            names: $ctx.names,
+            expressions: $in.expressions
+        }}
+    />
+
+    <Return
+        value={{
+            names: $ctx.names,
+            ends: $ctx.plan
+        }}
+    />
+</Module>

@@ -1,0 +1,18 @@
+import { type_id_void } from "core/const"
+
+export type Input = {
+    input_type: u32,
+    output_type: u32
+}
+
+export type Output = {
+    takes_input: bool,
+    returns_value: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        takes_input: in.input_type != type_id_void,
+        returns_value: in.output_type != type_id_void
+    }
+}

@@ -12,9 +12,11 @@ pub fn resolve(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
     try source.collect(modules);
 
-    if (source.entries.items.len == 0) return &.{};
+    const owners = source.entries.items(.module);
 
-    var parsed = try frontend.parseModule(graph.allocator, source.text.items, modules[source.entries.items[0].module].source.path);
+    if (owners.len == 0) return &.{};
+
+    var parsed = try frontend.parseModule(graph.allocator, source.text, modules[@intCast(owners[0])].source.path);
 
     defer parsed.deinit();
 
@@ -59,19 +61,20 @@ fn resolveDeclarations(graph: *Graph, modules: []const Prepared.Module, source: 
         graph.types.aliases = previous_aliases;
     }
 
-    const ports = try graph.allocator.alloc(Port, source.entries.items.len);
+    const owners = source.entries.items(.module);
+    const ports = try graph.allocator.alloc(Port, owners.len);
     var declarations = view.declarations().iterator();
     var start: usize = 0;
 
-    while (start < source.entries.items.len) {
-        const owner = source.entries.items[start].module;
+    while (start < owners.len) {
+        const owner: usize = @intCast(owners[start]);
         var end = start + 1;
 
-        while (end < source.entries.items.len and source.entries.items[end].module == owner) : (end += 1) {}
+        while (end < owners.len and owners[end] == owner) : (end += 1) {}
 
         graph.types.aliases = modules[owner].type_imports;
 
-        for (source.entries.items[start..end], ports[start..end]) |entry, *port| {
+        for (ports[start..end], start..) |*port, index| {
             const declaration = declarations.next().?;
 
             const type_id = graph.types.resolveView(resolving, declaration.value) catch |err| {
@@ -80,7 +83,7 @@ fn resolveDeclarations(graph: *Graph, modules: []const Prepared.Module, source: 
                 return fail(graph, source, source_map, reporter.diagnostic.?);
             };
 
-            port.* = .{ .module = entry.module, .kind = entry.kind, .type_id = type_id };
+            port.* = .{ .module = owner, .kind = if (index % 2 == 0) .input else .output, .type_id = type_id };
         }
 
         start = end;

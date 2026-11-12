@@ -61,21 +61,14 @@ pub fn completeShortcuts(allocator: std.mem.Allocator, loaded: Loaded, signature
 
     const modules = try allocator.dupe(Module, loaded.modules);
     const shorthand = @import("shorthand.zig");
-    const void_type = @import("frontend").types.scalarId(.void);
 
     for (modules, signatures) |*module, signature| {
         const index = module.shortcut orelse continue;
         const calls = try allocator.dupe(Call, module.calls);
-        const node = try shorthand.call(allocator, module.source.node, signature.input_type != void_type);
-        const steps = try allocator.alloc(Flow.Step, if (signature.output_type == void_type) 1 else 2);
-
-        calls[index].node = node;
-        steps[0] = .{ .value = .{ .call = index } };
-
-        if (steps.len == 2) steps[1] = .{ .value = .{ .result = try shorthand.result(allocator, node) } };
-
+        const plan = try shorthand.lower(allocator, module.source.node, index, signature.input_type, signature.output_type);
+        calls[index].node = plan.node;
         module.calls = calls;
-        module.steps = steps;
+        module.steps = plan.steps;
     }
 
     return .{ .modules = modules, .project = loaded.project };
@@ -110,16 +103,11 @@ const Loader = struct {
             },
         };
 
-        const void_type = frontend.types.scalarId(.void);
-        const invocation = try shorthand.call(self.allocator, node, ports.input_type != void_type);
-        const sequence = try self.allocator.alloc(Flow.Step, if (ports.output_type == void_type) 1 else 2);
+        const plan = try shorthand.lower(self.allocator, node, index, ports.input_type, ports.output_type);
 
-        self.calls.items[index].node = invocation;
-        sequence[0] = .{ .value = .{ .call = index } };
+        self.calls.items[index].node = plan.node;
 
-        if (sequence.len == 2) sequence[1] = .{ .value = .{ .result = try shorthand.result(self.allocator, invocation) } };
-
-        return sequence;
+        return plan.steps;
     }
     fn steps(self: *Loader, nodes: []const rx.ast.Node) Error![]const Flow.Step {
         var result: std.ArrayList(Flow.Step) = .empty;

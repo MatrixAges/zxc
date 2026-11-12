@@ -1,0 +1,51 @@
+import bytes from "std:bytes"
+
+export type Input = {
+    expressions: string[],
+    ends: u64[],
+    offset: u64
+}
+
+export type Output = {
+    entry: u64,
+    relative?: u64
+}
+
+export default function (in: Input): Output {
+    const entry = loop({
+        left: 0,
+        right: in.ends.length
+    }, {
+        while: state => state.left < state.right,
+        next: state => {
+            const middle = state.left + (state.right - state.left) / 2
+
+            if (in.offset < in.ends[middle]) {
+                state.right = middle
+            } else {
+                state.left = middle + 1
+            }
+        },
+        return: state => state.left
+    })
+
+    if (entry == in.ends.length) {
+        return {
+            entry: entry - 1,
+            relative: null
+        }
+    }
+
+    const size = bytes.fromText(in.expressions[entry]).length
+    const start = in.ends[entry] - 1 - size
+
+    const relative: u64? = match {
+        in.offset < start => null,
+        _ => in.offset - start
+    }
+
+    return {
+        entry,
+        relative
+    }
+}

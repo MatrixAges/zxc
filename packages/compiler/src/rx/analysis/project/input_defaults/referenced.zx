@@ -1,0 +1,48 @@
+import representative from "../../inference/forest/representative"
+
+import type { Edges } from "../../inference/assignment/model"
+
+export type Input = {
+    edges: Edges,
+    parents: u32[],
+    root: u32,
+    index: u64,
+    found: bool
+}
+
+export type Output = {
+    parents: u32[],
+    found: bool
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => !state.found && state.index < state.edges.left.length,
+        next: state => {
+            const source = representative({
+                parents: state.parents,
+                value: state.edges.left[state.index]
+            })
+
+            state.parents = source.parents
+
+            if (source.item == state.root) {
+                state.found = true
+            } else {
+                const target = representative({
+                    parents: state.parents,
+                    value: state.edges.right[state.index]
+                })
+
+                state.parents = target.parents
+                state.found = target.item == state.root
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            found: state.found
+        })
+    })
+}

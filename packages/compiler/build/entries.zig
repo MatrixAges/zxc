@@ -34,6 +34,12 @@ pub const main = [_]Entry{
     .{ .path = "rx/path_segments/normalize.rx", .name = "paths", .owner = .rx },
     .{ .path = "rx/dependency_graph/validate.rx", .name = "graph", .owner = .rx },
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/input_defaults/mark.zx", .name = "rx_input_default_marks", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/input_defaults/next.zx", .name = "rx_next_input_default", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/contracts/assemble.rx", .name = "rx_args_source", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/contracts/render.zx", .name = "rx_args_render", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/contracts/location.zx", .name = "rx_args_location", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/shorthand/route.zx", .name = "rx_shortcut_route", .owner = .rx_analysis },
     .{ .path = "rx/analysis/condition/plan.zx", .name = "rx_condition_plan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/payloads.zx", .name = "assignment_payloads", .owner = .rx_analysis },
@@ -654,7 +660,7 @@ pub const module_entries = block: {
 
     for (sets) |set| {
         for (if (set == .host) &host_bindings else of(set)) |entry| {
-            if (entry.owner == .frontend or entry.owner == .compiler or entry.owner == .genz) count += 1;
+            if (entry.owner != .lint) count += 1;
         }
     }
 
@@ -663,7 +669,7 @@ pub const module_entries = block: {
 
     for (sets) |set| {
         for (if (set == .host) &host_bindings else of(set)) |entry| {
-            if (entry.owner != .frontend and entry.owner != .compiler and entry.owner != .genz) continue;
+            if (entry.owner == .lint) continue;
 
             result[index] = .{ .set = set, .entry = entry, .file = entry.name ++ ".zig", .import_name = entry.importName() };
             index += 1;

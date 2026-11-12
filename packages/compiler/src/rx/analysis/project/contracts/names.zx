@@ -1,0 +1,15 @@
+import { input_prefix, output_prefix } from "./const"
+
+export type Input = u64[]
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    return in.map(
+        (owner, index) => {
+            const prefix = index % 2 == 0 ? input_prefix : output_prefix
+
+            return `${prefix}${owner}`
+        }
+    )[0]
+}

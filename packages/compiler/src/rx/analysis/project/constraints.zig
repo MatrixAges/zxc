@@ -8,15 +8,19 @@ const SourceMap = @import("../source_map.zig");
 const Prepared = @import("prepare.zig");
 const target = @import("../call/target.zig");
 const paths = frontend.binding_path;
-pub const State = struct { input: Graph.Id, output: Graph.Id, input_declared: bool = false, input_used: bool = false, bindings: []const Expression.Binding = &.{}, tasks: []const Task = &.{} };
+const State = struct { input: Graph.Id, output: Graph.Id, input_fixed: bool, bindings: []const Expression.Binding = &.{}, tasks: []const Task = &.{} };
+pub const States = std.MultiArrayList(State).Slice;
 pub const Task = struct { id: usize, output: Graph.Id };
 
-pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap) zx.Error![]const State {
-    const states = try graph.allocator.alloc(State, modules.len);
+pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap) zx.Error!States {
+    var storage: std.MultiArrayList(State) = .empty;
+
+    try storage.ensureTotalCapacity(graph.allocator, modules.len);
+
     const declared = try @import("contracts.zig").resolve(graph, modules, source_map);
     var port: usize = 0;
 
-    for (modules, states, 0..) |module, *state, index| {
+    for (modules, 0..) |module, index| {
         const offset = source_map.base(index) + module.source.node.location.offset;
         const span = zx.Span{ .start = offset, .end = offset };
         var input: ?zx.ir.TypeId = null;
@@ -29,37 +33,47 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
             }
         }
 
-        state.* = .{
+        storage.appendAssumeCapacity(.{
             .input = if (input) |id| try graph.known(id, span) else try graph.add(.unknown, span),
             .output = if (output) |id| try graph.known(id, span) else try graph.add(.unknown, span),
-            .input_declared = input != null,
-        };
+            .input_fixed = input != null,
+        });
     }
 
-    for (modules, states, 0..) |module, *state, index| {
+    const states = storage.slice();
+    const inputs = states.items(.input);
+    const outputs = states.items(.output);
+    const fixed = states.items(.input_fixed);
+    const bindings = states.items(.bindings);
+    const tasks = states.items(.tasks);
+    var unused: usize = 0;
+
+    for (modules, 0..) |module, index| {
         const location = module.source.node.location;
+        const input = inputs[index];
+        const output = outputs[index];
 
         var expression = Expression{
             .graph = graph,
             .aliases = module.value_imports,
-            .input = state.input,
+            .input = input,
             .attribute = .{ .name = "", .value = "", .location = location, .value_location = location },
             .span_offset = source_map.base(index),
         };
 
-        var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = state.output };
+        var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = output };
 
         if (module.shortcut) |call_index| {
             const call = module.calls[call_index];
-            const ports = states[call.callee.module];
-            const span = graph.nodes.items(.span)[@backingInt(state.input)];
+            const callee = call.callee.module;
+            const span = graph.nodes.items(.span)[@backingInt(input)];
 
-            try graph.unify(state.input, ports.input, span);
-            try graph.unify(state.output, ports.output, span);
-            try walker.bindResult(call.node, state.output, .call);
+            try graph.unify(input, inputs[callee], span);
+            try graph.unify(output, outputs[callee], span);
+            try walker.bindResult(call.node, output, .call);
 
-            state.input_used = true;
-            state.bindings = walker.bindings.items;
+            fixed[index] = true;
+            bindings[index] = walker.bindings.items;
 
             continue;
         }
@@ -67,33 +81,18 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
         try walker.steps(module.steps);
 
         if (!walker.returned) {
-            const span = graph.nodes.items(.span)[@backingInt(state.output)];
+            const span = graph.nodes.items(.span)[@backingInt(output)];
 
-            try graph.unify(state.output, try graph.scalar(.void, span), span);
+            try graph.unify(output, try graph.scalar(.void, span), span);
         }
 
-        state.input_used = expression.input_used;
-        state.bindings = walker.bindings.items;
-        state.tasks = walker.tasks.items;
+        fixed[index] = fixed[index] or expression.input_used;
+        unused += @intFromBool(!fixed[index]);
+        bindings[index] = walker.bindings.items;
+        tasks[index] = walker.tasks.items;
     }
 
-    const assignments = graph.assignments.slice();
-
-    for (states) |state| {
-        if (state.input_declared or state.input_used) continue;
-
-        const input_root = graph.root(state.input);
-
-        const referenced = for (assignments.items(.value), assignments.items(.expected)) |value, expected| {
-            if (graph.root(value) == input_root or graph.root(expected) == input_root) break true;
-        } else false;
-
-        if (referenced) continue;
-
-        const span = graph.nodes.items(.span)[@backingInt(state.input)];
-
-        try graph.unify(state.input, try graph.scalar(.void, span), span);
-    }
+    try @import("input_defaults.zig").apply(graph, inputs, fixed, unused);
 
     return states;
 }
@@ -101,7 +100,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 const Walker = struct {
     expression: *Expression,
     module: Prepared.Module,
-    states: []const State,
+    states: States,
     output: Graph.Id,
     bindings: std.ArrayList(Expression.Binding) = .empty,
     returned: bool = false,
@@ -214,7 +213,7 @@ const Walker = struct {
 
         const input = switch (invocation.callee) {
             .function => |function| try graph.known(function.program.input_type, span),
-            .module => |module_index| self.states[module_index].input,
+            .module => |module_index| self.states.items(.input)[module_index],
             .signature => |signature| try graph.known(signature.input_type, span),
         };
 
@@ -231,7 +230,7 @@ const Walker = struct {
 
         const output = switch (invocation.callee) {
             .function => |function| try graph.known(function.program.output_type, span),
-            .module => |module_index| self.states[module_index].output,
+            .module => |module_index| self.states.items(.output)[module_index],
             .signature => |signature| try graph.known(signature.output_type, span),
         };
 

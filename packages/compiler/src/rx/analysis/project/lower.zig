@@ -3,9 +3,9 @@ const zx = @import("zx");
 const Module = @import("../module.zig");
 const Graph = @import("../inference/types.zig");
 const Prepared = @import("prepare.zig");
-const State = @import("constraints.zig").State;
+const States = @import("constraints.zig").States;
 
-pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, order: []const usize, entry: usize) zx.Error!Module.Value {
+pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: States, order: []const usize, entry: usize) zx.Error!Module.Value {
     const allocator = graph.allocator;
     const signatures = try @import("signatures.zig").resolve(graph, states);
     const contracts = try allocator.alloc(?Module.Contract, states.len);
@@ -25,7 +25,7 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, or
                 .getters = call.getters,
                 .function = switch (call.callee) {
                     .function => |function| function,
-                    .signature => return graph.reporter.fail(.module, graph.nodes.items(.span)[@backingInt(states[index].input)], "source function bodies must be analyzed before RX lowering"),
+                    .signature => return graph.reporter.fail(.module, graph.nodes.items(.span)[@backingInt(states.items(.input)[index])], "source function bodies must be analyzed before RX lowering"),
                     .module => |module_index| .{ .program = contracts[module_index].?.program, .store_initializers = contracts[module_index].?.store_initializers, .nominal_types = loaded.project.context.nominal_types },
                 },
             };

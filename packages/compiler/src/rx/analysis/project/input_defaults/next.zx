@@ -1,0 +1,75 @@
+import integers from "std:integer"
+
+import representative from "../../inference/forest/representative"
+import referenced from "./referenced"
+
+import type { Edges } from "../../inference/assignment/model"
+
+export type Input = {
+    inputs: u32[],
+    fixed: bool[],
+    edges: Edges,
+    parents: u32[],
+    marked: bool[],
+    protected?: u32,
+    next: u64,
+    found: bool
+}
+
+export type Output = {
+    parents: u32[],
+    next: u64,
+    found: bool
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => !state.found && state.next < state.inputs.length,
+        next: state => {
+            const index = state.next
+
+            if (!state.fixed[index]) {
+                const input = representative({
+                    parents: state.parents,
+                    value: state.inputs[index]
+                })
+
+                state.parents = input.parents
+
+                if (state.marked.length == 0) {
+                    const result = referenced({
+                        edges: state.edges,
+                        parents: state.parents,
+                        root: input.item,
+                        index: 0,
+                        found: false
+                    })
+
+                    state.parents = result.parents
+                    state.found = !result.found
+                } else if (!state.marked[integers.widen(input.item)]) {
+                    const protected = state.protected
+
+                    if (protected == null) {
+                        state.found = true
+                    } else {
+                        const active = representative({
+                            parents: state.parents,
+                            value: protected
+                        })
+
+                        state.parents = active.parents
+                        state.found = active.item != input.item
+                    }
+                }
+            }
+
+            state.next += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            next: state.next,
+            found: state.found
+        })
+    })
+}

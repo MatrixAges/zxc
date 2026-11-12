@@ -1,0 +1,54 @@
+import integers from "std:integer"
+
+import representative from "../../inference/forest/representative"
+
+import type { Edges } from "../../inference/assignment/model"
+import type { Kind } from "../../inference/unification/model"
+
+export type Input = {
+    edges: Edges,
+    parents: u32[],
+    kinds: Kind[],
+    marked: bool[],
+    index: u64,
+    left: bool
+}
+
+export type Output = {
+    parents: u32[],
+    marked: bool[]
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.index < state.edges.left.length,
+        next: state => {
+            if (state.marked.length == 0) {
+                state.marked = state.kinds.map(kind => false)[0]
+            } else {
+                const index = state.index
+                const endpoint = match {
+                    state.left => state.edges.left[index],
+                    _ => state.edges.right[index]
+                }
+                const root = representative({
+                    parents: state.parents,
+                    value: endpoint
+                })
+
+                state.parents = root.parents
+                state.marked[integers.widen(root.item)] = true
+
+                if (!state.left) {
+                    state.index += 1
+                }
+
+                state.left = !state.left
+            }
+        },
+        return: state => ({
+            parents: state.parents,
+            marked: state.marked
+        })
+    })
+}

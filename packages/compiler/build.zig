@@ -29,7 +29,7 @@ pub fn build(b: *std.Build) void {
 
     const natives = parser.shared(b, target, optimize, parser_source, generated_strip, generated_partitions);
 
-    inline for (@import("build/entries.zig").main) |entry| {
+    for (@import("build/entries.zig").main) |entry| {
         if (entry.owner == .lint) {
             lint.import_table.get(entry.name).?.import_table.get("generated").?.addImport("generated", natives.generated);
         }
@@ -88,18 +88,14 @@ pub fn build(b: *std.Build) void {
 
     rx_analysis.addImport("rx_options", rx_options_module);
 
-    inline for (@import("build/entries.zig").main) |entry| {
-        if (entry.owner == .rx or entry.owner == .rx_analysis) {
-            const owner = if (entry.owner == .rx) rx else rx_analysis;
+    for (parser_modules.bindings) |binding| {
+        const owner = switch (binding.metadata.entry.owner) {
+            .rx => rx,
+            .rx_analysis => rx_analysis,
+            else => continue,
+        };
 
-            owner.addImport(entry.importName(), b.createModule(.{
-                .root_source_file = parser_source.main.path(b, entry.name ++ ".zig"),
-                .imports = &.{.{ .name = "generated", .module = natives.generated }},
-                .target = target,
-                .optimize = optimize,
-                .strip = generated_strip,
-            }));
-        }
+        owner.addImport(binding.metadata.import_name, binding.module);
     }
 
     const bootstrap_tool = b.addExecutable(.{ .name = "zxc-bootstrap", .root_module = b.createModule(.{
