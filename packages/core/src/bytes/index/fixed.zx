@@ -1,0 +1,52 @@
+import bytes from "std:bytes"
+import integers from "std:integer"
+import memory from "std:memory"
+
+import type { U64Buffer } from "std:memory"
+
+// The caller lends a power-of-two table with at least one vacant bucket.
+export type Input = {
+    keys: u8[][],
+    buckets: U64Buffer,
+    capacity: u64,
+    key: u8[],
+    insert?: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const mask = in.capacity - 1
+    const key = in.key
+    const buckets = in.buckets
+
+    const found = loop({
+        slot: integers.andBits(bytes.hash(key), mask),
+        entry: 0,
+        done: false
+    }, {
+        while: state => !state.done,
+        next: state => {
+            const row = memory.readU64(buckets, state.slot)
+
+            if (row == 0 || bytes.equals(in.keys[row - 1], key)) {
+                state.entry = row
+                state.done = true
+            } else {
+                state.slot = integers.andBits(state.slot + 1, mask)
+            }
+        }
+    })
+
+    if (found.entry != 0) {
+        return found.entry - 1
+    }
+
+    const insert = in.insert
+
+    if (insert != null) {
+        memory.writeU64(buckets, found.slot, insert + 1)
+    }
+
+    return null
+}

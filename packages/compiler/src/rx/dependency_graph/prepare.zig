@@ -11,13 +11,7 @@ const Issue = @typeInfo(@FieldType(Input, "issues")).pointer.child;
 const Link = struct { node: *const dsl.ast.Node, attribute: *const dsl.ast.Attribute };
 const Result = struct { input: Input, links: []const Link };
 
-pub fn build(allocator: std.mem.Allocator, sources: []const modules.Source, entries: []const modules.Module) std.mem.Allocator.Error!Result {
-    var registered: std.StringHashMapUnmanaged(usize) = .empty;
-
-    defer registered.deinit(allocator);
-
-    for (entries, 0..) |entry, index| try registered.put(allocator, entry.path, index);
-
+pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, sources: []const modules.Source, entries: []const modules.Module) std.mem.Allocator.Error!Result {
     const offsets = try allocator.alloc(u64, sources.len + 1);
     var targets: std.ArrayList(u64) = .empty;
     var issues: std.ArrayList(Issue) = .empty;
@@ -55,7 +49,7 @@ pub fn build(allocator: std.mem.Allocator, sources: []const modules.Source, entr
     return .{ .input = .{ .offsets = offsets, .targets = targets.items, .issues = issues.items, .root = null, .roots = null, .ranked = false }, .links = links.items };
 }
 
-fn resolve(allocator: std.mem.Allocator, registered: std.StringHashMapUnmanaged(usize), owner: []const u8, reference: []const u8) std.mem.Allocator.Error!struct { index: u64 = 0, issue: Issue = .None } {
+fn resolve(allocator: std.mem.Allocator, registered: *const modules.Registry, owner: []const u8, reference: []const u8) std.mem.Allocator.Error!struct { index: u64 = 0, issue: Issue = .None } {
     const path = paths.resolve(allocator, owner, reference) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         error.InvalidPath => return .{ .issue = .InvalidPath },

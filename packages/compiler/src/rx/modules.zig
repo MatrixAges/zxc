@@ -3,6 +3,8 @@ const dsl = @import("dsl");
 const flow = @import("flow.zig");
 const paths = @import("paths.zig");
 const graph = @import("module_graph.zig");
+const generated_graph = @import("rx_options").generated_graph;
+pub const Registry = if (generated_graph) @import("dependency_graph/registry.zig") else void;
 
 pub const Source = struct {
     path: []const u8,
@@ -41,8 +43,13 @@ pub fn validate(allocator: std.mem.Allocator, sources: []const Source) std.mem.A
 
     var reporter: dsl.Reporter = .{};
     var source_index: usize = 0;
+    var buffer: [512]u8 align(@alignOf(u64)) = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, allocator);
+    var registry: Registry = if (comptime generated_graph) try Registry.init(scratch.allocator(), sources.len) else {};
 
-    const data = decode(arena.allocator(), sources, &source_index, &reporter) catch |err| {
+    defer if (comptime generated_graph) registry.deinit(scratch.allocator());
+
+    const data = decode(arena.allocator(), allocator, &registry, sources, &source_index, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .arena = arena, .value = .{ .diagnostic = .{ .source_index = source_index, .issue = reporter.diagnostic.? } } };
@@ -53,7 +60,7 @@ pub fn validate(allocator: std.mem.Allocator, sources: []const Source) std.mem.A
 
 const Decoded = struct { modules: []const Module, dependency_order: []const usize };
 
-fn decode(allocator: std.mem.Allocator, sources: []const Source, source_index: *usize, reporter: *dsl.Reporter) dsl.Error!Decoded {
+fn decode(allocator: std.mem.Allocator, temporary: std.mem.Allocator, registry: *Registry, sources: []const Source, source_index: *usize, reporter: *dsl.Reporter) dsl.Error!Decoded {
     const data = try allocator.alloc(Module, sources.len);
 
     for (sources, 0..) |source, index| {
@@ -65,14 +72,18 @@ fn decode(allocator: std.mem.Allocator, sources: []const Source, source_index: *
             return fail(source.node, "Module registration requires a project relative .rx file path inside the project root", reporter);
         };
 
-        for (data[0..index]) |previous| {
-            if (std.mem.eql(u8, previous.path, path)) return fail(source.node, "Module file path is already registered", reporter);
+        if (comptime generated_graph) {
+            if (!registry.claim(index, path)) return fail(source.node, "Module file path is already registered", reporter);
+        } else {
+            for (data[0..index]) |previous| {
+                if (std.mem.eql(u8, previous.path, path)) return fail(source.node, "Module file path is already registered", reporter);
+            }
         }
 
         data[index] = .{ .path = path, .data = try flow.Module.decode(allocator, source.node, reporter, {}) };
     }
 
-    const order = try graph.validate(allocator, sources, data, source_index, reporter);
+    const order = try graph.validate(allocator, temporary, registry, sources, data, source_index, reporter);
 
     return .{ .modules = data, .dependency_order = order };
 }

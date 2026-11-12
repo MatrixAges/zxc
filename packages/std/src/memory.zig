@@ -46,7 +46,15 @@ inline fn write(comptime T: type, target: *const anyopaque, index: u64, value: T
 }
 
 pub inline fn readU32(target: *const anyopaque, index: u64) error{IndexOutOfBounds}!u32 {
-    const buffer: *const []u32 = @ptrCast(@alignCast(target));
+    return read(u32, target, index);
+}
+
+pub inline fn readU64(target: *const anyopaque, index: u64) error{IndexOutOfBounds}!u64 {
+    return read(u64, target, index);
+}
+
+inline fn read(comptime T: type, target: *const anyopaque, index: u64) error{IndexOutOfBounds}!T {
+    const buffer: *const []T = @ptrCast(@alignCast(target));
 
     if (index >= buffer.len) return error.IndexOutOfBounds;
 
