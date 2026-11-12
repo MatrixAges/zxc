@@ -1,15 +1,39 @@
 <Module>
     <Type from="model" as="Shape" />
 
-    <Args in={Shape.IndexInput} out={Shape.IndexRoute} />
+    <Args in={Shape.IndexInput} out={Shape.IndexPlan} />
 
-    <Call fn="index_kind" in={$in.target} />
+    <Call
+        fn="target"
+        in={{
+            graph: $in.graph,
+            root: $in.root
+        }}
+    />
+
+    <Call fn="index_kind" in={$ctx.target} />
 
     <If on={$ctx.index_kind == Shape.IndexRoute.Tuple}>
-        <Call fn="tuple_index" in={$in.tuple} />
+        <Call
+            fn="tuple_index"
+            in={{
+                members: $in.graph.members[$in.root],
+                type_children: $in.graph.type_children,
+                length: $ctx.target.length,
+                position: $in.position,
+                offset: $ctx.target.argument,
+                declared: $ctx.target.declared
+            }}
+        />
 
         <Return value={$ctx.tuple_index} />
     </If>
 
-    <Return value={$ctx.index_kind} />
+    <Return
+        value={{
+            route: $ctx.index_kind,
+            child: $ctx.target.argument,
+            declared: $ctx.target.declared
+        }}
+    />
 </Module>

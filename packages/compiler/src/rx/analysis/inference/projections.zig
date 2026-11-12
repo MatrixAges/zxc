@@ -40,21 +40,19 @@ pub fn validateLengths(graph: *Graph) zx.Error!void {
 pub fn next(graph: *const Graph, targets: []const Graph.Id, resolved: []const bool, mode: Mode, start: usize) ?usize {
     if (start == targets.len) return null;
 
+    const parents: []u32 = @constCast(graph.forest.state.items);
     var empty = std.heap.FixedBufferAllocator.init(&.{});
 
-    const result = scan.executeState(empty.allocator(), .{
-        .targets = .{ .items = @ptrCast(targets), .storage = .plain },
-        .resolved = .{ .items = resolved, .storage = .plain },
-        .kinds = .{ .items = graph.nodes.items(.kind), .storage = .plain },
-        .parents = graph.forest.state,
+    const result = scan.executeValue(empty.allocator(), .{
+        .targets = @ptrCast(targets),
+        .resolved = resolved,
+        .kinds = graph.nodes.items(.kind),
+        .parents = @ptrCast(&parents),
         .mode = mode,
-        .next = start,
-        .found = false,
+        .start = start,
     }) catch unreachable;
 
-    std.debug.assert(result.parents.items.ptr == graph.forest.state.items.ptr);
-
-    return if (result.found) @intCast(result.next - 1) else null;
+    return if (result.found) @intCast(result.row) else null;
 }
 
 fn applyLength(graph: *Graph, projection: Length) zx.Error!void {

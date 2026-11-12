@@ -1,17 +1,40 @@
+import integers from "std:integer"
+
 import { IndexRoute } from "./model"
 
-import type { TupleIndex } from "./model"
+import type { IndexPlan, TupleIndex } from "./model"
 
 export type Input = TupleIndex
 
-export type Output = IndexRoute
+export type Output = IndexPlan
 
 export default function (in: Input): Output {
     const position = in.position
 
     if (position == null) {
-        return IndexRoute.MissingLiteral
+        return {
+            route: IndexRoute.MissingLiteral,
+            child: 0,
+            declared: in.declared
+        }
     }
 
-    return position < in.length ? IndexRoute.Tuple : IndexRoute.OutOfBounds
+    if (position >= in.length) {
+        return {
+            route: IndexRoute.OutOfBounds,
+            child: 0,
+            declared: in.declared
+        }
+    }
+
+    const child = match {
+        in.declared => in.type_children[integers.widen(in.offset) + position],
+        _ => in.members[position]
+    }
+
+    return {
+        route: IndexRoute.Tuple,
+        child,
+        declared: in.declared
+    }
 }

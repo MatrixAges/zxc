@@ -1,8 +1,9 @@
+const std = @import("std");
 const zx = @import("zx");
 const syntax = zx.syntax.borrow;
 const Graph = @import("types.zig");
 const Expression = @import("expression.zig");
-const Target = @import("sequences/target.zig").Target;
+const Target = @import("sequences/target.zig");
 
 pub const Sequence = struct { value: Graph.Id, elements: []const Graph.Id, spans: []const zx.Span, span: zx.Span };
 
@@ -29,21 +30,70 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
 }
 
 pub fn propagate(graph: *Graph, sequence: Sequence) zx.Error!void {
-    const target = Target.read(graph, sequence.value);
+    if (!@import("rx_options").generated_graph) return seedPropagate(graph, sequence);
+
+    const entry = @import("generated_rx_sequence");
+    const root = @backingInt(graph.root(sequence.value));
+    const view = Target.borrow(entry, graph);
+    var scratch = std.heap.FixedBufferAllocator.init(&.{});
+
+    const plan = entry.executeValue(scratch.allocator(), &.{
+        .graph = &view,
+        .root = root,
+        .count = sequence.elements.len,
+    }) catch unreachable;
+
+    switch (plan.route) {
+        .Wait => return,
+        .Length => return lengthMismatch(graph, sequence.span),
+        .Invalid => return invalidSequence(graph, sequence.span),
+        .List => try expectList(graph, sequence, plan.argument, plan.declared),
+        .Tuple => {
+            const children = if (plan.declared)
+                view.type_children[plan.argument..][0..sequence.elements.len]
+
+            else
+                view.members[root];
+
+            for (sequence.elements, sequence.spans, children) |element, span, child| {
+                try graph.expect(element, try Target.child(graph, child, plan.declared, span), span);
+            }
+        },
+    }
+}
+
+fn seedPropagate(graph: *Graph, sequence: Sequence) zx.Error!void {
+    const target = Target.Seed.read(graph, sequence.value);
 
     switch (target.sequenceRoute(sequence.elements.len)) {
         .Wait => return,
-        .Length => return graph.reporter.fail(.type_mismatch, sequence.span, "tuple element count does not match the required type"),
-        .Invalid => return graph.reporter.fail(.type_mismatch, sequence.span, "a sequence requires a list or tuple type"),
+        .Length => return lengthMismatch(graph, sequence.span),
+        .Invalid => return invalidSequence(graph, sequence.span),
         .List => {
-            if (sequence.elements.len == 0) return;
+            const child = target.member(0);
 
-            const child = try target.child(graph, 0, sequence.spans[0]);
-
-            for (sequence.elements, sequence.spans) |element, span| try graph.expect(element, child, span);
+            try expectList(graph, sequence, child.value, child.declared);
         },
         .Tuple => for (sequence.elements, sequence.spans, 0..) |element, span, index| {
-            try graph.expect(element, try target.child(graph, index, span), span);
+            const child = target.member(index);
+
+            try graph.expect(element, try Target.child(graph, child.value, child.declared, span), span);
         },
     }
+}
+
+fn expectList(graph: *Graph, sequence: Sequence, child: u32, declared: bool) zx.Error!void {
+    if (sequence.elements.len == 0) return;
+
+    const member = try Target.child(graph, child, declared, sequence.spans[0]);
+
+    for (sequence.elements, sequence.spans) |element, span| try graph.expect(element, member, span);
+}
+
+fn lengthMismatch(graph: *const Graph, span: zx.Span) zx.Error {
+    return graph.reporter.fail(.type_mismatch, span, "tuple element count does not match the required type");
+}
+
+fn invalidSequence(graph: *const Graph, span: zx.Span) zx.Error {
+    return graph.reporter.fail(.type_mismatch, span, "a sequence requires a list or tuple type");
 }

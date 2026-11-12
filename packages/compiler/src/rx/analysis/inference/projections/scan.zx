@@ -1,61 +1,65 @@
 import integers from "std:integer"
 
-import representative from "../forest/representative"
+import representative from "../forest/borrowed_root"
 import { Kind } from "../unification/model"
 
+import type { U32Buffer } from "std:memory"
 import type { Kind as ShapeKind } from "../unification/model"
 
 export enum Mode {
     Length,
     PendingLength,
-    Index
+    Index,
+    DefaultIndex
 }
 
 export type Input = {
     targets: u32[],
     resolved: bool[],
     kinds: ShapeKind[],
-    parents: u32[],
+    parents: U32Buffer,
     mode: Mode,
-    next: u64,
-    found: bool
+    start: u64
 }
 
 export type Output = {
-    parents: u32[],
-    next: u64,
+    row: u64,
+    root: u64,
     found: bool
 }
 
 export default function (in: Input): Output {
-    return loop(in, {
-        while: state => !state.found && state.next < state.targets.length,
+    return loop({
+        row: in.start,
+        root: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.row < in.targets.length,
         next: state => {
-            const index = state.next
-            const mode = state.mode
+            const row = state.row
+            const mode = in.mode
 
-            if (mode != Mode.Index || !state.resolved[index]) {
+            if (mode != Mode.Index || !in.resolved[row]) {
                 const root = representative({
-                    parents: state.parents,
-                    value: state.targets[index]
+                    parents: in.parents,
+                    value: in.targets[row]
                 })
-                const kind = state.kinds[integers.widen(root.item)]
+                const kind = in.kinds[integers.widen(root)]
                 const pending = kind == Kind.Unknown
 
-                state.parents = root.parents
+                state.root = integers.widen(root)
                 state.found = match mode {
                     Mode.PendingLength => pending,
+                    Mode.DefaultIndex => pending,
                     Mode.Index => !pending && kind != Kind.Sequence,
                     _ => !pending
                 }
             }
 
-            state.next += 1
+            if (!state.found) {
+                state.row += 1
+            }
         },
-        return: state => ({
-            parents: state.parents,
-            next: state.next,
-            found: state.found
-        })
+        return: state => state
     })
 }

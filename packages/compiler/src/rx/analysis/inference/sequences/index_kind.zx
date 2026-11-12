@@ -9,7 +9,7 @@ export type Input = Target
 export type Output = IndexRoute
 
 export default function (in: Input): Output {
-    const text = in.scalar == scalar_string
+    const text = in.argument == scalar_string
 
     return match in.kind {
         Kind.Unknown => IndexRoute.Wait,

@@ -1,0 +1,49 @@
+import integers from "std:integer"
+import { kind_list, kind_scalar, kind_tuple } from "core/type_table/const"
+
+import { Kind as ShapeKind } from "../unification/model"
+import { Kind } from "./model"
+
+import type { TargetInput, Target } from "./model"
+
+export type Input = TargetInput
+
+export type Output = Target
+
+export default function (in: Input): Output {
+    const root = in.root
+    const graph = in.graph
+    const shape = graph.kinds[root]
+    const value = graph.arguments[root]
+    const declared = shape == ShapeKind.Known
+    const row = integers.widen(value)
+
+    const kind = match shape {
+        ShapeKind.Unknown => Kind.Unknown,
+        ShapeKind.Sequence => Kind.Sequence,
+        ShapeKind.List => Kind.List,
+        ShapeKind.Tuple => Kind.Tuple,
+        ShapeKind.Known => match graph.type_kinds[row] {
+            kind_list => Kind.List,
+            kind_tuple => Kind.Tuple,
+            kind_scalar => Kind.Scalar,
+            _ => Kind.Other
+        },
+        _ => Kind.Other
+    }
+
+    const argument = declared ? graph.type_first[row] : value
+
+    const length = match {
+        kind != Kind.Tuple => 0,
+        declared => integers.widen(graph.type_second[row]),
+        _ => graph.members[root].length
+    }
+
+    return {
+        kind,
+        length,
+        argument,
+        declared
+    }
+}

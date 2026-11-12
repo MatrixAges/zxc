@@ -1,0 +1,50 @@
+<Module>
+    <Type from="model" as="Replay" />
+    <Type from="../projections/scan" as="Projection" />
+    <Type from="../sequences/model" as="Sequence" />
+
+    <Args in={Replay.Input} out={Replay.Output} />
+
+    <Call
+        fn="../projections/scan"
+        in={{
+            targets: $in.targets,
+            resolved: $in.resolved,
+            kinds: $in.graph.kinds,
+            parents: $in.parents,
+            mode: Projection.Mode.Index,
+            start: $in.start
+        }}
+    />
+
+    <If on={!$ctx.scan.found}>
+        <Return
+            value={{
+                found: false,
+                row: $ctx.scan.row,
+                route: Sequence.IndexRoute.Wait,
+                child: 0,
+                declared: false
+            }}
+        />
+    </If>
+
+    <Call
+        module="../sequences/index"
+        in={{
+            graph: $in.graph,
+            root: $ctx.scan.root,
+            position: $in.positions[$ctx.scan.row]
+        }}
+    />
+
+    <Return
+        value={{
+            found: true,
+            row: $ctx.scan.row,
+            route: $ctx.index.route,
+            child: $ctx.index.child,
+            declared: $ctx.index.declared
+        }}
+    />
+</Module>

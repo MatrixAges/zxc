@@ -1,0 +1,30 @@
+<Module>
+    <Type from="model" as="Shape" />
+
+    <Args in={Shape.SequenceInput} out={Shape.SequencePlan} />
+
+    <Call
+        fn="target"
+        in={{
+            graph: $in.graph,
+            root: $in.root
+        }}
+    />
+
+    <Call
+        fn="sequence"
+        in={{
+            kind: $ctx.target.kind,
+            length: $ctx.target.length,
+            count: $in.count
+        }}
+    />
+
+    <Return
+        value={{
+            route: $ctx.sequence,
+            argument: $ctx.target.argument,
+            declared: $ctx.target.declared
+        }}
+    />
+</Module>

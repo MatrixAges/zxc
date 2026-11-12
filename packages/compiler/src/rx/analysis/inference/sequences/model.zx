@@ -1,3 +1,5 @@
+import type { Kind as ShapeKind } from "../unification/model"
+
 export enum Kind {
     Unknown,
     Sequence,
@@ -25,23 +27,63 @@ export enum IndexRoute {
     Invalid
 }
 
+export type Graph = {
+    kinds: ShapeKind[],
+    arguments: u32[],
+    members: u32[][],
+    type_kinds: u8[],
+    type_first: u32[],
+    type_second: u32[],
+    type_children: u32[]
+}
+
+export type TargetInput = {
+    graph: Graph,
+    root: u64
+}
+
+export type Target = {
+    kind: Kind,
+    length: u64,
+    argument: u32,
+    declared: bool
+}
+
 export type SequenceInput = {
+    graph: Graph,
+    root: u64,
+    count: u64
+}
+
+export type SequenceCheck = {
     kind: Kind,
     length: u64,
     count: u64
 }
 
-export type Target = {
-    kind: Kind,
-    scalar: u32
-}
-
-export type TupleIndex = {
-    length: u64,
-    position?: u64
+export type SequencePlan = {
+    route: SequenceRoute,
+    argument: u32,
+    declared: bool
 }
 
 export type IndexInput = {
-    target: Target,
-    tuple: TupleIndex
+    graph: Graph,
+    root: u64,
+    position?: u64
+}
+
+export type IndexPlan = {
+    route: IndexRoute,
+    child: u32,
+    declared: bool
+}
+
+export type TupleIndex = {
+    members: u32[],
+    type_children: u32[],
+    length: u64,
+    position?: u64,
+    offset: u32,
+    declared: bool
 }

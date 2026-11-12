@@ -1,0 +1,19 @@
+import type { U32Buffer } from "std:memory"
+import type { Graph, IndexRoute } from "../sequences/model"
+
+export type Input = {
+    graph: Graph,
+    parents: U32Buffer,
+    targets: u32[],
+    resolved: bool[],
+    positions: u64?[],
+    start: u64
+}
+
+export type Output = {
+    found: bool,
+    row: u64,
+    route: IndexRoute,
+    child: u32,
+    declared: bool
+}

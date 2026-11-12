@@ -1,23 +1,27 @@
 const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("../types.zig");
-const enabled = @import("rx_options").generated_graph;
-const generated_sequence = if (enabled) @import("generated_rx_sequence") else void;
-const generated_index = if (enabled) @import("generated_rx_index") else void;
 
-const Kind = if (enabled) @FieldType(@typeInfo(generated_sequence.Input).pointer.child, "kind") else enum {
-    Unknown,
-    Sequence,
-    List,
-    Tuple,
-    Scalar,
-    Other,
-};
+pub fn borrow(comptime Entry: type, graph: *const Graph) std.meta.Child(@FieldType(std.meta.Child(Entry.Input), "graph")) {
+    const rows = graph.nodes.slice();
+    const types = &graph.types.items;
 
-const SequenceRoute = if (enabled) generated_sequence.Output else enum { Wait, List, Tuple, Length, Invalid };
-const IndexRoute = if (enabled) generated_index.Output else enum { Wait, List, Tuple, String, MissingLiteral, OutOfBounds, Invalid };
+    return .{
+        .kinds = rows.items(.kind),
+        .arguments = rows.items(.argument),
+        .members = rows.items(.members),
+        .type_kinds = types.kinds.items,
+        .type_first = types.first.items,
+        .type_second = types.second.items,
+        .type_children = types.children.items,
+    };
+}
 
-pub const Target = union(enum) {
+pub fn child(graph: *Graph, value: u32, declared: bool, span: zx.Span) zx.Error!Graph.Id {
+    return if (declared) graph.known(@fromBackingInt(value), span) else @fromBackingInt(value);
+}
+
+pub const Seed = union(enum) {
     unknown,
     sequence,
     list: Graph.Id,
@@ -26,7 +30,11 @@ pub const Target = union(enum) {
     declared_tuple: @FieldType(zx.ir.Type, "tuple"),
     scalar: zx.ir.Scalar,
     other,
-    pub fn read(graph: *const Graph, id: Graph.Id) Target {
+    const SequenceRoute = enum { Wait, List, Tuple, Length, Invalid };
+    const IndexRoute = enum { Wait, List, Tuple, String, MissingLiteral, OutOfBounds, Invalid };
+    pub const Child = struct { value: u32, declared: bool };
+
+    pub fn read(graph: *const Graph, id: Graph.Id) Seed {
         return switch (graph.shape(id)) {
             .unknown => .unknown,
             .sequence => .sequence,
@@ -41,69 +49,40 @@ pub const Target = union(enum) {
             else => .other,
         };
     }
-    pub fn sequenceRoute(self: Target, count: usize) SequenceRoute {
-        const kind = self.classify();
-        const length = self.tupleLength();
-
-        if (!enabled) return switch (kind) {
-            .Sequence => .Wait,
-            .List => .List,
-            .Tuple => if (length == count) .Tuple else .Length,
+    pub fn sequenceRoute(self: Seed, count: usize) SequenceRoute {
+        return switch (self) {
+            .sequence => .Wait,
+            .list, .declared_list => .List,
+            .tuple, .declared_tuple => if (self.tupleLength() == count) .Tuple else .Length,
             else => if (count == 0) .Wait else .Invalid,
         };
-
-        var bytes: [0]u8 = undefined;
-        var scratch = std.heap.FixedBufferAllocator.init(&bytes);
-
-        return generated_sequence.executeIn(scratch.allocator(), &.{ .kind = kind, .length = length, .count = count }) catch unreachable;
-    }
-    pub fn indexRoute(self: Target, position: ?u64) IndexRoute {
-        const kind = self.classify();
-        const length = self.tupleLength();
-        const scalar_type = if (self == .scalar) self.scalar else .void;
-
-        if (!enabled) return switch (kind) {
-            .Unknown, .Sequence => .Wait,
-            .List => .List,
-            .Tuple => if (position) |value| (if (value < length) .Tuple else .OutOfBounds) else .MissingLiteral,
-            .Scalar => if (scalar_type == .string) .String else .Invalid,
-            .Other => .Invalid,
-        };
-
-        var bytes: [0]u8 = undefined;
-        var scratch = std.heap.FixedBufferAllocator.init(&bytes);
-
-        return generated_index.executeIn(scratch.allocator(), &.{
-            .target = &.{ .kind = kind, .scalar = @backingInt(scalar_type) },
-            .tuple = &.{ .length = length, .position = position },
-        }) catch unreachable;
     }
 
-    pub fn child(self: Target, graph: *Graph, position: usize, span: zx.Span) zx.Error!Graph.Id {
+    pub fn indexRoute(self: Seed, position: ?u64) IndexRoute {
         return switch (self) {
-            .list => |value| value,
-            .tuple => |children| children[position],
-            .declared_list => |value| graph.known(value, span),
-            .declared_tuple => |children| graph.known(children.at(position), span),
+            .unknown, .sequence => .Wait,
+            .list, .declared_list => .List,
+            .tuple, .declared_tuple => if (position) |value| (if (value < self.tupleLength()) .Tuple else .OutOfBounds) else .MissingLiteral,
+            .scalar => |value| if (value == .string) .String else .Invalid,
+            .other => .Invalid,
+        };
+    }
+
+    pub fn member(self: Seed, position: usize) Child {
+        return switch (self) {
+            .list => |value| .{ .value = @backingInt(value), .declared = false },
+            .tuple => |children| .{ .value = @backingInt(children[position]), .declared = false },
+            .declared_list => |value| .{ .value = @backingInt(value), .declared = true },
+            .declared_tuple => |children| .{ .value = @backingInt(children.at(position)), .declared = true },
             else => unreachable,
         };
     }
-    fn classify(self: Target) Kind {
-        return switch (self) {
-            .unknown => .Unknown,
-            .sequence => .Sequence,
-            .list, .declared_list => .List,
-            .tuple, .declared_tuple => .Tuple,
-            .scalar => .Scalar,
-            .other => .Other,
-        };
-    }
 
-    fn tupleLength(self: Target) usize {
+    fn tupleLength(self: Seed) usize {
         return switch (self) {
             .tuple => |children| children.len,
             .declared_tuple => |children| children.len,
-            else => 0,
+            else => unreachable,
         };
     }
 };

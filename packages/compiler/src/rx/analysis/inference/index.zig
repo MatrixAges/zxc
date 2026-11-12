@@ -3,7 +3,7 @@ const zx = @import("zx");
 const syntax = zx.syntax.borrow;
 const Graph = @import("types.zig");
 const Expression = @import("expression.zig");
-const Target = @import("sequences/target.zig").Target;
+const Target = @import("sequences/target.zig");
 const Projections = @import("projections.zig");
 
 pub const Projection = struct { target: Graph.Id, value: Graph.Id, position: ?u64, span: zx.Span, index_span: zx.Span, resolved: bool = false };
@@ -24,12 +24,39 @@ pub fn infer(self: *Expression, source: anytype) zx.Error!Graph.Id {
 }
 
 pub fn propagate(graph: *Graph, projection: Projection) zx.Error!bool {
-    const target = Target.read(graph, projection.target);
+    if (!@import("rx_options").generated_graph) return seedPropagate(graph, projection);
 
-    const value = switch (target.indexRoute(projection.position)) {
+    const entry = @import("generated_rx_index");
+    const root = graph.root(projection.target);
+    const view = Target.borrow(entry, graph);
+    var scratch = std.heap.FixedBufferAllocator.init(&.{});
+
+    const plan = entry.executeValue(scratch.allocator(), .{
+        .graph = &view,
+        .root = @backingInt(root),
+        .position = projection.position,
+    }) catch unreachable;
+
+    return apply(graph, projection, plan.route, plan.child, plan.declared);
+}
+
+fn seedPropagate(graph: *Graph, projection: Projection) zx.Error!bool {
+    const target = Target.Seed.read(graph, projection.target);
+    const route = target.indexRoute(projection.position);
+
+    const child: Target.Seed.Child = switch (route) {
+        .List => target.member(0),
+        .Tuple => target.member(@intCast(projection.position.?)),
+        else => .{ .value = 0, .declared = false },
+    };
+
+    return apply(graph, projection, route, child.value, child.declared);
+}
+
+fn apply(graph: *Graph, projection: Projection, route: anytype, child: u32, declared: bool) zx.Error!bool {
+    const value = switch (route) {
         .Wait => return false,
-        .List => try target.child(graph, 0, projection.span),
-        .Tuple => try target.child(graph, @intCast(projection.position.?), projection.span),
+        .List, .Tuple => try Target.child(graph, child, declared, projection.span),
         .String => try graph.scalar(.u8, projection.span),
         .MissingLiteral => return graph.reporter.fail(.type_mismatch, projection.index_span, "tuple indexing requires an integer literal"),
         .OutOfBounds => return graph.reporter.fail(.type_mismatch, projection.index_span, "tuple index is out of bounds"),
@@ -47,18 +74,34 @@ pub fn replay(graph: *Graph) zx.Error!void {
 
     if (!@import("rx_options").generated_graph) {
         for (resolved, 0..) |*done, index| {
-            if (!done.*) done.* = try propagate(graph, indexes.get(index));
+            if (!done.*) done.* = try seedPropagate(graph, indexes.get(index));
         }
 
         return;
     }
 
-    const targets = indexes.items(.target);
+    const entry = @import("generated_rx_index_replay");
+    var scratch = std.heap.FixedBufferAllocator.init(&.{});
     var start: usize = 0;
 
-    while (Projections.next(graph, targets, resolved, .Index, start)) |index| {
-        resolved[index] = try propagate(graph, indexes.get(index));
-        start = index + 1;
+    while (start < indexes.len) {
+        const view = Target.borrow(entry, graph);
+        const parents: []u32 = @constCast(graph.forest.state.items);
+
+        const plan = entry.executeValue(scratch.allocator(), &.{
+            .graph = &view,
+            .parents = @ptrCast(&parents),
+            .targets = @ptrCast(indexes.items(.target)),
+            .resolved = resolved,
+            .positions = indexes.items(.position),
+            .start = start,
+        }) catch unreachable;
+
+        if (!plan.found) return;
+
+        const row: usize = @intCast(plan.row);
+        resolved[row] = try apply(graph, indexes.get(row), plan.route, plan.child, plan.declared);
+        start = row + 1;
     }
 }
 
@@ -76,7 +119,7 @@ pub fn defaultLists(graph: *Graph) zx.Error!bool {
     const indexes = graph.indexes.slice();
 
     const index = if (@import("rx_options").generated_graph)
-        findList(graph, indexes)
+        Projections.next(graph, indexes.items(.target), &.{}, .DefaultIndex, 0)
 
     else
         seedList(graph, indexes);
@@ -90,25 +133,6 @@ pub fn defaultLists(graph: *Graph) zx.Error!bool {
 }
 
 const Rows = std.MultiArrayList(Projection).Slice;
-
-fn findList(graph: *const Graph, indexes: Rows) ?usize {
-    if (indexes.len == 0) return null;
-
-    const generated = @import("generated_rx_index_default_list");
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    const result = generated.executeState(empty.allocator(), .{
-        .targets = .{ .items = @ptrCast(indexes.items(.target)), .storage = .plain },
-        .kinds = .{ .items = graph.nodes.items(.kind), .storage = .plain },
-        .parents = graph.forest.state,
-        .index = null,
-        .position = 0,
-    }) catch unreachable;
-
-    std.debug.assert(result.parents.items.ptr == graph.forest.state.items.ptr);
-
-    return if (result.index) |index| @intCast(index) else null;
-}
 
 fn seedList(graph: *const Graph, indexes: Rows) ?usize {
     for (indexes.items(.target), 0..) |target, index| {
