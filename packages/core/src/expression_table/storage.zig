@@ -100,6 +100,10 @@ pub fn at(self: *const Self, index: usize) @import("row.zig").Expression {
 }
 
 pub const append = @import("append.zig").expression;
+pub const appendHeader = @import("append.zig").header;
+pub const reserveRow = @import("reserve.zig").expression;
+pub const aggregate_payload = @import("append/aggregates.zig");
+pub const collection_payload = @import("append/collections.zig");
 
 pub fn view(self: *const Self) model.Table {
     @setEvalBranchQuota(100_000);

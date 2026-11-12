@@ -11,8 +11,6 @@ pub fn expression(self: *Storage, allocator: std.mem.Allocator, input: ir.Expres
     try @import("reserve.zig").expression(self, allocator, source);
     if (retained) |first| @import("retained.zig").restore(self, &source, first);
 
-    const id: u32 = @intCast(self.kinds.items.len);
-
     const row: struct { model.ExpressionKind, usize } = switch (source.value) {
         .none => .{ .None, 0 },
         .unit => .{ .Unit, 0 },
@@ -194,11 +192,17 @@ pub fn expression(self: *Storage, allocator: std.mem.Allocator, input: ir.Expres
         .object => |value| .{ .Object, @import("append/aggregates.zig").object(self, value) },
     };
 
-    self.kinds.appendAssumeCapacity(row[0]);
-    self.payloads.appendAssumeCapacity(@intCast(row[1]));
-    self.types.appendAssumeCapacity(@backingInt(source.type_id));
-    self.span_start.appendAssumeCapacity(source.span.start);
-    self.span_end.appendAssumeCapacity(source.span.end);
+    return header(self, row[0], row[1], source.type_id, source.span);
+}
+
+pub fn header(self: *Storage, kind: model.ExpressionKind, payload: usize, type_id: ir.TypeId, span: @FieldType(ir.Expression, "span")) u32 {
+    const id: u32 = @intCast(self.kinds.items.len);
+
+    self.kinds.appendAssumeCapacity(kind);
+    self.payloads.appendAssumeCapacity(@intCast(payload));
+    self.types.appendAssumeCapacity(@backingInt(type_id));
+    self.span_start.appendAssumeCapacity(span.start);
+    self.span_end.appendAssumeCapacity(span.end);
 
     return id;
 }

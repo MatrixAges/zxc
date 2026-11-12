@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const Builder = @import("builder.zig");
 const linking = @import("linking.zig");
 const Mapping = @import("mapping.zig");
+const aggregate = @import("aggregate.zig");
 
 pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.ExprId {
     var buffer: [std.heap.page_size_min / 4]u8 = undefined;
@@ -30,7 +31,12 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
 
         mapping.available = index;
 
-        const id = try builder.expression(try mapping.expression(program.expressions.at(index)));
+        const value = program.expressions.at(index);
+
+        const id = switch (value.value) {
+            .list, .tuple, .template, .list_operation, .transform, .scope, .match_expr, .object => try aggregate.append(builder, &mapping, value),
+            else => try builder.expression(try mapping.expression(value)),
+        };
 
         std.debug.assert(@backingInt(id) == row);
     }

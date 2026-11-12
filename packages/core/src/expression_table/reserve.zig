@@ -1,8 +1,7 @@
 const std = @import("std");
-const ir = @import("../ir.zig");
 const Storage = @import("storage.zig");
 
-pub fn expression(self: *Storage, allocator: std.mem.Allocator, source: ir.Expression) std.mem.Allocator.Error!void {
+pub fn expression(self: *Storage, allocator: std.mem.Allocator, source: anytype) std.mem.Allocator.Error!void {
     @setEvalBranchQuota(100_000);
 
     try prepare(self, allocator, &.{ "kinds", "types", "span_start", "span_end", "payloads" }, 1);

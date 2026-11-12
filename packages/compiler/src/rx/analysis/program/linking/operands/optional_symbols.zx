@@ -1,0 +1,49 @@
+import memory from "std:memory"
+import { max_u32 } from "core/const"
+
+import symbol from "./symbol"
+
+import type { OptionalU32Buffer } from "std:memory"
+import type { Symbols } from "./model"
+
+export type Input = {
+    source: u32?[],
+    symbols: Symbols,
+    target: OptionalU32Buffer
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const empty: u32? = null
+
+    const count = in.source.length
+
+    return loop({
+        position: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.position < count,
+        next: state => {
+            const value = in.source[state.position]
+
+            if (value == null) {
+                memory.writeOptionalU32(in.target, state.position, empty)
+            } else {
+                const id = symbol({
+                    symbols: in.symbols,
+                    source: value
+                })
+
+                if (id == max_u32) {
+                    state.valid = false
+                } else {
+                    memory.writeOptionalU32(in.target, state.position, id)
+                }
+            }
+
+            state.position += 1
+        },
+        return: state => state.valid
+    })
+}

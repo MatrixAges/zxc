@@ -16,5 +16,6 @@ pub const child_process = @import("child_process/root.zig");
 pub const process = @import("process.zig");
 pub const http = @import("http/root.zig");
 pub const integer = @import("integer.zig");
+pub const memory = @import("memory.zig");
 pub const float = @import("float.zig");
 pub const bytes = @import("bytes.zig");
