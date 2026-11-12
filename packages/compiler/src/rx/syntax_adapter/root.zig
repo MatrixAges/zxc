@@ -6,7 +6,7 @@ pub fn location(input: anytype) dsl.ast.Location {
     return .{ .offset = @intCast(input.offset), .line = @intCast(input.line), .column = @intCast(input.column) };
 }
 
-pub fn convert(comptime layout: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !dsl.ast.Node {
+pub fn convert(comptime layout: anytype, comptime decode: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !dsl.ast.Node {
     const tree = input.tree;
     const slots = try temporary.alloc(u64, tree.nodes.len + tree.text.len);
     const node_slots = slots[0..tree.nodes.len];
@@ -26,24 +26,27 @@ pub fn convert(comptime layout: anytype, allocator: std.mem.Allocator, temporary
 
     layout(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &layout_input else layout_input) catch unreachable;
 
+    const decoded = try value.materialize(decode, allocator, source, tree.parts, input.control.decoded_length);
     const nodes = try allocator.alloc(dsl.ast.Node, tree.nodes.len);
     const attributes = try allocator.alloc(dsl.ast.Attribute, tree.attributes.len);
     const text = try allocator.alloc(dsl.ast.Text, tree.text.len);
 
     for (tree.attributes, attributes) |item, *output| {
+        const raw = value.raw(source, item.value);
+
         output.* = .{
             .kind = if (item.expression) .expression else .string,
             .name = source[@intCast(item.name.start)..@intCast(item.name.end)],
-            .value = try value.convert(allocator, source, tree.parts, item.value),
+            .value = value.select(raw, decoded, item.value),
             .location = location(item.location),
             .value_location = location(item.value_location),
-            .raw_value = source[@intCast(item.value.span.start)..@intCast(item.value.span.end)],
+            .raw_value = raw,
         };
     }
 
     for (tree.text, text_slots) |item, slot| {
         text[@intCast(slot)] = .{
-            .value = try value.convert(allocator, source, tree.parts, item.value),
+            .value = value.select(value.raw(source, item.value), decoded, item.value),
             .location = location(item.location),
         };
     }

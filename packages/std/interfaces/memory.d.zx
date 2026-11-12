@@ -1,3 +1,4 @@
+export type U8Buffer = opaque
 export type U32Buffer = opaque
 export type U64Buffer = opaque
 export type OptionalU32Buffer = opaque
@@ -18,6 +19,20 @@ export declare function writeU64(
     index: u64,
     value: u64
 ): void throws { IndexOutOfBounds }
+
+export declare function copyBytes(
+    target: U8Buffer,
+    offset: u64,
+    source: u8[],
+    start: u64,
+    end: u64
+): u64 throws { IndexOutOfBounds }
+
+export declare function writeUtf8Scalar(
+    target: U8Buffer,
+    offset: u64,
+    codepoint: u64
+): u64 throws { IndexOutOfBounds, InvalidUnicodeScalar }
 
 export declare function writeOptionalU32(
     target: OptionalU32Buffer,

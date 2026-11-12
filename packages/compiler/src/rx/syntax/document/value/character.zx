@@ -1,3 +1,4 @@
+import utf8Width from "../../entity/utf8_width"
 import advance from "../advance"
 import flush from "./flush"
 
@@ -13,9 +14,8 @@ export type Output = State
 
 export default function (in: Input): Output {
     const state = flush(in.state)
-    const head = state.tree.parts.length + 1
-    const count = state.control.value_count + 1
     const end = state.control.location.offset + in.count
+    const decoded_length = state.control.decoded_length + utf8Width(in.codepoint)
 
     const parts = state.tree.parts.push({
         span: {
@@ -39,8 +39,7 @@ export default function (in: Input): Output {
             frame: state.frame,
             control: {
                 ...state.control,
-                value_head: head,
-                value_count: count,
+                decoded_length,
                 text_start: end
             }
         },

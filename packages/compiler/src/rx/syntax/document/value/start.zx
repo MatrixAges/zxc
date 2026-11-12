@@ -31,8 +31,7 @@ export default function (in: Input): Output {
             terminator: in.terminator,
             value_start: offset,
             text_start: offset,
-            value_head: 0,
-            value_count: 0,
+            decoded_start: in.state.control.decoded_length,
             value_location: location
         }
     }

@@ -42,7 +42,15 @@ pub fn parseXml(allocator: std.mem.Allocator, source: []const u8) std.mem.Alloca
     }
 
     const owned_source = try arena.allocator().dupe(u8, source);
-    const node = try adapter.convert(@import("generated_xml_slots").executeValue, arena.allocator(), scratch.allocator(), owned_source, output);
+
+    const node = try adapter.convert(
+        @import("generated_xml_slots").executeValue,
+        @import("generated_xml_decode").executeValue,
+        arena.allocator(),
+        scratch.allocator(),
+        owned_source,
+        output,
+    );
 
     return .{ .arena = arena, .value = .{ .node = node } };
 }

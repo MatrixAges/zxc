@@ -1,0 +1,42 @@
+import memory from "std:memory"
+
+import type { U8Buffer } from "std:memory"
+import type { Part } from "../../model"
+
+export type Input = {
+    source: u8[],
+    parts: Part[],
+    target: U8Buffer
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return loop({
+        index: 0,
+        cursor: 0
+    }, {
+        while: state => state.index < in.parts.length,
+        next: state => {
+            const part = in.parts[state.index]
+            const count = match {
+                part.character => memory.writeUtf8Scalar(
+                    in.target,
+                    state.cursor,
+                    part.codepoint
+                ),
+                _ => memory.copyBytes(
+                    in.target,
+                    state.cursor,
+                    in.source,
+                    part.span.start,
+                    part.span.end
+                )
+            }
+
+            state.cursor += count
+            state.index += 1
+        },
+        return: state => state.cursor
+    })
+}

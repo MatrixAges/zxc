@@ -11,15 +11,16 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    const state = in.control.value_head == 0 ? in : flush(in)
+    const changed = in.control.decoded_start != in.control.decoded_length
+    const state = changed ? flush(in) : in
 
     const value = {
         span: {
             start: state.control.value_start,
             end: state.control.location.offset
         },
-        head: state.control.value_head,
-        count: state.control.value_count
+        decoded_start: state.control.decoded_start,
+        decoded_end: state.control.decoded_length
     }
 
     const count = match state.control.value_kind {

@@ -7,16 +7,17 @@ export type Output = State
 export default function (in: Input): Output {
     const end = in.control.location.offset
 
-    if (in.control.text_start == end) {
+    const start = in.control.text_start
+
+    if (start == end) {
         return in
     }
 
-    const head = in.tree.parts.length + 1
-    const count = in.control.value_count + 1
+    const decoded_length = in.control.decoded_length + (end - start)
 
     const parts = in.tree.parts.push({
         span: {
-            start: in.control.text_start,
+            start,
             end
         },
         character: false,
@@ -35,8 +36,7 @@ export default function (in: Input): Output {
         frame: in.frame,
         control: {
             ...in.control,
-            value_head: head,
-            value_count: count,
+            decoded_length,
             text_start: end
         }
     }

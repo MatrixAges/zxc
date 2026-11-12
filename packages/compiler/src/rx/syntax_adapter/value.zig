@@ -1,28 +1,26 @@
 const std = @import("std");
 
-pub fn convert(allocator: std.mem.Allocator, source: []const u8, parts: anytype, value: anytype) ![]const u8 {
-    if (value.head == 0) return source[@intCast(value.span.start)..@intCast(value.span.end)];
+pub fn materialize(comptime decode: anytype, allocator: std.mem.Allocator, source: []const u8, parts: anytype, length: u64) std.mem.Allocator.Error![]const u8 {
+    if (length == 0) return &.{};
 
-    const end: usize = @intCast(value.head);
-    const count: usize = @intCast(value.count);
-    const items = parts[end - count .. end];
-    var length: usize = 0;
+    const output = try allocator.alloc(u8, @intCast(length));
+    const Parameter = @typeInfo(@TypeOf(decode)).@"fn".param_types[1].?;
+    const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
+    const input: Input = .{ .source = source, .parts = parts, .target = @ptrCast(&output) };
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    const written = decode(empty.allocator(), if (@typeInfo(Parameter) == .pointer) &input else input) catch unreachable;
 
-    for (items) |part| {
-        length += if (part.character) std.unicode.utf8CodepointSequenceLength(@intCast(part.codepoint)) catch unreachable else @as(usize, @intCast(part.span.end - part.span.start));
-    }
-
-    const output = try allocator.alloc(u8, length);
-    var cursor: usize = 0;
-
-    for (items) |part| {
-        var buffer: [4]u8 = undefined;
-        const bytes = if (part.character) buffer[0 .. std.unicode.utf8Encode(@intCast(part.codepoint), &buffer) catch unreachable] else source[@intCast(part.span.start)..@intCast(part.span.end)];
-
-        @memcpy(output[cursor..][0..bytes.len], bytes);
-
-        cursor += bytes.len;
-    }
+    std.debug.assert(written == output.len);
 
     return output;
+}
+
+pub fn raw(source: []const u8, value: anytype) []const u8 {
+    return source[@intCast(value.span.start)..@intCast(value.span.end)];
+}
+
+pub fn select(original: []const u8, decoded: []const u8, value: anytype) []const u8 {
+    if (value.decoded_start == value.decoded_end) return original;
+
+    return decoded[@intCast(value.decoded_start)..@intCast(value.decoded_end)];
 }
