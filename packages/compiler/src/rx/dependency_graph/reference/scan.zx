@@ -1,8 +1,12 @@
 import bytes from "std:bytes"
 import encoding from "std:encoding"
+import integers from "std:integer"
 import memory from "std:memory"
 
+import { Tag } from "../../schema/execution/model"
 import classify from "../../schema/execution/tag"
+import { declaration, max_task_rank } from "../flow/const"
+import parallelParent from "../flow/parallel_parent"
 import project from "../flow/project"
 import select from "./select"
 
@@ -21,7 +25,11 @@ export type Input = {
     project_flow: bool
 }
 
-export type Output = Reference[]
+export type Output = {
+    references: Reference[],
+    module_steps: u64,
+    parallel_tasks: u64
+}
 
 export default function (in: Input): Output {
     const parents = in.parents
@@ -33,12 +41,15 @@ export default function (in: Input): Output {
         facts: in.facts
     }
 
+    const rank_tasks = in.nodes.length <= max_task_rank
     const references: Reference[] = []
 
     return loop({
         next: in.root + 1,
         depth: 0,
         finishing: false,
+        module_steps: 0,
+        parallel_tasks: 0,
         references
     }, {
         while: state => state.next != 0,
@@ -56,11 +67,33 @@ export default function (in: Input): Output {
                 const tag = classify(name)
 
                 if (in.project_flow) {
-                    project({
+                    const task = rank_tasks && tag == Tag.Task
+                    const parallel = task && parallelParent({
+                        source,
+                        nodes: view.nodes,
+                        parents,
+                        depth: state.depth
+                    })
+
+                    if (parallel) {
+                        state.parallel_tasks += 1
+                    }
+
+                    const flags = project({
                         view,
                         row,
-                        tag
+                        tag,
+                        task_rank: parallel ? state.parallel_tasks : 0
                     })
+
+                    const skipped = integers.andBits(
+                        integers.widen(flags),
+                        integers.widen(declaration)
+                    )
+
+                    if (state.depth == 1 && skipped == 0) {
+                        state.module_steps += 1
+                    }
                 }
 
                 const reference = select({
@@ -87,6 +120,10 @@ export default function (in: Input): Output {
                 }
             }
         },
-        return: state => state.references
+        return: state => ({
+            references: state.references,
+            module_steps: state.module_steps,
+            parallel_tasks: state.parallel_tasks
+        })
     })
 }
