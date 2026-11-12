@@ -15,7 +15,7 @@ pub fn expressions(mapping: *const Mapping, source: []const u32, target: []u32) 
         return invoke(rule, .{ .source = source, .mapping = mapping.expressions[0..mapping.available], .target = @ptrCast(&target) });
     }
 
-    for (source, target) |id, *output| output.* = @backingInt(try mapping.id(@fromBackingInt(id)));
+    for (source, target) |id, *output| output.* = @backingInt(try mapping.seedId(@fromBackingInt(id)));
 }
 
 pub fn symbols(mapping: *const Mapping, source: []const u32, target: []u32) Builder.Error!void {
@@ -29,7 +29,7 @@ pub fn symbols(mapping: *const Mapping, source: []const u32, target: []u32) Buil
         return invoke(rule, .{ .source = source, .symbols = &.{ .bindings = mapping.bindings, .locals_base = mapping.locals_base, .count = mapping.symbol_count }, .target = @ptrCast(&target) });
     }
 
-    for (source, target) |id, *output| output.* = @backingInt(try mapping.symbol(@fromBackingInt(id)));
+    for (source, target) |id, *output| output.* = @backingInt(try mapping.seedSymbol(@fromBackingInt(id)));
 }
 
 pub fn optionalSymbols(mapping: *const Mapping, source: []const ?u32, target: []?u32) Builder.Error!void {
@@ -43,7 +43,7 @@ pub fn optionalSymbols(mapping: *const Mapping, source: []const ?u32, target: []
         return invoke(rule, .{ .source = source, .symbols = &.{ .bindings = mapping.bindings, .locals_base = mapping.locals_base, .count = mapping.symbol_count }, .target = @ptrCast(&target) });
     }
 
-    for (source, target) |id, *output| output.* = if (id) |value| @backingInt(try mapping.symbol(@fromBackingInt(value))) else null;
+    for (source, target) |id, *output| output.* = if (id) |value| @backingInt(try mapping.seedSymbol(@fromBackingInt(value))) else null;
 }
 
 fn invoke(comptime rule: type, input: std.meta.Child(rule.Input)) Builder.Error!void {

@@ -58,6 +58,11 @@ pub fn plan(allocator: std.mem.Allocator, builder: *const Builder, program: ir.P
     for (rows, table.kinds, table.payloads) |*row, kind, payload| {
         if (row.* == linking.missing) continue;
 
+        switch (kind) {
+            .StoreGet, .Call, .Task, .AwaitTask, .CancelTask, .Parallel => return error.InvalidModule,
+            else => {},
+        }
+
         if (kind == .Reference and table.references[payload] == 0) {
             row.* = linking.missing;
         } else {

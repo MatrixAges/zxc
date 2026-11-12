@@ -8,19 +8,33 @@ export type Input = {
     expressions: Expressions,
     rows: u32[],
     index: u64,
-    next_id: u64
+    next_id: u64,
+    valid: bool
 }
 
-export type Output = u32[]
+export type Output = {
+    items: u32[],
+    valid: bool
+}
 
 export default function (in: Input): Output {
     return loop(in, {
-        while: state => state.index < state.rows.length,
+        while: state => state.valid && state.index < state.rows.length,
         next: state => {
             const index = state.index
 
             if (state.rows[index] != max_u32) {
-                const environment = match state.expressions.kinds[index] {
+                const kind = state.expressions.kinds[index]
+                const supported = match kind {
+                    ExpressionKind.StoreGet => false,
+                    ExpressionKind.Call => false,
+                    ExpressionKind.Task => false,
+                    ExpressionKind.AwaitTask => false,
+                    ExpressionKind.CancelTask => false,
+                    ExpressionKind.Parallel => false,
+                    _ => true
+                }
+                const environment = match kind {
                     ExpressionKind.Reference => state.expressions
                         .references[
                             integers.widen(
@@ -30,7 +44,9 @@ export default function (in: Input): Output {
                     _ => false
                 }
 
-                if (environment) {
+                if (!supported) {
+                    state.valid = false
+                } else if (environment) {
                     state.rows[index] = max_u32
                 } else {
                     state.rows[index] = integers.narrow(state.next_id)
@@ -40,6 +56,9 @@ export default function (in: Input): Output {
 
             state.index += 1
         },
-        return: state => state.rows
+        return: state => ({
+            items: state.rows,
+            valid: state.valid
+        })
     })
 }

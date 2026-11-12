@@ -145,9 +145,11 @@ pub fn payload(self: *Self, expected: ?Graph.Id) zx.Error!?Graph.Id {
 }
 
 pub fn sourceSpan(self: *const Self, value: zx.Span) zx.Span {
-    const start = (rx.attributeLocation(self.attribute, value.start) orelse self.attribute.value_location).offset;
+    const base = self.attribute.value_location.offset;
+    const start = rx.attributeByteOffset(self.attribute, value.start, false) orelse base;
+    const end = if (value.start == value.end) start else rx.attributeByteOffset(self.attribute, value.end, true) orelse base;
 
-    return .{ .start = self.span_offset + start, .end = self.span_offset + (if (value.start == value.end) start else (rx.attributeEndLocation(self.attribute, value.end) orelse self.attribute.value_location).offset) };
+    return .{ .start = self.span_offset + start, .end = self.span_offset + end };
 }
 
 fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {

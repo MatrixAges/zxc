@@ -39,14 +39,15 @@
             expressions: $in.expressions,
             rows: $ctx.shape.rows,
             index: 0,
-            next_id: $in.base
+            next_id: $in.base,
+            valid: true
         }}
     />
 
     <Return
         value={{
-            returned: $ctx.shape.returned,
-            rows: $ctx.rows,
+            returned: $ctx.rows.valid ? $ctx.shape.returned : null,
+            rows: $ctx.rows.items,
             bindings: $ctx.bindings.ids
         }}
     />

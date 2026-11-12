@@ -9,6 +9,7 @@ pub const ExpressionBoundary = @import("xml/root.zig").ExpressionBoundary;
 pub const XmlResult = @import("xml/root.zig").Result;
 pub const attributeLocation = @import("xml/attribute_location.zig").locate;
 pub const attributeEndLocation = @import("xml/attribute_location.zig").locateEnd;
+pub const attributeByteOffset = @import("xml/attribute_location.zig").byteOffset;
 pub const Diagnostic = diagnostic.Diagnostic;
 pub const Reporter = diagnostic.Reporter;
 pub const Error = diagnostic.Error;

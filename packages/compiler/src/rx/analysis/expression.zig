@@ -71,21 +71,21 @@ pub fn compileParsed(allocator: std.mem.Allocator, parsed: *const frontend.Expre
     const starts = try temporary.alloc(u64, symbols.count());
     const ends = try temporary.alloc(u64, symbols.count());
 
-    for (0..expressions.count()) |index| {
-        const span = sourceSpan(attribute, expressions.at(index).span);
+    for (expressions.span_start, expressions.span_end, expression_starts, expression_ends) |start, end, *mapped_start, *mapped_end| {
+        const span = sourceSpan(attribute, .{ .start = @intCast(start), .end = @intCast(end) });
 
-        expression_starts[index] = span.start;
-        expression_ends[index] = span.end;
+        mapped_start.* = span.start;
+        mapped_end.* = span.end;
     }
 
     expressions.span_start = expression_starts;
     expressions.span_end = expression_ends;
 
-    for (0..symbols.count()) |index| {
-        const span = sourceSpan(attribute, symbols.at(index).span);
+    for (symbols.span_start, symbols.span_end, starts, ends) |start, end, *mapped_start, *mapped_end| {
+        const span = sourceSpan(attribute, .{ .start = @intCast(start), .end = @intCast(end) });
 
-        starts[index] = span.start;
-        ends[index] = span.end;
+        mapped_start.* = span.start;
+        mapped_end.* = span.end;
     }
 
     symbols.span_start = starts;
@@ -105,10 +105,10 @@ fn diagnostic(attribute: rx.ast.Attribute, issue: zx.Diagnostic) Diagnostic {
 }
 
 fn sourceSpan(attribute: rx.ast.Attribute, span: zx.Span) zx.Span {
-    const start = (rx.attributeLocation(attribute, span.start) orelse attribute.value_location).offset;
+    const start = rx.attributeByteOffset(attribute, span.start, false) orelse attribute.value_location.offset;
 
     return .{
         .start = start,
-        .end = if (span.start == span.end) start else (rx.attributeEndLocation(attribute, span.end) orelse attribute.value_location).offset,
+        .end = if (span.start == span.end) start else rx.attributeByteOffset(attribute, span.end, true) orelse attribute.value_location.offset,
     };
 }
