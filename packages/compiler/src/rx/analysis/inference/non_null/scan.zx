@@ -1,0 +1,83 @@
+import integers from "std:integer"
+
+import representative from "../forest/representative"
+import { Route as WalkRoute } from "../optional/model"
+import walk from "../optional/walk"
+import { Kind } from "../unification/model"
+
+import type { Graph } from "../optional/model"
+
+export enum Action {
+    Wait,
+    Unify,
+    Register,
+    Infer
+}
+
+export type Input = {
+    graph: Graph,
+    parents: u32[],
+    sources: u32[],
+    values: u32[],
+    infer_source: bool,
+    next: u64,
+    value: u32,
+    action: Action
+}
+
+export type Output = {
+    parents: u32[],
+    next: u64,
+    value: u32,
+    action: Action
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state =>
+            state.action == Action.Wait && state.next < state.sources.length,
+        next: state => {
+            const index = state.next
+            const source = state.sources[index]
+            const result = walk({
+                graph: state.graph,
+                parents: state.parents,
+                value: source,
+                root: source,
+                remaining: 1,
+                route: WalkRoute.Boundary
+            })
+
+            state.parents = result.parents
+
+            if (result.route != WalkRoute.Open) {
+                state.value = result.value
+                state.action = match result.route {
+                    WalkRoute.Declared => Action.Register,
+                    _ => Action.Unify
+                }
+            } else if (state.infer_source) {
+                const value = representative({
+                    parents: state.parents,
+                    value: state.values[index]
+                })
+
+                state.parents = value.parents
+
+                if (
+                    state.graph.kinds[integers.widen(value.item)] != Kind.Unknown
+                ) {
+                    state.action = Action.Infer
+                }
+            }
+
+            state.next += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            next: state.next,
+            value: state.value,
+            action: state.action
+        })
+    })
+}

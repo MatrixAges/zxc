@@ -13,10 +13,10 @@ pub const Field = Fields.Field;
 pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: Fields, list: Id, optional: Id, tuple: []const Id };
 pub const Node = struct { shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
 
-const Projection = struct { target: Id, value: Id, span: zx.Span };
 const Bindings = @import("bindings.zig");
 const Assignment = @import("assignment.zig");
 const ObjectClosure = @import("object_closure.zig");
+const Projections = @import("projections.zig");
 
 allocator: std.mem.Allocator,
 scratch: std.mem.Allocator,
@@ -24,7 +24,7 @@ reporter: *zx.Reporter,
 types: Types,
 nodes: Nodes.Storage = .empty,
 forest: @import("forest.zig") = .{},
-lengths: std.ArrayList(Projection) = .empty,
+lengths: std.MultiArrayList(Projections.Length) = .empty,
 indexes: std.MultiArrayList(@import("index.zig").Projection) = .empty,
 value_uses: std.MultiArrayList(Bindings.Use) = .empty,
 binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
@@ -34,7 +34,7 @@ assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
 selections: std.ArrayList(@import("selection.zig").Selection) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
-nonnull: std.ArrayList(@import("non_null.zig").Projection) = .empty,
+nonnull: std.MultiArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
 revision: usize = 0,
 /// Changes that affect the roots or known types seen by object rules.
@@ -238,21 +238,8 @@ pub fn finish(self: *Self) zx.Error!void {
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, &object_closure, object, false);
         for (self.selections.items) |selection| try @import("selection.zig").propagate(self, &object_closure, selection, false);
-
-        for (self.lengths.items) |projection| {
-            if (self.shape(projection.target) == .unknown) continue;
-
-            const value = try self.field(projection.target, "length", projection.span);
-
-            try self.unify(value, projection.value, projection.span);
-        }
-
-        const indexes = self.indexes.slice();
-
-        for (indexes.items(.resolved), 0..) |*resolved, index| {
-            if (!resolved.*) resolved.* = try @import("index.zig").propagate(self, indexes.get(index));
-        }
-
+        try Projections.applyLengths(self);
+        try @import("index.zig").replay(self);
         if (revision != self.revision) continue;
 
         _ = workspace.reset(.retain_capacity);
@@ -276,10 +263,7 @@ pub fn finish(self: *Self) zx.Error!void {
         break;
     }
 
-    for (self.lengths.items) |projection| {
-        if (self.shape(projection.target) == .unknown) return self.reporter.fail(.type_mismatch, projection.span, "length alone cannot determine whether the input is a list, string or object");
-    }
-
+    try Projections.validateLengths(self);
     try Bindings.propagate(self, true);
     try Assignment.validate(self);
 }

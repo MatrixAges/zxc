@@ -46,6 +46,8 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/bindings/collisions.zx", .name = "rx_binding_collisions", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/bindings/lookup.zx", .name = "rx_binding_lookup", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/optional/walk.zx", .name = "rx_optional_walk", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/non_null/scan.zx", .name = "rx_non_null_scan", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/projections/scan.zx", .name = "rx_projection_scan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/optional/known.zx", .name = "rx_optional_known", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/resolve/walk.zx", .name = "rx_resolve_type", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/object_closure/prove.rx", .name = "object_closure", .owner = .rx_analysis },

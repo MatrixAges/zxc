@@ -1,0 +1,61 @@
+import integers from "std:integer"
+
+import representative from "../forest/representative"
+import { Kind } from "../unification/model"
+
+import type { Kind as ShapeKind } from "../unification/model"
+
+export enum Mode {
+    Length,
+    PendingLength,
+    Index
+}
+
+export type Input = {
+    targets: u32[],
+    resolved: bool[],
+    kinds: ShapeKind[],
+    parents: u32[],
+    mode: Mode,
+    next: u64,
+    found: bool
+}
+
+export type Output = {
+    parents: u32[],
+    next: u64,
+    found: bool
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => !state.found && state.next < state.targets.length,
+        next: state => {
+            const index = state.next
+            const mode = state.mode
+
+            if (mode != Mode.Index || !state.resolved[index]) {
+                const root = representative({
+                    parents: state.parents,
+                    value: state.targets[index]
+                })
+                const kind = state.kinds[integers.widen(root.item)]
+                const pending = kind == Kind.Unknown
+
+                state.parents = root.parents
+                state.found = match mode {
+                    Mode.PendingLength => pending,
+                    Mode.Index => !pending && kind != Kind.Sequence,
+                    _ => !pending
+                }
+            }
+
+            state.next += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            next: state.next,
+            found: state.found
+        })
+    })
+}

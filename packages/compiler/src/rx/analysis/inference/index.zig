@@ -4,6 +4,7 @@ const syntax = zx.syntax.borrow;
 const Graph = @import("types.zig");
 const Expression = @import("expression.zig");
 const Target = @import("sequences/target.zig").Target;
+const Projections = @import("projections.zig");
 
 pub const Projection = struct { target: Graph.Id, value: Graph.Id, position: ?u64, span: zx.Span, index_span: zx.Span, resolved: bool = false };
 
@@ -38,6 +39,27 @@ pub fn propagate(graph: *Graph, projection: Projection) zx.Error!bool {
     try graph.unify(value, projection.value, projection.span);
 
     return true;
+}
+
+pub fn replay(graph: *Graph) zx.Error!void {
+    const indexes = graph.indexes.slice();
+    const resolved = indexes.items(.resolved);
+
+    if (!@import("rx_options").generated_graph) {
+        for (resolved, 0..) |*done, index| {
+            if (!done.*) done.* = try propagate(graph, indexes.get(index));
+        }
+
+        return;
+    }
+
+    const targets = indexes.items(.target);
+    var start: usize = 0;
+
+    while (Projections.next(graph, targets, resolved, .Index, start)) |index| {
+        resolved[index] = try propagate(graph, indexes.get(index));
+        start = index + 1;
+    }
 }
 
 pub fn isResult(graph: *const Graph, id: Graph.Id) bool {
