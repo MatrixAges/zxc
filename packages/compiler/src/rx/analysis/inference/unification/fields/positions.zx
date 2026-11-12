@@ -1,0 +1,54 @@
+import bytes from "std:bytes"
+import memory from "std:memory"
+import fixed from "core/bytes/index/fixed"
+
+import find from "../find_field"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const index = in.existing
+
+    return loop({
+        scanned: 0,
+        length: index.names.length,
+        missing: false
+    }, {
+        while: state => state.scanned < in.incoming.length && !state.missing,
+        next: state => {
+            const key = in.incoming[state.scanned]
+            const position = match {
+                index.capacity == 0 => find({
+                    names: index.names,
+                    name: key
+                }),
+                _ => fixed({
+                    keys: index.keys,
+                    buckets: index.buckets,
+                    capacity: index.capacity,
+                    key: bytes.fromText(key)
+                })
+            }
+
+            if (position == null && in.closed) {
+                state.missing = true
+            } else {
+                memory.writeU64(
+                    in.positions,
+                    state.scanned,
+                    position == null ? state.length : position
+                )
+
+                if (position == null) {
+                    state.length += 1
+                }
+
+                state.scanned += 1
+            }
+        },
+        return: state => ({
+            scanned: state.scanned,
+            length: state.length
+        })
+    })
+}

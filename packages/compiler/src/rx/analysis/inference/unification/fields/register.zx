@@ -1,0 +1,27 @@
+import fixed from "core/bytes/index/fixed"
+
+import type { Index as Input, Index as Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.capacity == 0) {
+        return in
+    }
+
+    return loop({
+        index: 0
+    }, {
+        while: state => state.index < in.keys.length,
+        next: state => {
+            const previous = fixed({
+                keys: in.keys,
+                buckets: in.buckets,
+                capacity: in.capacity,
+                key: in.keys[state.index],
+                insert: state.index
+            })
+
+            state.index += 1
+        },
+        return: state => in
+    })
+}

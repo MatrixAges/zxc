@@ -101,6 +101,7 @@ pub const main = [_]Entry{
     .{ .path = "core/integer/index/get.zx", .name = "object_closure_index", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/decide.rx", .name = "rx_unification", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/find_field.zx", .name = "rx_unification_field", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/unification/fields/align.rx", .name = "rx_unification_fields", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/unification/occurs/check.zx", .name = "rx_unification_occurs", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/fields/access.zx", .name = "rx_field_access", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/forest/extend.zx", .name = "rx_forest_extend", .owner = .rx_analysis },

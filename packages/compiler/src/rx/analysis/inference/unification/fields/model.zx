@@ -1,0 +1,20 @@
+import type { U64Buffer } from "std:memory"
+
+export type Index = {
+    names: string[],
+    keys: u8[][],
+    buckets: U64Buffer,
+    capacity: u64
+}
+
+export type Input = {
+    existing: Index,
+    incoming: string[],
+    positions: U64Buffer,
+    closed: bool
+}
+
+export type Output = {
+    scanned: u64,
+    length: u64
+}

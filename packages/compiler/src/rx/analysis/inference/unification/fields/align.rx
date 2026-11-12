@@ -1,0 +1,17 @@
+<Module>
+    <Type from="model" as="Fields" />
+
+    <Args in={Fields.Input} out={Fields.Output} />
+
+    <Call fn="register" in={$in.existing} />
+
+    <Call
+        fn="positions"
+        in={{
+            ...$in,
+            existing: $ctx.register
+        }}
+    />
+
+    <Return value={$ctx.positions} />
+</Module>
