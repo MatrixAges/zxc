@@ -1,0 +1,36 @@
+export type Coverage = {
+    stopped: bool,
+    remaining?: bool
+}
+
+export type Input = {
+    remaining?: bool,
+    label?: bool
+}
+
+export type Output = Coverage
+
+export default function record(in: Input): Output {
+    const label = in.label
+
+    if (label == null) {
+        return {
+            stopped: true,
+            remaining: null
+        }
+    }
+
+    const remaining = !label
+
+    if (in.remaining != null && in.remaining != remaining) {
+        return {
+            stopped: true,
+            remaining: null
+        }
+    }
+
+    return {
+        stopped: false,
+        remaining
+    }
+}

@@ -104,17 +104,23 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                 const subject = try self.valueParsed(&parsed, selection.subject, null);
                 const cases = try self.allocator.alloc(Flow.Case, selection.cases.len);
                 const count = self.bindings.items.len;
+                var labels: condition.Cases = .{ .allocator = self.allocator, .owner = self.owner };
 
-                for (selection.cases, cases) |case, *item| {
+                defer labels.deinit();
+
+                for (selection.cases, cases, 0..) |case, *item, index| {
                     const label: struct { value: ?zx.ir.Program, truth: ?bool } = if (case.value) |attribute| label: {
-                        var label = try @import("attribute.zig").parse(self.allocator, attribute, self.owner);
+                        var label = try labels.label(attribute);
 
                         defer label.deinit();
 
                         const program = try self.valueParsed(&label, attribute, subject.output_type);
+                        const truth = condition.boolean(&label);
 
-                        break :label .{ .value = program, .truth = condition.boolean(&label) };
-                    } else .{ .value = null, .truth = try condition.defaultTruth(self.allocator, self.owner, selection.cases) };
+                        labels.observe(truth);
+
+                        break :label .{ .value = program, .truth = truth };
+                    } else .{ .value = null, .truth = try labels.remaining(selection.cases[index + 1 ..]) };
 
                     const facts = self.nonnull.items.len;
 
@@ -236,17 +242,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 }
 
 pub fn assumeNonNull(self: *Self, expression_value: anytype) zx.Error!void {
-    const paths = frontend.binding_path;
-
-    const visible = for (self.bindings.items) |binding| {
-        if (paths.rooted(expression_value, binding.name)) break true;
-    } else false;
-
-    if (!visible) return;
-
-    const name = try paths.path(self.allocator, expression_value) orelse return;
-
-    try self.nonnull.append(self.allocator, name);
+    try @import("condition.zig").publish(self.allocator, expression_value, self.bindings.items, false, &self.nonnull);
 }
 
 pub fn isNonNull(self: *const Self, name: []const u8) bool {

@@ -178,17 +178,24 @@ const Walker = struct {
 
                 const subject = try inferParsedAttribute(expression, &parsed, selection.subject, null);
                 const count = expression.bindings.items.len;
+                var labels: condition.Cases = .{ .allocator = allocator, .owner = owner };
 
-                for (selection.cases) |case| {
+                defer labels.deinit();
+
+                for (selection.cases, 0..) |case, index| {
                     const truth = if (case.value) |attribute| label: {
-                        var label = try @import("../attribute.zig").parse(allocator, attribute, owner);
+                        var label = try labels.label(attribute);
 
                         defer label.deinit();
 
                         _ = try inferParsedAttribute(expression, &label, attribute, subject);
 
-                        break :label condition.boolean(&label);
-                    } else try condition.defaultTruth(allocator, owner, selection.cases);
+                        const truth = condition.boolean(&label);
+
+                        labels.observe(truth);
+
+                        break :label truth;
+                    } else try labels.remaining(selection.cases[index + 1 ..]);
 
                     const facts = expression.nonnull.items.len;
 

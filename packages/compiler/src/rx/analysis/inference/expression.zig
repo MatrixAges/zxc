@@ -2,8 +2,10 @@ const std = @import("std");
 const zx = @import("zx");
 const syntax = zx.syntax.borrow;
 const rx = @import("rx");
+const paths = @import("frontend").binding_path;
 const Graph = @import("types.zig");
 const Self = @This();
+const path_buffer_size = 128;
 
 pub const Binding = struct { name: []const u8, value: Graph.Id, span: zx.Span = .{ .start = 0, .end = 0 } };
 
@@ -18,9 +20,17 @@ span_offset: usize = 0,
 pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Graph.Id {
     const node = syntax.value(expression);
     const span = self.sourceSpan(expression.span);
+    var buffer: [path_buffer_size]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, self.graph.scratch);
+    const allocator = scratch.allocator();
+    const has_path = node == .identifier or node == .field;
+    const reads_path = self.bindings.items.len != 0 or self.nonnull.items.len != 0;
+    const path = if (has_path and reads_path) try paths.view(allocator, expression) else null;
 
-    if (try self.lookup(expression)) |original| {
-        const binding = try self.refined(expression, original);
+    defer if (path) |name| name.release(allocator);
+
+    if (try self.lookup(path, span)) |original| {
+        const binding = try self.refined(path, original, span);
 
         try self.graph.requireValue(binding, span);
         if (expected) |hint| try self.graph.expect(binding, hint, span);
@@ -111,7 +121,7 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
         .pipeline, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
     };
 
-    const narrowed = try self.refined(expression, value);
+    const narrowed = try self.refined(path, value, span);
 
     if (expected) |target| try self.graph.expect(narrowed, target, span);
 
@@ -120,8 +130,14 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
 
 pub fn declared(self: *Self, expression: anytype) zx.Error!Graph.Id {
     const span = self.sourceSpan(expression.span);
+    var buffer: [path_buffer_size]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, self.graph.scratch);
+    const allocator = scratch.allocator();
+    const path = if (self.bindings.items.len != 0) try paths.view(allocator, expression) else null;
 
-    if (try self.lookup(expression)) |binding| {
+    defer if (path) |name| name.release(allocator);
+
+    if (try self.lookup(path, span)) |binding| {
         try self.graph.requireValue(binding, span);
 
         return binding;
@@ -152,14 +168,15 @@ pub fn sourceSpan(self: *const Self, value: zx.Span) zx.Span {
     return .{ .start = self.span_offset + start, .end = self.span_offset + end };
 }
 
-fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
+fn lookup(self: *Self, name: ?paths.Path, span: zx.Span) zx.Error!?Graph.Id {
+    const path = name orelse return null;
     var selected: ?Graph.Id = null;
     var candidates: std.ArrayList(Graph.Id) = .empty;
 
     errdefer candidates.deinit(self.graph.allocator);
 
     for (self.bindings.items) |binding| {
-        if (!@import("frontend").binding_path.matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
+        if (!std.mem.eql(u8, path.text, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
 
         if (selected) |previous| {
             if (candidates.items.len == 0) {
@@ -177,43 +194,45 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
 
     if (candidates.items.len == 0) return selected;
 
-    return try @import("bindings.zig").lookup(self.graph, candidates.items, self.sourceSpan(expression.span));
+    return try @import("bindings.zig").lookup(self.graph, candidates.items, span);
 }
 
 pub fn assumeNonNull(self: *Self, expression: anytype) zx.Error!void {
-    const paths = @import("frontend").binding_path;
-
-    const visible = paths.rooted(expression, "$in") or (for (self.bindings.items) |binding| {
-        if (paths.rooted(expression, binding.name)) break true;
-    } else false);
-
-    if (!visible) return;
-
-    const name = try paths.path(self.graph.allocator, expression) orelse return;
-
-    try self.nonnull.append(self.graph.allocator, name);
+    try @import("../condition.zig").publish(self.graph.allocator, expression, self.bindings.items, true, &self.nonnull);
 }
 
-fn refined(self: *Self, expression: anytype, value: Graph.Id) zx.Error!Graph.Id {
-    for (self.nonnull.items) |name| {
-        if (@import("frontend").binding_path.matches(expression, name)) return @import("non_null.zig").read(self.graph, value, self.sourceSpan(expression.span));
+fn refined(self: *Self, name: ?paths.Path, value: Graph.Id, span: zx.Span) zx.Error!Graph.Id {
+    const path = name orelse return value;
+
+    for (self.nonnull.items) |fact| {
+        if (std.mem.eql(u8, path.text, fact)) return @import("non_null.zig").read(self.graph, value, span);
     }
 
     return value;
 }
 
 fn enumMember(self: *Self, owner: anytype, name: zx.ast.Name, span: zx.Span) zx.Error!?Graph.Id {
+    if (self.aliases.len == 0) return null;
+
     const value = syntax.value(owner);
 
-    if (value != .field or syntax.value(value.field.target) != .identifier or self.aliases.len == 0) return null;
-    if (@import("frontend").binding_path.rooted(owner, "$in")) return null;
+    if (value != .field or syntax.value(value.field.target) != .identifier) return null;
+
+    var buffer: [path_buffer_size]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, self.graph.scratch);
+    const allocator = scratch.allocator();
+    const path = (try paths.view(allocator, owner)).?;
+
+    defer path.release(allocator);
+
+    if (path.rooted("$in")) return null;
 
     for (self.bindings.items) |binding| {
-        if (@import("frontend").binding_path.rooted(owner, binding.name)) return null;
+        if (path.rooted(binding.name)) return null;
     }
 
     for (self.aliases) |alias| {
-        if (!@import("frontend").binding_path.matches(owner, alias.name)) continue;
+        if (!std.mem.eql(u8, path.text, alias.name)) continue;
 
         const target = self.graph.types.get(alias.type_id);
 

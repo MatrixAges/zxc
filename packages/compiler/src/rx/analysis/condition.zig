@@ -1,26 +1,25 @@
 const std = @import("std");
-const rx = @import("rx");
 const frontend = @import("frontend");
 const zx = @import("zx");
 const syntax = zx.syntax.borrow;
 const generated = @import("rx_options").generated_graph;
+pub const Cases = @import("condition/cases.zig");
 
-pub fn defaultTruth(allocator: std.mem.Allocator, owner: []const u8, cases: anytype) std.mem.Allocator.Error!?bool {
-    var yes = false;
-    var no = false;
+pub fn publish(allocator: std.mem.Allocator, expression: anytype, bindings: anytype, implicit_input: bool, facts: *std.ArrayList([]const u8)) zx.Error!void {
+    const path = try frontend.binding_path.view(allocator, expression) orelse return;
+    var retained = false;
 
-    for (cases) |case| {
-        const attribute = case.value orelse continue;
-        var parsed = try @import("attribute.zig").parse(allocator, attribute, owner);
+    defer if (!retained) path.release(allocator);
 
-        defer parsed.deinit();
+    const visible = (implicit_input and path.rooted("$in")) or for (bindings) |binding| {
+        if (path.rooted(binding.name)) break true;
+    } else false;
 
-        const value = boolean(&parsed) orelse return null;
-        yes = yes or value;
-        no = no or !value;
-    }
+    if (!visible) return;
 
-    return if (yes != no) !yes else null;
+    try facts.append(allocator, path.text);
+
+    retained = true;
 }
 
 pub fn boolean(parsed: *const frontend.ExpressionInput.Result) ?bool {
@@ -40,9 +39,7 @@ pub fn assumeParsed(allocator: std.mem.Allocator, parsed: *const frontend.Expres
     switch (parsed.*) {
         .native => |result| try assumeNative(result.value.parsed.expression, present, context),
         .indexed => |result| if (frontend.ExpressionInput.indexed_enabled) {
-            const node = result.output.expressions.nodes[@intCast(result.output.result)];
-
-            if (node.kind != .Binary and node.kind != .Unary) return;
+            if (comptime generated) return assumeIndexed(allocator, result, result.output.result, present, context);
 
             var scratch = std.heap.ArenaAllocator.init(allocator);
 
@@ -58,9 +55,13 @@ pub fn assumeParsed(allocator: std.mem.Allocator, parsed: *const frontend.Expres
 pub fn assumeValue(allocator: std.mem.Allocator, expression: anytype, present: bool, context: anytype) zx.Error!void {
     if (comptime !generated or @TypeOf(expression) == *const zx.ast.Expression) return assumeNative(expression, present, context);
 
-    const view = expression.context;
-    const nodes = view.storage.expressions.nodes;
-    const node = nodes[expression.index];
+    return assumeIndexed(allocator, expression.context, expression.index, present, context);
+}
+
+fn assumeIndexed(allocator: std.mem.Allocator, source: anytype, index: u64, present: bool, context: anytype) zx.Error!void {
+    const parsed = @TypeOf(source) == frontend.ExpressionInput.Indexed;
+    const nodes = if (parsed) source.output.expressions.nodes else source.storage.expressions.nodes;
+    const node = nodes[@intCast(index)];
 
     if (node.kind != .Binary and node.kind != .Unary) return;
 
@@ -72,7 +73,7 @@ pub fn assumeValue(allocator: std.mem.Allocator, expression: anytype, present: b
 
     const facts = @import("generated_rx_condition_plan").executeValue(scratch.allocator(), .{
         .nodes = nodes,
-        .condition = expression.index,
+        .condition = index,
         .truth = present,
         .facts = .{ .first = null, .rest = &.{} },
     }) catch |err| switch (err) {
@@ -80,6 +81,18 @@ pub fn assumeValue(allocator: std.mem.Allocator, expression: anytype, present: b
         error.IndexOutOfBounds => unreachable,
     };
 
+    if (facts.first == null) return;
+
+    if (comptime parsed) {
+        const view = try source.view(scratch.allocator());
+
+        return apply(&view, facts, context);
+    }
+
+    return apply(source, facts, context);
+}
+
+fn apply(view: anytype, facts: anytype, context: anytype) zx.Error!void {
     if (facts.first) |first| try context.assumeNonNull(view.expression(first));
     for (facts.rest) |index| try context.assumeNonNull(view.expression(index));
 }
