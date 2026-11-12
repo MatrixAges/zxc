@@ -106,6 +106,40 @@ fn lookup(self: Self, index: usize) ?Graph.Id {
 /// Unifies every root with its class representative in one pass instead of one pair per rebuilt base. A
 /// representative whose payload changed during the pass waits for the next round's fresh base.
 pub fn propagate(self: Self, graph: *Graph) zx.Error!void {
+    if (!@import("rx_options").generated_graph) return self.seedPropagate(graph);
+
+    const generated = @import("generated_assignment_next_merge");
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    var start: usize = 0;
+
+    while (start < self.parents.len) {
+        const nodes = graph.nodes.slice();
+
+        const result = generated.executeState(empty.allocator(), .{
+            .nodes = &.{ .kinds = nodes.items(.kind), .allowed = nodes.items(.allowed) },
+            .arguments = .{ .items = nodes.items(.argument), .storage = .plain },
+            .type_kinds = .{ .items = graph.types.items.kinds.items, .storage = .plain },
+            .classes = &.{ .groups = self.parents, .representatives = self.representatives },
+            .parents = graph.forest.state,
+            .next = start,
+            .other = null,
+        }) catch unreachable;
+
+        std.debug.assert(result.parents.items.ptr == graph.forest.state.items.ptr);
+
+        const other: Graph.Id = @fromBackingInt(result.other orelse break);
+
+        start = @intCast(result.next);
+
+        if (try payload(graph, other) != graph.root(other)) continue;
+
+        const index = start - 1;
+
+        try graph.unify(@fromBackingInt(@intCast(index)), other, graph.nodes.items(.span)[index]);
+    }
+}
+
+fn seedPropagate(self: Self, graph: *Graph) zx.Error!void {
     for (0..self.parents.len) |index| {
         const id: Graph.Id = @fromBackingInt(@intCast(index));
 

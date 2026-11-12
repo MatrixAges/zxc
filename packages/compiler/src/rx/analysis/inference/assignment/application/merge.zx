@@ -1,0 +1,77 @@
+import integers from "std:integer"
+import { kind_optional } from "core/type_table/const"
+
+import representative from "../../forest/representative"
+import { Kind } from "../../unification/model"
+
+import type { ClassLookup, Nodes } from "../model"
+
+export type Input = {
+    nodes: Nodes,
+    arguments: u32[],
+    type_kinds: u8[],
+    classes: ClassLookup,
+    parents: u32[],
+    next: u64,
+    other?: u32
+}
+
+export type Output = {
+    parents: u32[],
+    next: u64,
+    other?: u32
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state =>
+            state.other == null && state.next < state.classes.groups.length,
+        next: state => {
+            const index = state.next
+            const node = integers.narrow(index)
+
+            if (state.parents[index] != node) {
+                const root = representative({
+                    parents: state.parents,
+                    value: node
+                })
+
+                state.parents = root.parents
+            } else {
+                const kind = state.nodes.kinds[index]
+                const argument = integers.widen(state.arguments[index])
+                const eligible = match kind {
+                    Kind.Unknown => state.nodes.allowed[index] != null,
+                    Kind.Known => state.type_kinds[argument] != kind_optional,
+                    Kind.Optional => false,
+                    _ => true
+                }
+
+                if (eligible) {
+                    const group = integers.widen(state.classes.groups[index])
+                    const other = state.classes.representatives[group]
+
+                    if (other != null && other != node) {
+                        const target = representative({
+                            parents: state.parents,
+                            value: other
+                        })
+
+                        state.parents = target.parents
+
+                        if (target.item != node) {
+                            state.other = other
+                        }
+                    }
+                }
+            }
+
+            state.next += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            next: state.next,
+            other: state.other
+        })
+    })
+}

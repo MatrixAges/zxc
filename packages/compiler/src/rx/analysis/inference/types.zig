@@ -25,7 +25,7 @@ types: Types,
 nodes: Nodes.Storage = .empty,
 forest: @import("forest.zig") = .{},
 lengths: std.ArrayList(Projection) = .empty,
-indexes: std.ArrayList(@import("index.zig").Projection) = .empty,
+indexes: std.MultiArrayList(@import("index.zig").Projection) = .empty,
 value_uses: std.MultiArrayList(Bindings.Use) = .empty,
 binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
 binding_lookups: std.ArrayList(Bindings.Lookup) = .empty,
@@ -247,8 +247,10 @@ pub fn finish(self: *Self) zx.Error!void {
             try self.unify(value, projection.value, projection.span);
         }
 
-        for (self.indexes.items) |*projection| {
-            if (!projection.resolved) projection.resolved = try @import("index.zig").propagate(self, projection.*);
+        const indexes = self.indexes.slice();
+
+        for (indexes.items(.resolved), 0..) |*resolved, index| {
+            if (!resolved.*) resolved.* = try @import("index.zig").propagate(self, indexes.get(index));
         }
 
         if (revision != self.revision) continue;

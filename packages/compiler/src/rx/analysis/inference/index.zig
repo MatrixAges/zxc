@@ -1,3 +1,4 @@
+const std = @import("std");
 const zx = @import("zx");
 const syntax = zx.syntax.borrow;
 const Graph = @import("types.zig");
@@ -40,25 +41,59 @@ pub fn propagate(graph: *Graph, projection: Projection) zx.Error!bool {
 }
 
 pub fn isResult(graph: *const Graph, id: Graph.Id) bool {
-    for (graph.indexes.items) |projection| {
-        if (!projection.resolved and graph.root(projection.value) == graph.root(id)) return true;
+    const indexes = graph.indexes.slice();
+
+    for (indexes.items(.value), indexes.items(.resolved)) |value, resolved| {
+        if (!resolved and graph.root(value) == graph.root(id)) return true;
     }
 
     return false;
 }
 
 pub fn defaultLists(graph: *Graph) zx.Error!bool {
-    for (graph.indexes.items) |projection| {
-        if (graph.shape(projection.target) != .unknown) continue;
+    const indexes = graph.indexes.slice();
 
-        const value = try graph.payload(projection.target, .list, projection.span);
+    const index = if (@import("rx_options").generated_graph)
+        findList(graph, indexes)
 
-        try graph.unify(value, projection.value, projection.span);
+    else
+        seedList(graph, indexes);
 
-        return true;
+    const projection = indexes.get(index orelse return false);
+    const value = try graph.payload(projection.target, .list, projection.span);
+
+    try graph.unify(value, projection.value, projection.span);
+
+    return true;
+}
+
+const Rows = std.MultiArrayList(Projection).Slice;
+
+fn findList(graph: *const Graph, indexes: Rows) ?usize {
+    if (indexes.len == 0) return null;
+
+    const generated = @import("generated_rx_index_default_list");
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+    const result = generated.executeState(empty.allocator(), .{
+        .targets = .{ .items = @ptrCast(indexes.items(.target)), .storage = .plain },
+        .kinds = .{ .items = graph.nodes.items(.kind), .storage = .plain },
+        .parents = graph.forest.state,
+        .index = null,
+        .position = 0,
+    }) catch unreachable;
+
+    std.debug.assert(result.parents.items.ptr == graph.forest.state.items.ptr);
+
+    return if (result.index) |index| @intCast(index) else null;
+}
+
+fn seedList(graph: *const Graph, indexes: Rows) ?usize {
+    for (indexes.items(.target), 0..) |target, index| {
+        if (graph.shape(target) == .unknown) return index;
     }
 
-    return false;
+    return null;
 }
 
 fn literalIndex(self: *Expression, source: anytype) zx.Error!?u64 {

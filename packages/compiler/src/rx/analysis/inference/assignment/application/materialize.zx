@@ -1,0 +1,69 @@
+import integers from "std:integer"
+
+import representative from "../../forest/representative"
+import { Kind } from "../../unification/model"
+import deferred from "./deferred"
+
+import type { ClassLookup, Nodes } from "../model"
+import type { Deferred } from "./deferred"
+
+export type Input = {
+    nodes: Nodes,
+    indexes: Deferred,
+    classes: ClassLookup,
+    parents: u32[],
+    next: u64,
+    limit: u64,
+    other?: u32
+}
+
+export type Output = {
+    parents: u32[],
+    next: u64,
+    other?: u32
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.other == null && state.next < state.limit,
+        next: state => {
+            const index = state.next
+            const node = integers.narrow(index)
+            if (state.parents[index] != node) {
+                const root = representative({
+                    parents: state.parents,
+                    value: node
+                })
+
+                state.parents = root.parents
+            } else {
+                const kind = state.nodes.kinds[index]
+
+                if (kind == Kind.Unknown && state.nodes.allowed[index] == null) {
+                    const result = deferred({
+                        parents: state.parents,
+                        indexes: state.indexes,
+                        node,
+                        found: false,
+                        index: 0
+                    })
+
+                    state.parents = result.parents
+
+                    if (!result.found) {
+                        const group = integers.widen(state.classes.groups[index])
+
+                        state.other = state.classes.representatives[group]
+                    }
+                }
+            }
+
+            state.next += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            next: state.next,
+            other: state.other
+        })
+    })
+}

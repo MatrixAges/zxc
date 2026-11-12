@@ -1,0 +1,43 @@
+import representative from "../../forest/representative"
+
+export type Deferred = {
+    values: u32[],
+    resolved: bool[]
+}
+
+export type Input = {
+    parents: u32[],
+    indexes: Deferred,
+    node: u32,
+    found: bool,
+    index: u64
+}
+
+export type Output = {
+    parents: u32[],
+    found: bool
+}
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state =>
+            !state.found && state.index < state.indexes.values.length,
+        next: state => {
+            if (!state.indexes.resolved[state.index]) {
+                const root = representative({
+                    parents: state.parents,
+                    value: state.indexes.values[state.index]
+                })
+
+                state.parents = root.parents
+                state.found = root.item == state.node
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            parents: state.parents,
+            found: state.found
+        })
+    })
+}
