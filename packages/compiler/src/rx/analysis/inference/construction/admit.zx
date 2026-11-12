@@ -1,22 +1,23 @@
-import { Action, Kind } from "./model"
+import { Action, Gate } from "./model"
 
-export type Input = {
-    kind: Kind,
-    optional: bool,
-    unrestricted: bool,
-    final: bool
+export type Input = bool
+
+export type Output = {
+    named: Action,
+    ambiguous: Action,
+    open: Action,
+    absent: Action,
+    open_gate: Gate,
+    absent_gate: Gate
 }
 
-export type Output = Action
-
 export default function (in: Input): Output {
-    const infer = !in.optional && (in.final || !in.unrestricted)
-    const required = in.final && !in.optional
-
-    return match in.kind {
-        Kind.Named => Action.Bind,
-        Kind.Open => infer ? Action.Infer : Action.Skip,
-        Kind.Absent => required ? Action.Missing : Action.Skip,
-        _ => in.final ? Action.Ambiguous : Action.Skip
+    return {
+        named: Action.Bind,
+        ambiguous: in ? Action.Ambiguous : Action.Skip,
+        open: Action.Infer,
+        absent: in ? Action.Missing : Action.Skip,
+        open_gate: in ? Gate.Required : Gate.Constrained,
+        absent_gate: Gate.Required
     }
 }

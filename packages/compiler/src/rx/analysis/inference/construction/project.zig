@@ -18,33 +18,56 @@ pub fn propagate(graph: *Graph, closure: *ObjectClosure, object: Object, final: 
     const allocator = scratch.allocator();
     var names: NameSet = .empty;
     const parts = try project(graph, closure, allocator, object, final, &names);
+
+    if (names.count() == 0) return;
+
+    const keys = try allocator.alloc([]const u8, names.count());
     var iterator = names.keyIterator();
 
-    while (iterator.next()) |name| {
-        const target = try graph.field(object.result, name.*, object.span);
-        const node = graph.nodeAt(@backingInt(graph.root(target)));
-        const optional = node.shape == .optional or (node.shape == .known and graph.types.get(node.shape.known) == .optional);
+    for (keys) |*key| key.* = iterator.next().?.*;
 
-        const plan = generated.executeValue(allocator, &.{
-            .parts = &parts,
-            .name = name.*,
-            .optional = optional,
-            .unrestricted = node.shape == .unknown and node.allowed == null,
-            .final = final,
-        }) catch |err| return failure(err);
+    const plan = generated.executeValue(allocator, &.{
+        .parts = &parts,
+        .names = keys,
+        .final = final,
+    }) catch |err| return failure(err);
+
+    const Decision = struct { action: @TypeOf(plan.open), gate: @TypeOf(plan.open_gate) };
+
+    for (keys, plan.kinds, plan.parts, plan.fields) |name, kind, part_index, field_index| {
+        const target = try graph.field(object.result, name, object.span);
+
+        const decision: Decision = switch (kind) {
+            .Named => .{ .action = plan.named, .gate = .Always },
+            .AmbiguousNamed, .AmbiguousOpen => .{ .action = plan.ambiguous, .gate = .Always },
+            .Open => .{ .action = plan.open, .gate = plan.open_gate },
+            .Absent => .{ .action = plan.absent, .gate = plan.absent_gate },
+        };
+
+        const action = action: {
+            if (decision.gate == .Always or decision.action == .Skip) break :action decision.action;
+
+            const node = graph.nodeAt(@backingInt(graph.root(target)));
+            const optional = node.shape == .optional or (node.shape == .known and graph.types.get(node.shape.known) == .optional);
+            const unrestricted = node.shape == .unknown and node.allowed == null;
+
+            if (optional or (decision.gate == .Constrained and unrestricted)) break :action .Skip;
+
+            break :action decision.action;
+        };
 
         // Concrete fields are registered even when an open spread makes the choice ambiguous.
-        const direct = switch (plan.candidate.kind) {
-            .Named, .AmbiguousNamed => try concrete(graph, object, target, parts, @intCast(plan.candidate.part), @intCast(plan.candidate.field)),
+        const direct = switch (kind) {
+            .Named, .AmbiguousNamed => try concrete(graph, object, target, parts, @intCast(part_index), @intCast(field_index)),
             else => null,
         };
 
-        switch (plan.action) {
+        switch (action) {
             .Skip => {},
             .Bind => try graph.expect(direct.?, target, object.span),
             .Infer => {
-                const part = object.part(graph, @intCast(plan.candidate.part));
-                const value = try graph.field(part.value, name.*, object.span);
+                const part = object.part(graph, @intCast(part_index));
+                const value = try graph.field(part.value, name, object.span);
 
                 try graph.expect(value, target, object.span);
             },

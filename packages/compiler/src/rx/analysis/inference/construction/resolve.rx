@@ -3,28 +3,13 @@
 
     <Args in={Construction.Input} out={Construction.Output} />
 
-    <Call
-        fn="search"
-        in={{
-            parts: $in.parts,
-            name: $in.name
-        }}
-    />
-
-    <Call
-        fn="admit"
-        in={{
-            kind: $ctx.search.kind,
-            optional: $in.optional,
-            unrestricted: $in.unrestricted,
-            final: $in.final
-        }}
-    />
+    <Call fn="search_all" in={$in.omit(["final"])} />
+    <Call fn="admit" in={$in.final} />
 
     <Return
         value={{
-            candidate: $ctx.search,
-            action: $ctx.admit
+            ...$ctx.search_all,
+            ...$ctx.admit
         }}
     />
 </Module>

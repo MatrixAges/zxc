@@ -1,0 +1,45 @@
+import memory from "std:memory"
+
+import type { U32Buffer } from "std:memory"
+
+export type Input = {
+    names: string?[],
+    target: U32Buffer
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const names = in.names
+
+    const scan = loop({
+        cursor: names.length,
+        stopped: false
+    }, {
+        while: state => state.cursor != 0 && !state.stopped,
+        next: state => {
+            state.cursor -= 1
+
+            const name = names[state.cursor]
+
+            if (name == null) {
+                state.stopped = true
+            } else {
+                const duplicate = loop({
+                    index: state.cursor + 1
+                }, {
+                    while: suffix =>
+                        suffix.index < names.length && names[suffix.index] != name,
+                    next: suffix => {
+                        suffix.index += 1
+                    },
+                    return: suffix => suffix.index != names.length
+                })
+
+                if (!duplicate) {
+                    memory.writeU32(in.target, state.cursor, 1)
+                }
+            }
+        }
+    })
+}

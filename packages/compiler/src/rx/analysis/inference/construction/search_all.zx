@@ -1,0 +1,40 @@
+import { Kind } from "./model"
+import search from "./search"
+
+import type { Candidates, Parts } from "./model"
+
+export type Input = {
+    parts: Parts,
+    names: string[]
+}
+
+export type Output = Candidates
+
+export default function (in: Input): Output {
+    const zero: u64 = 0
+
+    return loop({
+        parts: in.names.map(name => zero)[0],
+        fields: in.names.map(name => zero)[0],
+        kinds: in.names.map(name => Kind.Absent)[0],
+        index: 0
+    }, {
+        while: state => state.index < in.names.length,
+        next: state => {
+            const candidate = search({
+                parts: in.parts,
+                name: in.names[state.index]
+            })
+
+            state.parts[state.index] = candidate.part
+            state.fields[state.index] = candidate.field
+            state.kinds[state.index] = candidate.kind
+            state.index += 1
+        },
+        return: state => ({
+            parts: state.parts,
+            fields: state.fields,
+            kinds: state.kinds
+        })
+    })
+}

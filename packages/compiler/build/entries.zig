@@ -118,6 +118,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/index/default_list.zx", .name = "rx_index_default_list", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/sequences/defaults/choose.rx", .name = "rx_sequence_default", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/construction/resolve.rx", .name = "object_construction_resolve", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/construction/hints.zx", .name = "object_construction_hints", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/selection/project.rx", .name = "object_selection_project", .owner = .rx_analysis },
     .{ .path = "zx/analysis/selection/covers.zx", .name = "object_selection_covers", .owner = .rx_analysis },
     .{ .path = "rx/schema/attribute/classify.rx", .name = "attribute_role", .owner = .rx },

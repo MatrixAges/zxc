@@ -14,6 +14,12 @@ export enum Action {
     Missing
 }
 
+export enum Gate {
+    Always,
+    Required,
+    Constrained
+}
+
 export type Parts = {
     explicit: string?[],
     fields: string[][],
@@ -28,15 +34,26 @@ export type Candidate = {
     kind: Kind
 }
 
+export type Candidates = {
+    parts: u64[],
+    fields: u64[],
+    kinds: Kind[]
+}
+
 export type Input = {
     parts: Parts,
-    name: string,
-    optional: bool,
-    unrestricted: bool,
+    names: string[],
     final: bool
 }
 
 export type Output = {
-    candidate: Candidate,
-    action: Action
+    parts: u64[],
+    fields: u64[],
+    kinds: Kind[],
+    named: Action,
+    ambiguous: Action,
+    open: Action,
+    absent: Action,
+    open_gate: Gate,
+    absent_gate: Gate
 }
