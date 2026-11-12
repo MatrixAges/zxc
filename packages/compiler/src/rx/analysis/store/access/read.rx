@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Access" />
+    <Type from="reads" as="Reads" />
+
+    <Args in={Access.Input} out={Reads.Output} />
+
+    <Call
+        fn="paths"
+        in={{
+            source: $in.source,
+            tree: $in.tree,
+            root: $in.root
+        }}
+    />
+
+    <If on={$ctx.paths.length == 0}>
+        <Return value={[]} />
+    </If>
+
+    <Call
+        fn="reads"
+        in={{
+            source: $in.source,
+            nodes: $in.tree.nodes,
+            paths: $ctx.paths,
+            names: $in.names
+        }}
+    />
+
+    <Return value={$ctx.reads} />
+</Module>

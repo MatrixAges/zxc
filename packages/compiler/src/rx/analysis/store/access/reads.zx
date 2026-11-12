@@ -1,0 +1,51 @@
+import matches from "../../../../zx/analysis/binding_path/match"
+
+import type { ExprNode } from "../../../../zx/frontend/parser/expressions/state/model"
+
+export type Input = {
+    source: u8[],
+    nodes: ExprNode[],
+    paths: u64[],
+    names: string[]
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const positions: u64[] = []
+
+    return loop({
+        positions,
+        index: 0
+    }, {
+        while: state => state.index < in.names.length,
+        next: state => {
+            const name = in.names[state.index]
+            const used = loop({
+                index: 0,
+                found: false
+            }, {
+                while: probe => !probe.found && probe.index < in.paths.length,
+                next: probe => {
+                    probe.found = matches({
+                        source: in.source,
+                        nodes: in.nodes,
+                        native_names: null,
+                        node: in.paths[probe.index],
+                        path: name,
+                        rooted: false
+                    })
+                    probe.index += 1
+                },
+                return: probe => probe.found
+            })
+
+            if (used) {
+                state.positions = state.positions.push(state.index)[0]
+            }
+
+            state.index += 1
+        },
+        return: state => state.positions
+    })
+}

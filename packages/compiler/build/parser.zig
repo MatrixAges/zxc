@@ -39,7 +39,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
     };
 
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
-    inline for (.{ entries.Set.main, entries.Set.checks, entries.Set.constant_seed, entries.Set.snapshot_seed, entries.Set.partition_seed, entries.Set.ordered, entries.Set.collections, entries.Set.growth, entries.Set.host }) |set| {
+    for ([_]entries.Set{ .main, .checks, .constant_seed, .snapshot_seed, .partition_seed, .ordered, .collections, .growth, .host }) |set| {
         const run = generatorRun(b, executable, stage0);
 
         const project = manifest.Project{
@@ -79,7 +79,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
 
         run.addArg("--manifest");
 
-        const manifest_path = manifests.add(@tagName(set) ++ ".json", content);
+        const manifest_path = manifests.add(b.fmt("{s}.json", .{@tagName(set)}), content);
 
         if (set == .main) b.addNamedLazyPath("generation_manifest", manifest_path);
 
@@ -138,7 +138,17 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
             const install = b.addInstallDirectory(.{ .source_dir = directory, .install_dir = .prefix, .install_subdir = "bootstrap/partition" });
 
             b.step("bootstrap-partition-seed", "Generate the initial partition planner from RX and ZX").dependOn(&install.step);
-        } else @field(sources, @tagName(set)) = directory;
+        } else {
+            switch (set) {
+                .main => sources.main = directory,
+                .checks => sources.checks = directory,
+                .ordered => sources.ordered = directory,
+                .collections => sources.collections = directory,
+                .growth => sources.growth = directory,
+                .host => sources.host = directory,
+                .constant_seed, .snapshot_seed, .partition_seed => unreachable,
+            }
+        }
     }
 
     return sources;

@@ -1,0 +1,54 @@
+import { ExprKind } from "../../../../zx/frontend/parser/expressions/state/model"
+import { visited } from "./const"
+
+import type { ExprTree } from "../../../../zx/frontend/parser/expressions/state/model"
+
+export type Input = {
+    tree: ExprTree,
+    kind: ExprKind,
+    head: u64,
+    reachable: u8[]
+}
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const { tree, kind, head, reachable } = in
+
+    return loop({
+        head,
+        reachable
+    }, {
+        while: state => state.head != 0,
+        next: state => {
+            const index = state.head - 1
+
+            if (kind == ExprKind.Match) {
+                const arm = tree.arms[index]
+
+                state.reachable[arm.condition] = visited
+                state.reachable[arm.result] = visited
+                state.head = arm.previous
+            } else if (kind == ExprKind.Template) {
+                const part = tree.parts[index]
+
+                if (part.expression) {
+                    state.reachable[part.value] = visited
+                }
+
+                state.head = part.previous
+            } else if (kind == ExprKind.Object) {
+                const field = tree.fields[index]
+
+                state.reachable[field.value] = visited
+                state.head = field.previous
+            } else {
+                const item = tree.items[index]
+
+                state.reachable[item.value] = visited
+                state.head = item.previous
+            }
+        },
+        return: state => state.reachable
+    })
+}

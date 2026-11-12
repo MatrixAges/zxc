@@ -1,0 +1,101 @@
+import bytes from "std:bytes"
+
+import { ExprKind } from "../../../../zx/frontend/parser/expressions/state/model"
+import { unvisited, visited } from "./const"
+import pathRoot from "./path_root"
+import visitSequence from "./visit_sequence"
+
+import type { ExprTree } from "../../../../zx/frontend/parser/expressions/state/model"
+
+export type Input = {
+    source: u8[],
+    tree: ExprTree,
+    root: u64
+}
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const paths: u64[] = []
+    const reachable = bytes.repeat(in.root + 1, unvisited)
+
+    return loop({
+        paths,
+        reachable,
+        cursor: in.root + 1
+    }, {
+        while: state => state.cursor != 0,
+        next: state => {
+            state.cursor -= 1
+            const index = state.cursor
+
+            if (index == in.root || state.reachable[index] == visited) {
+                const node = in.tree.nodes[index]
+
+                if (node.kind == ExprKind.Field && pathRoot({
+                    source: in.source,
+                    nodes: in.tree.nodes,
+                    target: node.first
+                })) {
+                    state.paths = state.paths.push(index)[0]
+                }
+
+                const first: u64? = match node.kind {
+                    ExprKind.Field => node.first,
+                    ExprKind.Unary => node.first,
+                    ExprKind.Capture => node.first,
+                    ExprKind.Async => node.first,
+                    ExprKind.Await => node.first,
+                    ExprKind.Cancel => node.first,
+                    ExprKind.Call => node.first,
+                    ExprKind.Index => node.first,
+                    ExprKind.Binary => node.first,
+                    ExprKind.Pipeline => node.first,
+                    ExprKind.Conditional => node.first,
+                    ExprKind.Match => node.first == 0 ? null : node.first - 1,
+                    _ => null
+                }
+
+                if (first != null) {
+                    state.reachable[first] = visited
+                }
+
+                const second = match node.kind {
+                    ExprKind.Index => true,
+                    ExprKind.Binary => true,
+                    ExprKind.Pipeline => true,
+                    ExprKind.Conditional => true,
+                    ExprKind.Match => true,
+                    _ => false
+                }
+
+                if (second) {
+                    state.reachable[node.second] = visited
+                }
+
+                if (node.kind == ExprKind.Conditional) {
+                    state.reachable[node.third] = visited
+                }
+
+                const linked = match node.kind {
+                    ExprKind.Call => true,
+                    ExprKind.List => true,
+                    ExprKind.Object => true,
+                    ExprKind.Template => true,
+                    ExprKind.Match => true,
+                    _ => false
+                }
+
+                if (linked && node.head != 0) {
+                    state.reachable = visitSequence({
+                        tree: in.tree,
+                        kind: node.kind,
+                        head: node.head,
+                        reachable: state.reachable
+                    })
+                }
+            }
+        },
+        return: state => state.paths
+    })
+}

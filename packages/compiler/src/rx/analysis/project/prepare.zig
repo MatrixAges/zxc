@@ -14,9 +14,9 @@ pub const Module = struct { source: rx.ModuleSource, shortcut: ?usize = null, ca
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
-pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures) std.mem.Allocator.Error!Value {
+pub fn loadSignatures(allocator: std.mem.Allocator, backing: std.mem.Allocator, modules: []const rx.ModuleSource, registered: []const Graph.Module, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: Signatures) std.mem.Allocator.Error!Value {
     const plans = try allocator.alloc(Module, modules.len);
-    var loader = Loader{ .allocator = allocator, .modules = registered, .project = initial_project, .signatures = signatures };
+    var loader = Loader{ .allocator = allocator, .backing = backing, .modules = registered, .project = initial_project, .signatures = signatures };
 
     for (modules, registered, plans) |source, module, *plan| {
         loader.owner = source.path;
@@ -25,7 +25,7 @@ pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSo
         loader.task_count = 0;
         loader.deferred_shortcut = null;
 
-        const references = try @import("../store/references.zig").resolve(allocator, source, definitions);
+        const references = try @import("../store/references.zig").resolve(allocator, source, module.dependencies, signatures.graph.modules, definitions);
 
         if (references == .diagnostic) return .{ .diagnostic = references.diagnostic };
 
@@ -71,6 +71,7 @@ pub fn completeShortcuts(allocator: std.mem.Allocator, loaded: Loaded, signature
 
 const Loader = struct {
     allocator: std.mem.Allocator,
+    backing: std.mem.Allocator,
     modules: []const Graph.Module,
     project: frontend.project.Options,
     signatures: Signatures,
@@ -206,7 +207,7 @@ const Loader = struct {
     }
     fn call(self: *Loader, node: rx.ast.Node) Error!usize {
         const index = self.calls.items.len;
-        const authorized = try @import("../store/call.zig").analyze(self.allocator, self.owner, node, self.stores);
+        const authorized = try @import("../store/call.zig").analyze(self.allocator, self.backing, self.owner, node, self.stores);
 
         if (authorized == .diagnostic) {
             self.issue = authorized.diagnostic;

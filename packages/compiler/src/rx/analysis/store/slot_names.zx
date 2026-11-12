@@ -1,0 +1,19 @@
+import { namespace } from "./const"
+
+export type Input = {
+    alias: string,
+    path: string,
+    object: string
+}
+
+export type Output = {
+    reference: string,
+    identity: string
+}
+
+export default function (in: Input): Output {
+    return {
+        reference: `${namespace}.${in.alias}.${in.object}`,
+        identity: `${namespace}.${in.path}:${in.object}`
+    }
+}

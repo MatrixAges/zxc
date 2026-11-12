@@ -184,7 +184,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Opt
 
     project.context = registry.data.context;
 
-    const prepared = try prepare.loadSignatures(allocator, modules, rx_modules, project, registry.data.definitions, indexed);
+    const prepared = try prepare.loadSignatures(allocator, backing, modules, rx_modules, project, registry.data.definitions, indexed);
 
     if (prepared == .diagnostic) return .{ .diagnostic = prepared.diagnostic };
 

@@ -1,0 +1,51 @@
+import matches from "../../../../zx/analysis/binding_path/match"
+import { ExprKind } from "../../../../zx/frontend/parser/expressions/state/model"
+
+import type { Input } from "./model"
+
+export type Output = {
+    list: bool,
+    position?: u64,
+    offset: u64
+}
+
+export default function (in: Input): Output {
+    const root = in.tree.nodes[in.root]
+
+    if (root.kind != ExprKind.List || root.count != 1) {
+        return {
+            list: false,
+            position: null,
+            offset: 0
+        }
+    }
+
+    const path = in.tree.items[root.head - 1].value
+    const position: u64? = null
+
+    return loop({
+        position,
+        index: 0
+    }, {
+        while: state => state.position == null && state.index < in.names.length,
+        next: state => {
+            if (matches({
+                source: in.source,
+                nodes: in.tree.nodes,
+                native_names: null,
+                node: path,
+                path: in.names[state.index],
+                rooted: false
+            })) {
+                state.position = state.index
+            }
+
+            state.index += 1
+        },
+        return: state => ({
+            list: true,
+            position: state.position,
+            offset: in.tree.nodes[path].span.start
+        })
+    })
+}

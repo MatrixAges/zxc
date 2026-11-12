@@ -5,7 +5,7 @@ const Diagnostic = @import("../../call/target.zig").Diagnostic;
 
 pub const Source = union(enum) { zx: usize, rx: usize, store: usize };
 pub const Target = union(enum) { source: usize, compiled: project.compiled.Target, native: []const u8 };
-pub const Reference = enum(u8) { dependency, call, type_import };
+pub const Reference = enum(u8) { dependency, call, type_import, store };
 pub const Edge = struct { target: Target, location: rx.ast.Location, reference: Reference = .dependency };
 pub const Module = struct { path: []const u8, source: Source, dependencies: []const Edge = &.{} };
 

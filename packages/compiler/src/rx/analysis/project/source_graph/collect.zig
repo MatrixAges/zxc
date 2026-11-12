@@ -21,13 +21,18 @@ pub fn ownerPath(self: *const Self) []const u8 {
 pub fn store(self: *Self, path: []const u8, location: rx.ast.Location, owner: []const u8) Error!void {
     const absolute = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, path });
 
-    if (!self.paths.contains(absolute)) {
+    defer self.allocator.free(absolute);
+
+    const index = self.paths.get(absolute);
+
+    if (index == null or self.modules[index.?].source != .store) {
         self.issue = .{ .path = try self.allocator.dupe(u8, owner), .location = location, .code = "capability", .message = "Store definition is not registered" };
 
         return error.InvalidGraph;
     }
 
-    try self.local(path, location, .dependency);
+    try self.checkBoundary(absolute, location);
+    try self.edges.append(self.allocator, .{ .target = .{ .source = index.? }, .location = location, .reference = .store });
 }
 
 pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
@@ -50,16 +55,20 @@ fn source(self: *Self, path: []const u8, location: rx.ast.Location, reference: m
 pub fn local(self: *Self, path: []const u8, location: rx.ast.Location, reference: model.Reference) Error!void {
     const absolute = try std.fs.path.resolve(self.allocator, &.{ self.options.root_dir, path });
     const resolved = if (std.mem.endsWith(u8, absolute, ".zx")) try project.selectSource(self.allocator, absolute, self.options) else absolute;
+
+    try self.checkBoundary(resolved, location);
+    try self.source(resolved, location, reference);
+}
+
+fn checkBoundary(self: *Self, path: []const u8, location: rx.ast.Location) Error!void {
     const scopes = self.options.package_scopes;
 
     if (scopes.len != 0) {
         const owner = project.package_scope.owner(scopes, self.modules[self.owner].path);
 
         if (owner == null) return self.fail(location, "source file does not belong to a declared package");
-        if (project.package_scope.owner(scopes, resolved) != owner) return self.fail(location, "file import crosses a package boundary; declare and import the package dependency");
+        if (project.package_scope.owner(scopes, path) != owner) return self.fail(location, "file import crosses a package boundary; declare and import the package dependency");
     }
-
-    try self.source(resolved, location, reference);
 }
 
 pub fn import(self: *Self, reference: []const u8, location: rx.ast.Location, role: model.Reference) Error!void {

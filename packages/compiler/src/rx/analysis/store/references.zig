@@ -1,14 +1,17 @@
 const std = @import("std");
 const frontend = @import("frontend");
 const rx = @import("rx");
+const zx = @import("zx");
 const Store = @import("../store.zig");
 const target = @import("../call/target.zig");
+const Graph = @import("../project/source_graph/model.zig");
 
 pub const Value = union(enum) { bindings: []const Store.Binding, diagnostic: target.Diagnostic };
 
-pub fn resolve(allocator: std.mem.Allocator, source: rx.ModuleSource, definitions: []const Store.Definition) std.mem.Allocator.Error!Value {
+pub fn resolve(allocator: std.mem.Allocator, source: rx.ModuleSource, edges: []const Graph.Edge, modules: []const Graph.Module, definitions: []const Store.Definition) std.mem.Allocator.Error!Value {
     var bindings: std.ArrayList(Store.Binding) = .empty;
     var aliases: std.StringHashMapUnmanaged(void) = .empty;
+    var references: Graph.References = .{ .remaining = edges };
 
     defer aliases.deinit(allocator);
 
@@ -16,14 +19,8 @@ pub fn resolve(allocator: std.mem.Allocator, source: rx.ModuleSource, definition
         if (!std.mem.eql(u8, node.name, "Store")) continue;
 
         const from = target.attribute(node, "from");
-
-        const path = rx.resolveStorePath(allocator, source.path, from.value) catch |err| {
-            if (err == error.OutOfMemory) return error.OutOfMemory;
-
-            return failure(allocator, source.path, from.value_location, "Store reference must stay within the project root");
-        };
-
-        const definition = find(definitions, path) orelse return failure(allocator, source.path, from.value_location, "Store definition is not registered");
+        const edge = references.next(.store);
+        const definition = &definitions[modules[edge.target.source].source.store];
         var alias = definition.name;
         var location = from.value_location;
 
@@ -38,10 +35,12 @@ pub fn resolve(allocator: std.mem.Allocator, source: rx.ModuleSource, definition
         for (definition.objects) |object| {
             if (!identifier(object.name)) return failure(allocator, source.path, from.value_location, "Store Object names must be identifiers");
 
+            const names = try slotNames(allocator, alias, definition.source_path, object.name);
+
             try bindings.append(allocator, .{
-                .name = try std.fmt.allocPrint(allocator, "store.{s}.{s}", .{ alias, object.name }),
+                .name = names.reference,
                 .slot = .{
-                    .path = try std.fmt.allocPrint(allocator, "store.{s}:{s}", .{ definition.source_path, object.name }),
+                    .path = names.identity,
                     .type_id = object.initial.output_type,
                     .writable = false,
                 },
@@ -52,12 +51,23 @@ pub fn resolve(allocator: std.mem.Allocator, source: rx.ModuleSource, definition
     return .{ .bindings = bindings.items };
 }
 
-fn find(definitions: []const Store.Definition, path: []const u8) ?Store.Definition {
-    for (definitions) |definition| if (std.mem.eql(u8, definition.source_path, path)) {
-        return definition;
+const SlotNames = struct { reference: []const u8, identity: []const u8 };
+
+fn slotNames(allocator: std.mem.Allocator, alias: []const u8, path: []const u8, object: []const u8) std.mem.Allocator.Error!SlotNames {
+    if (comptime !@import("rx_options").generated_graph) return .{
+        .reference = try std.fmt.allocPrint(allocator, "store.{s}.{s}", .{ alias, object }),
+        .identity = try std.fmt.allocPrint(allocator, "store.{s}:{s}", .{ path, object }),
     };
 
-    return null;
+    const rule = @import("generated_rx_store_slot_names");
+    const input: std.meta.Child(rule.Input) = .{ .alias = alias, .path = path, .object = object };
+
+    const names = zx.columns.invoke(rule.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    return .{ .reference = names.reference, .identity = names.identity };
 }
 
 fn identifier(name: []const u8) bool {
