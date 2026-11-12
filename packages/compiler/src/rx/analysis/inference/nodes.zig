@@ -21,7 +21,7 @@ const Row = struct {
     members: []const u32,
     span: zx.Span,
     allowed: ?u16 = null,
-    fallback: ?zx.ir.Scalar = null,
+    fallback: ?u8 = null,
 };
 
 comptime {
@@ -74,7 +74,14 @@ pub fn allowed(rows: Storage.Slice, index: usize) ?Graph.Mask {
 }
 
 pub fn get(rows: Storage.Slice, index: usize) Graph.Node {
-    return .{ .shape = shape(rows, index), .span = rows.items(.span)[index], .allowed = allowed(rows, index), .fallback = rows.items(.fallback)[index] };
+    const fallback = rows.items(.fallback)[index];
+
+    return .{
+        .shape = shape(rows, index),
+        .span = rows.items(.span)[index],
+        .allowed = allowed(rows, index),
+        .fallback = if (fallback) |code| @fromBackingInt(@intCast(code)) else null,
+    };
 }
 
 pub fn setShape(rows: Storage.Slice, index: usize, value: Graph.Shape) void {

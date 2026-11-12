@@ -1,0 +1,130 @@
+import integers from "std:integer"
+import { max_nesting_depth } from "core/const"
+
+import representative from "../forest/representative"
+import numericDefault from "../scalar/default"
+import { Kind } from "../unification/model"
+import { Route } from "./model"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Request
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.route == Route.Search,
+        next: state => {
+            const graph = state.graph
+            const completed = state.completed
+
+            if (completed != null) {
+                if (state.depth == 0) {
+                    state.route = Route.Complete
+                } else {
+                    const frame = (state.depth - 1) * 2
+                    const node = integers.narrow(state.frames[frame])
+                    const index = integers.widen(node)
+                    const kind = graph.kinds[index]
+
+                    if (kind == Kind.List || kind == Kind.Optional) {
+                        state.node = node
+                        state.depth -= 1
+                        state.route = kind == Kind.List ? Route.List : Route.Optional
+                    } else {
+                        const used = state.used
+
+                        if (used == state.values.length) {
+                            state.values = state.values.push(completed)[0]
+                        } else {
+                            state.values[used] = completed
+                        }
+
+                        const start = state.frames[frame + 1]
+                        const members = graph.members[index]
+                        const count = used + 1 - start
+
+                        if (count == members.length) {
+                            state.node = node
+                            state.depth -= 1
+                            state.used = start
+                            state.count = count
+                            state.route = kind == Kind.Object ? Route.Object : Route.Tuple
+                        } else {
+                            state.node = members[count]
+                            state.used = used + 1
+                            state.completed = null
+                        }
+                    }
+                }
+            } else {
+                const found = representative({
+                    parents: state.parents,
+                    value: state.node
+                })
+                const index = integers.widen(found.item)
+
+                state.parents = found.parents
+                state.node = found.item
+
+                if (state.depth >= max_nesting_depth) {
+                    state.route = Route.Depth
+                } else {
+                    const kind = graph.kinds[index]
+
+                    if (kind == Kind.Known) {
+                        state.completed = graph.arguments[index]
+                    } else if (kind == Kind.Sequence) {
+                        state.route = Route.Sequence
+                    } else if (kind == Kind.Unknown) {
+                        const fallback = graph.fallback[index]
+
+                        if (fallback == null) {
+                            state.route = Route.Unconstrained
+                        } else {
+                            const mask = graph.allowed[index]
+                            const allowed: u64? = match {
+                                mask == null => null,
+                                _ => integers.widenShort(mask)
+                            }
+                            const scalar = integers.widenByte(fallback)
+                            const id = numericDefault({
+                                allowed,
+                                fallback: integers.narrow(scalar)
+                            })
+
+                            state.completed = id
+                            state.route = match {
+                                id == null => Route.NumericMismatch,
+                                _ => Route.Scalar
+                            }
+                        }
+                    } else {
+                        const unary = kind == Kind.List || kind == Kind.Optional
+                        const members = graph.members[index]
+
+                        if (!unary && members.length == 0) {
+                            state.route = kind == Kind.Object ? Route.Object : Route.Tuple
+                        } else {
+                            const frame = state.depth * 2
+                            const start = state.used
+
+                            if (frame == state.frames.length) {
+                                state.frames = state.frames
+                                    .push(index)[0].push(start)[0]
+                            } else {
+                                state.frames[frame] = index
+                                state.frames[frame + 1] = start
+                            }
+
+                            state.depth += 1
+                            state.node = unary ? graph.arguments[index] : members[0]
+                        }
+                    }
+                }
+            }
+        },
+        return: state => state
+    })
+}

@@ -1,0 +1,36 @@
+import type { Kind } from "../unification/model"
+
+export enum Route {
+    Search,
+    Complete,
+    Scalar,
+    List,
+    Optional,
+    Object,
+    Tuple,
+    Depth,
+    Sequence,
+    Unconstrained,
+    NumericMismatch
+}
+
+export type View = {
+    kinds: Kind[],
+    arguments: u32[],
+    members: u32[][],
+    allowed: u16?[],
+    fallback: u8?[]
+}
+
+export type Request = {
+    graph: View,
+    parents: u32[],
+    frames: u64[],
+    values: u32[],
+    depth: u64,
+    used: u64,
+    count: u64,
+    node: u32,
+    completed?: u32,
+    route: Route
+}

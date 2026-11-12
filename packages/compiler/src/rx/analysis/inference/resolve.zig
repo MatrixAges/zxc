@@ -1,48 +1,89 @@
+const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
-const Scalar = @import("scalar.zig");
-const Types = @import("frontend").types;
+const Nodes = @import("nodes.zig");
 
-pub fn resolve(self: *Graph, value: Graph.Id, depth: usize) zx.Error!zx.ir.TypeId {
-    const index = @backingInt(self.root(value));
-    const node = self.nodeAt(index);
+pub fn resolve(graph: *Graph, value: Graph.Id) zx.Error!zx.ir.TypeId {
+    if (!@import("rx_options").generated_graph) return @import("resolve/seed.zig").resolve(graph, value, 0);
 
-    if (depth >= 256) return self.reporter.fail(.unsupported, node.span, "type inference nesting exceeds 256 levels");
+    const rows = graph.nodes.slice();
+    const index = @backingInt(graph.root(value));
 
-    const id = switch (node.shape) {
-        .known => |id| id,
-        .sequence => return self.reporter.fail(.contract, node.span, "sequence constraints must be finalized before type resolution"),
-        .unknown => if (node.fallback) |scalar| block: {
-            const numeric_default = Scalar.default(node.allowed, scalar) orelse
-                return self.reporter.fail(.type_mismatch, node.span, "numeric constraints do not determine an accepted default type");
+    if (rows.items(.kind)[index] == .Known) return @fromBackingInt(rows.items(.argument)[index]);
 
-            break :block Types.scalarId(numeric_default);
-        } else return self.reporter.fail(.type_mismatch, node.span, "input type cannot be inferred from the available constraints"),
-        .object => |fields| block: {
-            const output = try self.scratch.alloc(u32, fields.len);
+    return run(graph, rows, index);
+}
 
-            defer self.scratch.free(output);
+fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeId {
+    const generated = @import("generated_rx_resolve_type");
+    const Request = @typeInfo(@TypeOf(generated.executeState)).@"fn".param_types[1].?;
+    const View = std.meta.Child(@FieldType(Request, "graph"));
 
-            for (fields.values(), output) |field, *type_id| type_id.* = @backingInt(try resolve(self, field, depth + 1));
-
-            break :block try self.types.objectWithNames(fields.names(), output);
-        },
-        .list => |child| try self.types.wrap(.list, try resolve(self, child, depth + 1)),
-        .optional => |child| try self.types.wrap(.optional, try resolve(self, child, depth + 1)),
-        .tuple => |children| block: {
-            const output = try self.allocator.alloc(zx.ir.TypeId, children.len);
-
-            for (children, output) |child, *item| item.* = try resolve(self, child, depth + 1);
-
-            break :block try self.types.tuple(output);
-        },
+    const view: View = .{
+        .kinds = rows.items(.kind),
+        .arguments = rows.items(.argument),
+        .members = rows.items(.members),
+        .allowed = rows.items(.allowed),
+        .fallback = rows.items(.fallback),
     };
 
-    if (node.shape != .known) {
-        self.setShape(index, .{ .known = id });
+    var overflow = std.heap.ArenaAllocator.init(graph.scratch);
 
-        self.object_revision += 1;
+    defer overflow.deinit();
+
+    var buffer: [512]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, overflow.allocator());
+
+    var state: Request = .{
+        .graph = &view,
+        .parents = graph.forest.state,
+        .frames = .{ .items = &.{}, .storage = .plain },
+        .values = .{ .items = &.{}, .storage = .plain },
+        .depth = 0,
+        .used = 0,
+        .count = 0,
+        .node = root,
+        .completed = null,
+        .route = .Search,
+    };
+
+    while (true) {
+        state = generated.executeState(scratch.allocator(), state) catch |err| switch (err) {
+            error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
+            else => unreachable,
+        };
+
+        std.debug.assert(state.parents.items.ptr == graph.forest.state.items.ptr);
+
+        const span = rows.items(.span)[state.node];
+
+        const type_id: zx.ir.TypeId = switch (state.route) {
+            .Complete => return @fromBackingInt(state.completed.?),
+            .Scalar => @fromBackingInt(state.completed.?),
+            .List => try graph.types.wrap(.list, @fromBackingInt(state.completed.?)),
+            .Optional => try graph.types.wrap(.optional, @fromBackingInt(state.completed.?)),
+            .Tuple => try graph.types.tuple(@ptrCast(state.values.items[@intCast(state.used)..][0..@intCast(state.count)])),
+            .Object => object: {
+                const fields = Graph.Fields.fromValues(@ptrCast(rows.items(.members)[state.node]));
+                const children = state.values.items[@intCast(state.used)..][0..@intCast(state.count)];
+
+                break :object try graph.types.objectWithNames(fields.names(), @constCast(children));
+            },
+            .Depth => return graph.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels"),
+            .Sequence => return graph.reporter.fail(.contract, span, "sequence constraints must be finalized before type resolution"),
+            .Unconstrained => return graph.reporter.fail(.type_mismatch, span, "input type cannot be inferred from the available constraints"),
+            .NumericMismatch => return graph.reporter.fail(.type_mismatch, span, "numeric constraints do not determine an accepted default type"),
+            .Search => unreachable,
+        };
+
+        graph.setShape(state.node, .{ .known = type_id });
+
+        graph.object_revision += 1;
+
+        if (state.depth == 0) return type_id;
+
+        state.completed = @backingInt(type_id);
+        state.count = 0;
+        state.route = .Search;
     }
-
-    return id;
 }

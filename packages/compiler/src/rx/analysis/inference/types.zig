@@ -156,7 +156,7 @@ pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.E
     const index = @backingInt(id);
 
     rows.items(.allowed)[index] = @intCast(number_type.allowed.bits.mask);
-    rows.items(.fallback)[index] = number_type.fallback;
+    rows.items(.fallback)[index] = @backingInt(number_type.fallback);
 
     self.revision += 1;
 
@@ -285,5 +285,5 @@ pub fn finish(self: *Self) zx.Error!void {
 }
 
 pub fn resolve(self: *Self, id: Id) zx.Error!zx.ir.TypeId {
-    return @import("resolve.zig").resolve(self, id, 0);
+    return @import("resolve.zig").resolve(self, id);
 }
