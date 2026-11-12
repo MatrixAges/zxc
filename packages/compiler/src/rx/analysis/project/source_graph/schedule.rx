@@ -1,17 +1,31 @@
 <Module>
     <Type from="model" as="SourceSchedule" />
+    <Type from="../../../dependency_graph/model" as="Graph" />
 
     <Args in={SourceSchedule.Input} out={SourceSchedule.Output} />
 
-    <Call fn="walk" in={$in} />
+    <Call
+        fn="../../../dependency_graph/walk"
+        in={{
+            offsets: $in.offsets,
+            targets: $in.targets,
+            issues: [],
+            root: null,
+            roots: $in.roots,
+            ranked: true
+        }}
+    />
 
-    <If on={$ctx.walk.cycle != null}>
+    <If on={$ctx.walk.issue != Graph.Issue.None}>
         <Return
             value={{
                 order: [],
                 count: 0,
                 batch_ends: [],
-                cycle: $ctx.walk.cycle
+                cycle: {
+                    owner: $ctx.walk.owner,
+                    edge: $ctx.walk.edge
+                }
             }}
         />
     </If>

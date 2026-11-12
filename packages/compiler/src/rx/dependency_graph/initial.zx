@@ -9,18 +9,27 @@ export type Output = State
 export default function (in: Input): Output {
     const root = in.root
     const limit = root == null ? in.offsets.length - 1 : root + 1
+    const roots = in.roots
+
+    const depths: u64[] = match {
+        in.ranked => in.offsets.map(offset => 0)[0].pop()[0],
+        _ => []
+    }
 
     return {
         graph: in,
         marks: in.offsets.map(offset => Mark.Unseen)[0].pop()[0],
+        depths,
         cursors: in.offsets.map(offset => offset)[0].pop()[0],
         frames: in.offsets.map(offset => 0)[0].pop()[0],
         order: in.offsets.map(offset => 0)[0].pop()[0],
         root: root ?? 0,
-        limit,
+        limit: roots == null ? limit : roots.length,
         depth: 0,
         count: 0,
+        first_end: 0,
         issue: Issue.None,
+        owner: 0,
         edge: 0
     }
 }

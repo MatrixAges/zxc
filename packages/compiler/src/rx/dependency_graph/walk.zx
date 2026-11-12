@@ -7,12 +7,18 @@ export type Input = Graph
 
 export type Output = {
     order: u64[],
+    depths: u64[],
     count: u64,
+    first_end: u64,
     issue: Issue,
+    owner: u64,
     edge: u64
 }
 
 export default function (in: Input): Output {
+    const roots = in.roots
+    const ranked = in.ranked
+
     const state = loop(initial(in), {
         while: value =>
             value.issue == Issue.None &&
@@ -21,7 +27,11 @@ export default function (in: Input): Output {
             ),
         next: value => {
             if (value.depth == 0) {
-                const root = value.root
+                if (value.root == 1 && ranked) {
+                    value.first_end = value.count
+                }
+
+                const root = roots == null ? value.root : roots[value.root]
 
                 if (value.marks[root] == Mark.Unseen) {
                     value.marks[root] = Mark.Visiting
@@ -39,6 +49,15 @@ export default function (in: Input): Output {
                     value.order[value.count] = owner
                     value.count += 1
                     value.depth -= 1
+
+                    if (ranked && value.depth != 0) {
+                        const parent = value.frames[value.depth - 1]
+                        const rank = value.depths[owner] + 1
+
+                        if (rank > value.depths[parent]) {
+                            value.depths[parent] = rank
+                        }
+                    }
                 } else {
                     const target = value.graph.targets[cursor]
                     const issue = match {
@@ -51,16 +70,24 @@ export default function (in: Input): Output {
 
                     if (issue != Issue.None) {
                         value.issue = issue
+                        value.owner = owner
                         value.edge = cursor
                     } else {
                         if (value.marks[target] == Mark.Visiting) {
                             value.issue = Issue.Cycle
+                            value.owner = owner
                             value.edge = cursor
                         } else {
                             if (value.marks[target] == Mark.Unseen) {
                                 value.marks[target] = Mark.Visiting
                                 value.frames[value.depth] = target
                                 value.depth += 1
+                            } else if (ranked) {
+                                const rank = value.depths[target] + 1
+
+                                if (rank > value.depths[owner]) {
+                                    value.depths[owner] = rank
+                                }
                             }
                         }
                     }
@@ -69,10 +96,15 @@ export default function (in: Input): Output {
         }
     })
 
+    const first_end = roots != null && roots.length == 1 ? state.count : state.first_end
+
     return {
         order: state.order,
+        depths: state.depths,
         count: state.count,
+        first_end,
         issue: state.issue,
+        owner: state.owner,
         edge: state.edge
     }
 }

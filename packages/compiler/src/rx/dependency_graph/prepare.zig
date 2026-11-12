@@ -4,7 +4,8 @@ const generated = @import("generated_graph");
 const checks = @import("../checks.zig");
 const modules = @import("../modules.zig");
 const paths = @import("../paths.zig");
-const Input = @typeInfo(generated.Input).pointer.child;
+const Parameter = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
+const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
 const Issue = @typeInfo(@FieldType(Input, "issues")).pointer.child;
 const Link = struct { owner: usize, node: *const dsl.ast.Node, attribute: []const u8 };
 const Result = struct { input: Input, links: []const Link };
@@ -62,7 +63,7 @@ pub fn build(allocator: std.mem.Allocator, sources: []const modules.Source, entr
 
     try offsets.append(allocator, targets.items.len);
 
-    return .{ .input = .{ .offsets = offsets.items, .targets = targets.items, .issues = issues.items, .root = null }, .links = links.items };
+    return .{ .input = .{ .offsets = offsets.items, .targets = targets.items, .issues = issues.items, .root = null, .roots = null, .ranked = false }, .links = links.items };
 }
 
 fn resolve(allocator: std.mem.Allocator, registered: std.StringHashMapUnmanaged(usize), owner: []const u8, reference: []const u8) std.mem.Allocator.Error!struct { index: u64 = 0, issue: Issue = .None } {

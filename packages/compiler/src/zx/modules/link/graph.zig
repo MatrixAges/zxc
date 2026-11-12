@@ -14,19 +14,24 @@ pub const Plan = struct {
     }
 };
 
-pub fn prepare(allocator: std.mem.Allocator, modules: []const Module, entry: []const u8) Error!Plan {
+pub fn prepare(allocator: std.mem.Allocator, backing: std.mem.Allocator, modules: []const Module, entry: []const u8) Error!Plan {
     if (comptime !@import("parser_options").generated_parser) return .{ .order = try @import("graph/seed.zig").order(allocator, modules, entry) };
 
     const paths = try allocator.alloc([]const u8, modules.len);
     const offsets = try allocator.alloc(u64, modules.len + 1);
+    var buffer: [2048]u8 = undefined;
+    var temporary = std.heap.BufferFirstAllocator.init(&buffer, backing);
+    const workspace = temporary.allocator();
     var targets: std.ArrayList([]const u8) = .empty;
+
+    defer targets.deinit(workspace);
 
     for (modules, paths, offsets[0..modules.len]) |*module, *path, *offset| {
         path.* = module.path;
         offset.* = targets.items.len;
 
         for (module.dependencies) |dependency| {
-            if (dependency.target == .source) try targets.append(allocator, dependency.target.source);
+            if (dependency.target == .source) try targets.append(workspace, dependency.target.source);
         }
     }
 

@@ -15,12 +15,15 @@ export type Graph = {
     offsets: u64[],
     targets: u64[],
     issues: Issue[],
-    root?: u64
+    root?: u64,
+    roots?: u64[],
+    ranked: bool
 }
 
 export type State = {
     graph: Graph,
     marks: Mark[],
+    depths: u64[],
     cursors: u64[],
     frames: u64[],
     order: u64[],
@@ -28,6 +31,8 @@ export type State = {
     limit: u64,
     depth: u64,
     count: u64,
+    first_end: u64,
     issue: Issue,
+    owner: u64,
     edge: u64
 }

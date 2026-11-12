@@ -34,7 +34,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     const owned = arena.allocator();
     const scratch = temporary.allocator();
-    const plan = try graph.prepare(scratch, modules, entry);
+    const plan = try graph.prepare(scratch, allocator, modules, entry);
     const order = plan.order;
     const mappings = try scratch.alloc([]const ir.TypeId, modules.len);
     const function_ids = try scratch.alloc(?ir.FunctionId, modules.len);

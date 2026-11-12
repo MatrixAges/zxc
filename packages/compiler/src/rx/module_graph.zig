@@ -10,9 +10,12 @@ pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, e
 
     defer arena.deinit();
 
-    const prepared = try @import("dependency_graph/prepare.zig").build(arena.allocator(), sources, entries);
+    const temporary = arena.allocator();
+    const prepared = try @import("dependency_graph/prepare.zig").build(temporary, sources, entries);
+    const execute = @import("generated_graph").executeValue;
+    const Parameter = @typeInfo(@TypeOf(execute)).@"fn".param_types[1].?;
 
-    const result = @import("generated_graph").execute(&arena, &prepared.input) catch |err| switch (err) {
+    const result = execute(temporary, if (@typeInfo(Parameter) == .pointer) &prepared.input else prepared.input) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         error.IndexOutOfBounds => unreachable,
     };
@@ -32,6 +35,10 @@ pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, e
     }
 
     std.debug.assert(result.count == sources.len);
+
+    if (comptime @sizeOf(usize) == @sizeOf(u64) and @alignOf(u64) >= @alignOf(usize)) {
+        return allocator.dupe(usize, @ptrCast(result.order[0..sources.len]));
+    }
 
     const order = try allocator.alloc(usize, @intCast(result.count));
 

@@ -8,11 +8,20 @@ export type Input = {
 export type Output = u64[]
 
 export default function (in: Input): Output {
+    const has_rest = in.first_end < in.count
+
+    const rest: u64[] = match {
+        has_rest => in.order.map(owner => 0)[0],
+        _ => []
+    }
+
     const counts = loop({
         first: in.order.map(owner => 0)[0],
-        rest: in.order.map(owner => 0)[0],
+        rest,
         position: 0,
-        max_depth: 0
+        max_depth: 0,
+        previous: 0,
+        sorted: true
     }, {
         while: state => state.position < in.count,
         next: state => {
@@ -28,9 +37,18 @@ export default function (in: Input): Output {
                 state.max_depth = depth
             }
 
+            if (state.position != in.first_end && depth < state.previous) {
+                state.sorted = false
+            }
+
+            state.previous = depth
             state.position += 1
         }
     })
+
+    if (counts.sorted) {
+        return in.order
+    }
 
     const positions = loop({
         first: counts.first,
@@ -42,12 +60,17 @@ export default function (in: Input): Output {
         while: state => state.depth <= counts.max_depth,
         next: state => {
             const first_count = state.first[state.depth]
-            const rest_count = state.rest[state.depth]
 
             state.first[state.depth] = state.first_position
-            state.rest[state.depth] = state.rest_position
             state.first_position += first_count
-            state.rest_position += rest_count
+
+            if (has_rest) {
+                const rest_count = state.rest[state.depth]
+
+                state.rest[state.depth] = state.rest_position
+                state.rest_position += rest_count
+            }
+
             state.depth += 1
         }
     })
