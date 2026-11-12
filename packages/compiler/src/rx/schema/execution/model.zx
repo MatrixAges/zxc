@@ -1,0 +1,32 @@
+export enum Tag {
+    Unknown,
+    Module,
+    Type,
+    Args,
+    Store,
+    Import,
+    Call,
+    Task,
+    Parallel,
+    Switch,
+    If,
+    Else,
+    Case,
+    Default,
+    Emit,
+    Return
+}
+
+export enum Scope {
+    Any,
+    Body,
+    Task,
+    Parallel
+}
+
+export type Input = {
+    name: string,
+    scope: Scope
+}
+
+export type Output = Tag

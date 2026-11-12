@@ -12,16 +12,18 @@ const IfBase = dsl.element("If", struct { on: []const u8 }, dsl.list(struct {
 
         if (Else.matches(node.name())) return .{ .@"else" = try Else.decode(allocator, input, reporter, context) };
 
-        return .{ .step = try steps.child(.body).decode(allocator, input, reporter, context) };
+        return .{ .step = try steps.child(.Body).decode(allocator, input, reporter, context) };
     }
 }, .{ .min = 1 }));
 
-pub const If = dsl.refine(IfBase, checkIf);
+pub const If = dsl.refineAlloc(IfBase, checkIf);
 
-fn checkIf(_: IfBase.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkIf(allocator: std.mem.Allocator, data: IfBase.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     const node = dsl.ast.view(input);
 
     try checks.nonEmpty(node, reporter);
+
+    if (comptime @import("rx_options").generated_rules) return @import("../schema/selection/adapter.zig").checkIf(allocator, data.children, node, reporter);
 
     var children = node.children();
     var index: usize = 0;

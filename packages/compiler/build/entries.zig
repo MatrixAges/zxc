@@ -48,6 +48,8 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/store/access/setter.zx", .name = "rx_store_setter", .owner = .rx_analysis },
     .{ .path = "rx/analysis/store/layout/plan.rx", .name = "rx_store_layout", .owner = .rx_analysis },
     .{ .path = "rx/features/store/schema/check.rx", .name = "rx_store_schema", .owner = .rx },
+    .{ .path = "rx/schema/execution/admit.zx", .name = "rx_execution_tag", .owner = .rx },
+    .{ .path = "rx/schema/selection/check.rx", .name = "rx_selection_schema", .owner = .rx },
     .{ .path = "rx/schema/module/check.rx", .name = "rx_module_schema", .owner = .rx },
     .{ .path = "rx/schema/unique.zx", .name = "rx_store_unique", .owner = .rx },
     .{ .path = "rx/analysis/gateway/routes/layout.rx", .name = "rx_gateway_layout", .owner = .rx_analysis },

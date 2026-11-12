@@ -113,35 +113,43 @@ const Loader = struct {
         var sequence: Flow.Sequence = .{};
 
         for (nodes) |node| {
-            if (std.mem.eql(u8, node.name, "Import") or std.mem.eql(u8, node.name, "Store") or std.mem.eql(u8, node.name, "Type") or std.mem.eql(u8, node.name, "Args")) continue;
+            const tag = rx.execution.admit(node.name, .Any);
+
+            switch (tag) {
+                .Import, .Store, .Type, .Args => continue,
+                else => {},
+            }
+
             if (sequence.exits.terminates) return self.fail(node.location, "return_path", "steps after a terminating Return, Switch or If are unreachable");
 
             var exits: Flow.Exits = .{};
 
-            const value: @FieldType(Flow.Step, "value") = if (std.mem.eql(u8, node.name, "Return")) result: {
-                exits = Flow.Exits.returned;
+            const value: @FieldType(Flow.Step, "value") = switch (tag) {
+                .Return => result: {
+                    exits = Flow.Exits.returned;
 
-                break :result .{ .result = target.attribute(node, "value") };
-            } else if (std.mem.eql(u8, node.name, "Call"))
-                .{ .call = try self.call(node) }
+                    break :result .{ .result = target.attribute(node, "value") };
+                },
+                .Call => .{ .call = try self.call(node) },
+                .Task => task: {
+                    const body = try self.taskBody(node, false);
 
-            else if (std.mem.eql(u8, node.name, "Task")) task: {
-                const body = try self.taskBody(node, false);
+                    exits = body.exits;
 
-                exits = body.exits;
+                    break :task .{ .task = .{ .node = node, .body = body.steps.items } };
+                },
+                .Parallel => .{ .parallel = try self.parallel(node) },
+                .Switch, .If => selection: {
+                    const subject = target.attribute(node, "on");
+                    var branches: Flow.BranchExits = .{};
+                    const cases = if (tag == .Switch) try self.switchCases(node, &branches) else try self.ifCases(node, subject, &branches);
 
-                break :task .{ .task = .{ .node = node, .body = body.steps.items } };
-            } else if (std.mem.eql(u8, node.name, "Parallel"))
-                .{ .parallel = try self.parallel(node) }
-            else if (std.mem.eql(u8, node.name, "Switch") or std.mem.eql(u8, node.name, "If")) selection: {
-                const subject = target.attribute(node, "on");
-                var branches: Flow.BranchExits = .{};
-                const cases = if (std.mem.eql(u8, node.name, "Switch")) try self.switchCases(node, &branches) else try self.ifCases(node, subject, &branches);
+                    exits = branches.finish();
 
-                exits = branches.finish();
-
-                break :selection .{ .selection = .{ .subject = subject, .cases = cases } };
-            } else return self.fail(node.location, "unsupported", "RX execution supports Store declarations, Call, Return, Task, Switch, If and pure Parallel branches; events require host linking");
+                    break :selection .{ .selection = .{ .subject = subject, .cases = cases } };
+                },
+                else => return self.fail(node.location, "unsupported", "RX execution supports Store declarations, Call, Return, Task, Switch, If and pure Parallel branches; events require host linking"),
+            };
 
             try sequence.append(self.allocator, value, exits);
         }
@@ -152,7 +160,8 @@ const Loader = struct {
         const cases = try self.allocator.alloc(Flow.Case, node.children.len);
 
         for (node.children, cases) |child, *case| {
-            const value = if (std.mem.eql(u8, child.name, "Case")) target.attribute(child, "value") else null;
+            const value = if (rx.execution.admit(child.name, .Any) == .Case) target.attribute(child, "value") else null;
+
             case.* = try self.selectionCase(value, child.children, exits);
         }
 
@@ -160,7 +169,7 @@ const Loader = struct {
     }
     fn ifCases(self: *Loader, node: rx.ast.Node, subject: rx.ast.Attribute, exits: *Flow.BranchExits) Error![]const Flow.Case {
         const last = node.children[node.children.len - 1];
-        const has_else = std.mem.eql(u8, last.name, "Else");
+        const has_else = rx.execution.admit(last.name, .Any) == .Else;
         const body = if (has_else) node.children[0 .. node.children.len - 1] else node.children;
         const cases = try self.allocator.alloc(Flow.Case, if (has_else) 2 else 1);
         const value = rx.ast.Attribute{ .name = "value", .value = "true", .kind = .expression, .location = subject.location, .value_location = subject.value_location };
@@ -181,7 +190,7 @@ const Loader = struct {
         const branches = try self.allocator.alloc(Flow.Branch, node.children.len);
 
         for (node.children, branches) |child, *branch| {
-            if (std.mem.eql(u8, child.name, "Call")) {
+            if (rx.execution.admit(child.name, .Any) == .Call) {
                 branch.* = .{ .call = try self.call(child) };
 
                 continue;

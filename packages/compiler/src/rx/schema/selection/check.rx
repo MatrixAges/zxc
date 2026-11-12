@@ -1,0 +1,33 @@
+<Module>
+    <Type from="model" as="Selection" />
+
+    <Args in={Selection.Input} out={Selection.Output} />
+
+    <If on={$in.kind == Selection.Kind.If}>
+        <Call fn="if_layout" in={$in} />
+
+        <Return value={$ctx.if_layout} />
+    </If>
+
+    <Call fn="duplicate" in={$in} />
+
+    <If on={$ctx.duplicate != null}>
+        <Return
+            value={{
+                issue: Selection.Issue.DuplicateCase,
+                index: $ctx.duplicate
+            }}
+        />
+    </If>
+
+    <If on={$in.second_default != null}>
+        <Return
+            value={{
+                issue: Selection.Issue.DuplicateDefault,
+                index: $in.second_default
+            }}
+        />
+    </If>
+
+    <Return value={null} />
+</Module>

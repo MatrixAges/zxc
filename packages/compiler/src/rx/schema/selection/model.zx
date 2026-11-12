@@ -1,0 +1,32 @@
+import type { U64Buffer } from "std:memory"
+
+export enum Kind {
+    If,
+    Switch
+}
+
+export enum Issue {
+    DuplicateCase,
+    DuplicateDefault,
+    MisplacedElse
+}
+
+export type Input = {
+    kind: Kind,
+    count: u64,
+    first_else?: u64,
+    second_default?: u64,
+    keys: u8[][],
+    braced: bool[],
+    string_buckets: U64Buffer,
+    expression_buckets: U64Buffer,
+    string_capacity: u64,
+    expression_capacity: u64
+}
+
+export type Finding = {
+    issue: Issue,
+    index: u64
+}
+
+export type Output = Finding?

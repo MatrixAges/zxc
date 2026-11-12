@@ -1,0 +1,31 @@
+import { Scope, Tag } from "./model"
+import tag from "./tag"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const selected = tag(in.name)
+
+    if (in.scope == Scope.Any) {
+        return selected
+    }
+
+    if (in.scope == Scope.Parallel) {
+        return match selected {
+            Tag.Call => Tag.Call,
+            Tag.Task => Tag.Task,
+            _ => Tag.Unknown
+        }
+    }
+
+    return match selected {
+        Tag.Call => Tag.Call,
+        Tag.Task => in.scope == Scope.Body ? Tag.Task : Tag.Unknown,
+        Tag.Parallel => Tag.Parallel,
+        Tag.Switch => Tag.Switch,
+        Tag.If => Tag.If,
+        Tag.Emit => Tag.Emit,
+        Tag.Return => Tag.Return,
+        _ => Tag.Unknown
+    }
+}

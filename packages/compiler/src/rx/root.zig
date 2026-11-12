@@ -24,6 +24,7 @@ pub const Diagnostic = dsl.Diagnostic;
 pub const flow = @import("flow.zig");
 pub const gateway = @import("features/gateway/root.zig");
 pub const store = @import("features/store/root.zig");
+pub const execution = @import("schema/execution/adapter.zig");
 pub const Step = @import("steps.zig").Step;
 pub const Module = flow.Module;
 pub const Gateway = gateway.Gateway;

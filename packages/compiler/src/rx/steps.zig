@@ -1,6 +1,7 @@
 const std = @import("std");
 const dsl = @import("dsl");
 const flow = @import("flow.zig");
+const execution = @import("schema/execution/adapter.zig");
 
 pub const Step = union(enum) {
     call: flow.Call.Data,
@@ -12,7 +13,7 @@ pub const Step = union(enum) {
     @"return": flow.Return.Data,
 };
 
-const Scope = enum { body, task, parallel };
+const Scope = execution.Scope;
 
 pub fn children(comptime scope: Scope) type {
     return dsl.list(child(scope), .{ .min = 1 });
@@ -25,38 +26,21 @@ pub fn child(comptime scope: Scope) type {
         pub fn decode(allocator: std.mem.Allocator, input: anytype, reporter: *dsl.Reporter, context: anytype) dsl.Error!Data {
             const node = dsl.ast.view(input);
 
-            inline for (.{ "call", "task", "parallel", "switch", "if", "emit", "return" }) |tag| {
-                const allowed = comptime switch (scope) {
-                    .body => true,
-                    .task => !std.mem.eql(u8, tag, "task"),
-                    .parallel => std.mem.eql(u8, tag, "task") or std.mem.eql(u8, tag, "call"),
-                };
-
-                if (comptime allowed) {
-                    const Schema = schema(tag, scope);
-
-                    if (Schema.matches(node.name())) return @unionInit(Data, tag, try Schema.decode(allocator, input, reporter, context));
-                }
-            }
-
-            return reporter.fail(.{
-                .code = .unexpected_element,
-                .location = node.location(),
-                .element = node.name(),
-                .message = "Element is not allowed in this RX execution scope",
-            });
+            return switch (execution.admit(node.name(), scope)) {
+                .Call => .{ .call = try flow.Call.decode(allocator, input, reporter, context) },
+                .Task => .{ .task = try flow.Task.decode(allocator, input, reporter, context) },
+                .Parallel => .{ .parallel = try flow.Parallel.decode(allocator, input, reporter, context) },
+                .Switch => .{ .@"switch" = try flow.Switch.decode(allocator, input, reporter, context) },
+                .If => .{ .@"if" = try flow.If.decode(allocator, input, reporter, context) },
+                .Emit => .{ .emit = try flow.Emit.decode(allocator, input, reporter, context) },
+                .Return => .{ .@"return" = try flow.Return.decode(allocator, input, reporter, context) },
+                else => reporter.fail(.{
+                    .code = .unexpected_element,
+                    .location = node.location(),
+                    .element = node.name(),
+                    .message = "Element is not allowed in this RX execution scope",
+                }),
+            };
         }
     };
-}
-
-fn schema(comptime tag: []const u8, comptime scope: Scope) type {
-    if (std.mem.eql(u8, tag, "call")) return flow.Call;
-    if (std.mem.eql(u8, tag, "task")) return if (scope == .parallel) flow.Task else @import("labels/Task.zig").Sequential;
-    if (std.mem.eql(u8, tag, "parallel")) return flow.Parallel;
-    if (std.mem.eql(u8, tag, "switch")) return flow.Switch;
-    if (std.mem.eql(u8, tag, "if")) return flow.If;
-    if (std.mem.eql(u8, tag, "emit")) return flow.Emit;
-    if (std.mem.eql(u8, tag, "return")) return flow.Return;
-
-    unreachable;
 }

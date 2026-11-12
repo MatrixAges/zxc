@@ -1,0 +1,26 @@
+import { Tag } from "./model"
+
+export type Input = string
+
+export type Output = Tag
+
+export default function (in: Input): Output {
+    return match in {
+        "Module" => Tag.Module,
+        "Type" => Tag.Type,
+        "Args" => Tag.Args,
+        "Store" => Tag.Store,
+        "Import" => Tag.Import,
+        "Call" => Tag.Call,
+        "Task" => Tag.Task,
+        "Parallel" => Tag.Parallel,
+        "Switch" => Tag.Switch,
+        "If" => Tag.If,
+        "Else" => Tag.Else,
+        "Case" => Tag.Case,
+        "Default" => Tag.Default,
+        "Emit" => Tag.Emit,
+        "Return" => Tag.Return,
+        _ => Tag.Unknown
+    }
+}

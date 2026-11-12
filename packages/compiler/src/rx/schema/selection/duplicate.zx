@@ -1,0 +1,39 @@
+import fixed from "core/bytes/index/fixed"
+
+import type { Input } from "./model"
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const missing: u64? = null
+
+    return loop({
+        index: 0,
+        duplicate: missing
+    }, {
+        while: state => state.index < in.keys.length && state.duplicate == null,
+        next: state => {
+            const expression = in.braced[state.index]
+            const capacity = expression ? in.expression_capacity : in.string_capacity
+
+            if (capacity != 0) {
+                const buckets = expression ? in.expression_buckets : in.string_buckets
+
+                const previous = fixed({
+                    keys: in.keys,
+                    buckets,
+                    capacity,
+                    key: in.keys[state.index],
+                    insert: state.index
+                })
+
+                if (previous != null) {
+                    state.duplicate = state.index
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.duplicate
+    })
+}

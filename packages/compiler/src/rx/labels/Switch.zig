@@ -9,12 +9,13 @@ const SwitchBase = dsl.element("Switch", struct { on: []const u8 }, dsl.list(dsl
     .default = Default,
 }), .{ .min = 1 }));
 
-pub const Switch = dsl.refine(SwitchBase, checkSwitch);
+pub const Switch = dsl.refineAlloc(SwitchBase, checkSwitch);
 
-fn checkSwitch(_: SwitchBase.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
+fn checkSwitch(allocator: std.mem.Allocator, data: SwitchBase.Data, input: anytype, _: anytype, reporter: *dsl.Reporter) dsl.Error!void {
     const node = dsl.ast.view(input);
 
     try checks.nonEmpty(node, reporter);
+    if (comptime @import("rx_options").generated_rules) return @import("../schema/selection/adapter.zig").checkSwitch(allocator, data.children, node, reporter);
     try checks.uniqueChildren(node, "Case", "value", reporter);
 
     var default_seen = false;
