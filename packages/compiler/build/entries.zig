@@ -52,6 +52,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/program/linking/operands/expressions.zx", .name = "rx_link_expression_operands", .owner = .rx_analysis },
     .{ .path = "rx/analysis/program/linking/operands/symbols.zx", .name = "rx_link_symbol_operands", .owner = .rx_analysis },
     .{ .path = "rx/analysis/program/linking/operands/optional_symbols.zx", .name = "rx_link_optional_symbol_operands", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/program/control/plan.rx", .name = "rx_control_layout", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/payloads.zx", .name = "assignment_payloads", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/validation/scan.zx", .name = "assignment_validation", .owner = .rx_analysis },

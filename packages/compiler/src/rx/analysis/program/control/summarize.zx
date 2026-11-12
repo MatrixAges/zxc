@@ -1,0 +1,28 @@
+import summarizeUnit from "./unit"
+
+import type { U32Buffer } from "std:memory"
+import type { Shape } from "./model"
+
+export type Input = {
+    shape: Shape,
+    layout: U32Buffer
+}
+
+export type Output = U32Buffer
+
+export default function (in: Input): Output {
+    const count = in.shape.units.firsts.length
+
+    return loop(0, {
+        while: unit => unit < count,
+        next: unit => {
+            summarizeUnit({
+                shape: in.shape,
+                layout: in.layout,
+                unit
+            })
+            unit += 1
+        },
+        return: unit => in.layout
+    })
+}

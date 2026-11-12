@@ -15,8 +15,6 @@ base_functions: ir.FunctionTable = .{},
 shared: bool = false,
 store_initializers: std.ArrayList(StoreInitializer) = .empty,
 stores: ir.StoreStorage = .{},
-body: std.ArrayList(ir.Statement) = .empty,
-control: ir.ControlStorage = .{},
 bindings: std.ArrayList(ir.SymbolId) = .empty,
 linking_scratch: std.heap.ArenaAllocator = .init(std.heap.page_allocator),
 pub fn symbol(self: *Self, name: []const u8, type_id: ir.TypeId, span: zx.Span) std.mem.Allocator.Error!ir.SymbolId {
@@ -32,6 +30,16 @@ pub fn expression(self: *Self, value: ir.Expression) std.mem.Allocator.Error!ir.
     _ = try self.expressions.append(self.allocator, value);
 
     return id;
+}
+
+pub fn expressionSpan(self: *const Self, id: ir.ExprId) zx.Span {
+    const index = @backingInt(id);
+
+    return .{ .start = @intCast(self.expressions.span_start.items[index]), .end = @intCast(self.expressions.span_end.items[index]) };
+}
+
+pub fn expressionType(self: *const Self, id: ir.ExprId) ir.TypeId {
+    return @fromBackingInt(self.expressions.types.items[@backingInt(id)]);
 }
 
 pub fn importFunction(self: *Self, program: ir.Program, initializers: []const StoreInitializer, existing: ?ir.FunctionId) Error!ir.FunctionId {

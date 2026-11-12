@@ -1,0 +1,39 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import { continues, lane_count, returns, tag_lane, unreachable } from "./const"
+
+import type { U32Buffer } from "std:memory"
+
+export type Input = {
+    layout: U32Buffer,
+    cases: u32[],
+    first: u64,
+    count: u64,
+    exhaustive: bool
+}
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const end = in.first + in.count
+    const initial = in.exhaustive ? returns : continues
+
+    return loop({
+        index: in.first,
+        exit: initial
+    }, {
+        while: state => state.index < end && state.exit != unreachable,
+        next: state => {
+            const child = integers.widen(in.cases[state.index]) * lane_count
+            const exit = memory.readU32(in.layout, child + tag_lane)
+
+            if (exit == unreachable || exit == continues) {
+                state.exit = exit
+            }
+
+            state.index += 1
+        },
+        return: state => state.exit
+    })
+}

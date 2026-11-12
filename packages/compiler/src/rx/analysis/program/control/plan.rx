@@ -1,0 +1,25 @@
+<Module>
+    <Type from="model" as="Control" />
+
+    <Args in={Control.Input} out={Control.Output} />
+
+    <Call
+        fn="summarize"
+        in={{
+            shape: $in.shape,
+            layout: $in.layout
+        }}
+    />
+
+    <Call
+        fn="place"
+        in={{
+            units: $in.shape.units,
+            layout: $ctx.summarize,
+            capture_count: $in.capture_count,
+            void_output: $in.void_output
+        }}
+    />
+
+    <Return value={$ctx.place} />
+</Module>

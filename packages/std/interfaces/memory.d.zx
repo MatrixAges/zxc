@@ -1,6 +1,11 @@
 export type U32Buffer = opaque
 export type OptionalU32Buffer = opaque
 
+export declare function readU32(
+    target: U32Buffer,
+    index: u64
+): u32 throws { IndexOutOfBounds }
+
 export declare function writeU32(
     target: U32Buffer,
     index: u64,

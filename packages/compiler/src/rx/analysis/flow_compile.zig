@@ -34,10 +34,10 @@ next_binding: usize = 0,
 unit_input: bool = false,
 issue: ?expression.Diagnostic = null,
 pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.Step {
-    var result: std.ArrayList(Flow.Step) = .empty;
+    const result = try self.allocator.alloc(Flow.Step, sequence.len);
 
-    for (sequence) |step| {
-        const compiled: Flow.Step = switch (step.value) {
+    for (sequence, result) |step, *compiled| {
+        compiled.* = switch (step.value) {
             .call => |index| .{ .call = try self.call(self.loaded[index]) },
             .parallel => |branches| parallel: {
                 const count = self.bindings.items.len;
@@ -76,14 +76,15 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
             .task => |task| scope: {
                 const count = self.bindings.items.len;
                 const nested = try self.steps(task.body);
-                var compiled: @FieldType(Flow.Step, "task") = .{ .body = nested };
+                var task_step: @FieldType(Flow.Step, "task") = .{ .body = nested };
                 var published: ?Module.Binding = null;
 
                 if (target.optionalAttribute(task.node, "out")) |attribute| {
                     const binding = self.results[self.next_binding];
                     self.next_binding += 1;
                     const has_value = binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))));
-                    compiled.output = .{ .value = try self.value(attribute, binding.type_id), .name = if (has_value) binding.name else null };
+
+                    task_step.output = .{ .value = try self.value(attribute, binding.type_id), .name = if (has_value) binding.name else null };
 
                     if (has_value) published = binding;
                 }
@@ -92,7 +93,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 
                 if (published) |binding| try self.bindings.append(self.allocator, .{ .name = binding.name, .type_id = binding.type_id });
 
-                break :scope .{ .task = compiled };
+                break :scope .{ .task = task_step };
             },
             .selection => |selection| selection: {
                 const condition = @import("condition.zig");
@@ -143,11 +144,9 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                 break :selection .{ .selection = .{ .subject = subject, .cases = cases, .exhaustive = checked.exhaustive } };
             },
         };
-
-        try result.append(self.allocator, compiled);
     }
 
-    return result.items;
+    return result;
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {

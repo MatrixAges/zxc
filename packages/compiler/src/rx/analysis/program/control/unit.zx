@@ -1,0 +1,173 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import {
+    cases_lane,
+    constants_lane,
+    continues,
+    evaluations_lane,
+    invocations_lane,
+    lane_count,
+    parallels_lane,
+    results_lane,
+    returns,
+    selections_lane,
+    tag_lane,
+    unreachable
+} from "./const"
+import { Kind, Publish } from "./model"
+import selectionExit from "./selection_exit"
+
+import type { U32Buffer } from "std:memory"
+import type { Shape } from "./model"
+
+export type Input = {
+    shape: Shape,
+    layout: U32Buffer,
+    unit: u64
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.shape.units.firsts[in.unit])
+    const end = first + integers.widen(in.shape.units.counts[in.unit])
+    const steps = in.shape.steps
+    const row = in.unit * lane_count
+    const layout = in.layout
+
+    const summary = loop({
+        index: first,
+        exit: continues,
+        evaluations: 0,
+        constants: 0,
+        parallels: 0,
+        invocations: 0,
+        selections: 0,
+        cases: 0,
+        results: 0
+    }, {
+        while: state => state.index < end && state.exit != unreachable,
+        next: state => {
+            if (state.exit == returns) {
+                state.exit = unreachable
+            } else {
+                const index = state.index
+                const output = steps.outputs[index]
+
+                switch (steps.kinds[index]) {
+                    case Kind.Call:
+                        state.constants += integers.widen(steps.getters[index])
+                    case Kind.Parallel:
+                        state.constants += integers.widen(steps.getters[index])
+                        state.parallels += 1
+                        state.invocations += integers.widen(steps.counts[index])
+                    case Kind.Return:
+                        state.results += 1
+                        state.exit = returns
+                    case Kind.Task:
+                        const child = integers.widen(steps.firsts[index]) * lane_count
+                        const exit = memory.readU32(layout, child + tag_lane)
+
+                        state.evaluations +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + evaluations_lane
+                                )
+                            )
+                        state.constants +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + constants_lane
+                                )
+                            )
+                        state.parallels +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + parallels_lane
+                                )
+                            )
+                        state.invocations +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + invocations_lane
+                                )
+                            )
+                        state.selections +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + selections_lane
+                                )
+                            )
+                        state.cases +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + cases_lane
+                                )
+                            )
+                        state.results +=
+                            integers.widen(
+                                memory.readU32(
+                                    layout,
+                                    child + results_lane
+                                )
+                            )
+
+                        if (output == Publish.None || exit == unreachable) {
+                            state.exit = exit
+                        }
+                    case Kind.Selection:
+                        const count = integers.widen(steps.counts[index])
+                        state.selections += 1
+                        state.cases += count
+                        state.exit = selectionExit({
+                            layout,
+                            cases: in.shape.cases,
+                            first: integers.widen(steps.firsts[index]),
+                            count,
+                            exhaustive: steps.exhaustive[index]
+                        })
+                }
+
+                if (output == Publish.Constant) {
+                    state.constants += 1
+                } else if (output == Publish.Evaluate) {
+                    state.evaluations += 1
+                }
+            }
+
+            state.index += 1
+        }
+    })
+
+    memory.writeU32(
+        layout,
+        row + evaluations_lane,
+        integers.narrow(summary.evaluations)
+    )
+
+    memory.writeU32(layout, row + constants_lane, integers.narrow(summary.constants))
+    memory.writeU32(layout, row + parallels_lane, integers.narrow(summary.parallels))
+
+    memory.writeU32(
+        layout,
+        row + invocations_lane,
+        integers.narrow(summary.invocations)
+    )
+
+    memory.writeU32(
+        layout,
+        row + selections_lane,
+        integers.narrow(summary.selections)
+    )
+
+    memory.writeU32(layout, row + cases_lane, integers.narrow(summary.cases))
+    memory.writeU32(layout, row + results_lane, integers.narrow(summary.results))
+    memory.writeU32(layout, row + tag_lane, summary.exit)
+}

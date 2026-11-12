@@ -4,56 +4,43 @@ const ir = zx.ir;
 const Builder = @import("builder.zig");
 const Flow = @import("flow.zig");
 const Module = @import("../module.zig");
+const Shape = @import("control/shape.zig");
+const Plan = @import("control/plan.zig");
+const Writer = @import("control/writer.zig");
 const inlineValue = @import("expression.zig").inlineValue;
+const Self = @This();
 
-pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!bool {
-    var terminates = false;
+builder: *Builder,
+shape: *const Shape,
+plan: Plan,
+writer: *Writer,
+calls: []const Module.Call,
+pub fn lower(self: *const Self, sequence: []const Flow.Step, owner: u32, cursor: *Writer.Cursor) Builder.Error!void {
+    const builder = self.builder;
 
-    for (sequence) |step| {
-        if (terminates) return error.UnreachableFlow;
-
-        switch (step) {
-            .call => |index| try call(builder, calls[index]),
-            .parallel => |indices| {
-                const invocations = try builder.allocator.alloc(ir.ParallelCall, indices.len);
-                var bindings: std.ArrayList(ir.SymbolId) = .empty;
-
-                for (indices, invocations) |index, *invocation| {
-                    const value = try invoke(builder, calls[index]);
-                    const expression = builder.expressions.view().at(@backingInt(value));
-                    const symbol = if (calls[index].out) |name| try builder.symbol(name, expression.type_id, expression.span) else null;
-                    invocation.* = .{ .symbol = symbol, .value = value };
-
-                    if (symbol) |id| try bindings.append(builder.allocator, id);
-                }
-
-                try builder.body.append(builder.allocator, .{ .parallel = invocations });
-                try builder.bindings.appendSlice(builder.allocator, bindings.items);
-            },
-            .result => |program| {
-                try builder.body.append(builder.allocator, .{ .result = try inlineValue(builder, program) });
-
-                terminates = true;
-            },
+    for (sequence, 0..) |*step, index| {
+        switch (step.*) {
+            .call => |invocation| try self.call(cursor, self.calls[invocation]),
+            .parallel => |indices| try self.parallel(cursor, indices),
+            .result => |program| self.writer.result(cursor, try inlineValue(builder, program)),
             .task => |task| {
                 const count = builder.bindings.items.len;
-                terminates = try lower(builder, task.body, calls);
+                const child = self.shape.child(owner, index);
+
+                try self.lower(task.body, child, cursor);
 
                 var result: ?ir.SymbolId = null;
 
                 if (task.output) |output| {
                     const value = try inlineValue(builder, output.value);
 
-                    terminates = false;
-
                     if (output.name) |name| {
-                        const expression = builder.expressions.view().at(@backingInt(value));
-                        const symbol = try builder.symbol(name, expression.type_id, expression.span);
+                        const symbol = try builder.symbol(name, builder.expressionType(value), builder.expressionSpan(value));
 
-                        try builder.body.append(builder.allocator, .{ .constant = .{ .symbol = symbol, .value = value } });
+                        self.writer.constant(cursor, symbol, value);
 
                         result = symbol;
-                    } else try builder.body.append(builder.allocator, .{ .evaluate = value });
+                    } else self.writer.evaluate(cursor, value);
                 }
 
                 builder.bindings.shrinkRetainingCapacity(count);
@@ -61,63 +48,73 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
             },
             .selection => |selection| {
                 const subject = try inlineValue(builder, selection.subject);
-                const cases = try builder.allocator.alloc(ir.SwitchCase, selection.cases.len);
-                var all_terminate = true;
+                const first = cursor.counts.cases;
+                const children = self.shape.child(owner, index);
+                const units = self.shape.cases.items[children..][0..selection.cases.len];
 
-                for (selection.cases, cases) |source, *item| {
+                for (selection.cases, units, @as(usize, first)..) |*source, unit, position| {
                     const value = if (source.value) |program| try inlineValue(builder, program) else null;
-                    const body = try block(builder, source.body, calls);
-                    all_terminate = all_terminate and body.terminates;
-                    item.* = .{ .value = value, .body = body.id };
+                    const body = try self.block(source.body, unit);
+
+                    self.writer.selectionCase(position, value, body);
                 }
 
-                const exhaustive = selection.exhaustive;
-
-                try builder.body.append(builder.allocator, .{ .switch_stmt = .{ .subject = subject, .cases = cases, .exhaustive = exhaustive } });
-
-                terminates = exhaustive and all_terminate;
+                self.writer.selection(cursor, subject, selection.cases.len, selection.exhaustive);
             },
         }
     }
-
-    return terminates;
 }
 
-fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!struct { id: ir.BlockId, terminates: bool } {
-    const parent = builder.body;
-    const count = builder.bindings.items.len;
-    builder.body = .empty;
+fn block(self: *const Self, sequence: []const Flow.Step, unit: u32) Builder.Error!ir.BlockId {
+    const count = self.builder.bindings.items.len;
+    const row = self.plan.rows[unit];
+    var cursor = Writer.Cursor.init(row.first);
 
-    defer {
-        builder.body.deinit(builder.allocator);
+    defer self.builder.bindings.shrinkRetainingCapacity(count);
 
-        builder.body = parent;
+    try self.lower(sequence, unit, &cursor);
 
-        builder.bindings.shrinkRetainingCapacity(count);
+    return self.writer.block(row, cursor, self.plan.end(unit));
+}
+
+fn parallel(self: *const Self, cursor: *Writer.Cursor, indices: []const usize) Builder.Error!void {
+    const builder = self.builder;
+    const first = cursor.counts.invocations;
+
+    for (indices, @as(usize, first)..) |index, position| {
+        const invocation = self.calls[index];
+        const value = try self.invoke(cursor, invocation);
+        const symbol = if (invocation.out) |name| try builder.symbol(name, builder.expressionType(value), builder.expressionSpan(value)) else null;
+
+        self.writer.parallelBranch(position, symbol, value);
     }
 
-    const terminates = try lower(builder, sequence, calls);
+    self.writer.parallel(cursor, indices.len);
 
-    return .{ .id = try builder.control.appendBlock(builder.allocator, builder.body.items), .terminates = terminates };
+    for (self.writer.columns.parallel_symbols.items[first..][0..indices.len]) |symbol| {
+        if (symbol) |id| try builder.bindings.append(builder.allocator, @fromBackingInt(id));
+    }
 }
 
-fn call(builder: *Builder, invocation: Module.Call) Builder.Error!void {
-    const value = try invoke(builder, invocation);
-    const span = builder.expressions.view().at(@backingInt(value)).span;
+fn call(self: *const Self, cursor: *Writer.Cursor, invocation: Module.Call) Builder.Error!void {
+    const builder = self.builder;
+    const value = try self.invoke(cursor, invocation);
 
     const name = invocation.out orelse {
-        try builder.body.append(builder.allocator, .{ .evaluate = value });
+        self.writer.evaluate(cursor, value);
 
         return;
     };
 
-    const symbol = try builder.symbol(name, invocation.callee.output_type, span);
+    const symbol = try builder.symbol(name, invocation.callee.output_type, builder.expressionSpan(value));
 
-    try builder.body.append(builder.allocator, .{ .constant = .{ .symbol = symbol, .value = value } });
+    self.writer.constant(cursor, symbol, value);
+
     try builder.bindings.append(builder.allocator, symbol);
 }
 
-fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
+fn invoke(self: *const Self, cursor: *Writer.Cursor, invocation: Module.Call) Builder.Error!ir.ExprId {
+    const builder = self.builder;
     const count = builder.bindings.items.len;
     const location = invocation.argument.symbols.at(0).span;
 
@@ -126,7 +123,8 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
         const snapshot = try builder.expression(.{ .type_id = getter.slot.type_id, .span = location, .value = .{ .store_get = slot } });
         const symbol = try builder.symbol(getter.name, getter.slot.type_id, location);
 
-        try builder.body.append(builder.allocator, .{ .constant = .{ .symbol = symbol, .value = snapshot } });
+        self.writer.constant(cursor, symbol, snapshot);
+
         try builder.bindings.append(builder.allocator, symbol);
     }
 
@@ -138,8 +136,7 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
 
     for (stores, 0..) |*mapped, index| mapped.* = try builder.store(invocation.callee.stores.at(index));
 
-    const span = builder.expressions.view().at(@backingInt(argument)).span;
     const function = try builder.importFunction(invocation.callee, invocation.store_initializers, invocation.function_id);
 
-    return builder.expression(.{ .type_id = invocation.callee.output_type, .span = span, .value = .{ .call = .{ .function = function, .argument = argument, .stores = stores } } });
+    return builder.expression(.{ .type_id = invocation.callee.output_type, .span = builder.expressionSpan(argument), .value = .{ .call = .{ .function = function, .argument = argument, .stores = stores } } });
 }

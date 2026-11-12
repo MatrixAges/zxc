@@ -1,0 +1,120 @@
+import integers from "std:integer"
+import memory from "std:memory"
+import { max_u32 } from "core/const"
+
+import {
+    cases_lane,
+    constants_lane,
+    continues,
+    evaluations_lane,
+    invocations_lane,
+    lane_count,
+    parallels_lane,
+    results_lane,
+    selections_lane,
+    tag_lane,
+    unreachable
+} from "./const"
+import exchange from "./exchange"
+import { Status } from "./model"
+
+import type { U32Buffer } from "std:memory"
+import type { Output, Units } from "./model"
+
+export type Input = {
+    units: Units,
+    layout: U32Buffer,
+    capture_count: u64,
+    void_output: bool
+}
+
+export default function (in: Input): Output {
+    const last = in.units.firsts.length - 1
+    const layout = in.layout
+    const root = memory.readU32(layout, last * lane_count + tag_lane)
+    const implicit_return = root == continues && in.void_output
+
+    const status = match {
+        root == unreachable => Status.Unreachable,
+        root == continues && !in.void_output => Status.Incomplete,
+        _ => Status.Ready
+    }
+
+    return loop({
+        evaluations: 0,
+        constants: 0,
+        parallels: 0,
+        invocations: 0,
+        selections: 0,
+        cases: 0,
+        results: 0,
+        block_count: 0,
+        unit: 0
+    }, {
+        while: state => status == Status.Ready && state.unit <= last,
+        next: state => {
+            const row = state.unit * lane_count
+
+            if (in.units.blocks[state.unit]) {
+                state.evaluations += exchange({
+                    layout,
+                    position: row + evaluations_lane,
+                    replacement: state.evaluations
+                })
+                state.constants += exchange({
+                    layout,
+                    position: row + constants_lane,
+                    replacement: state.constants
+                })
+                state.parallels += exchange({
+                    layout,
+                    position: row + parallels_lane,
+                    replacement: state.parallels
+                })
+                state.invocations += exchange({
+                    layout,
+                    position: row + invocations_lane,
+                    replacement: state.invocations
+                })
+                state.selections += exchange({
+                    layout,
+                    position: row + selections_lane,
+                    replacement: state.selections
+                })
+                state.cases += exchange({
+                    layout,
+                    position: row + cases_lane,
+                    replacement: state.cases
+                })
+                state.results += exchange({
+                    layout,
+                    position: row + results_lane,
+                    replacement: state.results
+                })
+
+                memory.writeU32(
+                    layout,
+                    row + tag_lane,
+                    integers.narrow(state.block_count)
+                )
+                state.block_count += 1
+            } else {
+                memory.writeU32(layout, row + tag_lane, max_u32)
+            }
+
+            state.unit += 1
+        },
+        return: state => ({
+            status,
+            evaluations: state.evaluations,
+            constants: state.constants + in.capture_count,
+            parallels: state.parallels,
+            invocations: state.invocations,
+            selections: state.selections,
+            cases: state.cases,
+            results: state.results + (implicit_return ? 1 : 0),
+            block_count: state.block_count,
+            implicit_return
+        })
+    })
+}

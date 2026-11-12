@@ -1,0 +1,62 @@
+import type { U32Buffer } from "std:memory"
+
+export enum Kind {
+    Call,
+    Parallel,
+    Return,
+    Task,
+    Selection
+}
+
+export enum Publish {
+    None,
+    Evaluate,
+    Constant
+}
+
+export enum Status {
+    Ready,
+    Unreachable,
+    Incomplete
+}
+
+export type Steps = {
+    kinds: Kind[],
+    outputs: Publish[],
+    getters: u32[],
+    firsts: u32[],
+    counts: u32[],
+    exhaustive: bool[]
+}
+
+export type Units = {
+    firsts: u32[],
+    counts: u32[],
+    blocks: bool[]
+}
+
+export type Shape = {
+    steps: Steps,
+    units: Units,
+    cases: u32[]
+}
+
+export type Input = {
+    shape: Shape,
+    layout: U32Buffer,
+    capture_count: u64,
+    void_output: bool
+}
+
+export type Output = {
+    status: Status,
+    evaluations: u64,
+    constants: u64,
+    parallels: u64,
+    invocations: u64,
+    selections: u64,
+    cases: u64,
+    results: u64,
+    block_count: u64,
+    implicit_return: bool
+}
