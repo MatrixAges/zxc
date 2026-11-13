@@ -15,7 +15,7 @@ pub const Current = struct {
     backing: std.mem.Allocator,
     types: *ir.TypeStorage,
     origins: *Origins,
-    functions: ir.FunctionTable,
+    functions: *ir.FunctionStorage,
     native_modules: ir.NativeModuleTable,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
@@ -25,7 +25,12 @@ pub const Current = struct {
 
 const Error = Types.Error || model.Error;
 
-pub fn restore(entry: *const @import("entries.zig").Entry, current: Current) std.mem.Allocator.Error!?ir.Program {
+pub const Restored = struct {
+    program: ir.Program,
+    recursive: ?ir.FunctionId,
+};
+
+pub fn restore(entry: *const @import("entries.zig").Entry, current: Current) std.mem.Allocator.Error!?Restored {
     return restoreChecked(&entry.result.value, current, generated and entry.decoded) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
@@ -33,7 +38,7 @@ pub fn restore(entry: *const @import("entries.zig").Entry, current: Current) std
     };
 }
 
-fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) Error!ir.Program {
+fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) Error!Restored {
     if (comptime generated) {
         if (!Host.preflight(module, &current, decoded) or !Host.dependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
     } else if (!Seed.preflight(module, &current)) return error.InvalidModule;
@@ -105,15 +110,17 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         for (module.function_imports, current.imports) |*previous, *binding| try Seed.bind(previous, binding, imported, nodes.types, current.functions.count());
     }
 
-    const linked = ir.SignatureTable.fromFunctions(current.functions);
+    const linked = ir.SignatureTable.fromFunctions(current.functions.view());
 
     if (comptime generated) {
         if (!try Host.signatures(temporary, module.functions, linked, mapping, imported, native_mapping)) return error.InvalidModule;
     } else try Seed.signatures(&nodes, module.functions, linked, imported);
 
-    const own: ?ir.FunctionId = if (module.function != null) @fromBackingInt(@as(u32, @intCast(current.functions.count()))) else null;
+    const own = if (comptime generated)
+        try Host.own(function_mapping, module.functions.count(), current.functions.count(), module.function != null)
 
-    if (own) |id| function_mapping[module.functions.count()] = id;
+    else
+        try Seed.own(function_mapping, module.functions.count(), current.functions.count(), module.function != null);
 
     const function = if (module.function) |value| try nodes.function(value) else null;
     const body = if (function) |*value| value else null;
@@ -122,12 +129,23 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
 
     var program = try result.assemble(allocator, temporary, module, body, header, .{
         .types = types.items.view(),
-        .functions = current.functions,
+        .functions = current.functions.view(),
         .native_modules = current.native_modules,
     }, mapping);
 
-    if (header.recursive != null) try @import("../function_body.zig").appendEntry(allocator, &program);
+    const recursive = header.recursive != null;
+
+    if (recursive) {
+        try current.functions.append(allocator, @import("../function_body.zig").value(program));
+
+        program.functions = current.functions.view();
+    }
+
+    errdefer if (recursive) {
+        _ = current.functions.pop(allocator);
+    };
+
     if (try @import("../../ir/validate.zig").validate(temporary, program) != null) return error.InvalidIr;
 
-    return program;
+    return .{ .program = program, .recursive = header.recursive };
 }

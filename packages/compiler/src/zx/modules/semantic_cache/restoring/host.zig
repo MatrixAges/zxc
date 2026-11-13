@@ -77,6 +77,30 @@ pub fn bindModules(temporary: std.mem.Allocator, previous: ir.NativeModuleTable,
     };
 }
 
+pub fn own(mapping: []?ir.FunctionId, local_count: usize, linked_count: usize, has_body: bool) Artifact.Error!?ir.FunctionId {
+    const entry = @import("generated_semantic_restore_own");
+
+    const input: std.meta.Child(entry.Input) = .{
+        .has_body = has_body,
+        .local_count = local_count,
+        .linked_count = linked_count,
+        .target = @ptrCast(&mapping),
+    };
+
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+    const id = zx.columns.invoke(entry.executeValue, empty.allocator(), &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory, error.IntegerOverflow => return error.OutOfMemory,
+        else => return error.InvalidModule,
+    };
+
+    const value = id orelse return null;
+
+    if (value == std.math.maxInt(u32)) return error.OutOfMemory;
+
+    return @fromBackingInt(value);
+}
+
 fn check(comptime generated: type, input: anytype) bool {
     var empty = std.heap.FixedBufferAllocator.init(&.{});
 

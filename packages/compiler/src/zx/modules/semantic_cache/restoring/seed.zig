@@ -15,6 +15,17 @@ pub fn preflight(module: *const model.Module, current: *const @import("../restor
         module.constant_imports.len == current.constant_imports.len;
 }
 
+pub fn own(mapping: []?ir.FunctionId, local_count: usize, linked_count: usize, has_body: bool) Error!?ir.FunctionId {
+    if (!has_body) return null;
+    if (linked_count >= std.math.maxInt(u32)) return error.OutOfMemory;
+
+    const id: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(linked_count)));
+
+    mapping[local_count] = id;
+
+    return id;
+}
+
 pub fn bind(previous: *const FunctionImport, binding: *const FunctionImport, mapping: []?ir.FunctionId, types: Nodes.TypeMap, current_count: usize) Error!void {
     if (!previous.valid() or !binding.valid() or previous.intrinsic != binding.intrinsic) return error.InvalidModule;
     if (!std.mem.eql(u8, previous.name, binding.name) or !optionalName(previous.namespace, binding.namespace)) return error.InvalidModule;

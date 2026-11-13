@@ -443,7 +443,7 @@ const Project = struct {
         const source_digest = frame.parsed.digest;
         const entry = std.mem.eql(u8, unit.path, self.options.entry);
         const first_type = self.types.count();
-        var restored: ?ir.Program = null;
+        var restored: ?@import("semantic_cache/restore.zig").Restored = null;
 
         if (self.semantic_cache) |cache| {
             unit.context_digest = try self.contextDigest(entry);
@@ -454,7 +454,7 @@ const Project = struct {
                     .backing = self.arena.child_allocator,
                     .types = &self.types,
                     .origins = &self.nominal_origins,
-                    .functions = self.functions.view(),
+                    .functions = &self.functions,
                     .native_modules = self.native_modules.view(),
                     .aliases = aliases.items,
                     .imports = imports.items,
@@ -470,7 +470,7 @@ const Project = struct {
             if (restored == null) cache.analyzed += 1;
         }
 
-        var program = restored orelse analyze_block: {
+        var program = if (restored) |result| result.program else analyze_block: {
             var analyzer = HostContext{
                 .allocator = self.allocator,
                 .reporter = self.reporter,
@@ -492,13 +492,19 @@ const Project = struct {
             break :analyze_block try input.analyze(&analyzer, unit.path);
         };
 
-        if (!program.type_only) {
+        const restored_recursive = if (restored) |result| result.recursive else null;
+
+        if (restored_recursive) |id| {
+            unit.function = id;
+        } else if (!program.type_only) {
             unit.function = @fromBackingInt(@intCast(self.functions.count()));
 
             try self.functions.append(self.allocator, @import("function_body.zig").value(program));
         }
 
-        const recursive = !program.type_only and input.header().functionName() != null and @import("function_body.zig").calls(program.expressions, unit.function.?);
+        const recursive = !program.type_only and input.header().functionName() != null and
+            (if (restored != null) restored_recursive != null else @import("function_body.zig").calls(program.expressions, unit.function.?));
+
         const publication = State.publish(program.type_only, entry, recursive);
 
         if (restored == null and !@TypeOf(input).completes_ownership) {

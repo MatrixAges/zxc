@@ -206,6 +206,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/semantic_cache/restoring/functions/bindings.zx", .name = "semantic_restore_bindings" },
     .{ .path = "zx/modules/semantic_cache/restoring/functions/alias.zx", .name = "semantic_restore_alias" },
     .{ .path = "zx/modules/semantic_cache/restoring/functions/signatures.zx", .name = "semantic_restore_signatures" },
+    .{ .path = "zx/modules/semantic_cache/restoring/functions/own.zx", .name = "semantic_restore_own" },
     .{ .path = "zx/modules/semantic_cache/restoring/preflight/check.rx", .name = "semantic_restore_preflight" },
     .{ .path = "zx/modules/semantic_cache/restoring/constants/check.rx", .name = "semantic_restore_constants" },
     .{ .path = "zx/modules/semantic_cache/restoring/modules.zx", .name = "semantic_restore_modules" },
