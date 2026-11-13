@@ -16,7 +16,6 @@ const Prepared = struct {
 pub fn execute(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAllocator, analysis: *const Analysis.Result, record: Record) Error!Prepared {
     const program = analysis.value.ir;
 
-    if (!@import("../../../ir/type_rules.zig").validate(program.types)) return error.InvalidIr;
     if (!analysis.nominal_types.hasValidShape()) return error.InvalidModule;
 
     const RootInput = std.meta.Child(@import("generated_artifact_roots").Input);

@@ -913,12 +913,12 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 
     if (project.semantic_cache) |semantic| {
-        for (result.modules, 0..) |module, index| {
+        for (result.modules) |module| {
             const unit = project.units[project.find(module.path).?];
 
             if (unit.reused) continue;
 
-            var extracted = artifact.extract(semantic.allocator, &result, index) catch |err| {
+            var extracted = @import("artifact/extract.zig").validated(semantic.allocator, &result, module) catch |err| {
                 if (err == error.OutOfMemory) return error.OutOfMemory;
 
                 if (err == error.MissingNominalOrigin) {

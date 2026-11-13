@@ -27,12 +27,8 @@ pub fn columns(allocator: std.mem.Allocator, nodes: *const Nodes, types: []const
     return zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| return failure(err);
 }
 
-pub fn function(nodes: *const Nodes, value: *const ir.Function, candidate: ?ir.FunctionId) Error!FunctionOutput {
-    if (!value.symbols.validStructure() or !value.expressions.validStructure() or !value.stores.validStructure() or !value.contracts.validStructure()) return error.InvalidModule;
-
-    for (value.contracts.symbols, value.contracts.expressions) |symbols, expressions| {
-        if (!symbols.validStructure() or !expressions.validStructure()) return error.InvalidModule;
-    }
+pub fn function(nodes: *const Nodes, value: *const ir.Function, candidate: ?ir.FunctionId, structure: Nodes.Structure) Error!FunctionOutput {
+    if (structure == .unchecked and !validFunctionColumns(value)) return error.InvalidModule;
 
     const FunctionMapping = std.meta.Child(@FieldType(FunctionInput, "types"));
     const Ports = std.meta.Child(@FieldType(FunctionInput, "ports"));
@@ -62,6 +58,16 @@ pub fn function(nodes: *const Nodes, value: *const ir.Function, candidate: ?ir.F
     };
 
     return zx.columns.invoke(functions.executeValue, nodes.allocator, &input) catch |err| return failure(err);
+}
+
+fn validFunctionColumns(value: *const ir.Function) bool {
+    if (!value.symbols.validStructure() or !value.expressions.validStructure() or !value.stores.validStructure() or !value.contracts.validStructure()) return false;
+
+    for (value.contracts.symbols, value.contracts.expressions) |symbols, expressions| {
+        if (!symbols.validStructure() or !expressions.validStructure()) return false;
+    }
+
+    return true;
 }
 
 fn typeMapping(comptime Target: type, mapping: Nodes.TypeMap) Target {

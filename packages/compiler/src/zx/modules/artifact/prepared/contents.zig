@@ -23,10 +23,10 @@ pub fn dependencies(nodes: *Nodes, source: []const Record.Import) Error![]const 
 }
 
 pub fn function(nodes: *Nodes, program: ir.Program, plan: anytype) Error!?ir.Function {
-    if (plan.function_id) |id| return try nodes.function(program.functions.at(id));
+    if (plan.function_id) |id| return (try nodes.functionEntry(program.functions.at(id), null, .validated)).body;
     if (!plan.use_entry) return null;
 
-    return try nodes.function(.{
+    return (try nodes.functionEntry(.{
         .stores = program.stores,
         .store_mode = program.store_mode,
         .file_name = program.file_name,
@@ -37,5 +37,5 @@ pub fn function(nodes: *Nodes, program: ir.Program, plan: anytype) Error!?ir.Fun
         .expressions = program.expressions,
         .body = program.body,
         .contracts = program.contracts,
-    });
+    }, null, .validated)).body;
 }

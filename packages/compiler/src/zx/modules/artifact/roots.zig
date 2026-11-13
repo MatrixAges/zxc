@@ -16,10 +16,7 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
 
     errdefer arena.deinit();
 
-    const needed = if (comptime @import("parser_options").generated_parser)
-        try @import("roots/run.zig").execute(&arena, program, record)
-    else
-        try @import("roots/seed.zig").collect(arena.allocator(), program, record);
+    const needed = try @import("roots/seed.zig").collect(arena.allocator(), program, record);
 
     return .{ .arena = arena, .needed = needed };
 }

@@ -44,16 +44,18 @@ pub fn functionId(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
 }
 
 pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
-    return (try self.functionEntry(value, null)).body;
+    return (try self.functionEntry(value, null, .unchecked)).body;
 }
+
+pub const Structure = enum { unchecked, validated };
 
 pub const FunctionEntry = struct {
     body: ir.Function,
     recursive: ?ir.FunctionId = null,
 };
 
-pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId) Error!FunctionEntry {
-    if (comptime generated) return self.linkedFunction(value, candidate);
+pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId, structure: Structure) Error!FunctionEntry {
+    if (comptime generated) return self.linkedFunction(value, candidate, structure);
 
     var result = value;
 
@@ -62,7 +64,7 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId)
     result.output_type = try self.types.include(value.output_type);
     result.symbols = try self.symbolsSeed(value.symbols);
     result.expressions = try self.expressionsSeed(value.expressions);
-    result.body = try self.body(value.body);
+    result.body = try self.body(value.body, .unchecked);
     result.stores = try self.stores(value.stores);
     result.contracts = try self.contracts(value.contracts, {});
     result.external = if (value.external) |entry| try self.external(entry) else null;
@@ -72,15 +74,15 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId)
     return .{ .body = result, .recursive = recursive };
 }
 
-fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId) Error!FunctionEntry {
-    const mapped = try @import("nodes/remap.zig").function(self, &value, candidate);
+fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId, structure: Structure) Error!FunctionEntry {
+    const mapped = try @import("nodes/remap.zig").function(self, &value, candidate, structure);
     var result = value;
     result.file_name = try self.allocator.dupe(u8, value.file_name);
     result.input_type = @fromBackingInt(mapped.ports.input);
     result.output_type = @fromBackingInt(mapped.ports.output);
     result.symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols });
     result.expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls });
-    result.body = try self.body(value.body);
+    result.body = try self.body(value.body, structure);
     result.stores = try own(self.allocator, value.stores, .{ .types = mapped.stores });
     result.contracts = try self.contracts(value.contracts, mapped.contracts);
     result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
@@ -187,8 +189,8 @@ fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.Co
     return own(self.allocator, values, .{ .symbols = owned_symbols, .expressions = owned_expressions });
 }
 
-fn body(self: *Self, value: ir.ControlBody) Error!ir.ControlBody {
-    if (!try value.validStructure(self.allocator)) return error.InvalidModule;
+fn body(self: *Self, value: ir.ControlBody, structure: Structure) Error!ir.ControlBody {
+    if (structure == .unchecked and !try value.validStructure(self.allocator)) return error.InvalidModule;
     if (value.root == null) return .{};
 
     const table = try self.allocator.create(ir.ControlTable);

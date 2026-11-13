@@ -71,7 +71,7 @@ pub fn module(self: *Self, index: usize, detect_recursion: bool) Error!?Nodes.Fu
 
         if (function.external != null or !std.mem.eql(u8, function.file_name, value.path)) return error.InvalidModule;
 
-        return try nodes.functionEntry(function, if (detect_recursion) own else null);
+        return try nodes.functionEntry(function, if (detect_recursion) own else null, .unchecked);
     }
 
     return null;

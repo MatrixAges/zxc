@@ -124,7 +124,8 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     else
         try Seed.own(function_mapping, module.functions.count(), current.functions.count(), module.function != null);
 
-    const function = if (module.function) |value| try nodes.functionEntry(value, own) else null;
+    const structure: Nodes.Structure = if (decoded) .validated else .unchecked;
+    const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;
     const body = if (function) |*value| &value.body else null;
     const recursive = if (function) |*value| value.recursive else null;
     const result = @import("../link/result/host.zig");

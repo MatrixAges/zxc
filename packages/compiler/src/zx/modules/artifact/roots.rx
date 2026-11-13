@@ -3,11 +3,10 @@
 
     <Args in={Model.Request} out={bool[]?} />
 
-    <Call fn="../../ir/canonical/native/structure" in={$in.modules} />
     <Call fn="roots/valid" in={$in} />
     <Call fn="dependencies/allowed" in={$in.record.import_kinds} />
 
-    <If on={$ctx.structure && $ctx.valid && $ctx.allowed}>
+    <If on={$ctx.valid && $ctx.allowed}>
         <Call module="roots/select" in={$in} />
 
         <Return value={$ctx.select} />

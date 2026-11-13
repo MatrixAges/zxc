@@ -16,14 +16,14 @@
 
             <If on={$ctx.entry_source}>
                 <Call
-                    module="with_body"
+                    module="reachable"
                     in={{
                         request: $in,
                         body: $in.entry
                     }}
                 />
 
-                <Return value={$ctx.with_body} />
+                <Return value={$ctx.reachable} />
 
                 <Else>
                     <Return value={null} />
@@ -50,14 +50,14 @@
                     />
 
                     <Call
-                        module="with_body"
+                        module="reachable"
                         in={{
                             request: $in,
                             body: $ctx.function_body
                         }}
                     />
 
-                    <Return value={$ctx.with_body} />
+                    <Return value={$ctx.reachable} />
 
                     <Else>
                         <Return value={null} />

@@ -1,17 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const Record = @import("../../module_record.zig");
 const Error = @import("../model.zig").Error;
 const borrow = @import("../../../ir/canonical/borrow.zig");
-
-pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program, record: Record) Error![]const bool {
-    const generated = @import("generated_artifact_roots");
-    const Input = std.meta.Child(generated.Input);
-    const ProjectedRecord = std.meta.Child(@FieldType(Input, "record"));
-    const projected = try @import("record.zig").project(ProjectedRecord, arena.allocator(), record);
-
-    return executeProjected(arena, program, projected.record);
-}
 
 pub fn executeProjected(arena: *std.heap.ArenaAllocator, program: ir.Program, projected: anytype) Error![]const bool {
     const generated = @import("generated_artifact_roots");
@@ -50,7 +40,6 @@ pub fn executeProjected(arena: *std.heap.ArenaAllocator, program: ir.Program, pr
         .modules = borrow.pointer(@FieldType(Input, "modules"), &program.native_modules),
         .entry = &entry,
         .record = &projected,
-        .max_offset = std.math.maxInt(usize),
     };
 
     const result = generated.execute(arena, &input) catch |err| switch (err) {
