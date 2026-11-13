@@ -1,0 +1,71 @@
+<Module>
+    <Type from="core/signature_table/model" as="Declarations" />
+    <Type from="core/type_table/nominal" as="Nominal" />
+    <Type from="core/type_table/model" as="Types" />
+    <Type from="core/native_module_table/model" as="Native" />
+    <Type from="../planning/functions/model" as="Functions" />
+
+    <Args
+        in={{
+            table: Types.Table,
+            origins: Nominal.Bindings,
+            declarations: Declarations.Table,
+            modules: Native.Modules,
+            plan: Functions.Plan
+        }}
+        out={{
+            table: Types.Table,
+            origins: Nominal.Bindings,
+            natives?: Native.Modules,
+            signatures?: Declarations.Table
+        }}
+    />
+
+    <Call
+        module="../../../analysis/semantic/extracting/materializing/materialize"
+        in={{
+            table: $in.table,
+            origins: $in.origins,
+            plan: $in.plan.state
+        }}
+    />
+
+    <Call
+        fn="natives"
+        in={{
+            modules: $in.modules,
+            plan: $in.plan.natives,
+            mapping: $in.plan.state.mapping
+        }}
+    />
+
+    <If on={$ctx.natives == null}>
+        <Return
+            value={{
+                table: $ctx.materialize.table,
+                origins: $ctx.materialize.origins,
+                natives: null,
+                signatures: null
+            }}
+        />
+    </If>
+
+    <Call
+        fn="signatures"
+        in={{
+            source: $in.declarations,
+            plan: $in.plan.functions,
+            types: $in.plan.state.mapping,
+            natives: $in.plan.natives.mapping
+        }}
+    />
+
+    <Return
+        value={{
+            table: $ctx.materialize.table,
+            origins: $ctx.materialize.origins,
+            natives: $ctx.natives,
+            signatures: $ctx.signatures
+        }}
+    />
+</Module>

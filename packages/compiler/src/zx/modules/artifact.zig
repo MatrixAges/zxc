@@ -16,5 +16,9 @@ pub fn extract(allocator: std.mem.Allocator, analysis: *const Analysis.Result, m
     if (module_index >= analysis.modules.len) return error.InvalidModule;
     if (try @import("../ir/validate.zig").validate(allocator, analysis.value.ir) != null) return error.InvalidIr;
 
-    return @import("artifact/extract.zig").validated(allocator, analysis, analysis.modules[module_index]);
+    var scratch = @import("zx").Arena.init(allocator);
+
+    defer scratch.deinit();
+
+    return @import("artifact/extract.zig").validated(allocator, scratch.allocator(), analysis, analysis.modules[module_index]);
 }

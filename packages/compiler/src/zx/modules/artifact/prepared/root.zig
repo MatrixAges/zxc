@@ -6,25 +6,24 @@ const model = @import("../model.zig");
 const owned = @import("owned.zig");
 const contents = @import("contents.zig");
 
-pub fn extract(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAllocator, analysis: *const Analysis.Result, record: Record) model.Error!model.Module {
-    const allocator = arena.allocator();
-    const program = analysis.value.ir;
-    const plan = try @import("run.zig").execute(arena, temporary, analysis, record);
-    const prepared = plan.output;
-    const materialized = prepared.value orelse return error.InvalidModule;
+pub fn extract(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysis: *const Analysis.Result, record: Record) model.Error!model.Module {
+    const program = &analysis.value.ir;
+    const prepared = try @import("run.zig").execute(scratch, analysis, record);
+    const plan = prepared.plan;
+    const materialized = try @import("tables.zig").materialize(allocator, program, analysis.nominal_types, plan);
     const types = try owned.types(allocator, materialized.table);
     const origins = try owned.origins(allocator, types, materialized.origins);
 
     var nodes = Nodes{
         .allocator = allocator,
-        .types = .{ .planned = prepared.plan.state.mapping },
-        .functions = .{ .planned = prepared.plan.functions.mapping },
-        .native_modules = .{ .planned = prepared.plan.natives.mapping },
+        .types = .{ .planned = plan.state.mapping },
+        .functions = .{ .planned = plan.functions.mapping },
+        .native_modules = .{ .planned = plan.natives.mapping },
     };
 
-    const native_modules = try owned.natives(allocator, prepared.natives orelse return error.InvalidModule);
-    const functions = try owned.signatures(allocator, prepared.signatures orelse return error.InvalidModule);
-    const body = prepared.body orelse return error.InvalidModule;
+    const native_modules = try owned.natives(allocator, materialized.natives orelse return error.InvalidModule);
+    const functions = try owned.signatures(allocator, materialized.signatures orelse return error.InvalidModule);
+    const body = prepared.body;
     const function = try contents.function(&nodes, program, body);
 
     const stores: @import("zx").ir.StoreTable = if (body.copy_entry_stores)
@@ -35,14 +34,14 @@ pub fn extract(arena: *std.heap.ArenaAllocator, temporary: *std.heap.ArenaAlloca
     else
         .{};
 
-    const surface = try @import("../surface.zig").publish(temporary.allocator(), &nodes, .{
+    const surface = try @import("../surface.zig").publish(scratch, &nodes, .{
         .exports = record.exports,
         .constant_exports = record.constant_exports,
         .constant_imports = record.constant_imports,
         .type_imports = record.type_imports,
         .function_imports = record.function_imports,
         .members = record.reexports.functions,
-    }, plan.references);
+    }, prepared.references);
 
     return .{
         .path = try allocator.dupe(u8, record.path),

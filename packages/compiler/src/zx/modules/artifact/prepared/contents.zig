@@ -22,7 +22,7 @@ pub fn dependencies(nodes: *Nodes, source: []const Record.Import) Error![]const 
     return result;
 }
 
-pub fn function(nodes: *Nodes, program: ir.Program, plan: anytype) Error!?ir.Function {
+pub fn function(nodes: *Nodes, program: *const ir.Program, plan: anytype) Error!?ir.Function {
     if (plan.function_id) |id| return (try nodes.functionEntry(program.functions.at(id), null, .validated)).body;
     if (!plan.use_entry) return null;
 

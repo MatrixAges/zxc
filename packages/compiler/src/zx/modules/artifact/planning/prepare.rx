@@ -1,0 +1,91 @@
+<Module>
+    <Type from="../roots/model" as="Roots" />
+    <Type from="functions/model" as="Functions" />
+    <Type from="../materializing/body" as="Body" />
+    <Type from="core/type_table/nominal" as="Nominal" />
+
+    <Type
+        from="../../../analysis/semantic/extracting/planning/model"
+        as="Planning"
+    />
+
+    <Args
+        in={{
+            source: Roots.Request,
+            body: Body.Input,
+            origins: Nominal.Bindings,
+            origin_names: string[],
+            dependency_keys: string[],
+            scalar_count: u64,
+            maximum_count: u64
+        }}
+        out={{
+            status: Planning.Status,
+            plan?: Functions.Plan,
+            body?: Body.Output
+        }}
+    />
+
+    <Call module="../roots" in={$in.source} />
+
+    <If on={$ctx.roots == null}>
+        <Return
+            value={{
+                status: Planning.Status.Invalid,
+                plan: null,
+                body: null
+            }}
+        />
+    </If>
+
+    <Call
+        module="plan"
+        in={{
+            dependencies: {
+                kinds: $in.source.record.import_kinds,
+                keys: $in.dependency_keys
+            },
+            function_imports: {
+                ids: $in.source.record.function_ids,
+                inputs: $in.source.record.function_inputs,
+                outputs: $in.source.record.function_outputs
+            },
+            modules: $in.source.modules,
+            own_function: $in.body.own_function,
+            request: {
+                table: $in.source.table,
+                origins: $in.origins,
+                names: $in.origin_names,
+                roots: $ctx.roots ?? [],
+                scalar_count: $in.scalar_count,
+                maximum_count: $in.maximum_count
+            },
+            signatures: {
+                inputs: $in.source.functions.input_types,
+                outputs: $in.source.functions.output_types,
+                native_modules: $in.source.functions.native_modules
+            },
+            type_imports: $in.source.record.type_imports
+        }}
+    />
+
+    <If on={$ctx.plan.state.status != Planning.Status.Ready}>
+        <Return
+            value={{
+                status: $ctx.plan.state.status,
+                plan: null,
+                body: null
+            }}
+        />
+    </If>
+
+    <Call fn="../materializing/body" in={$in.body} />
+
+    <Return
+        value={{
+            status: Planning.Status.Ready,
+            plan: $ctx.plan,
+            body: $ctx.body
+        }}
+    />
+</Module>

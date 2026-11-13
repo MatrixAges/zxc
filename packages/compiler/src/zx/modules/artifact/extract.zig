@@ -4,7 +4,7 @@ const Record = @import("../module_record.zig");
 const Model = @import("model.zig");
 
 /// The caller has validated this exact project IR, including its function and type tables.
-pub fn validated(allocator: std.mem.Allocator, analysis: *const Analysis.Result, record: Record) Model.Error!Model.Result {
+pub fn validated(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysis: *const Analysis.Result, record: Record) Model.Error!Model.Result {
     const constants = @import("../../analysis/constants/check.zig");
     const types = analysis.value.ir.types;
 
@@ -15,17 +15,13 @@ pub fn validated(allocator: std.mem.Allocator, analysis: *const Analysis.Result,
 
     errdefer arena.deinit();
 
-    var temporary = std.heap.ArenaAllocator.init(allocator);
-
-    defer temporary.deinit();
-
     if (comptime @import("parser_options").generated_parser) {
-        const value = try @import("prepared/root.zig").extract(&arena, &temporary, analysis, record);
+        const value = try @import("prepared/root.zig").extract(arena.allocator(), scratch, analysis, record);
 
         return .{ .arena = arena, .value = value };
     }
 
-    var builder = try @import("build.zig").init(arena.allocator(), temporary.allocator(), analysis);
+    var builder = try @import("build.zig").init(arena.allocator(), scratch, analysis);
     const value = try builder.extract(record);
 
     return .{ .arena = arena, .value = value };
