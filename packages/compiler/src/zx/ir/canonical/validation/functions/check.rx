@@ -7,7 +7,29 @@
 
     <If on={$ctx.forward}>
         <If on={$in.context.functions.native_modules[$in.index] != null}>
-            <Call module="../external/check" in={$in} />
+            <Call fn="external_body" in={$in} />
+
+            <If on={!$ctx.external_body}>
+                <Return value={false} />
+            </If>
+
+            <Call
+                module="../external/check"
+                in={{
+                    table: $in.context.table,
+                    functions: $in.context.functions.omit([
+                        "store_modes",
+                        "contracts",
+                        "symbols",
+                        "expressions",
+                        "control",
+                        "roots",
+                        "stores"
+                    ]),
+                    modules: $in.context.modules,
+                    index: $in.index
+                }}
+            />
 
             <Return value={$ctx.check} />
 

@@ -1,0 +1,9 @@
+import type { Table } from "core/type_table/model"
+import type { Request } from "./request"
+
+export type Input = {
+    request: Request,
+    types: Table,
+    scalar_count: u64,
+    maximum_count: u64
+}

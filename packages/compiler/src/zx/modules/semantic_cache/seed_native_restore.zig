@@ -12,6 +12,7 @@ pub const Current = @import("native_restore.zig").Current;
 pub const Error = Types.Error || Artifact.Error;
 
 pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) Error!Loaded.Result {
+    if (artifact.constant_exports.len != 0 or artifact.constant_imports.len != 0) return error.InvalidModule;
     if (!artifact.functions.validStructure() or !artifact.native_modules.validStructure() or artifact.function != null or artifact.native_modules.count() != 1 or artifact.dependencies.len != 0 or artifact.type_imports.len != 0 or artifact.stores.count() != 0) return error.InvalidModule;
     if (!std.mem.eql(u8, artifact.path, entry.key()) or artifact.functions.count() != artifact.function_imports.len) return error.InvalidModule;
 

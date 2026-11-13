@@ -23,6 +23,7 @@ pub const entries: []const Package = &.{
     .{ .specifier = "compiler/compiled_contract", .entry = "zx/modules/compiled/loading/remap/contract.rx" },
     .{ .specifier = "compiler/ir_unit_structure", .entry = "zx/ir/canonical/validation/structure/unit.rx" },
     .{ .specifier = "compiler/ir_function_check", .entry = "zx/ir/canonical/validation/functions/check.rx" },
+    .{ .specifier = "compiler/ir_external_check", .entry = "zx/ir/canonical/validation/external/check.rx" },
     .{ .specifier = "compiler/collection_lower", .entry = "zx/analysis/analyzer/collections/lower.rx" },
     .{ .specifier = "compiler/error_effects", .entry = "core/error_effects/analyze.rx" },
     .{ .specifier = "core/error_effects/const", .entry = "core/error_effects/const.zx" },

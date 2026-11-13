@@ -11,14 +11,14 @@ export type Input = Request
 export type Output = bool
 
 export default function (in: Input): Output {
-    const input_type = in.context.functions.input_types[in.index]
-    const output_type = in.context.functions.output_types[in.index]
+    const input_type = in.functions.input_types[in.index]
+    const output_type = in.functions.output_types[in.index]
 
-    const input_kind = kind(in.context.table.kinds[integers.widen(
+    const input_kind = kind(in.table.kinds[integers.widen(
         input_type
     )])
 
-    const output_kind = kind(in.context.table.kinds[integers.widen(
+    const output_kind = kind(in.table.kinds[integers.widen(
         output_type
     )])
 
@@ -27,13 +27,13 @@ export default function (in: Input): Output {
     }
 
     const input_native = contains({
-        table: in.context.table,
+        table: in.table,
         id: input_type,
         native_references: true
     })
 
     const output_native = contains({
-        table: in.context.table,
+        table: in.table,
         id: output_type,
         native_references: true
     })
@@ -43,12 +43,12 @@ export default function (in: Input): Output {
 
     const condition = match {
         produced_native => true,
-        _ => in.context.functions.native_concurrent[in.index] && native_boundary
+        _ => in.functions.native_concurrent[in.index] && native_boundary
     }
 
     if (condition) {
         return false
     }
 
-    return !in.context.functions.native_tuples[in.index] || input_kind == Kind.Tuple
+    return !in.functions.native_tuples[in.index] || input_kind == Kind.Tuple
 }

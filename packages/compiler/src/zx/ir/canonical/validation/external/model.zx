@@ -1,6 +1,10 @@
-import type { Context } from "../model"
+import type { Modules } from "core/native_module_table/model"
+import type { Table as Signatures } from "core/signature_table/model"
+import type { Table } from "core/type_table/model"
 
 export type Request = {
-    context: Context,
+    table: Table,
+    functions: Signatures,
+    modules: Modules,
     index: u64
 }

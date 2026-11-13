@@ -1,0 +1,55 @@
+<Module>
+    <Type from="validation" as="Validation" />
+
+    <Args in={Validation.Input} out={bool} />
+
+    <Call
+        module="../../../../analysis/semantic/validate_types"
+        in={{
+            table: $in.types,
+            scalar_count: $in.scalar_count,
+            maximum_count: $in.maximum_count,
+            trusted: false
+        }}
+    />
+
+    <If on={!$ctx.validate_types}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        module="../../../../ir/canonical/native_modules_check"
+        in={{
+            table: $in.types,
+            modules: $in.request.modules
+        }}
+    />
+
+    <If on={!$ctx.native_modules_check}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="../../../../ir/canonical/validation/external/walk"
+        in={{
+            table: $in.types,
+            functions: $in.request.signatures,
+            modules: $in.request.modules
+        }}
+    />
+
+    <If on={!$ctx.walk}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="../../../../ir/canonical/validation/exports"
+        in={{
+            table: $in.types,
+            export_names: $in.request.export_names,
+            export_types: $in.request.export_types
+        }}
+    />
+
+    <Return value={$ctx.exports} />
+</Module>

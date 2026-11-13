@@ -53,6 +53,8 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .has_function = artifact.function != null,
         .dependency_count = artifact.dependencies.len,
         .type_import_count = artifact.type_imports.len,
+        .constant_export_count = artifact.constant_exports.len,
+        .constant_import_count = artifact.constant_imports.len,
         .store_count = artifact.stores.count(),
         .signatures = &self.signatures,
         .modules = &self.modules,
@@ -66,8 +68,6 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
     self.validation = .{
         .request = &self.request,
         .types = &self.types,
-        .version = zx.ir_version,
-        .max_offset = std.math.maxInt(usize),
         .scalar_count = std.enums.values(ir.Scalar).len,
         .maximum_count = std.math.maxInt(u32),
     };

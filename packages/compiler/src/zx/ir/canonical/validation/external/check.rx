@@ -10,7 +10,7 @@
             module="../../native_export_check"
             in={{
                 functions:
-                    $in.context.functions.pick(
+                    $in.functions.pick(
                         [
                             "input_types",
                             "output_types",
@@ -22,7 +22,7 @@
                             "native_concurrent"
                         ]
                     ),
-                modules: $in.context.modules,
+                modules: $in.modules,
                 index: $in.index
             }}
         />

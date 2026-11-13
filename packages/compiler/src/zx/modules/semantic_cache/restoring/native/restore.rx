@@ -8,12 +8,7 @@
     <Call module="eligible" in={$in.validation.request} />
 
     <If on={$ctx.eligible}>
-        <Call fn="program" in={$in.validation} />
-
-        <Call
-            module="../../../../ir/canonical/validation/validate"
-            in={$ctx.program}
-        />
+        <Call module="validate" in={$in.validation} />
 
         <If on={$ctx.validate}>
             <Call module="merge" in={$in} />

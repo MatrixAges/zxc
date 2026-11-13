@@ -41,7 +41,14 @@
         <Call fn="functions/check_all" in={$in.context} />
 
         <If on={$ctx.check_all}>
-            <Call fn="exports" in={$in} />
+            <Call
+                fn="exports"
+                in={{
+                    table: $in.context.table,
+                    export_names: $in.export_names,
+                    export_types: $in.export_types
+                }}
+            />
 
             <If on={$ctx.exports}>
                 <Call fn="effects/walk" in={$in} />

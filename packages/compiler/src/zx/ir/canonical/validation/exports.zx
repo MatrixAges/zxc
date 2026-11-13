@@ -3,9 +3,13 @@ import { Kind } from "core/type_table/model"
 
 import kind from "../../../analysis/semantic/types/kind"
 
-import type { Program } from "./model"
+import type { Table } from "core/type_table/model"
 
-export type Input = Program
+export type Input = {
+    table: Table,
+    export_names: string[],
+    export_types: u32[]
+}
 
 export type Output = bool
 
@@ -15,7 +19,7 @@ export default function (in: Input): Output {
     }
 
     return loop({
-        table: in.context.table,
+        table: in.table,
         names: in.export_names,
         types: in.export_types,
         index: 0,

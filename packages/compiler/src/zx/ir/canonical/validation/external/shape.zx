@@ -15,19 +15,19 @@ export type Output = {
 }?
 
 export default function (in: Input): Output {
-    const names = in.context.functions.native_inputs[in.index]
-    const module_id = in.context.functions.native_modules[in.index]
+    const names = in.functions.native_inputs[in.index]
+    const module_id = in.functions.native_modules[in.index]
 
     if (names == null || module_id == null) {
         return null
     }
 
     return {
-        table: in.context.table,
+        table: in.table,
         names,
-        binding_names: in.context.modules.type_names[integers.widen(module_id)],
-        binding_types: in.context.modules.type_ids[integers.widen(module_id)],
-        type_id: in.context.functions.input_types[in.index],
+        binding_names: in.modules.type_names[integers.widen(module_id)],
+        binding_types: in.modules.type_ids[integers.widen(module_id)],
+        type_id: in.functions.input_types[in.index],
         depth: 0
     }
 }
