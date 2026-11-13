@@ -1,0 +1,20 @@
+export type Input = {
+    linked_count: u64,
+    append: bool,
+    type_only: bool,
+    recursive: bool,
+    check: bool
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (!in.check) {
+        return null
+    }
+
+    const added = in.append ? 1 : 0
+    const hidden = !in.type_only && !in.recursive ? 1 : 0
+
+    return in.linked_count + added - hidden
+}

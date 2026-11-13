@@ -15,3 +15,12 @@ export type Input = {
     native_modules: Modules,
     stores: u64
 }
+
+export type Store = {
+    handle: string,
+    path: string,
+    type_name?: string,
+    type_id?: u32,
+    readable: bool,
+    writable: bool
+}

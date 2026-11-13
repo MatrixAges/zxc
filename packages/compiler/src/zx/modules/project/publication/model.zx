@@ -1,15 +1,12 @@
 export type Body = {
     type_only: bool,
-    entry: bool,
-    recursive: bool
+    entry: bool
 }
 
 export enum Publication {
     Types,
     Dependency,
-    Entry,
-    RecursiveDependency,
-    RecursiveEntry
+    Entry
 }
 
 export type Request = {
@@ -18,6 +15,7 @@ export type Request = {
     declared: bool,
     restored: bool,
     restored_function?: u32,
+    check_ownership: bool,
     linked_count: u64,
     calls: u32[]
 }
@@ -30,7 +28,9 @@ export type Slot = {
 export type Plan = {
     id?: u32,
     append: bool,
-    publication: Publication
+    publication: Publication,
+    own_function?: u32,
+    ownership_count?: u64
 }
 
 export type Entry = {

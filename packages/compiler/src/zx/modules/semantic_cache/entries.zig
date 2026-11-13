@@ -25,15 +25,15 @@ pub fn deinit(allocator: std.mem.Allocator, entries: *Map) void {
 }
 
 pub fn get(entries: *const Map, path: []const u8, source_digest: [32]u8, context_digest: [32]u8) ?*const Artifact.Module {
-    const entry = find(entries, path, source_digest, context_digest) orelse return null;
+    const entry = find(entries, path, &source_digest, &context_digest) orelse return null;
 
     return &entry.result.value;
 }
 
-pub fn find(entries: *const Map, path: []const u8, source_digest: [32]u8, context_digest: [32]u8) ?*const Entry {
+pub fn find(entries: *const Map, path: []const u8, source_digest: *const [32]u8, context_digest: *const [32]u8) ?*const Entry {
     const entry = entries.get(path) orelse return null;
 
-    if (!State.version(&entry.result.value.source_digest, &source_digest, &entry.context_digest, &context_digest)) return null;
+    if (!State.version(&entry.result.value.source_digest, source_digest, &entry.context_digest, context_digest)) return null;
 
     return entry;
 }

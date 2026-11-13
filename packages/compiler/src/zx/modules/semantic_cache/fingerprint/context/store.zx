@@ -4,35 +4,32 @@ import optionalText from "../columns/optional_text"
 import text from "../columns/text"
 
 import type { Writer } from "std:bytes"
+import type { Store } from "./model"
 
 export type Input = {
     writer: Writer,
-    handle: string,
-    path: string,
-    type_name?: string,
-    type_id?: u32,
-    readable: bool,
-    writable: bool
+    binding: Store
 }
 
 export type Output = void
 
 export default function (in: Input): Output {
-    const { writer, type_id } = in
+    const { writer, binding } = in
+    const { type_id } = binding
 
     text({
         out: writer,
-        value: in.handle
+        value: binding.handle
     })
 
     text({
         out: writer,
-        value: in.path
+        value: binding.path
     })
 
     optionalText({
         out: writer,
-        value: in.type_name
+        value: binding.type_name
     })
 
     bytes.writeByte(writer, type_id == null ? 0 : 1)
@@ -41,6 +38,6 @@ export default function (in: Input): Output {
         bytes.writeU32Le(writer, type_id)
     }
 
-    bytes.writeByte(writer, in.readable ? 1 : 0)
-    bytes.writeByte(writer, in.writable ? 1 : 0)
+    bytes.writeByte(writer, binding.readable ? 1 : 0)
+    bytes.writeByte(writer, binding.writable ? 1 : 0)
 }

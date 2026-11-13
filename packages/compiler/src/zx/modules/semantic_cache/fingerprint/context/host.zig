@@ -1,6 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Context = @import("../../../../analysis/analyze.zig").Context;
+const StoreBinding = @import("../../../../analysis/analyze.zig").StoreBinding;
 
 pub fn digest(allocator: std.mem.Allocator, context: Context) std.mem.Allocator.Error![32]u8 {
     if (comptime !@import("parser_options").generated_parser) {
@@ -41,22 +42,7 @@ pub fn digest(allocator: std.mem.Allocator, context: Context) std.mem.Allocator.
         error.IndexOutOfBounds => unreachable,
     };
 
-    const store = @import("generated_semantic_context_store");
-    const Store = std.meta.Child(store.Input);
-
-    for (context.stores) |*binding| {
-        const row: Store = .{
-            .writer = input.writer,
-            .handle = binding.handle,
-            .path = binding.path,
-            .type_name = binding.type_name,
-            .type_id = if (binding.type_id) |id| @backingInt(id) else null,
-            .readable = binding.readable,
-            .writable = binding.writable,
-        };
-
-        try store.executeValue(memory, &row);
-    }
+    try stores(memory, input.writer, context.stores);
 
     hash.writer.flush() catch unreachable;
 
@@ -65,4 +51,40 @@ pub fn digest(allocator: std.mem.Allocator, context: Context) std.mem.Allocator.
     hash.hasher.final(&result);
 
     return result;
+}
+
+fn stores(memory: std.mem.Allocator, writer: anytype, bindings: []const StoreBinding) std.mem.Allocator.Error!void {
+    const generated = @import("generated_semantic_context_stores");
+    const Input = std.meta.Child(generated.Input);
+    const Store = std.meta.Child(std.meta.Child(@FieldType(Input, "bindings")));
+    const batch_size = 32;
+    var rows: [batch_size]Store = undefined;
+    var pointers: [batch_size]*const Store = undefined;
+    var remaining = bindings;
+
+    while (remaining.len != 0) {
+        const count = @min(rows.len, remaining.len);
+
+        for (remaining[0..count], rows[0..count], pointers[0..count]) |*binding, *row, *pointer| {
+            row.* = .{
+                .handle = binding.handle,
+                .path = binding.path,
+                .type_name = binding.type_name,
+                .type_id = if (binding.type_id) |id| @backingInt(id) else null,
+                .readable = binding.readable,
+                .writable = binding.writable,
+            };
+
+            pointer.* = row;
+        }
+
+        const input: Input = .{ .writer = writer, .bindings = pointers[0..count] };
+
+        zx.columns.invoke(generated.executeValue, memory, &input) catch |err| switch (@as(anyerror, err)) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => unreachable,
+        };
+
+        remaining = remaining[count..];
+    }
 }

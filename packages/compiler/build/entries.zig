@@ -216,7 +216,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/semantic_cache/discovery/eligible.zx", .name = "semantic_cache_imports" },
     .{ .path = "zx/modules/semantic_cache/fingerprint/native.rx", .name = "semantic_cache_native_fingerprint" },
     .{ .path = "zx/modules/semantic_cache/fingerprint/context/encode.rx", .name = "semantic_context_encode" },
-    .{ .path = "zx/modules/semantic_cache/fingerprint/context/store.zx", .name = "semantic_context_store" },
+    .{ .path = "zx/modules/semantic_cache/fingerprint/context/stores.zx", .name = "semantic_context_stores" },
     .{ .path = "zx/modules/semantic_cache/fingerprint/file_key.zx", .name = "semantic_file_key" },
     .{ .path = "zx/modules/semantic_cache/envelope/const.zx", .name = "semantic_cache_constants" },
     .{ .path = "zx/modules/semantic_cache/validation/admit.rx", .name = "semantic_cache_admit" },

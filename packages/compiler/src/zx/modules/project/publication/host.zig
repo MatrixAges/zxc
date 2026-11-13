@@ -8,15 +8,17 @@ const Publication = if (enabled)
     @FieldType(@typeInfo(@TypeOf(@import("generated_project_body_publish").executeValue(undefined, undefined))).error_union.payload, "publication")
 
 else
-    enum { Types, Dependency, Entry, RecursiveDependency, RecursiveEntry };
+    enum { Types, Dependency, Entry };
 
 pub const Plan = struct {
     id: ?ir.FunctionId,
     append: bool,
-    publication: Publication,
+    body: @FieldType(@import("../../module_record.zig"), "body"),
+    own_function: ?ir.FunctionId,
+    ownership_count: ?usize,
 };
 
-pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: usize, restored: ?*const @import("../../semantic_cache/restore.zig").Restored) std.mem.Allocator.Error!Plan {
+pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: usize, restored: ?*const @import("../../semantic_cache/restore.zig").Restored, check_ownership: bool) std.mem.Allocator.Error!Plan {
     const recovered = if (restored) |value| value.recursive else null;
 
     if (comptime enabled) {
@@ -28,6 +30,7 @@ pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: u
             .declared = declared,
             .restored = restored != null,
             .restored_function = if (recovered) |id| @backingInt(id) else null,
+            .check_ownership = check_ownership,
             .linked_count = linked,
             .calls = program.expressions.call_functions,
         };
@@ -39,26 +42,36 @@ pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: u
             else => unreachable,
         };
 
+        const id: ?ir.FunctionId = if (result.id) |value| @fromBackingInt(value) else null;
+
         return .{
-            .id = if (result.id) |id| @fromBackingInt(id) else null,
+            .id = id,
             .append = result.append,
-            .publication = result.publication,
+            .body = body(result.publication, id),
+            .own_function = if (result.own_function) |value| @fromBackingInt(value) else null,
+            .ownership_count = if (result.ownership_count) |count| @intCast(count) else null,
         };
     }
 
     const append = recovered == null and !program.type_only;
     const id = recovered orelse if (append) @as(ir.FunctionId, @fromBackingInt(@as(u32, @intCast(linked)))) else null;
     const recursive = !program.type_only and declared and if (restored != null) recovered != null else functions.calls(program.expressions, id.?);
-
-    const publication: Publication = if (program.type_only) .Types else if (entry)
-        if (recursive) .RecursiveEntry else .Entry
-
-    else if (recursive) .RecursiveDependency else .Dependency;
+    const publication: Publication = if (program.type_only) .Types else if (entry) .Entry else .Dependency;
 
     return .{
         .id = id,
         .append = append,
-        .publication = publication,
+        .body = body(publication, id),
+        .own_function = if (recursive) id else null,
+        .ownership_count = if (restored == null and check_ownership) linked + @intFromBool(append) - @intFromBool(!program.type_only and !recursive) else null,
+    };
+}
+
+fn body(publication: Publication, id: ?ir.FunctionId) @FieldType(@import("../../module_record.zig"), "body") {
+    return switch (publication) {
+        .Types => .types,
+        .Entry => .entry,
+        .Dependency => .{ .function = id.? },
     };
 }
 

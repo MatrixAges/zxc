@@ -1,0 +1,26 @@
+import writeStore from "./store"
+
+import type { Writer } from "std:bytes"
+import type { Store } from "./model"
+
+export type Input = {
+    writer: Writer,
+    bindings: Store[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const result = loop({
+        row: 0
+    }, {
+        while: state => state.row < in.bindings.length,
+        next: state => {
+            writeStore({
+                writer: in.writer,
+                binding: in.bindings[state.row]
+            })
+            state.row += 1
+        }
+    })
+}

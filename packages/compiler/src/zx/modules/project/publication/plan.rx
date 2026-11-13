@@ -17,15 +17,27 @@
         module="classify"
         in={{
             type_only: $in.type_only,
-            entry: $in.entry,
-            recursive: $ctx.recursion
+            entry: $in.entry
+        }}
+    />
+
+    <Call
+        fn="ownership_count"
+        in={{
+            linked_count: $in.linked_count,
+            append: $ctx.slot.append,
+            type_only: $in.type_only,
+            recursive: $ctx.recursion,
+            check: $in.check_ownership && !$in.restored
         }}
     />
 
     <Return
         value={{
             ...$ctx.slot,
-            publication: $ctx.classify
+            publication: $ctx.classify,
+            own_function: $ctx.recursion ? $ctx.slot.id : null,
+            ownership_count: $ctx.ownership_count
         }}
     />
 </Module>

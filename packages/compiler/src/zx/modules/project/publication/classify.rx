@@ -8,15 +8,7 @@
     </If>
 
     <If on={$in.entry}>
-        <If on={$in.recursive}>
-            <Return value={State.Publication.RecursiveEntry} />
-        </If>
-
         <Return value={State.Publication.Entry} />
-    </If>
-
-    <If on={$in.recursive}>
-        <Return value={State.Publication.RecursiveDependency} />
     </If>
 
     <Return value={State.Publication.Dependency} />

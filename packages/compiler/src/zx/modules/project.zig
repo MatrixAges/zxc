@@ -469,7 +469,7 @@ const Project = struct {
         if (self.semantic_cache) |cache| {
             unit.context_digest = try self.contextDigest(entry);
 
-            if (SemanticCache.entry_store.find(&cache.entries, unit.path, source_digest, unit.context_digest)) |cached| {
+            if (SemanticCache.entry_store.find(&cache.entries, unit.path, &frame.parsed.digest, &unit.context_digest)) |cached| {
                 if (try @import("semantic_cache/restore.zig").restore(cached, .{
                     .allocator = self.allocator,
                     .backing = self.arena.child_allocator,
@@ -522,16 +522,13 @@ const Project = struct {
             break :analyze_block try input.analyze(&analyzer, unit.path);
         };
 
-        const publication = try @import("project/publication/host.zig").module(&program, entry, input.header().functionName() != null, self.functions.count(), if (restored) |*value| value else null);
+        const publication = try @import("project/publication/host.zig").module(&program, entry, input.header().functionName() != null, self.functions.count(), if (restored) |*value| value else null, !@TypeOf(input).completes_ownership);
 
         unit.function = publication.id;
 
         if (publication.append) try self.functions.append(self.allocator, @import("function_body.zig").value(program));
 
-        if (restored == null and !@TypeOf(input).completes_ownership) {
-            const recursive = publication.publication == .RecursiveEntry or publication.publication == .RecursiveDependency;
-            const count = self.functions.count() - @intFromBool(!program.type_only and !recursive);
-
+        if (publication.ownership_count) |count| {
             program.functions = self.functions.view().prefix(count);
             program.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, program, self.reporter);
 
@@ -566,15 +563,8 @@ const Project = struct {
             .imports = dependencies.items,
             .type_imports = aliases.items,
             .function_imports = imports.items,
-            .body = switch (publication.publication) {
-                .Types => .types,
-                .Entry, .RecursiveEntry => .entry,
-                .Dependency, .RecursiveDependency => .{ .function = unit.function.? },
-            },
-            .own_function = switch (publication.publication) {
-                .RecursiveEntry, .RecursiveDependency => unit.function,
-                else => null,
-            },
+            .body = publication.body,
+            .own_function = publication.own_function,
         });
 
         if (entry) {
