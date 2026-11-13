@@ -1,12 +1,12 @@
 const std = @import("std");
 const Artifact = @import("artifact/model.zig");
 const ParseCache = @import("parse_cache.zig");
-const Context = @import("../analysis/analyze.zig").Context;
 const Self = @This();
 pub const entry_store = @import("semantic_cache/entries.zig");
 const NativeCache = @import("semantic_cache/native.zig");
-
 pub const codec = @import("semantic_cache/codec.zig");
+pub const contextDigest = @import("semantic_cache/fingerprint/context/host.zig").digest;
+pub const filePath = @import("semantic_cache/fingerprint/file_key.zig").path;
 
 allocator: std.mem.Allocator,
 parse_cache: ParseCache,
@@ -33,16 +33,4 @@ pub fn get(self: *const Self, path: []const u8, source_digest: [32]u8, context_d
 
 pub fn put(self: *Self, result: Artifact.Result, context_digest: [32]u8) std.mem.Allocator.Error!void {
     return entry_store.put(self.allocator, &self.entries, result, context_digest);
-}
-
-pub fn contextDigest(allocator: std.mem.Allocator, context: Context) std.mem.Allocator.Error![32]u8 {
-    const encoded = try std.json.Stringify.valueAlloc(allocator, context, .{});
-
-    defer allocator.free(encoded);
-
-    var digest: [32]u8 = undefined;
-
-    @import("zx").Sha256.hash(encoded, &digest, .{});
-
-    return digest;
 }

@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+
+import { cache_extension, native_directory } from "./const"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    writer: Writer,
+    native: bool,
+    digest: u8[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, native, digest } = in
+
+    if (native) {
+        bytes.write(writer, bytes.fromText(native_directory))
+    }
+
+    bytes.write(writer, digest)
+    bytes.write(writer, bytes.fromText(cache_extension))
+}

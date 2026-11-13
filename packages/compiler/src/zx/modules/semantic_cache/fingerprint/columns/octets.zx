@@ -1,0 +1,17 @@
+import bytes from "std:bytes"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    value: u8[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { out, value: values } = in
+
+    bytes.writeU64Le(out, values.length)
+    bytes.write(out, values)
+}

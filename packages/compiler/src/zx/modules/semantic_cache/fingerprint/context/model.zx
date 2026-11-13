@@ -1,0 +1,17 @@
+import type { Writer } from "std:bytes"
+import type { Modules } from "core/native_module_table/model"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+
+export type Origins = {
+    bindings: Bindings,
+    names: string[]
+}
+
+export type Input = {
+    writer: Writer,
+    types: Table,
+    origins: Origins,
+    native_modules: Modules,
+    stores: u64
+}

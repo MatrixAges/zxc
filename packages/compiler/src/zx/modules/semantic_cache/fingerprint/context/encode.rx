@@ -1,0 +1,39 @@
+<Module>
+    <Type from="model" as="Context" />
+
+    <Args in={Context.Input} out={void} />
+
+    <Call fn="header" in={$in.writer} />
+
+    <Call
+        fn="types"
+        in={$in.pick([
+            "writer",
+            "types"
+        ])}
+    />
+
+    <Call
+        fn="origins"
+        in={$in.pick([
+            "writer",
+            "origins"
+        ])}
+    />
+
+    <Call
+        fn="native_modules"
+        in={$in.pick([
+            "writer",
+            "native_modules"
+        ])}
+    />
+
+    <Call
+        fn="store_count"
+        in={$in.pick([
+            "writer",
+            "stores"
+        ])}
+    />
+</Module>

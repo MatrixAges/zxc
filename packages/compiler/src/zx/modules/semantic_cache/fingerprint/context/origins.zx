@@ -1,0 +1,43 @@
+import integers from "../columns/integers"
+import octets from "../columns/octets"
+import strings from "../columns/strings"
+
+import type { Writer } from "std:bytes"
+import type { Origins } from "./model"
+
+export type Input = {
+    writer: Writer,
+    origins: Origins
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, origins } = in
+    const { bindings, names } = origins
+
+    integers({
+        out: writer,
+        value: bindings.ids
+    })
+
+    octets({
+        out: writer,
+        value: bindings.kinds
+    })
+
+    strings({
+        out: writer,
+        value: bindings.owners
+    })
+
+    strings({
+        out: writer,
+        value: bindings.members
+    })
+
+    strings({
+        out: writer,
+        value: names
+    })
+}

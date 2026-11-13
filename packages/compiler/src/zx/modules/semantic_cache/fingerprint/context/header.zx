@@ -1,0 +1,13 @@
+import text from "../columns/text"
+import { context_domain } from "../const"
+
+import type { Writer as Input } from "std:bytes"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    text({
+        out: in,
+        value: context_domain
+    })
+}

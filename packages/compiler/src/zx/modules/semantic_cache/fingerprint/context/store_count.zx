@@ -1,0 +1,14 @@
+import bytes from "std:bytes"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    writer: Writer,
+    stores: u64
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    bytes.writeU64Le(in.writer, in.stores)
+}

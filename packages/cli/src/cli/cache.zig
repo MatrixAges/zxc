@@ -139,11 +139,7 @@ pub fn finish(self: *Self, cache: *SemanticCache, options: @import("options.zig"
 }
 
 fn filePath(self: *const Self, source: []const u8, kind: Kind) std.mem.Allocator.Error![]u8 {
-    var digest: [32]u8 = undefined;
-
-    std.crypto.hash.sha2.Sha256.hash(source, &digest, .{});
-
-    return std.fmt.allocPrint(self.allocator, "{s}/{s}{s}.cache", .{ self.directory, if (kind == .native) "native/" else "", std.fmt.bytesToHex(digest, .lower) });
+    return SemanticCache.filePath(self.allocator, self.directory, source, kind == .native);
 }
 
 fn registered(specifier: []const u8, path: []const u8, project: compiler.project.Options) ?[]const u8 {

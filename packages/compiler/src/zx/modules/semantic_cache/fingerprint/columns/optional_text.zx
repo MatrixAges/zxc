@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import text from "./text"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    value: string?
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { out, value } = in
+
+    bytes.writeByte(out, value == null ? 0 : 1)
+
+    if (value != null) {
+        text({
+            out,
+            value
+        })
+    }
+}

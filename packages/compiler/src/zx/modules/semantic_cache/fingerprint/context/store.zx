@@ -1,0 +1,46 @@
+import bytes from "std:bytes"
+
+import optionalText from "../columns/optional_text"
+import text from "../columns/text"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    writer: Writer,
+    handle: string,
+    path: string,
+    type_name?: string,
+    type_id?: u32,
+    readable: bool,
+    writable: bool
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { writer, type_id } = in
+
+    text({
+        out: writer,
+        value: in.handle
+    })
+
+    text({
+        out: writer,
+        value: in.path
+    })
+
+    optionalText({
+        out: writer,
+        value: in.type_name
+    })
+
+    bytes.writeByte(writer, type_id == null ? 0 : 1)
+
+    if (type_id != null) {
+        bytes.writeU32Le(writer, type_id)
+    }
+
+    bytes.writeByte(writer, in.readable ? 1 : 0)
+    bytes.writeByte(writer, in.writable ? 1 : 0)
+}
