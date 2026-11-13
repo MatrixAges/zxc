@@ -60,15 +60,7 @@ fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeI
         const type_id: zx.ir.TypeId = switch (state.route) {
             .Complete => return @fromBackingInt(state.completed.?),
             .Scalar => @fromBackingInt(state.completed.?),
-            .List => try graph.types.wrap(.list, @fromBackingInt(state.completed.?)),
-            .Optional => try graph.types.wrap(.optional, @fromBackingInt(state.completed.?)),
-            .Tuple => try graph.types.tuple(@ptrCast(state.values.items[@intCast(state.used)..][0..@intCast(state.count)])),
-            .Object => object: {
-                const fields = Graph.Fields.fromValues(@ptrCast(rows.items(.members)[state.node]));
-                const children = state.values.items[@intCast(state.used)..][0..@intCast(state.count)];
-
-                break :object try graph.types.objectWithNames(fields.names(), @constCast(children));
-            },
+            .List, .Optional, .Tuple, .Object => try materialize(graph, rows, state),
             .Depth => return graph.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels"),
             .Sequence => return graph.reporter.fail(.contract, span, "sequence constraints must be finalized before type resolution"),
             .Unconstrained => return graph.reporter.fail(.type_mismatch, span, "input type cannot be inferred from the available constraints"),
@@ -86,4 +78,41 @@ fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeI
         state.count = 0;
         state.route = .Search;
     }
+}
+
+fn materialize(graph: *Graph, rows: Nodes.Storage.Slice, state: anytype) zx.Error!zx.ir.TypeId {
+    const generated = @import("generated_rx_materialize_type");
+    const Input = std.meta.Child(generated.Input);
+    const Tables = std.meta.Child(@FieldType(Input, "tables"));
+    const Table = std.meta.Child(@FieldType(Tables, "base"));
+    const Aggregate = std.meta.Child(@FieldType(Input, "aggregate"));
+    const children = state.values.items[@intCast(state.used)..][0..@intCast(state.count)];
+
+    const names = if (state.route == .Object)
+        Graph.Fields.fromValues(@ptrCast(rows.items(.members)[state.node])).names()
+
+    else
+        &.{};
+
+    const base = zx.ir.TypeTable.borrow(Table, graph.types.items.view());
+    const empty = zx.ir.TypeTable.borrow(Table, .{});
+
+    const input: Input = .{
+        .tables = &.{ .base = &base, .delta = &empty },
+        .aggregate = &@as(Aggregate, .{
+            .route = @fromBackingInt(@backingInt(state.route)),
+            .child = state.completed orelse 0,
+            .children = if (state.route == .Tuple) children else &.{},
+            .fields = &.{ .names = names, .types = if (state.route == .Object) children else &.{} },
+        }),
+    };
+
+    var overflow = std.heap.ArenaAllocator.init(graph.scratch);
+
+    defer overflow.deinit();
+
+    var buffer: [512]u8 = undefined;
+    var scratch = std.heap.BufferFirstAllocator.init(&buffer, overflow.allocator());
+
+    return @import("frontend").constructTypeWith(generated.executeValue, &graph.types, scratch.allocator(), &input, false);
 }

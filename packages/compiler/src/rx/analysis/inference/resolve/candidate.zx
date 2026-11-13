@@ -1,0 +1,29 @@
+import { Kind } from "core/type_table/model"
+
+import { Route } from "./model"
+
+import type { Candidate } from "../../../../zx/analysis/semantic/types/model"
+import type { Aggregate } from "./model"
+
+export type Input = Aggregate
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    const kind = match in.route {
+        Route.List => Kind.List,
+        Route.Optional => Kind.Optional,
+        Route.Tuple => Kind.Tuple,
+        _ => Kind.Object
+    }
+
+    return {
+        kind,
+        first: in.child,
+        second: 0,
+        label: "",
+        children: in.children,
+        fields: in.fields,
+        names: []
+    }
+}

@@ -1,3 +1,4 @@
+import type { Fields, Tables } from "core/type_table/model"
 import type { Kind } from "../unification/model"
 
 export enum Route {
@@ -33,4 +34,16 @@ export type Request = {
     node: u32,
     completed?: u32,
     route: Route
+}
+
+export type Aggregate = {
+    route: Route,
+    child: u32,
+    children: u32[],
+    fields: Fields
+}
+
+export type Materialization = {
+    tables: Tables,
+    aggregate: Aggregate
 }

@@ -1,0 +1,18 @@
+<Module>
+    <Type from="model" as="Resolve" />
+    <Type from="../../../../zx/analysis/semantic/constructing/model" as="Construction" />
+
+    <Args in={Resolve.Materialization} out={Construction.Publication} />
+
+    <Call fn="candidate" in={$in.aggregate} />
+
+    <Call
+        module="../../../../zx/analysis/semantic/construct_type"
+        in={{
+            tables: $in.tables,
+            candidate: $ctx.candidate
+        }}
+    />
+
+    <Return value={$ctx.construct_type} />
+</Module>

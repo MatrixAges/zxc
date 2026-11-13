@@ -24,7 +24,11 @@ pub fn create(types: *Types, value: zx.ir.TypeValue) zx.Error!zx.ir.TypeId {
 
     defer arena.deinit();
 
-    const result = zx.columns.invoke(generated.executeValue, arena.allocator(), &input) catch |err| switch (err) {
+    return createWith(generated.executeValue, types, arena.allocator(), &input, value == .error_set);
+}
+
+pub fn createWith(comptime entry: anytype, types: *Types, scratch: std.mem.Allocator, input: anytype, owns_names: bool) zx.Error!zx.ir.TypeId {
+    const result = zx.columns.invoke(entry, scratch, input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };
@@ -48,8 +52,8 @@ pub fn create(types: *Types, value: zx.ir.TypeValue) zx.Error!zx.ir.TypeId {
         .names = row.names,
     };
 
-    if (value == .error_set) {
-        const names = try arena.allocator().alloc([]const u8, delta.names.len);
+    if (owns_names) {
+        const names = try scratch.alloc([]const u8, delta.names.len);
         var copied: usize = 0;
 
         errdefer for (names[0..copied]) |name| types.allocator.free(name);

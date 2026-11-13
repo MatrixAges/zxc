@@ -35,6 +35,7 @@ pub const analyzeWithContext = @import("analysis/analyze.zig").analyzeWithContex
 pub const Context = @import("analysis/analyze.zig").Context;
 pub const project = @import("modules/project.zig");
 pub const types = @import("analysis/types.zig");
+pub const constructTypeWith = @import("analysis/semantic/construction.zig").createWith;
 pub const type_views = @import("type_views");
 pub const type_table = @import("analysis/type_table.zig");
 pub const parseInteger = @import("analysis/integer.zig").parse;
