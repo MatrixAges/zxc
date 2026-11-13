@@ -46,7 +46,7 @@
 
     <If on={!$in.decoded}>
         <Call
-            module="../../validation/constants"
+            module="../../../../analysis/constants/validate_pair"
             in={{
                 types: {
                     base: $in.merge.source,
@@ -57,7 +57,7 @@
             }}
         />
 
-        <If on={!$ctx.constants}>
+        <If on={!$ctx.validate_pair}>
             <Return value={null} />
         </If>
     </If>

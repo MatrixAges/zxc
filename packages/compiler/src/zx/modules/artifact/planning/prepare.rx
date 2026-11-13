@@ -3,6 +3,8 @@
     <Type from="functions/model" as="Functions" />
     <Type from="../materializing/body" as="Body" />
     <Type from="core/type_table/nominal" as="Nominal" />
+    <Type from="../../../analysis/constants/model" as="Constants" />
+    <Type from="surface/model" as="Surface" />
 
     <Type
         from="../../../analysis/semantic/extracting/planning/model"
@@ -15,7 +17,8 @@
             body: Body.Input,
             origins: Nominal.Bindings,
             origin_names: string[],
-            dependency_keys: string[],
+            constants?: Constants.Interface,
+            surface: Surface.References,
             scalar_count: u64,
             maximum_count: u64
         }}
@@ -25,6 +28,38 @@
             body?: Body.Output
         }}
     />
+
+    <If on={$in.constants != null}>
+        <Call module="../../../analysis/constants/validate_pair" in={$in.constants} />
+
+        <If on={!$ctx.validate_pair}>
+            <Return
+                value={{
+                    status: Planning.Status.Invalid,
+                    plan: null,
+                    body: null
+                }}
+            />
+        </If>
+    </If>
+
+    <Call
+        fn="../../../analysis/semantic/types/nominal/shape"
+        in={{
+            origins: $in.origins,
+            names: $in.origin_names
+        }}
+    />
+
+    <If on={!$ctx.shape}>
+        <Return
+            value={{
+                status: Planning.Status.Invalid,
+                plan: null,
+                body: null
+            }}
+        />
+    </If>
 
     <Call module="../roots" in={$in.source} />
 
@@ -43,7 +78,7 @@
         in={{
             dependencies: {
                 kinds: $in.source.record.import_kinds,
-                keys: $in.dependency_keys
+                keys: $in.source.record.dependency_keys
             },
             function_imports: {
                 ids: $in.source.record.function_ids,
@@ -80,6 +115,15 @@
     </If>
 
     <Call fn="../materializing/body" in={$in.body} />
+
+    <Call
+        module="surface/remap"
+        in={{
+            references: $in.surface,
+            types: $ctx.plan.state.mapping,
+            functions: $ctx.plan.functions.mapping
+        }}
+    />
 
     <Return
         value={{

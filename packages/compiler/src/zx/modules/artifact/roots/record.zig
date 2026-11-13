@@ -3,8 +3,8 @@ const Record = @import("../../module_record.zig");
 const Error = @import("../model.zig").Error;
 
 pub const References = struct {
-    types: []const u32,
-    functions: []const u32,
+    types: []u32,
+    functions: []u32,
 };
 
 pub fn Projection(comptime Target: type) type {
@@ -34,6 +34,7 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
     const function_ids = try allocator.alloc(u32, ordinary_count);
     const import_kinds = try allocator.alloc(Kind, record.imports.len);
     const import_specifiers = try allocator.alloc([]const u8, record.imports.len);
+    const dependency_keys = try allocator.alloc([]const u8, record.imports.len);
 
     for (record.exports, declarations[0..record.exports.len]) |value, *id| id.* = @backingInt(value.type_id);
     for (record.constant_exports, declarations[record.exports.len..][0..record.constant_exports.len]) |value, *id| id.* = @backingInt(value.type_id);
@@ -51,7 +52,7 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         function_index += 1;
     };
 
-    for (record.imports, import_kinds, import_specifiers) |value, *kind, *specifier| {
+    for (record.imports, import_kinds, import_specifiers, dependency_keys) |*value, *kind, *specifier, *key| {
         kind.* = switch (value.target) {
             .source => .Source,
             .native => .Native,
@@ -61,6 +62,7 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         };
 
         specifier.* = value.specifier;
+        key.* = value.identity orelse value.specifier;
     }
 
     const view: Target = .{
@@ -74,9 +76,13 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         .function_outputs = function_outputs,
         .import_kinds = import_kinds,
         .import_specifiers = import_specifiers,
+        .dependency_keys = dependency_keys,
         .has_body = record.body != .types,
         .body_function = if (record.own_function) |id| @backingInt(id) else if (record.body == .function) @backingInt(record.body.function) else null,
     };
 
-    return .{ .record = view, .references = .{ .types = types, .functions = function_ids } };
+    return .{
+        .record = view,
+        .references = .{ .types = types, .functions = function_ids },
+    };
 }

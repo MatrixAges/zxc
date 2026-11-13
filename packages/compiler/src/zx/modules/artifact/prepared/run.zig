@@ -10,6 +10,9 @@ const projection = @import("../roots/record.zig");
 const source_view = @import("../roots/run.zig");
 const Input = std.meta.Child(generated.Input);
 const Source = std.meta.Child(@FieldType(Input, "source"));
+const Constants = std.meta.Child(@typeInfo(@FieldType(Input, "constants")).optional.child);
+const Surface = std.meta.Child(@FieldType(Input, "surface"));
+const Column = std.meta.Child(@FieldType(Surface, "types"));
 const Output = std.meta.Child(generated.Output);
 const Plan = @typeInfo(@FieldType(Output, "plan")).optional.child;
 const Body = @typeInfo(@FieldType(Output, "body")).optional.child;
@@ -22,15 +25,8 @@ const Prepared = struct {
 
 pub fn execute(temporary: std.mem.Allocator, analysis: *const Analysis.Result, record: Record) Error!Prepared {
     const program = &analysis.value.ir;
-
-    if (!analysis.nominal_types.hasValidShape()) return error.InvalidModule;
-
     const Projected = std.meta.Child(@FieldType(Source, "record"));
     const view = try projection.project(Projected, temporary, record);
-    const keys = try temporary.alloc([]const u8, record.imports.len);
-
-    for (record.imports, keys) |dependency, *key| key.* = dependency.identity orelse dependency.specifier;
-
     const table = ir.TypeTable.borrow(std.meta.Child(@FieldType(Source, "table")), program.types);
     const origins = Origins.Table.borrow(std.meta.Child(@FieldType(Input, "origins")), analysis.nominal_types);
     const functions = source_view.functions(std.meta.Child(@FieldType(Source, "functions")), program);
@@ -56,12 +52,26 @@ pub fn execute(temporary: std.mem.Allocator, analysis: *const Analysis.Result, r
         .own_function = if (record.own_function) |id| @backingInt(id) else null,
     };
 
+    const Tables = std.meta.Child(@FieldType(Constants, "types"));
+    const Values = std.meta.Child(@typeInfo(@FieldType(Constants, "imports")).optional.child);
+    const marshal = @import("../../../analysis/constants/input.zig").marshal;
+    const base = ir.TypeTable.borrow(std.meta.Child(@FieldType(Tables, "base")), program.types);
+    const delta = ir.TypeTable.borrow(std.meta.Child(@FieldType(Tables, "delta")), .{});
+    const tables: Tables = .{ .base = &base, .delta = &delta };
+    const exports = try marshal(Values, temporary, record.constant_exports);
+    const imports = try marshal(Values, temporary, record.constant_imports);
+    const constants: Constants = .{ .types = &tables, .exports = exports, .imports = imports };
+    const surface_types: Column = .{ .buffer = @ptrCast(&view.references.types), .count = view.references.types.len };
+    const surface_functions: Column = .{ .buffer = @ptrCast(&view.references.functions), .count = view.references.functions.len };
+    const surface: Surface = .{ .types = &surface_types, .functions = &surface_functions };
+
     const input: Input = .{
         .source = &source,
         .body = &body,
         .origins = &origins,
         .origin_names = analysis.nominal_types.names,
-        .dependency_keys = keys,
+        .constants = if (exports != null or imports != null) &constants else null,
+        .surface = &surface,
         .scalar_count = std.enums.values(ir.Scalar).len,
         .maximum_count = std.math.maxInt(u32),
     };

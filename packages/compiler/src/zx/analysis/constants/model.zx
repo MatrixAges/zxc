@@ -1,6 +1,14 @@
+import type { Values } from "core/constant/model"
 import type { Expressions } from "core/expression_table/model"
+import type { Tables } from "core/type_table/model"
 import type { Diagnostic } from "../../frontend/lexer/model"
 import type { Value } from "./scalar/model"
+
+export type Interface = {
+    types: Tables,
+    exports?: Values,
+    imports?: Values
+}
 
 export type Request = {
     expressions: Expressions,

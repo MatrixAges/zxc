@@ -3,7 +3,11 @@ const ir = @import("zx").ir;
 const Binding = @import("../function_import.zig");
 const Nodes = @import("nodes.zig");
 const Error = @import("model.zig").Error;
-const References = @import("roots/record.zig").References;
+
+pub const References = struct {
+    types: []const u32,
+    functions: []const u32,
+};
 
 const Surface = struct {
     exports: []const ir.Export = &.{},
@@ -31,13 +35,13 @@ pub fn linked(temporary: std.mem.Allocator, nodes: *const Nodes, exports: []cons
     for (exports, types[0..exports.len]) |item, *slot| slot.* = @backingInt(item.type_id);
     for (constants, types[exports.len..]) |item, *slot| slot.* = @backingInt(item.type_id);
 
-    return publish(memory, nodes, .{ .exports = exports, .constant_exports = constants }, .{ .types = types, .functions = &.{} });
+    const mapped = try @import("nodes/remap.zig").columns(memory, nodes, types, &.{});
+
+    return copy(nodes.allocator, .{ .exports = exports, .constant_exports = constants }, .{ .types = mapped.types, .functions = mapped.functions });
 }
 
-pub fn publish(memory: std.mem.Allocator, nodes: *const Nodes, source: Surface, references: References) Error!Surface {
-    const mapped = try @import("nodes/remap.zig").columns(memory, nodes, references.types, references.functions);
+pub fn copy(allocator: std.mem.Allocator, source: Surface, mapped: References) Error!Surface {
     var types = mapped.types;
-    const allocator = nodes.allocator;
     var result: Surface = .{};
     result.exports = try copyExports(allocator, source.exports, &types);
     result.constant_exports = try copyConstants(allocator, source.constant_exports, &types);
@@ -69,10 +73,10 @@ pub fn copyExports(allocator: std.mem.Allocator, source: []const ir.Export, type
 
 pub fn copyConstants(allocator: std.mem.Allocator, source: []const ir.Constant, types: *[]const u32) Error![]const ir.Constant {
     const result = try allocator.alloc(ir.Constant, source.len);
-    const copy = @import("../../analysis/constants/copy.zig").copy;
+    const copyConstant = @import("../../analysis/constants/copy.zig").copy;
 
     for (source, result) |item, *target| {
-        target.* = try copy(allocator, item);
+        target.* = try copyConstant(allocator, item);
         target.type_id = take(ir.TypeId, types);
     }
 

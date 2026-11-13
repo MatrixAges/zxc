@@ -1,17 +1,11 @@
-import type { Values } from "core/constant/model"
 import type { Contracts } from "core/contract_table/model"
 import type { Body } from "core/ir/body"
 import type { Modules } from "core/native_module_table/model"
 import type { Table as Signatures } from "core/signature_table/model"
 import type { Stores } from "core/store_table/model"
-import type { Table as Types, Tables as TypeTables } from "core/type_table/model"
+import type { Table as Types } from "core/type_table/model"
+import type { Interface as Constants } from "../../../analysis/constants/model"
 import type { FunctionBinding } from "../../binding/model"
-
-export type Constants = {
-    types: TypeTables,
-    exports?: Values,
-    imports?: Values
-}
 
 export type Tables = {
     signatures: Signatures,

@@ -34,14 +34,14 @@ pub fn extract(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysi
     else
         .{};
 
-    const surface = try @import("../surface.zig").publish(scratch, &nodes, .{
+    const surface = try @import("../surface.zig").copy(allocator, .{
         .exports = record.exports,
         .constant_exports = record.constant_exports,
         .constant_imports = record.constant_imports,
         .type_imports = record.type_imports,
         .function_imports = record.function_imports,
         .members = record.reexports.functions,
-    }, prepared.references);
+    }, .{ .types = prepared.references.types, .functions = prepared.references.functions });
 
     return .{
         .path = try allocator.dupe(u8, record.path),

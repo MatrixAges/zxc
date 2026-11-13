@@ -15,14 +15,18 @@ export default function (in: Input): Output {
         return false
     }
 
-    const not_length = record.function_ids.length != record.function_inputs.length
-    const not_length_2 = record.function_ids.length != record.function_outputs.length
-    const not_length_3 = record.import_kinds.length != record.import_specifiers.length
+    const function_ids = record.function_ids.length
+    const dependencies = record.import_kinds.length
+    const input_mismatch = record.function_inputs.length != function_ids
+    const output_mismatch = record.function_outputs.length != function_ids
+    const specifier_mismatch = record.import_specifiers.length != dependencies
+    const key_mismatch = record.dependency_keys.length != dependencies
 
     const condition = (
-        - not_length
-        - or not_length_2
-        - or not_length_3
+        - input_mismatch
+        - or output_mismatch
+        - or specifier_mismatch
+        - or key_mismatch
     )
 
     if (condition) {

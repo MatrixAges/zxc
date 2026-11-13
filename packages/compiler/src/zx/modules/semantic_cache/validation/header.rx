@@ -24,9 +24,9 @@
     </If>
 
     <If on={$in.constants != null}>
-        <Call module="constants" in={$in.constants} />
+        <Call module="../../../analysis/constants/validate_pair" in={$in.constants} />
 
-        <Return value={$ctx.constants} />
+        <Return value={$ctx.validate_pair} />
     </If>
 
     <Return value={true} />
