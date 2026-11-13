@@ -1,0 +1,23 @@
+import { Kind } from "core/type_table/model"
+
+import fields from "./fields/sort"
+
+import type { Candidate } from "../types/model"
+
+export type Input = Candidate
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    return {
+        ...in,
+        fields: match in.kind {
+            Kind.Object => fields(in.fields),
+            _ => in.fields
+        },
+        names: match in.kind {
+            Kind.ErrorSet => in.names.sort()[0],
+            _ => in.names
+        }
+    }
+}

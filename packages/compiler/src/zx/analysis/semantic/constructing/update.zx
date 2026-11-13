@@ -1,9 +1,7 @@
-import { Kind } from "core/type_table/model"
-
 import find from "../types/find"
 import delta from "./delta"
-import fields from "./fields/sort"
 import limit from "./limit"
+import normalize from "./normalize"
 import validate from "./validate"
 
 import type { UpdateInput, ConstructionOutput } from "./model"
@@ -23,17 +21,7 @@ export default function (in: Input): Output {
         }
     }
 
-    const normalized = {
-        ...in.candidate,
-        fields: match {
-            in.candidate.kind == Kind.Object => fields(in.candidate.fields),
-            _ => in.candidate.fields
-        },
-        names: match {
-            in.candidate.kind == Kind.ErrorSet => in.candidate.names.sort()[0],
-            _ => in.candidate.names
-        }
-    }
+    const normalized = normalize(in.candidate)
 
     const found = find({
         tables: in.tables,

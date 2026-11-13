@@ -1,6 +1,6 @@
-import integers from "std:integer"
-import code from "core/type_table/code"
 import { Kind } from "core/type_table/model"
+
+import layout from "./layout"
 
 import type { Table } from "core/type_table/model"
 import type { Candidate } from "../types/model"
@@ -16,26 +16,15 @@ export default function (in: Input): Output {
     const named =
         in.candidate.kind == Kind.ErrorSet || in.candidate.kind == Kind.Enumeration
 
-    const first: u32 = match in.candidate.kind {
-        Kind.Object => integers.narrow(in.delta.field_types.length),
-        Kind.Tuple => integers.narrow(in.delta.children.length),
-        Kind.ErrorSet => integers.narrow(in.delta.names.length),
-        Kind.Enumeration => integers.narrow(in.delta.names.length),
-        _ => in.candidate.first
-    }
-
-    const second: u32 = match in.candidate.kind {
-        Kind.Object => integers.narrow(in.candidate.fields.names.length),
-        Kind.Tuple => integers.narrow(in.candidate.children.length),
-        Kind.ErrorSet => integers.narrow(in.candidate.names.length),
-        Kind.Enumeration => integers.narrow(in.candidate.names.length),
-        _ => in.candidate.second
-    }
+    const row = layout({
+        table: in.delta,
+        candidate: in.candidate
+    })
 
     return {
-        kinds: in.delta.kinds.push(code(in.candidate.kind))[0],
-        first: in.delta.first.push(first)[0],
-        second: in.delta.second.push(second)[0],
+        kinds: in.delta.kinds.push(row.kind)[0],
+        first: in.delta.first.push(row.first)[0],
+        second: in.delta.second.push(row.second)[0],
         labels: in.delta.labels.push(in.candidate.label)[0],
         children:
             match {

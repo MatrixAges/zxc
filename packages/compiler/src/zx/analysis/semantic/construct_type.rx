@@ -1,1 +1,55 @@
-<Module fn="constructing/execute" />
+<Module>
+    <Type from="constructing/model" as="Construction" />
+
+    <Args in={Construction.UpdateInput} out={Construction.Publication} />
+
+    <Call fn="constructing/validate" in={$in} />
+
+    <If on={$ctx.validate.message != ""}>
+        <Return
+            value={{
+                row: null,
+                id: 0,
+                diagnostic: $ctx.validate
+            }}
+        />
+    </If>
+
+    <Call fn="constructing/normalize" in={$in.candidate} />
+
+    <Call
+        fn="types/find"
+        in={{
+            tables: $in.tables,
+            candidate: $ctx.normalize
+        }}
+    />
+
+    <If on={$ctx.find.found}>
+        <Return
+            value={{
+                row: null,
+                id: $ctx.find.id,
+                diagnostic: $ctx.validate
+            }}
+        />
+    </If>
+
+    <Call fn="constructing/limit" in={$in} />
+
+    <Call
+        fn="constructing/row"
+        in={{
+            table: $in.tables.base,
+            candidate: $ctx.normalize
+        }}
+    />
+
+    <Return
+        value={{
+            row: $ctx.row,
+            id: $ctx.limit,
+            diagnostic: $ctx.validate
+        }}
+    />
+</Module>

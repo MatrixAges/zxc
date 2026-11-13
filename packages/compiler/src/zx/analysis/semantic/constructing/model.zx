@@ -1,4 +1,4 @@
-import type { Table, Tables } from "core/type_table/model"
+import type { Fields, Table, Tables } from "core/type_table/model"
 import type { Candidate } from "../types/model"
 
 export type Diagnostic = {
@@ -6,9 +6,24 @@ export type Diagnostic = {
     message: string
 }
 
-export type ConstructionInput = {
-    table: Table,
-    candidate: Candidate
+export type Layout = {
+    kind: u8,
+    first: u32,
+    second: u32
+}
+
+export type Row = {
+    layout: Layout,
+    label: string,
+    children: u32[],
+    fields: Fields,
+    names: string[]
+}
+
+export type Publication = {
+    row?: Row,
+    id: u32,
+    diagnostic: Diagnostic
 }
 
 export type UpdateInput = {

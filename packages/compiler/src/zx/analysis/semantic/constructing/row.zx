@@ -1,0 +1,24 @@
+import layout from "./layout"
+
+import type { Table } from "core/type_table/model"
+import type { Candidate } from "../types/model"
+import type { Row } from "./model"
+
+export type Input = {
+    table: Table,
+    candidate: Candidate
+}
+
+export type Output = Row
+
+export default function (in: Input): Output {
+    const candidate = in.candidate
+
+    return {
+        layout: layout(in),
+        label: candidate.label,
+        children: candidate.children,
+        fields: candidate.fields,
+        names: candidate.names
+    }
+}

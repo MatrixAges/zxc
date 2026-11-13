@@ -1,0 +1,38 @@
+import integers from "std:integer"
+import code from "core/type_table/code"
+import { Kind } from "core/type_table/model"
+
+import type { Table } from "core/type_table/model"
+import type { Candidate } from "../types/model"
+import type { Layout } from "./model"
+
+export type Input = {
+    table: Table,
+    candidate: Candidate
+}
+
+export type Output = Layout
+
+export default function (in: Input): Output {
+    const first: u32 = match in.candidate.kind {
+        Kind.Object => integers.narrow(in.table.field_types.length),
+        Kind.Tuple => integers.narrow(in.table.children.length),
+        Kind.ErrorSet => integers.narrow(in.table.names.length),
+        Kind.Enumeration => integers.narrow(in.table.names.length),
+        _ => in.candidate.first
+    }
+
+    const second: u32 = match in.candidate.kind {
+        Kind.Object => integers.narrow(in.candidate.fields.names.length),
+        Kind.Tuple => integers.narrow(in.candidate.children.length),
+        Kind.ErrorSet => integers.narrow(in.candidate.names.length),
+        Kind.Enumeration => integers.narrow(in.candidate.names.length),
+        _ => in.candidate.second
+    }
+
+    return {
+        kind: code(in.candidate.kind),
+        first,
+        second
+    }
+}
