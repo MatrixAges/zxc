@@ -21,8 +21,9 @@ pub const State = struct {
 };
 
 pub fn materialize(allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, state: State, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
-    const program = try assemble(allocator, temporary, module, body, state, tables, mapping);
+    var program = try assemble(allocator, temporary, module, body, state, tables, mapping);
 
+    if (state.recursive) |id| try @import("../../function_body.zig").entry(allocator, &program, id);
     if (try @import("../../../ir/validate.zig").validate(temporary, program) != null) return error.InvalidIr;
 
     return program;
@@ -46,7 +47,7 @@ pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, modu
         break :seed .{ @as([]const ir.Export, aliases), try nodes.constants(module.constant_exports) };
     };
 
-    var program: ir.Program = .{
+    return .{
         .file_name = try allocator.dupe(u8, module.path),
         .types = tables.types,
         .input_type = state.input_type,
@@ -64,10 +65,6 @@ pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, modu
         .store_mode = state.store_mode,
         .type_only = state.type_only,
     };
-
-    if (state.recursive) |id| try @import("../../function_body.zig").entry(allocator, &program, id);
-
-    return program;
 }
 
 pub fn publish(temporary: std.mem.Allocator, body: ?*const ir.Function, candidate: ?ir.FunctionId) Model.Error!State {

@@ -73,9 +73,9 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
 
     const mapping = try types.appendTemporary(temporary, temporary, module);
 
-    if (!try constants.validate(temporary, module.types, module.constant_exports)) return error.InvalidModule;
-    if (!try constants.validate(temporary, module.types, module.constant_imports)) return error.InvalidModule;
-    if (try @import("../../analysis/constants/bindings.zig").compare(temporary, .{ .previous = module.constant_imports, .current = current.constant_imports, .mapping = mapping }) != .Equal) return error.InvalidModule;
+    if (comptime generated) {
+        if (!try Host.constants(temporary, module, current.constant_imports, mapping)) return error.InvalidModule;
+    } else if (!try Seed.constants(temporary, module, current.constant_imports, mapping)) return error.InvalidModule;
 
     const function_mapping = try temporary.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
     const native_mapping = try temporary.alloc(?ir.NativeModuleId, module.native_modules.count());
@@ -94,14 +94,9 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
         if (!same) return error.InvalidModule;
     }
 
-    for (0..module.native_modules.count(), native_mapping) |previous_row, *id| {
-        const previous = module.native_modules.at(previous_row);
-
-        id.* = if (comptime generated)
-            try @import("../link/native.zig").restore(temporary, current.native_modules, previous, mapping)
-        else
-            try Seed.restoreNative(current.native_modules, previous, nodes.types);
-    }
+    if (comptime generated) {
+        if (!try Host.bindModules(temporary, module.native_modules, current.native_modules, mapping, native_mapping)) return error.InvalidModule;
+    } else try Seed.modules(module.native_modules, current.native_modules, nodes.types, native_mapping);
 
     const imported = function_mapping[0..module.functions.count()];
 
@@ -117,12 +112,14 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
         if (!try Host.signatures(temporary, module.functions, linked, mapping, imported, native_mapping)) return error.InvalidModule;
     } else try Seed.signatures(&nodes, module.functions, linked, imported);
 
-    if (module.function != null) function_mapping[module.functions.count()] = @fromBackingInt(@intCast(current.functions.count()));
+    const own: ?ir.FunctionId = if (module.function != null) @fromBackingInt(@as(u32, @intCast(current.functions.count()))) else null;
+
+    if (own) |id| function_mapping[module.functions.count()] = id;
 
     const function = if (module.function) |value| try nodes.function(value) else null;
     const body = if (function) |*value| value else null;
     const result = @import("../link/result/host.zig");
-    const header = try result.publish(temporary, body, null);
+    const header = try result.publish(temporary, body, own);
 
     var program = try result.assemble(allocator, temporary, module, body, header, .{
         .types = types.items.view(),
@@ -130,7 +127,7 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
         .native_modules = current.native_modules,
     }, mapping);
 
-    try @import("../function_body.zig").complete(allocator, &program, current.functions);
+    if (header.recursive != null) try @import("../function_body.zig").appendEntry(allocator, &program);
     if (try @import("../../ir/validate.zig").validate(temporary, program) != null) return error.InvalidIr;
 
     return program;

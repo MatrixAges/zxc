@@ -5,6 +5,7 @@ const Record = @import("../../module_record.zig");
 const FunctionImport = @import("../../function_import.zig");
 const Artifact = @import("../../artifact/model.zig");
 const Current = @import("../restore.zig").Current;
+pub const constants = @import("constants/host.zig").check;
 
 pub fn preflight(module: *const Artifact.Module, current: *const Current) bool {
     const generated = @import("generated_semantic_restore_preflight");
@@ -132,6 +133,28 @@ pub fn signatures(temporary: std.mem.Allocator, previous: ir.SignatureTable, cur
 
     return zx.columns.invoke(generated.executeValue, temporary, &input) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory => return error.OutOfMemory,
+        else => return error.InvalidModule,
+    };
+}
+
+pub fn bindModules(temporary: std.mem.Allocator, previous: ir.NativeModuleTable, current: ir.NativeModuleTable, types: []const ir.TypeId, mapping: []?ir.NativeModuleId) Artifact.Error!bool {
+    if (mapping.len == 0) return true;
+
+    const entry = @import("generated_semantic_restore_modules");
+    const Input = std.meta.Child(entry.Input);
+    const Table = std.meta.Child(@FieldType(Input, "previous"));
+    const left = zx.columns.columns(Table, previous);
+    const right = zx.columns.columns(Table, current);
+
+    const input: Input = .{
+        .previous = &left,
+        .current = &right,
+        .types = @ptrCast(types),
+        .target = @ptrCast(&mapping),
+    };
+
+    return zx.columns.invoke(entry.executeValue, temporary, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
         else => return error.InvalidModule,
     };
 }

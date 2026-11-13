@@ -57,9 +57,22 @@ fn sameSignature(previous: ir.Signature, current: ir.Signature, types: Nodes.Typ
         previous.output_ownership == current.output_ownership;
 }
 
-pub fn restoreNative(modules: ir.NativeModuleTable, previous: ir.NativeModule, types: Nodes.TypeMap) Error!ir.NativeModuleId {
-    for (0..modules.count()) |index| {
-        const candidate = modules.at(index);
+pub fn constants(temporary: std.mem.Allocator, module: *const model.Module, current: []const ir.Constant, mapping: []const ir.TypeId) std.mem.Allocator.Error!bool {
+    const validate = @import("../../../analysis/constants/check.zig").validate;
+
+    if (!try validate(temporary, module.types, module.constant_exports)) return false;
+    if (!try validate(temporary, module.types, module.constant_imports)) return false;
+
+    return try @import("../../../analysis/constants/bindings.zig").compare(temporary, .{ .previous = module.constant_imports, .current = current, .mapping = mapping }) == .Equal;
+}
+
+pub fn modules(previous: ir.NativeModuleTable, current: ir.NativeModuleTable, types: Nodes.TypeMap, mapping: []?ir.NativeModuleId) Error!void {
+    for (mapping, 0..) |*id, index| id.* = try restoreNative(current, previous.at(index), types);
+}
+
+fn restoreNative(current: ir.NativeModuleTable, previous: ir.NativeModule, types: Nodes.TypeMap) Error!ir.NativeModuleId {
+    for (0..current.count()) |index| {
+        const candidate = current.at(index);
 
         if (!std.mem.eql(u8, previous.key(), candidate.key()) or !std.mem.eql(u8, previous.import_name, candidate.import_name)) continue;
         if (!native.stringsEqual(previous.type_namespace, candidate.type_namespace) or previous.types.count() != candidate.types.count()) return error.InvalidModule;

@@ -1,0 +1,56 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import lookup from "../../link/native/lookup"
+import { Status } from "../../link/native/model"
+
+import type { OptionalU32Buffer } from "std:memory"
+import type { Modules } from "core/native_module_table/model"
+
+export type Input = {
+    previous: Modules,
+    current: Modules,
+    types: u32[],
+    target: OptionalU32Buffer
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { previous, current, types, target } = in
+
+    const count = previous.specifiers.length
+
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < count,
+        next: state => {
+            const index = state.index
+            const result = lookup({
+                table: current,
+                mapping: types,
+                value: {
+                    identity: previous.identities[index],
+                    specifier: previous.specifiers[index],
+                    import_name: previous.import_names[index],
+                    namespace: previous.type_namespaces[index],
+                    names: previous.type_names[index],
+                    ids: previous.type_ids[index]
+                }
+            })
+
+            state.valid = result.status == Status.Reuse
+
+            if (state.valid) {
+                const id = integers.narrow(result.row)
+
+                memory.writeOptionalU32(target, index, id)
+            }
+
+            state.index += 1
+        },
+        return: state => state.valid
+    })
+}

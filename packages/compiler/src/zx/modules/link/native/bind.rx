@@ -4,57 +4,18 @@
     <Args in={Binding.Input} out={Binding.Output} />
 
     <Call
-        fn="bounds"
-        in={{
-            ids: $in.value.ids,
-            count: $in.mapping.length
-        }}
+        fn="lookup"
+        in={$in.pick([
+            "table",
+            "value",
+            "mapping"
+        ])}
     />
 
-    <If on={!$ctx.bounds}>
+    <If on={$ctx.lookup.status != Binding.Status.Missing}>
         <Return
             value={{
-                status: Binding.Status.Invalid,
-                row: 0,
-                ids: []
-            }}
-        />
-    </If>
-
-    <Call
-        module="core/native_module_table/find"
-        in={{
-            modules: $in.table,
-            name: $in.value.identity ?? $in.value.specifier,
-            import_name: $in.value.import_name
-        }}
-    />
-
-    <If on={$ctx.find != null}>
-        <Call
-            module="core/native_module_table/compatible"
-            in={{
-                table: $in.table,
-                value: $in.value,
-                mapping: $in.mapping,
-                index: $ctx.find ?? 0
-            }}
-        />
-
-        <Return
-            value={{
-                status: $ctx.compatible ? Binding.Status.Reuse : Binding.Status.Conflict,
-                row: $ctx.find ?? 0,
-                ids: []
-            }}
-        />
-    </If>
-
-    <If on={!$in.insert}>
-        <Return
-            value={{
-                status: Binding.Status.Missing,
-                row: 0,
+                ...$ctx.lookup,
                 ids: []
             }}
         />

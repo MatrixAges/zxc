@@ -207,6 +207,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/semantic_cache/restoring/functions/alias.zx", .name = "semantic_restore_alias" },
     .{ .path = "zx/modules/semantic_cache/restoring/functions/signatures.zx", .name = "semantic_restore_signatures" },
     .{ .path = "zx/modules/semantic_cache/restoring/preflight/check.rx", .name = "semantic_restore_preflight" },
+    .{ .path = "zx/modules/semantic_cache/restoring/constants/check.rx", .name = "semantic_restore_constants" },
+    .{ .path = "zx/modules/semantic_cache/restoring/modules.zx", .name = "semantic_restore_modules" },
     .{ .path = "zx/modules/semantic_cache/envelope/layout.zx", .name = "semantic_cache_layout" },
     .{ .path = "zx/modules/semantic_cache/state/version.zx", .name = "semantic_cache_entry_version" },
     .{ .path = "zx/modules/semantic_cache/state/observe.zx", .name = "semantic_cache_entry_observe" },

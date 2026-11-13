@@ -52,16 +52,15 @@ pub fn externalEntry(allocator: std.mem.Allocator, program: *ir.Program, id: ir.
 
 pub fn complete(allocator: std.mem.Allocator, program: *ir.Program, functions: ir.FunctionTable) std.mem.Allocator.Error!void {
     const id: ir.FunctionId = @fromBackingInt(@intCast(functions.count()));
+    program.functions = functions;
 
-    if (program.type_only or !calls(program.expressions, id)) {
-        program.functions = functions;
+    if (!program.type_only and calls(program.expressions, id)) try appendEntry(allocator, program);
+}
 
-        return;
-    }
-
+pub fn appendEntry(allocator: std.mem.Allocator, program: *ir.Program) std.mem.Allocator.Error!void {
     var storage: ir.FunctionStorage = .{};
 
     try storage.append(allocator, value(program.*));
 
-    program.functions = try @import("link/function_table.zig").join(allocator, functions, try storage.finish(allocator));
+    program.functions = try @import("link/function_table.zig").join(allocator, program.functions, try storage.finish(allocator));
 }

@@ -7,7 +7,7 @@ const Error = @import("../artifact/model.zig").Error || error{ConflictingInterfa
 pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir.NativeModule, nodes: *Nodes) Error!ir.NativeModuleId {
     if (!@import("parser_options").generated_parser) return appendSeed(allocator, modules, value, nodes);
 
-    const plan = try bindingPlan(allocator, modules.view(), value, nodes.types.mapped, true);
+    const plan = try bindingPlan(allocator, modules.view(), value, nodes.types.mapped);
 
     switch (plan.status) {
         .Invalid, .Missing => return error.InvalidModule,
@@ -20,20 +20,11 @@ pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, va
     return @fromBackingInt(@as(u32, @intCast(plan.row)));
 }
 
-pub fn restore(allocator: std.mem.Allocator, modules: ir.NativeModuleTable, value: ir.NativeModule, mapping: []const ir.TypeId) @import("../artifact/model.zig").Error!ir.NativeModuleId {
-    const plan = try bindingPlan(allocator, modules, value, mapping, false);
-
-    if (plan.status != .Reuse) return error.InvalidModule;
-
-    return @fromBackingInt(@as(u32, @intCast(plan.row)));
-}
-
 fn bindingPlan(
     allocator: std.mem.Allocator,
     modules: ir.NativeModuleTable,
     value: ir.NativeModule,
     mapping: []const ir.TypeId,
-    insert: bool,
 ) @import("../artifact/model.zig").Error!@typeInfo(@TypeOf(@import("generated_native_link_binding").executeValue(undefined, undefined))).error_union.payload {
     const entry = @import("generated_native_link_binding");
     const Input = std.meta.Child(entry.Input);
@@ -53,7 +44,6 @@ fn bindingPlan(
         .table = &table,
         .value = &binding,
         .mapping = @as([*]const u32, @ptrCast(mapping.ptr))[0..mapping.len],
-        .insert = insert,
         .maximum = std.math.maxInt(u32),
     };
 

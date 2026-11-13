@@ -1,0 +1,57 @@
+import compatible from "core/native_module_table/compatible"
+import find from "core/native_module_table/find"
+
+import bounds from "./bounds"
+import { Status } from "./model"
+
+import type { Binding, Modules } from "core/native_module_table/model"
+
+export type Input = {
+    table: Modules,
+    value: Binding,
+    mapping: u32[]
+}
+
+export type Output = {
+    status: Status,
+    row: u64
+}
+
+export default function (in: Input): Output {
+    const { table, value, mapping } = in
+
+    if (!bounds({
+        ids: value.ids,
+        count: mapping.length
+    })) {
+        return {
+            status: Status.Invalid,
+            row: 0
+        }
+    }
+
+    const index = find({
+        modules: table,
+        name: value.identity ?? value.specifier,
+        import_name: value.import_name
+    })
+
+    if (index == null) {
+        return {
+            status: Status.Missing,
+            row: 0
+        }
+    }
+
+    const matches = compatible({
+        table,
+        value,
+        mapping,
+        index
+    })
+
+    return {
+        status: matches ? Status.Reuse : Status.Conflict,
+        row: index
+    }
+}
