@@ -1,12 +1,14 @@
 import integers from "std:integer"
 
+import shape from "../../../binding/shape"
+
 import type { Table } from "core/signature_table/model"
-import type { Import } from "./model"
+import type { FunctionBinding } from "../../../binding/model"
 import type { Declaration } from "./model"
 
 export type Input = {
     signatures: Table,
-    imports: Import[],
+    imports: FunctionBinding[],
     declaration: Declaration
 }
 
@@ -31,13 +33,22 @@ export default function (in: Input): Output {
             const signatures = current.signatures
             const member = signatures.native_members[index]
             const namespace = current.declaration.namespace
+            const input_type = binding.input_type ?? 0
+            const output_type = binding.output_type ?? 0
+
+            const valid = shape(binding.omit([
+                "namespace",
+                "name"
+            ]))
 
             const condition = match {
+                !valid => true,
+                binding.intrinsic != null => true,
                 signatures.files[index] != current.declaration.path => true,
-                integers.widen(binding.id) != index => true,
+                integers.widen(binding.id ?? 0) != index => true,
                 binding.namespace != null => true,
-                binding.input_type != signatures.input_types[index] => true,
-                _ => binding.output_type != signatures.output_types[index]
+                input_type != signatures.input_types[index] => true,
+                _ => output_type != signatures.output_types[index]
             }
 
             if (condition) {

@@ -40,6 +40,15 @@ export type Bindings = {
     indices: u64[]
 }
 
+export type FunctionBinding = {
+    namespace?: string,
+    name: string,
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32,
+    intrinsic?: u8
+}
+
 export type Result = {
     aliases: Bindings,
     constants: Bindings,

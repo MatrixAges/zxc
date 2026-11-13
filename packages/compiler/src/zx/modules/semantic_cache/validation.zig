@@ -58,21 +58,34 @@ fn validHeader(allocator: std.mem.Allocator, module: *const Artifact.Module) Err
 
 fn validBindings(module: *const Artifact.Module) bool {
     const Input = std.meta.Child(binding.Input);
+    const Row = std.meta.Child(std.meta.Elem(@FieldType(Input, "bindings")));
+    const batch_size = @import("../package_scope.zig").lookup_batch_size;
+    var rows: [batch_size]Row = undefined;
+    var pointers: [batch_size]*const Row = undefined;
     var empty = std.heap.FixedBufferAllocator.init(&.{});
     const memory = empty.allocator();
 
     for ([_][]const @import("../function_import.zig"){ module.function_imports, module.members }) |bindings| {
-        for (bindings) |item| {
+        var offset: usize = 0;
+
+        while (offset < bindings.len) {
+            const count = @min(rows.len, bindings.len - offset);
+            const end = offset + count;
+
+            for (bindings[offset..end], rows[0..count], pointers[0..count]) |*source, *row, *pointer| {
+                row.* = source.borrow(Row);
+                pointer.* = row;
+            }
+
             const input: Input = .{
-                .intrinsic = item.intrinsic != null,
-                .id = if (item.id) |id| @backingInt(id) else null,
-                .input_type = if (item.input_type) |id| @backingInt(id) else null,
-                .output_type = if (item.output_type) |id| @backingInt(id) else null,
+                .bindings = pointers[0..count],
                 .input_types = module.functions.input_types,
                 .output_types = module.functions.output_types,
             };
 
             if (!(columns.invoke(binding.executeValue, memory, &input) catch unreachable)) return false;
+
+            offset = end;
         }
     }
 

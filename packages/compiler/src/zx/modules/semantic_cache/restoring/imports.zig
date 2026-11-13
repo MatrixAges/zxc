@@ -96,14 +96,7 @@ fn compare(comptime rule: type, previous: anytype, current: @TypeOf(previous), c
 }
 
 fn binding(comptime Row: type, value: *const FunctionImport) Row {
-    return .{
-        .namespace = value.namespace,
-        .name = value.name,
-        .id = if (value.id) |id| @backingInt(id) else null,
-        .input_type = if (value.input_type) |id| @backingInt(id) else null,
-        .output_type = if (value.output_type) |id| @backingInt(id) else null,
-        .intrinsic = if (value.intrinsic) |operation| @intFromEnum(operation) else null,
-    };
+    return value.borrow(Row);
 }
 
 fn check(comptime rule: type, input: anytype) bool {

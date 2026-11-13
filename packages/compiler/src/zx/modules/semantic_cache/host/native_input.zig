@@ -39,12 +39,13 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
     }
 
     const ImportPointer = std.meta.Elem(@FieldType(Request, "imports"));
+    const Import = std.meta.Child(ImportPointer);
+    const rows = try allocator.alloc(Import, artifact.function_imports.len);
     const imports = try allocator.alloc(ImportPointer, artifact.function_imports.len);
 
-    for (artifact.function_imports, imports) |source, *target| {
-        const item = try allocator.create(std.meta.Child(ImportPointer));
-        item.* = .{ .namespace = source.namespace, .name = source.name, .id = @backingInt(source.id.?), .input_type = @backingInt(source.input_type.?), .output_type = @backingInt(source.output_type.?) };
-        target.* = item;
+    for (artifact.function_imports, rows, imports) |*source, *row, *target| {
+        row.* = source.borrow(Import);
+        target.* = row;
     }
 
     self.request = .{

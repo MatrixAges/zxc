@@ -1,18 +1,10 @@
 import type { OptionalU32Buffer } from "std:memory"
 import type { Table } from "core/signature_table/model"
-
-export type Import = {
-    namespace?: string,
-    name: string,
-    id?: u32,
-    input_type?: u32,
-    output_type?: u32,
-    intrinsic?: u8
-}
+import type { FunctionBinding } from "../../../binding/model"
 
 export type Binding = {
-    previous: Import,
-    current: Import,
+    previous: FunctionBinding,
+    current: FunctionBinding,
     mapping: u32?[],
     target: OptionalU32Buffer,
     types: u32[],
@@ -31,8 +23,8 @@ export type Aliases = {
 }
 
 export type Bindings = {
-    previous: Import[],
-    current: Import[],
+    previous: FunctionBinding[],
+    current: FunctionBinding[],
     mapping: u32?[],
     target: OptionalU32Buffer,
     types: u32[],

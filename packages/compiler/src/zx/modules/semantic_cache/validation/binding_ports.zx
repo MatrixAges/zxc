@@ -1,0 +1,36 @@
+import integers from "std:integer"
+
+import shape from "../../binding/shape"
+
+import type { FunctionBinding } from "../../binding/model"
+
+export type Input = {
+    binding: FunctionBinding,
+    input_types: u32[],
+    output_types: u32[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { binding, input_types, output_types } = in
+
+    if (!shape(binding.omit([
+        "namespace",
+        "name"
+    ]))) {
+        return false
+    }
+
+    if (binding.intrinsic != null) {
+        return true
+    }
+
+    const index = integers.widen(binding.id ?? 0)
+    const input_type = binding.input_type ?? 0
+    const output_type = binding.output_type ?? 0
+
+    return index < input_types.length &&
+        input_types[index] == input_type &&
+        output_types[index] == output_type
+}

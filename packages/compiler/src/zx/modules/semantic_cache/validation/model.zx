@@ -5,6 +5,7 @@ import type { Modules } from "core/native_module_table/model"
 import type { Table as Signatures } from "core/signature_table/model"
 import type { Stores } from "core/store_table/model"
 import type { Table as Types, Tables as TypeTables } from "core/type_table/model"
+import type { FunctionBinding } from "../../binding/model"
 
 export type Constants = {
     types: TypeTables,
@@ -32,11 +33,8 @@ export type Function = {
     max_offset: u64
 }
 
-export type Binding = {
-    intrinsic: bool,
-    id?: u32,
-    input_type?: u32,
-    output_type?: u32,
+export type Bindings = {
+    bindings: FunctionBinding[],
     input_types: u32[],
     output_types: u32[]
 }
