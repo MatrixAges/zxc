@@ -1,0 +1,27 @@
+import type { OptionalU32Buffer } from "std:memory"
+import type { Aliases, Bindings, Signatures } from "../functions/model"
+import type { Input as Modules } from "../modules"
+
+export enum Status {
+    Invalid,
+    Full,
+    Ready
+}
+
+export type Entry = {
+    has_body: bool,
+    local_count: u64,
+    linked_count: u64,
+    target: OptionalU32Buffer
+}
+
+export type Input = {
+    aliases: Aliases,
+    modules: Modules,
+    bindings: Bindings,
+    signatures: Signatures,
+    entry: Entry,
+    bind_modules: bool,
+    aliases_complete: bool,
+    finish: bool
+}

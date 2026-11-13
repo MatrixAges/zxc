@@ -92,37 +92,15 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
 
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
 
-    if (comptime generated) {
-        if (!Host.aliases(module.type_imports, current.aliases, mapping)) return error.InvalidModule;
-    } else {
-        for (module.type_imports, current.aliases) |*previous, *alias| {
-            if (!std.mem.eql(u8, previous.name, alias.name) or try nodes.types.include(previous.type_id) != alias.type_id) return error.InvalidModule;
-        }
-    }
-
-    if (comptime generated) {
-        if (!try Host.bindModules(temporary, module.native_modules, current.native_modules, mapping, native_mapping)) return error.InvalidModule;
-    } else try Seed.modules(module.native_modules, current.native_modules, nodes.types, native_mapping);
-
-    const imported = function_mapping[0..module.functions.count()];
-
-    if (comptime generated) {
-        if (!Host.bindings(module.function_imports, current.imports, imported, mapping, current.functions.count())) return error.InvalidModule;
-    } else {
-        for (module.function_imports, current.imports) |*previous, *binding| try Seed.bind(previous, binding, imported, nodes.types, current.functions.count());
-    }
-
-    const linked = ir.SignatureTable.fromFunctions(current.functions.view());
-
-    if (comptime generated) {
-        if (!try Host.signatures(temporary, module.functions, linked, mapping, imported, native_mapping)) return error.InvalidModule;
-    } else try Seed.signatures(&nodes, module.functions, linked, imported);
-
     const own = if (comptime generated)
-        try Host.own(function_mapping, module.functions.count(), current.functions.count(), module.function != null)
+        try Host.rebind(temporary, module, &current, .{
+            .types = mapping,
+            .functions = function_mapping,
+            .natives = native_mapping,
+        })
 
     else
-        try Seed.own(function_mapping, module.functions.count(), current.functions.count(), module.function != null);
+        try Seed.rebind(module, &current, &nodes, function_mapping, native_mapping);
 
     const structure: Nodes.Structure = if (decoded) .validated else .unchecked;
     const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;

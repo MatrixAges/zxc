@@ -15,6 +15,24 @@ pub fn preflight(module: *const model.Module, current: *const @import("../restor
         module.constant_imports.len == current.constant_imports.len;
 }
 
+pub fn rebind(module: *const model.Module, current: *const @import("../restore.zig").Current, nodes: *Nodes, mapping: []?ir.FunctionId, native_mapping: []?ir.NativeModuleId) Error!?ir.FunctionId {
+    for (module.type_imports, current.aliases) |*previous, *alias| {
+        if (!std.mem.eql(u8, previous.name, alias.name) or try nodes.types.include(previous.type_id) != alias.type_id) return error.InvalidModule;
+    }
+
+    try modules(module.native_modules, current.native_modules, nodes.types, native_mapping);
+
+    const imported = mapping[0..module.functions.count()];
+
+    for (module.function_imports, current.imports) |*previous, *binding| try bind(previous, binding, imported, nodes.types, current.functions.count());
+
+    const linked = ir.SignatureTable.fromFunctions(current.functions.view());
+
+    try signatures(nodes, module.functions, linked, imported);
+
+    return own(mapping, module.functions.count(), current.functions.count(), module.function != null);
+}
+
 pub fn own(mapping: []?ir.FunctionId, local_count: usize, linked_count: usize, has_body: bool) Error!?ir.FunctionId {
     if (!has_body) return null;
     if (linked_count >= std.math.maxInt(u32)) return error.OutOfMemory;

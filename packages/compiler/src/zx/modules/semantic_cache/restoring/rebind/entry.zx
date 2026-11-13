@@ -1,0 +1,27 @@
+import integers from "std:integer"
+import memory from "std:memory"
+import { max_u32 } from "core/const"
+
+import { Status } from "./model"
+
+import type { Entry } from "./model"
+
+export type Input = Entry
+
+export type Output = Status
+
+export default function (in: Input): Output {
+    if (!in.has_body) {
+        return Status.Ready
+    }
+
+    if (in.linked_count >= integers.widen(max_u32)) {
+        return Status.Full
+    }
+
+    const id = integers.narrow(in.linked_count)
+
+    memory.writeOptionalU32(in.target, in.local_count, id)
+
+    return Status.Ready
+}

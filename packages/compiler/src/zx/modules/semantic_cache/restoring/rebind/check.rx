@@ -1,0 +1,43 @@
+<Module>
+    <Type from="model" as="Rebind" />
+
+    <Args in={Rebind.Input} out={Rebind.Status} />
+
+    <Call fn="../functions/alias" in={$in.aliases} />
+
+    <If on={!$ctx.alias}>
+        <Return value={Rebind.Status.Invalid} />
+    </If>
+
+    <If on={!$in.aliases_complete}>
+        <Return value={Rebind.Status.Ready} />
+    </If>
+
+    <If on={$in.bind_modules}>
+        <Call fn="../modules" in={$in.modules} />
+
+        <If on={!$ctx.modules}>
+            <Return value={Rebind.Status.Invalid} />
+        </If>
+    </If>
+
+    <Call fn="../functions/bindings" in={$in.bindings} />
+
+    <If on={!$ctx.bindings}>
+        <Return value={Rebind.Status.Invalid} />
+    </If>
+
+    <If on={!$in.finish}>
+        <Return value={Rebind.Status.Ready} />
+    </If>
+
+    <Call fn="../functions/signatures" in={$in.signatures} />
+
+    <If on={!$ctx.signatures}>
+        <Return value={Rebind.Status.Invalid} />
+    </If>
+
+    <Call fn="entry" in={$in.entry} />
+
+    <Return value={$ctx.entry} />
+</Module>

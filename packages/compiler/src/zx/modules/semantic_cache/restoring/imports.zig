@@ -1,15 +1,30 @@
 const std = @import("std");
 const zx = @import("zx");
-const ir = zx.ir;
 const Record = @import("../../module_record.zig");
-const FunctionImport = @import("../../function_import.zig");
-const batch_size = @import("../../package_scope.zig").lookup_batch_size;
+pub const batch_size = @import("../../package_scope.zig").lookup_batch_size;
 
 pub fn dependencies(previous: []const Record.Import, current: []const Record.Import) bool {
     const rule = @import("generated_semantic_restore_dependencies");
     const Input = std.meta.Child(rule.Input);
 
-    return compare(rule, previous, current, Input{ .previous = &.{}, .current = &.{} }, dependency);
+    if (previous.len != current.len) return false;
+
+    const Row = std.meta.Child(std.meta.Elem(@FieldType(Input, "previous")));
+    var batch: Batch(Row) = undefined;
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    var offset: usize = 0;
+
+    while (offset < previous.len) {
+        const end = offset + @min(batch_size, previous.len - offset);
+        const rows = batch.project(previous[offset..end], current[offset..end], dependency);
+        const input: Input = .{ .previous = rows.previous, .current = rows.current };
+
+        if (!(zx.columns.invoke(rule.executeValue, empty.allocator(), &input) catch unreachable)) return false;
+
+        offset = end;
+    }
+
+    return true;
 }
 
 fn dependency(comptime Row: type, value: *const Record.Import) Row {
@@ -35,72 +50,25 @@ fn dependency(comptime Row: type, value: *const Record.Import) Row {
     };
 }
 
-pub fn aliases(previous: []const ir.Export, current: []const ir.Export, types: []const ir.TypeId) bool {
-    const rule = @import("generated_semantic_restore_alias");
-    const Input = std.meta.Child(rule.Input);
+pub fn Batch(comptime Row: type) type {
+    return struct {
+        const Self = @This();
+        const Rows = struct { previous: []const *const Row, current: []const *const Row };
+        left: [batch_size]Row,
+        right: [batch_size]Row,
+        left_view: [batch_size]*const Row,
+        right_view: [batch_size]*const Row,
+        pub fn project(self: *Self, previous: anytype, current: @TypeOf(previous), comptime view: anytype) Rows {
+            const count = previous.len;
 
-    return compare(rule, previous, current, Input{ .previous = &.{}, .current = &.{}, .types = @ptrCast(types) }, alias);
-}
+            for (previous, current, self.left[0..count], self.right[0..count], self.left_view[0..count], self.right_view[0..count]) |*a, *b, *l, *r, *p, *q| {
+                l.* = view(Row, a);
+                r.* = view(Row, b);
+                p.* = l;
+                q.* = r;
+            }
 
-fn alias(comptime Row: type, value: *const ir.Export) Row {
-    return .{ .name = value.name, .type_id = @backingInt(value.type_id) };
-}
-
-pub fn bindings(previous: []const FunctionImport, current: []const FunctionImport, mapping: []?ir.FunctionId, types: []const ir.TypeId, current_count: usize) bool {
-    const rule = @import("generated_semantic_restore_bindings");
-    const Input = std.meta.Child(rule.Input);
-
-    const input: Input = .{
-        .previous = &.{},
-        .current = &.{},
-        .mapping = @ptrCast(mapping),
-        .target = @ptrCast(&mapping),
-        .types = @ptrCast(types),
-        .current_count = current_count,
-    };
-
-    return compare(rule, previous, current, input, binding);
-}
-
-fn compare(comptime rule: type, previous: anytype, current: @TypeOf(previous), context: anytype, comptime view: anytype) bool {
-    if (previous.len != current.len) return false;
-
-    const Row = std.meta.Child(std.meta.Child(@FieldType(@TypeOf(context), "previous")));
-    var input = context;
-    var left: [batch_size]Row = undefined;
-    var right: [batch_size]Row = undefined;
-    var left_view: [batch_size]*const Row = undefined;
-    var right_view: [batch_size]*const Row = undefined;
-    var offset: usize = 0;
-
-    while (offset < previous.len) {
-        const count = @min(batch_size, previous.len - offset);
-        const end = offset + count;
-
-        for (previous[offset..end], current[offset..end], left[0..count], right[0..count], left_view[0..count], right_view[0..count]) |*a, *b, *l, *r, *p, *q| {
-            l.* = view(Row, a);
-            r.* = view(Row, b);
-            p.* = l;
-            q.* = r;
+            return .{ .previous = self.left_view[0..count], .current = self.right_view[0..count] };
         }
-
-        input.previous = left_view[0..count];
-        input.current = right_view[0..count];
-
-        if (!check(rule, @as(*const @TypeOf(input), &input))) return false;
-
-        offset = end;
-    }
-
-    return true;
-}
-
-fn binding(comptime Row: type, value: *const FunctionImport) Row {
-    return value.borrow(Row);
-}
-
-fn check(comptime rule: type, input: anytype) bool {
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    return zx.columns.invoke(rule.executeValue, empty.allocator(), input) catch unreachable;
+    };
 }
