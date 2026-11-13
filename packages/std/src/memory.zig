@@ -28,6 +28,10 @@ pub inline fn writeU32(target: *const anyopaque, index: u64, value: u32) error{I
     return write(u32, target, index, value);
 }
 
+pub inline fn writeU8(target: *const anyopaque, index: u64, value: u8) error{IndexOutOfBounds}!void {
+    return write(u8, target, index, value);
+}
+
 pub inline fn writeU64(target: *const anyopaque, index: u64, value: u64) error{IndexOutOfBounds}!void {
     return write(u64, target, index, value);
 }

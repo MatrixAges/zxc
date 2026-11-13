@@ -1,0 +1,38 @@
+import memory from "std:memory"
+import { ascii_line_feed } from "core/ascii/const"
+
+import type { U64Buffer } from "std:memory"
+
+export type Input = {
+    raw: u8[],
+    count: u64,
+    line: u64,
+    column: u64,
+    position: U64Buffer
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const final = loop({
+        index: 0,
+        line: in.line,
+        column: in.column
+    }, {
+        while: state => state.index < in.count,
+        next: state => {
+            if (in.raw[state.index] == ascii_line_feed) {
+                state.line += 1
+                state.column = 1
+            } else {
+                state.column += 1
+            }
+
+            state.index += 1
+        },
+        return: state => state
+    })
+
+    memory.writeU64(in.position, 0, final.line)
+    memory.writeU64(in.position, 1, final.column)
+}

@@ -33,6 +33,7 @@ pub fn convert(comptime layout: anytype, comptime decode: anytype, comptime scan
     const nodes = try allocator.alloc(dsl.ast.Node, tree.nodes.len);
     const attributes = try allocator.alloc(dsl.ast.Attribute, tree.attributes.len);
     const text = try allocator.alloc(dsl.ast.Text, tree.text.len);
+    var value_extent: usize = 0;
 
     for (tree.attributes, attributes) |item, *output| {
         const raw = values.raw(source, item.value);
@@ -45,13 +46,23 @@ pub fn convert(comptime layout: anytype, comptime decode: anytype, comptime scan
             .value_location = location(item.value_location),
             .raw_value = raw,
         };
+
+        if (comptime @TypeOf(scan) != @TypeOf(null)) {
+            value_extent = @max(value_extent, output.location.offset + output.name.len, output.value_location.offset + raw.len);
+        }
     }
 
     for (tree.text, text_slots) |item, slot| {
-        text[@intCast(slot)] = .{
+        const output = &text[@intCast(slot)];
+
+        output.* = .{
             .value = values.select(values.raw(source, item.value), decoded, item.value),
             .location = location(item.location),
         };
+
+        if (comptime @TypeOf(scan) != @TypeOf(null)) {
+            value_extent = @max(value_extent, output.location.offset + output.value.len);
+        }
     }
 
     var child_start: usize = 1;
@@ -77,6 +88,6 @@ pub fn convert(comptime layout: anytype, comptime decode: anytype, comptime scan
 
     return .{
         .node = nodes[0],
-        .references = if (comptime @TypeOf(scan) == @TypeOf(null)) null else try references.build(scan, allocator, temporary, source, input, node_slots, nodes, attributes),
+        .references = if (comptime @TypeOf(scan) == @TypeOf(null)) null else try references.build(scan, allocator, temporary, source, input, node_slots, nodes, attributes, value_extent),
     };
 }

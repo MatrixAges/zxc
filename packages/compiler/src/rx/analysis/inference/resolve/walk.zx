@@ -5,6 +5,8 @@ import representative from "../forest/representative"
 import numericDefault from "../scalar/default"
 import { Kind } from "../unification/model"
 import { Route } from "./model"
+import record from "./record"
+import resume from "./resume"
 
 import type { Request } from "./model"
 
@@ -13,7 +15,9 @@ export type Input = Request
 export type Output = Request
 
 export default function (in: Input): Output {
-    return loop(in, {
+    const initial = resume(in)
+
+    return loop(initial, {
         while: state => state.route == Route.Search,
         next: state => {
             const graph = state.graph
@@ -94,10 +98,16 @@ export default function (in: Input): Output {
                                 fallback: integers.narrow(scalar)
                             })
 
-                            state.completed = id
-                            state.route = match {
-                                id == null => Route.NumericMismatch,
-                                _ => Route.Scalar
+                            if (id == null) {
+                                state.route = Route.NumericMismatch
+                            } else {
+                                record({
+                                    publication: state.publication,
+                                    node: state.node,
+                                    type_id: id
+                                })
+
+                                state.completed = id
                             }
                         }
                     } else {

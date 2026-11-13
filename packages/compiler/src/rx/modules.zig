@@ -25,6 +25,11 @@ pub const Source = struct {
 
         return references.flowForNode(index, &self.node);
     }
+    pub fn indexedExtent(self: *const Source) ?usize {
+        const index = self.references orelse return null;
+
+        return references.sourceExtent(index, &self.node);
+    }
 };
 
 pub fn markIndexedSchema(source: *Source) void {

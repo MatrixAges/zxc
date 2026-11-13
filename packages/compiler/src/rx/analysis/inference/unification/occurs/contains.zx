@@ -29,6 +29,10 @@ export default function contains(in: Input): Output {
     const kind = in.graph.kinds[index]
     const depth = in.depth + 1
 
+    if (kind == Kind.Known) {
+        return Reach.Absent
+    }
+
     if (kind == Kind.List || kind == Kind.Optional) {
         return contains({
             graph: in.graph,

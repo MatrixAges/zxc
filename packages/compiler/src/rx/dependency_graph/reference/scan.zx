@@ -29,6 +29,7 @@ export type Output = {
     references: Reference[],
     module_steps: u64,
     parallel_tasks: u64
+    source_extent: u64
 }
 
 export default function (in: Input): Output {
@@ -50,6 +51,7 @@ export default function (in: Input): Output {
         finishing: false,
         module_steps: 0,
         parallel_tasks: 0,
+        source_extent: 0,
         references
     }, {
         while: state => state.next != 0,
@@ -65,6 +67,12 @@ export default function (in: Input): Output {
                 const name =
                     encoding.sliceBytes(in.source, node.name.start, node.name.end)
                 const tag = classify(name)
+
+                const node_end = node.name.end - 1
+
+                if (node_end > state.source_extent) {
+                    state.source_extent = node_end
+                }
 
                 if (in.project_flow) {
                     const task = rank_tasks && tag == Tag.Task
@@ -123,7 +131,8 @@ export default function (in: Input): Output {
         return: state => ({
             references: state.references,
             module_steps: state.module_steps,
-            parallel_tasks: state.parallel_tasks
+            parallel_tasks: state.parallel_tasks,
+            source_extent: state.source_extent
         })
     })
 }

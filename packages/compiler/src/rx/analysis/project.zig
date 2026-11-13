@@ -209,11 +209,13 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
 
     if (prepared == .diagnostic) return .{ .diagnostic = prepared.diagnostic };
 
-    const source_map = SourceMap.init(allocator, modules) catch |err| {
+    const source_map = SourceMap.init(backing, modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failed(allocator, .{ .path = entry, .location = if (entry_index) |index| modules[index].node.location else .{ .offset = 0, .line = 1, .column = 1 }, .code = "unsupported", .message = "RX source positions exceed the supported address range" });
     };
+
+    defer source_map.deinit(backing);
 
     const inferred = inference: {
         var workspace = zx.Arena.init(backing);

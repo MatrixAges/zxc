@@ -1,0 +1,25 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import type { Publication } from "./model"
+
+export type Input = {
+    publication: Publication,
+    node: u32,
+    type_id: u32
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { publication, node, type_id } = in
+
+    const index = integers.widen(node)
+
+    memory.writeU32(publication.arguments, index, type_id)
+    memory.writeU8(publication.kinds, index, publication.known_kind)
+
+    const revision = memory.readU64(publication.revision, 0)
+
+    memory.writeU64(publication.revision, 0, revision + 1)
+}

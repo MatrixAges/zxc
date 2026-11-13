@@ -2,57 +2,77 @@ const std = @import("std");
 const rx = @import("rx");
 const zx = @import("zx");
 const Self = @This();
-const Range = struct { start: usize, end: usize };
+const generated = @import("rx_options").generated_graph;
 
 pub const Origin = struct { source_index: usize, path: []const u8, location: rx.ast.Location };
 
 sources: []const rx.ModuleSource,
-ranges: []const Range,
+ends: []const u64,
 pub fn init(allocator: std.mem.Allocator, sources: []const rx.ModuleSource) error{ OutOfMemory, SourceTooLarge }!Self {
-    const ranges = try allocator.alloc(Range, sources.len);
+    const ends = try allocator.alloc(u64, sources.len);
 
-    errdefer allocator.free(ranges);
+    errdefer allocator.free(ends);
 
     var start: usize = 0;
 
-    for (sources, ranges) |source, *range| {
-        const length = try add(try extent(source.node), 1);
+    for (sources, ends) |source, *entry| {
+        const last = source.indexedExtent() orelse try extent(source.node);
+        const length = try add(last, 1);
         const end = try add(start, length);
-        range.* = .{ .start = start, .end = end };
+
+        entry.* = end;
         start = end;
     }
 
-    return .{ .sources = sources, .ranges = ranges };
+    return .{ .sources = sources, .ends = ends };
+}
+
+pub fn deinit(self: Self, allocator: std.mem.Allocator) void {
+    allocator.free(self.ends);
 }
 
 pub fn base(self: Self, source_index: usize) usize {
-    return self.ranges[source_index].start;
+    return if (source_index == 0) 0 else @intCast(self.ends[source_index - 1]);
 }
 
 pub fn locate(self: Self, offset: usize) ?Origin {
+    const index = self.moduleAt(offset);
+
+    if (index == self.ends.len) return null;
+
+    const source = self.sources[index];
+
+    return .{
+        .source_index = index,
+        .path = source.path,
+        .location = locateNode(source.node, offset - self.base(index)) orelse source.node.location,
+    };
+}
+
+fn moduleAt(self: Self, offset: usize) usize {
+    if (generated) {
+        var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+        return @intCast(@import("generated_rx_source_module").executeValue(empty.allocator(), &.{
+            .ends = self.ends,
+            .offset = offset,
+        }) catch unreachable);
+    }
+
     var low: usize = 0;
-    var high = self.ranges.len;
+    var high = self.ends.len;
 
     while (low < high) {
         const index = low + (high - low) / 2;
-        const range = self.ranges[index];
 
-        if (offset < range.start) {
+        if (offset < self.ends[index]) {
             high = index;
-        } else if (offset >= range.end) {
-            low = index + 1;
         } else {
-            const source = self.sources[index];
-
-            return .{
-                .source_index = index,
-                .path = source.path,
-                .location = locateNode(source.node, offset - range.start) orelse source.node.location,
-            };
+            low = index + 1;
         }
     }
 
-    return null;
+    return low;
 }
 
 pub fn locateNode(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
@@ -62,9 +82,7 @@ pub fn locateNode(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
 
         if (offset < start or offset - start > source.len) continue;
 
-        const position = zx.source.locate(source, offset - start);
-
-        return .{ .offset = offset, .line = attribute.value_location.line + position.line - 1, .column = if (position.line == 1) attribute.value_location.column + position.column - 1 else position.column };
+        return position(source, attribute.value_location, offset);
     }
 
     for (node.children) |child| {
@@ -74,6 +92,31 @@ pub fn locateNode(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
     if (offset == node.location.offset) return node.location;
 
     return null;
+}
+
+fn position(raw: []const u8, start: rx.ast.Location, offset: usize) rx.ast.Location {
+    if (offset == start.offset) return start;
+
+    if (generated) {
+        var result: [2]u64 = undefined;
+        const destination: []u64 = &result;
+        var buffer: [@sizeOf([8]u64) + @alignOf(u64)]u8 = undefined;
+        var scratch = std.heap.FixedBufferAllocator.init(&buffer);
+
+        @import("generated_rx_source_position").executeValue(scratch.allocator(), &.{
+            .raw = raw,
+            .count = offset - start.offset,
+            .line = start.line,
+            .column = start.column,
+            .position = @ptrCast(&destination),
+        }) catch unreachable;
+
+        return .{ .offset = offset, .line = @intCast(result[0]), .column = @intCast(result[1]) };
+    }
+
+    const location = zx.source.locate(raw, offset - start.offset);
+
+    return .{ .offset = offset, .line = start.line + location.line - 1, .column = if (location.line == 1) start.column + location.column - 1 else location.column };
 }
 
 fn extent(node: rx.ast.Node) error{SourceTooLarge}!usize {

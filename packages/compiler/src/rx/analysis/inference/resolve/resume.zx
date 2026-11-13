@@ -1,0 +1,28 @@
+import { Route } from "./model"
+import record from "./record"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Request
+
+export default function (in: Input): Output {
+    const type_id = in.completed
+
+    if (in.route == Route.Search || type_id == null) {
+        return in
+    }
+
+    record({
+        publication: in.publication,
+        node: in.node,
+        type_id
+    })
+
+    return {
+        ...in,
+        count: 0,
+        route: Route.Search
+    }
+}

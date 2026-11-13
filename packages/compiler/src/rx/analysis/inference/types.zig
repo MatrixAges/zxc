@@ -27,7 +27,7 @@ forest: @import("forest.zig") = .{},
 pending: Constraints,
 revision: usize = 0,
 /// Changes that affect the roots or known types seen by object rules.
-object_revision: usize = 0,
+object_revision: u64 = 0,
 const Constraints = struct {
     allocator: std.mem.Allocator,
     lengths: std.MultiArrayList(Projections.Length) = .empty,

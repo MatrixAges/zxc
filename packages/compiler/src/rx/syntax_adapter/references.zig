@@ -20,6 +20,7 @@ const Storage = struct {
     flow: []const Fact,
     module_steps: usize,
     parallel_tasks: usize,
+    source_extent: usize,
 };
 
 pub const Action = enum(u3) {
@@ -87,10 +88,16 @@ pub fn root(index: *const Index) *const ast.Node {
     return storage.root;
 }
 
+pub fn sourceExtent(index: *const Index, node: *const ast.Node) ?usize {
+    const storage: *const Storage = @ptrCast(@alignCast(index));
+
+    return if (ast.sameStorage(node, storage.root)) storage.source_extent else null;
+}
+
 // The XML parser admits at most 256 nested elements.
 const xml_nesting_limit = 256;
 
-pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype, slots: []const u64, nodes: []const ast.Node, attributes: []const ast.Attribute) std.mem.Allocator.Error!*const Index {
+pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype, slots: []const u64, nodes: []const ast.Node, attributes: []const ast.Attribute, value_extent: usize) std.mem.Allocator.Error!*const Index {
     const Parameter = @typeInfo(@TypeOf(scan)).@"fn".param_types[1].?;
     const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
     var storage: [xml_nesting_limit]u64 = undefined;
@@ -134,6 +141,7 @@ pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: st
         .flow = @ptrCast(facts),
         .module_steps = @intCast(result.module_steps),
         .parallel_tasks = @intCast(result.parallel_tasks),
+        .source_extent = @max(value_extent, @as(usize, @intCast(result.source_extent))),
     };
 
     return @ptrCast(index);

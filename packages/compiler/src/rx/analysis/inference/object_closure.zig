@@ -6,7 +6,7 @@ pub const Query = enum { spread, selection };
 
 arena: std.heap.ArenaAllocator,
 snapshot: ?project.Snapshot = null,
-revision: usize = 0,
+revision: u64 = 0,
 spread: ?[]const bool = null,
 selection: ?[]const bool = null,
 pub fn init(allocator: std.mem.Allocator) Self {

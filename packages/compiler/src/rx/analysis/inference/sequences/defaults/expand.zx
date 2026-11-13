@@ -38,7 +38,12 @@ export default function (in: Input): Output {
             const kind = in.graph.kinds[root]
             const unary = kind == Kind.List || kind == Kind.Optional
             const members = in.graph.members[root]
-            const count = unary ? 1 : members.length
+            const count = match kind {
+                Kind.Known => 0,
+                Kind.List => 1,
+                Kind.Optional => 1,
+                _ => members.length
+            }
 
             if (state.open) {
                 if (state.child == count) {

@@ -14,7 +14,7 @@ pub fn check(graph: *const Graph, left: Graph.Id, right: Graph.Id, span: zx.Span
 }
 
 fn hasChildren(kind: Nodes.Kind, members: []const u32) bool {
-    return kind == .List or kind == .Optional or members.len != 0;
+    return kind == .List or kind == .Optional or (kind != .Known and members.len != 0);
 }
 
 pub fn recursive(graph: *const Graph, span: zx.Span) zx.Error {

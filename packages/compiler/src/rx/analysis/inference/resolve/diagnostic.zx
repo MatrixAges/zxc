@@ -1,0 +1,34 @@
+import {
+    depth_limit,
+    numeric_mismatch,
+    unconstrained_input,
+    unfinalized_sequence
+} from "./const"
+import { Issue, Route } from "./model"
+
+import type { Diagnostic } from "./model"
+
+export type Input = Route
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+    return match in {
+        Route.Depth => ({
+            issue: Issue.Unsupported,
+            message: depth_limit
+        }),
+        Route.Sequence => ({
+            issue: Issue.Contract,
+            message: unfinalized_sequence
+        }),
+        Route.Unconstrained => ({
+            issue: Issue.TypeMismatch,
+            message: unconstrained_input
+        }),
+        _ => ({
+            issue: Issue.TypeMismatch,
+            message: numeric_mismatch
+        })
+    }
+}

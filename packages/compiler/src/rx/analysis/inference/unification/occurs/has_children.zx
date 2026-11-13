@@ -18,6 +18,7 @@ export default function (in: Input): Output {
     return match kind {
         Kind.List => true,
         Kind.Optional => true,
+        Kind.Known => false,
         _ => in.graph.members[index].length > 0
     }
 }

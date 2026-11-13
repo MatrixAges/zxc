@@ -18,13 +18,29 @@ fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeI
     const generated = @import("generated_rx_resolve_type");
     const Request = @typeInfo(@TypeOf(generated.executeState)).@"fn".param_types[1].?;
     const View = std.meta.Child(@FieldType(Request, "graph"));
+    const Publication = std.meta.Child(@FieldType(Request, "publication"));
+    const kinds = rows.items(.kind);
+    const arguments = rows.items(.argument);
+    const kind_bytes = std.mem.sliceAsBytes(kinds);
+    const revision: []u64 = (&graph.object_revision)[0..1];
+
+    comptime {
+        if (@sizeOf(Nodes.Kind) != @sizeOf(u8)) @compileError("inference kind column must store one byte per row");
+    }
 
     const view: View = .{
-        .kinds = rows.items(.kind),
-        .arguments = rows.items(.argument),
+        .kinds = kinds,
+        .arguments = arguments,
         .members = rows.items(.members),
         .allowed = rows.items(.allowed),
         .fallback = rows.items(.fallback),
+    };
+
+    const publication: Publication = .{
+        .kinds = @ptrCast(&kind_bytes),
+        .arguments = @ptrCast(&arguments),
+        .revision = @ptrCast(&revision),
+        .known_kind = @backingInt(Nodes.Kind.Known),
     };
 
     var overflow = std.heap.ArenaAllocator.init(graph.scratch);
@@ -36,6 +52,7 @@ fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeI
 
     var state: Request = .{
         .graph = &view,
+        .publication = &publication,
         .parents = graph.forest.state,
         .frames = .{ .items = &.{}, .storage = .plain },
         .values = .{ .items = &.{}, .storage = .plain },
@@ -55,29 +72,25 @@ fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeI
 
         std.debug.assert(state.parents.items.ptr == graph.forest.state.items.ptr);
 
-        const span = rows.items(.span)[state.node];
-
-        const type_id: zx.ir.TypeId = switch (state.route) {
+        switch (state.route) {
             .Complete => return @fromBackingInt(state.completed.?),
-            .Scalar => @fromBackingInt(state.completed.?),
-            .List, .Optional, .Tuple, .Object => try materialize(graph, rows, state),
-            .Depth => return graph.reporter.fail(.unsupported, span, "type inference nesting exceeds 256 levels"),
-            .Sequence => return graph.reporter.fail(.contract, span, "sequence constraints must be finalized before type resolution"),
-            .Unconstrained => return graph.reporter.fail(.type_mismatch, span, "input type cannot be inferred from the available constraints"),
-            .NumericMismatch => return graph.reporter.fail(.type_mismatch, span, "numeric constraints do not determine an accepted default type"),
+            .List, .Optional, .Tuple, .Object => state.completed = @backingInt(try materialize(graph, rows, state)),
+            .Depth, .Sequence, .Unconstrained, .NumericMismatch => return failure(graph, rows.items(.span)[state.node], state.route),
             .Search => unreachable,
-        };
-
-        graph.setShape(state.node, .{ .known = type_id });
-
-        graph.object_revision += 1;
-
-        if (state.depth == 0) return type_id;
-
-        state.completed = @backingInt(type_id);
-        state.count = 0;
-        state.route = .Search;
+        }
     }
+}
+
+fn failure(graph: *Graph, span: zx.Span, route: anytype) zx.Error {
+    const generated = @import("generated_rx_resolution_diagnostic");
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    const result = generated.executeValue(empty.allocator(), @fromBackingInt(@backingInt(route))) catch unreachable;
+
+    return graph.reporter.fail(switch (result.issue) {
+        .Unsupported => .unsupported,
+        .Contract => .contract,
+        .TypeMismatch => .type_mismatch,
+    }, span, result.message);
 }
 
 fn materialize(graph: *Graph, rows: Nodes.Storage.Slice, state: anytype) zx.Error!zx.ir.TypeId {

@@ -1,10 +1,10 @@
+import type { U8Buffer, U32Buffer, U64Buffer } from "std:memory"
 import type { Fields, Tables } from "core/type_table/model"
 import type { Kind } from "../unification/model"
 
 export enum Route {
     Search,
     Complete,
-    Scalar,
     List,
     Optional,
     Object,
@@ -15,6 +15,17 @@ export enum Route {
     NumericMismatch
 }
 
+export enum Issue {
+    Unsupported,
+    Contract,
+    TypeMismatch
+}
+
+export type Diagnostic = {
+    issue: Issue,
+    message: string
+}
+
 export type View = {
     kinds: Kind[],
     arguments: u32[],
@@ -23,8 +34,16 @@ export type View = {
     fallback: u8?[]
 }
 
+export type Publication = {
+    kinds: U8Buffer,
+    arguments: U32Buffer,
+    revision: U64Buffer,
+    known_kind: u8
+}
+
 export type Request = {
     graph: View,
+    publication: Publication,
     parents: u32[],
     frames: u64[],
     values: u32[],
