@@ -10,18 +10,20 @@ io: std.Io,
 allocator: std.mem.Allocator,
 directory: []const u8,
 file_limit: usize,
+buffer: std.Io.Writer.Allocating,
 loaded: usize = 0,
 discarded: usize = 0,
 written: usize = 0,
 native_loaded: usize = 0,
 native_written: usize = 0,
-pub fn init(io: std.Io, allocator: std.mem.Allocator, root: []const u8) !Self {
+pub fn init(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator, root: []const u8) !Self {
     const directory = try std.fs.path.join(allocator, &.{ root, ".zxc", "cache", "semantic", &std.fmt.bytesToHex(identity(), .lower) });
 
-    return .{ .io = io, .allocator = allocator, .directory = directory, .file_limit = SemanticCache.fileLimit() };
+    return .{ .io = io, .allocator = allocator, .directory = directory, .file_limit = SemanticCache.fileLimit(), .buffer = .init(backing) };
 }
 
 pub fn deinit(self: *Self) void {
+    self.buffer.deinit();
     self.allocator.free(self.directory);
 
     self.* = undefined;
@@ -69,7 +71,7 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
 
     defer self.allocator.free(location);
 
-    const bytes = std.Io.Dir.cwd().readFileAlloc(self.io, location, self.allocator, .limited(self.file_limit)) catch |err| switch (err) {
+    const bytes = @import("cache/buffer.zig").read(&self.buffer, self.io, location, self.file_limit) catch |err| switch (err) {
         error.FileNotFound => return false,
         error.StreamTooLong => {
             self.discarded += 1;
@@ -78,8 +80,6 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
         },
         else => return err,
     };
-
-    defer self.allocator.free(bytes);
 
     SemanticCache.entry_store.load(allocator, entries, bytes, identity(), key) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
@@ -109,9 +109,9 @@ fn saveEntries(self: *Self, entries: *SemanticCache.entry_store.Map, kind: Kind)
 
         defer self.allocator.free(location);
 
-        const bytes = try SemanticCache.codec.encode(self.allocator, entry.result.value, entry.context_digest, identity());
+        try SemanticCache.codec.encodeInto(&self.buffer, entry.result.value, entry.context_digest, identity());
 
-        defer self.allocator.free(bytes);
+        const bytes = self.buffer.writer.buffered();
 
         if (bytes.len >= self.file_limit) continue;
         try @import("artifacts.zig").write(self.io, location, bytes);

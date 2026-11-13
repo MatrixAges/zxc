@@ -49,7 +49,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, options: Options, environme
         var attempt = Attempt{ .allocator = temporary, .inputs = &inputs, .previous_backend = backend_paths };
         var diagnostics: std.Io.Writer.Allocating = .init(temporary);
 
-        status = compile.run(.{ .io = io, .allocator = temporary, .options = options, .environment = environment, .stdout = stdout, .stderr = &diagnostics.writer, .watch = &attempt }) catch |err| failed: {
+        status = compile.run(.{ .io = io, .allocator = temporary, .backing = allocator, .options = options, .environment = environment, .stdout = stdout, .stderr = &diagnostics.writer, .watch = &attempt }) catch |err| failed: {
             if (err == error.OutOfMemory or err == error.Canceled) return err;
 
             try diagnostics.writer.print("{s}: {s}\n", .{ options.input, @errorName(err) });

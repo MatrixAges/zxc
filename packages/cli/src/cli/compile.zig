@@ -7,6 +7,7 @@ pub const Status = enum { success, failed, retry, backend_failed };
 pub const Context = struct {
     io: std.Io,
     allocator: std.mem.Allocator,
+    backing: std.mem.Allocator,
     /// The caller guarantees `allocator` and its parents are threadsafe.
     concurrent_analysis: bool = false,
     options: @import("options.zig").Options,
@@ -85,11 +86,11 @@ pub fn run(raw_context: Context) !Status {
         return .failed;
     };
 
-    var semantic_cache = compiler.project.SemanticCache.init(allocator);
+    var semantic_cache = compiler.project.SemanticCache.init(context.backing);
 
     defer semantic_cache.deinit();
 
-    var storage = try @import("cache.zig").init(context.io, allocator, project.root_dir);
+    var storage = try @import("cache.zig").init(context.io, allocator, context.backing, project.root_dir);
 
     defer storage.deinit();
 

@@ -1,5 +1,6 @@
 import bytes from "std:bytes"
 
+import digest from "../../../artifact_codec/digest"
 import { cache_extension, native_directory } from "./const"
 
 import type { Writer } from "std:bytes"
@@ -7,18 +8,23 @@ import type { Writer } from "std:bytes"
 export type Input = {
     writer: Writer,
     native: bool,
-    digest: u8[]
+    key: string
 }
 
 export type Output = void
 
 export default function (in: Input): Output {
-    const { writer, native, digest } = in
+    const { writer, native, key } = in
 
     if (native) {
         bytes.write(writer, bytes.fromText(native_directory))
     }
 
-    bytes.write(writer, digest)
+    const hash = digest({
+        source: key,
+        start: 0
+    })
+
+    bytes.write(writer, bytes.fromText(hash))
     bytes.write(writer, bytes.fromText(cache_extension))
 }

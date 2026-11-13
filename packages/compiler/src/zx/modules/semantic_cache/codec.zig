@@ -12,19 +12,31 @@ pub const Error = std.mem.Allocator.Error || error{InvalidCache};
 const generated = @import("parser_options").generated_parser;
 
 pub fn encode(allocator: std.mem.Allocator, module: Artifact.Module, context_digest: [32]u8, compiler_digest: [32]u8) std.mem.Allocator.Error![]u8 {
+    var out: std.Io.Writer.Allocating = .init(allocator);
+
+    defer out.deinit();
+
+    try encodeInto(&out, module, context_digest, compiler_digest);
+
+    return out.toOwnedSlice();
+}
+
+pub fn encodeInto(out: *std.Io.Writer.Allocating, module: Artifact.Module, context_digest: [32]u8, compiler_digest: [32]u8) std.mem.Allocator.Error!void {
     const value = Payload(u32){ .ir_version = zx.ir_version, .context_digest = context_digest, .module = module };
 
-    if (generated) return @import("envelope.zig").encode(allocator, value, compiler_digest);
+    if (generated) return @import("envelope.zig").encodeInto(out, value, compiler_digest);
 
-    const payload = try std.json.Stringify.valueAlloc(allocator, value, .{});
+    const compiler_hex = std.fmt.bytesToHex(compiler_digest, .lower);
+    const header_size = marker.len + compiler_hex.len + 1 + compiler_hex.len + 1;
 
-    defer allocator.free(payload);
+    try @import("../../artifact_codec/json_writer.zig").writeInto(out, value, header_size);
 
+    const encoded = out.writer.buffered();
     var digest: [32]u8 = undefined;
 
-    @import("zx").Sha256.hash(payload, &digest, .{});
+    zx.Sha256.hash(encoded[header_size..], &digest, .{});
 
-    return std.fmt.allocPrint(allocator, marker ++ "{s}\n{s}\n{s}", .{ std.fmt.bytesToHex(compiler_digest, .lower), std.fmt.bytesToHex(digest, .lower), payload });
+    _ = std.fmt.bufPrint(encoded[0..header_size], marker ++ "{s}\n{s}\n", .{ &compiler_hex, std.fmt.bytesToHex(digest, .lower) }) catch unreachable;
 }
 
 pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: [32]u8) Error!Decoded {

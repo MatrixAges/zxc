@@ -4,18 +4,15 @@ const layout = @import("generated_semantic_cache_layout");
 const opening = @import("generated_semantic_cache_open");
 const sealing = @import("generated_semantic_cache_seal");
 
-pub fn encode(allocator: std.mem.Allocator, payload: anytype, compiler_digest: [32]u8) std.mem.Allocator.Error![]u8 {
+pub fn encodeInto(out: *std.Io.Writer.Allocating, payload: anytype, compiler_digest: [32]u8) std.mem.Allocator.Error!void {
     const compiler_hex = std.fmt.bytesToHex(compiler_digest, .lower);
     const payload_start = headerSize(compiler_hex.len);
-    var out = try @import("../../artifact_codec/json_writer.zig").write(allocator, payload, payload_start);
 
-    errdefer out.deinit();
+    try @import("../../artifact_codec/json_writer.zig").writeInto(out, payload, payload_start);
 
     const encoded = out.writer.buffered();
 
     seal(encoded[0..payload_start], encoded[payload_start..], &compiler_hex);
-
-    return out.toOwnedSlice();
 }
 
 fn headerSize(compiler_width: usize) usize {
