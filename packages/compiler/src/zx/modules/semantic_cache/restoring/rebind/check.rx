@@ -3,10 +3,12 @@
 
     <Args in={Rebind.Input} out={Rebind.Status} />
 
-    <Call fn="../functions/alias" in={$in.aliases} />
+    <If on={$in.aliases.previous.length != 0}>
+        <Call fn="../functions/alias" in={$in.aliases} />
 
-    <If on={!$ctx.alias}>
-        <Return value={Rebind.Status.Invalid} />
+        <If on={!$ctx.alias}>
+            <Return value={Rebind.Status.Invalid} />
+        </If>
     </If>
 
     <If on={!$in.aliases_complete}>
@@ -21,20 +23,24 @@
         </If>
     </If>
 
-    <Call fn="../functions/bindings" in={$in.bindings} />
+    <If on={$in.bindings.previous.length != 0}>
+        <Call fn="../functions/bindings" in={$in.bindings} />
 
-    <If on={!$ctx.bindings}>
-        <Return value={Rebind.Status.Invalid} />
+        <If on={!$ctx.bindings}>
+            <Return value={Rebind.Status.Invalid} />
+        </If>
     </If>
 
     <If on={!$in.finish}>
         <Return value={Rebind.Status.Ready} />
     </If>
 
-    <Call fn="../functions/signatures" in={$in.signatures} />
+    <If on={$in.signatures.functions.length != 0}>
+        <Call fn="../functions/signatures" in={$in.signatures} />
 
-    <If on={!$ctx.signatures}>
-        <Return value={Rebind.Status.Invalid} />
+        <If on={!$ctx.signatures}>
+            <Return value={Rebind.Status.Invalid} />
+        </If>
     </If>
 
     <Call fn="entry" in={$in.entry} />

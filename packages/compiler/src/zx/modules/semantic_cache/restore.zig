@@ -1,5 +1,6 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const model = @import("../artifact/model.zig");
 const Nodes = @import("../artifact/nodes.zig");
 const Origins = @import("../nominal_origins.zig");
@@ -52,18 +53,16 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
 
     const temporary = scratch.allocator();
     const allocator = current.allocator;
-    const first_type = current.types.count();
+    const before_types = current.types.view();
     const first_origin = current.origins.items.view().count();
 
     errdefer {
-        current.types.retainPrefix(first_type);
+        inline for (@typeInfo(ir.TypeStorage).@"struct".field_names) |name| {
+            @field(current.types, name).items.len = @field(before_types, name).len;
+        }
+
         current.origins.items.retainPrefix(first_origin);
     }
-
-    const mapping = if (comptime generated)
-        try @import("restoring/types/host.zig").merge(temporary, module, &current, decoded)
-    else
-        try Seed.mergeTypes(temporary, module, &current);
 
     const function_mapping = try temporary.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
     const native_mapping = try temporary.alloc(?ir.NativeModuleId, module.native_modules.count());
@@ -71,18 +70,36 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     @memset(function_mapping, null);
     @memset(native_mapping, null);
 
-    var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
+    const mapping, const own = if (comptime generated) prepared: {
+        const types = @import("restoring/types/host.zig");
+        const ids = try temporary.alloc(u32, module.types.count());
 
-    const own = if (comptime generated)
-        try @import("restoring/rebind/host.zig").check(temporary, module, &current, .{
-            .types = mapping,
+        @memset(ids, 0);
+
+        var workspace = zx.Arena.init(temporary);
+
+        defer workspace.deinit();
+
+        const plan = try types.prepare(workspace.allocator(), module, &current, ids, decoded);
+
+        const entry = try @import("restoring/rebind/host.zig").check(temporary, module, &current, .{
+            .types = @ptrCast(ids),
             .functions = function_mapping,
             .natives = native_mapping,
-        })
+        });
 
-    else
-        try Seed.rebind(module, &current, &nodes, function_mapping, native_mapping);
+        try types.commit(&current, plan);
 
+        break :prepared .{ @as([]const ir.TypeId, @ptrCast(ids)), entry };
+    } else seed: {
+        const ids = try Seed.mergeTypes(temporary, module, &current);
+        var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = ids }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
+        const entry = try Seed.rebind(module, &current, &nodes, function_mapping, native_mapping);
+
+        break :seed .{ ids, entry };
+    };
+
+    var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
     const structure: Nodes.Structure = if (decoded) .validated else .unchecked;
     const result = @import("../link/result/host.zig");
 

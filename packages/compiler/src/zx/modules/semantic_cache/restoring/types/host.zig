@@ -11,6 +11,7 @@ const Merge = std.meta.Child(@FieldType(Input, "merge"));
 const Table = std.meta.Child(@FieldType(Merge, "source"));
 const Nominal = std.meta.Child(@FieldType(Merge, "origins"));
 const Constants = std.meta.Child(@typeInfo(@FieldType(Input, "current_constants")).optional.child);
+const Plan = std.meta.Child(@typeInfo(@TypeOf(generated.executeValue(undefined, undefined))).error_union.payload);
 const scalars = std.enums.values(ir.Scalar);
 
 const scalar_ids = blk: {
@@ -28,16 +29,7 @@ const scalar_rows: ir.TypeTable = .{
     .labels = &@as([scalars.len][]const u8, @splat("")),
 };
 
-pub fn merge(temporary: std.mem.Allocator, module: *const Artifact.Module, current: *const Current, decoded: bool) Artifact.Error![]const ir.TypeId {
-    const mapping = try temporary.alloc(u32, module.types.count());
-
-    @memset(mapping, 0);
-
-    var arena = zx.Arena.init(temporary);
-
-    defer arena.deinit();
-
-    const scratch = arena.allocator();
+pub fn prepare(scratch: std.mem.Allocator, module: *const Artifact.Module, current: *const Current, mapping: []u32, decoded: bool) Artifact.Error!Plan {
     const current_types = current.types.view();
     const source = ir.TypeTable.borrow(Table, module.types);
     const destination = ir.TypeTable.borrow(Table, current_types);
@@ -73,10 +65,10 @@ pub fn merge(temporary: std.mem.Allocator, module: *const Artifact.Module, curre
         else => return error.InvalidModule,
     };
 
-    const plan = result orelse return error.InvalidModule;
+    return result orelse error.InvalidModule;
+}
 
-    if (current_types.count() == 0) try current.types.appendDelta(current.allocator, scalar_rows);
+pub fn commit(current: *const Current, plan: Plan) std.mem.Allocator.Error!void {
+    if (current.types.count() == 0) try current.types.appendDelta(current.allocator, scalar_rows);
     try @import("../../../../analysis/semantic/merging/commit.zig").append(current.allocator, current.types, &current.origins.items, plan.delta.*, plan.origins);
-
-    return @ptrCast(mapping);
 }

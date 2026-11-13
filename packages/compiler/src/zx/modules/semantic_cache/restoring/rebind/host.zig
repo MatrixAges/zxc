@@ -60,24 +60,31 @@ pub fn check(temporary: std.mem.Allocator, module: *const Artifact.Module, curre
     var bindings: imports.Batch(Binding) = undefined;
     var alias_offset: usize = 0;
     var binding_offset: usize = 0;
-    var binding_source: enum { imports, members } = if (current.imports.len == 0) .members else .imports;
+    var member_offset: usize = 0;
     var bind_modules = maps.natives.len != 0;
 
     while (true) {
         const alias_end = alias_offset + @min(imports.batch_size, current.aliases.len - alias_offset);
         const aliases_complete = alias_end == current.aliases.len;
-        const previous_bindings = if (binding_source == .imports) module.function_imports else module.members;
-        const current_bindings = if (binding_source == .imports) current.imports else current.members;
-
-        const binding_end = if (aliases_complete)
-            binding_offset + @min(imports.batch_size, current_bindings.len - binding_offset)
-        else
-            binding_offset;
-
         const alias_rows = aliases.project(module.type_imports[alias_offset..alias_end], current.aliases[alias_offset..alias_end], alias);
-        const binding_rows = bindings.project(previous_bindings[binding_offset..binding_end], current_bindings[binding_offset..binding_end], binding);
-        const bindings_complete = aliases_complete and binding_end == current_bindings.len;
-        const finish = bindings_complete and (binding_source == .members or current.members.len == 0);
+        var count: usize = 0;
+
+        if (aliases_complete) {
+            const imported = @min(imports.batch_size, current.imports.len - binding_offset);
+            const forwarded = @min(imports.batch_size - imported, current.members.len - member_offset);
+            const import_end = binding_offset + imported;
+            const member_end = member_offset + forwarded;
+
+            bindings.write(0, module.function_imports[binding_offset..import_end], current.imports[binding_offset..import_end], binding);
+            bindings.write(imported, module.members[member_offset..member_end], current.members[member_offset..member_end], binding);
+
+            binding_offset = import_end;
+            member_offset = member_end;
+            count = imported + forwarded;
+        }
+
+        const binding_rows = bindings.rows(count);
+        const finish = aliases_complete and binding_offset == current.imports.len and member_offset == current.members.len;
         const alias_view: Aliases = .{ .previous = alias_rows.previous, .current = alias_rows.current, .types = types };
 
         const binding_view: Bindings = .{
@@ -114,12 +121,6 @@ pub fn check(temporary: std.mem.Allocator, module: *const Artifact.Module, curre
         if (finish) return if (entry.has_body) maps.functions[function_count] else null;
 
         alias_offset = alias_end;
-        binding_offset = binding_end;
-
-        if (bindings_complete) {
-            binding_source = .members;
-            binding_offset = 0;
-        }
 
         if (aliases_complete) bind_modules = false;
     }

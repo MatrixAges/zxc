@@ -34,15 +34,21 @@ pub fn Batch(comptime Row: type) type {
         left_view: [batch_size]*const Row,
         right_view: [batch_size]*const Row,
         pub fn project(self: *Self, previous: anytype, current: @TypeOf(previous), comptime view: anytype) Rows {
-            const count = previous.len;
+            self.write(0, previous, current, view);
 
-            for (previous, current, self.left[0..count], self.right[0..count], self.left_view[0..count], self.right_view[0..count]) |*a, *b, *l, *r, *p, *q| {
+            return self.rows(previous.len);
+        }
+        pub fn write(self: *Self, start: usize, previous: anytype, current: @TypeOf(previous), comptime view: anytype) void {
+            const end = start + previous.len;
+
+            for (previous, current, self.left[start..end], self.right[start..end], self.left_view[start..end], self.right_view[start..end]) |*a, *b, *l, *r, *p, *q| {
                 l.* = view(Row, a);
                 r.* = view(Row, b);
                 p.* = l;
                 q.* = r;
             }
-
+        }
+        pub fn rows(self: *const Self, count: usize) Rows {
             return .{ .previous = self.left_view[0..count], .current = self.right_view[0..count] };
         }
     };
