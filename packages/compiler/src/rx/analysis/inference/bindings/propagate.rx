@@ -1,0 +1,32 @@
+<Module>
+    <Type from="model" as="Bindings" />
+
+    <Args in={Bindings.Input} out={Bindings.Output} />
+
+    <If on={$in.start == 0 && $in.collisions.left.length != 0}>
+        <Call
+            fn="collisions"
+            in={{
+                topology: $in.topology,
+                rows: $in.collisions
+            }}
+        />
+
+        <If on={$ctx.collisions != null}>
+            <Return
+                value={{
+                    action: Bindings.Action.Conflict,
+                    row: $ctx.collisions ?? 0,
+                    value: 0
+                }}
+            />
+        </If>
+    </If>
+
+    <Call
+        fn="scan"
+        in={$in.omit(["collisions"])}
+    />
+
+    <Return value={$ctx.scan} />
+</Module>

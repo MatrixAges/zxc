@@ -1,3 +1,4 @@
+import type { U32Buffer } from "std:memory"
 import type { Kind } from "../unification/model"
 
 export enum Status {
@@ -17,7 +18,33 @@ export type Graph = {
     arguments: u32[]
 }
 
-export type Check = {
-    parents: u32[],
-    position?: u64
+export type Topology = {
+    graph: Graph,
+    parents: U32Buffer
+}
+
+export type Pairs = {
+    left: u32[],
+    right: u32[],
+    final: bool
+}
+
+export enum Action {
+    Done,
+    Conflict,
+    Missing,
+    Unify
+}
+
+export type Input = {
+    topology: Topology,
+    collisions: Pairs,
+    candidates: u32[][],
+    start: u64
+}
+
+export type Output = {
+    action: Action,
+    row: u64,
+    value: u32
 }

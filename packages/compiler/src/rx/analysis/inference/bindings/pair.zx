@@ -1,49 +1,37 @@
 import { Collision, Status } from "./model"
 import inspect from "./node"
 
-import type { Collision as CollisionRoute, Graph } from "./model"
+import type { Collision as CollisionRoute, Topology } from "./model"
 
 export type Input = {
-    graph: Graph,
-    parents: u32[],
+    topology: Topology,
     left: u32,
     right: u32,
     final: bool
 }
 
-export type Output = {
-    parents: u32[],
-    route: CollisionRoute
-}
+export type Output = CollisionRoute
 
 export default function (in: Input): Output {
     const left = inspect({
-        graph: in.graph,
-        parents: in.parents,
+        topology: in.topology,
         value: in.left
     })
 
-    if (left.status == Status.Void) {
-        return {
-            parents: left.parents,
-            route: CollisionRoute.Ignore
-        }
+    if (left == Status.Void) {
+        return Collision.Ignore
     }
 
     const right = inspect({
-        graph: in.graph,
-        parents: left.parents,
+        topology: in.topology,
         value: in.right
     })
 
-    const known = left.status == Status.Value && right.status == Status.Value
+    const known = left == Status.Value && right == Status.Value
 
-    return {
-        parents: right.parents,
-        route: match {
-            right.status == Status.Void => Collision.Ignore,
-            in.final || known => Collision.Conflict,
-            _ => Collision.Defer
-        }
+    return match {
+        right == Status.Void => Collision.Ignore,
+        in.final || known => Collision.Conflict,
+        _ => Collision.Defer
     }
 }

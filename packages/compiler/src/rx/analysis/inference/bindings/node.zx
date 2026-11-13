@@ -1,34 +1,28 @@
 import integers from "std:integer"
 
-import representative from "../forest/representative"
+import representative from "../forest/borrowed_root"
 import status from "./status"
 
-import type { Graph, Status } from "./model"
+import type { Status, Topology } from "./model"
 
 export type Input = {
-    graph: Graph,
-    parents: u32[],
+    topology: Topology,
     value: u32
 }
 
-export type Output = {
-    parents: u32[],
-    status: Status
-}
+export type Output = Status
 
 export default function (in: Input): Output {
     const root = representative({
-        parents: in.parents,
+        parents: in.topology.parents,
         value: in.value
     })
 
-    const index = integers.widen(root.item)
+    const index = integers.widen(root)
+    const graph = in.topology.graph
 
-    return {
-        parents: root.parents,
-        status: status({
-            kind: in.graph.kinds[index],
-            argument: in.graph.arguments[index]
-        })
-    }
+    return status({
+        kind: graph.kinds[index],
+        argument: graph.arguments[index]
+    })
 }

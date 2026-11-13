@@ -1,3 +1,4 @@
+const std = @import("std");
 const zx = @import("zx");
 const Graph = @import("types.zig");
 const rules = @import("bindings/rules.zig");
@@ -43,14 +44,58 @@ pub fn lookup(graph: *Graph, candidates: []const Graph.Id, span: zx.Span) zx.Err
 }
 
 pub fn propagate(graph: *Graph, final: bool) zx.Error!void {
+    if (!@import("rx_options").generated_graph) return seed(graph, final);
+
+    const collisions = graph.binding_collisions.slice();
+    const lookups = graph.binding_lookups.slice();
+
+    if (collisions.len == 0 and lookups.len == 0) return;
+
+    const entry = @import("generated_rx_binding_propagate");
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    var start: usize = 0;
+
+    while (true) {
+        const parents: []u32 = @constCast(graph.forest.state.items);
+
+        const result = entry.executeValue(empty.allocator(), &.{
+            .topology = &.{ .graph = &rules.view(entry, graph), .parents = @ptrCast(&parents) },
+            .collisions = &.{ .left = @ptrCast(collisions.items(.left)), .right = @ptrCast(collisions.items(.right)), .final = final },
+            .candidates = @ptrCast(lookups.items(.candidates)),
+            .start = start,
+        }) catch unreachable;
+
+        const row: usize = @intCast(result.row);
+
+        switch (result.action) {
+            .Done => return,
+            .Conflict => return graph.reporter.fail(.name, collisions.items(.span)[row], collisions.items(.message)[row]),
+            .Missing => return graph.reporter.fail(.name, lookups.items(.span)[row], missing_message),
+            .Unify => {
+                try graph.unify(lookups.items(.value)[row], @fromBackingInt(result.value), lookups.items(.span)[row]);
+
+                start = row + 1;
+
+                if (start == lookups.len) return;
+            },
+        }
+    }
+}
+
+fn seed(graph: *Graph, final: bool) zx.Error!void {
     const collisions = graph.binding_collisions.slice();
 
-    if (rules.conflict(graph, collisions.items(.left), collisions.items(.right), final)) |index| {
-        return graph.reporter.fail(.name, collisions.items(.span)[index], collisions.items(.message)[index]);
+    for (0..collisions.len) |index| {
+        const row = collisions.get(index);
+
+        if (rules.pair(graph, row.left, row.right, final) == .Conflict) return graph.reporter.fail(.name, row.span, row.message);
     }
 
-    for (graph.binding_lookups.items) |query| {
-        const choice = rules.select(graph, query.candidates);
+    const lookups = graph.binding_lookups.slice();
+
+    for (0..lookups.len) |index| {
+        const query = lookups.get(index);
+        const choice = rules.selectSeed(graph, query.candidates);
 
         if (choice.multiple) continue;
 

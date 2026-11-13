@@ -1,0 +1,42 @@
+import lookup from "./lookup"
+import { Action } from "./model"
+
+import type { Output as Result, Topology } from "./model"
+
+export type Input = {
+    topology: Topology,
+    candidates: u32[][],
+    start: u64
+}
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const value: u32 = 0
+
+    return loop({
+        row: in.start,
+        value,
+        action: Action.Done
+    }, {
+        while: state => state.action == Action.Done && state.row < in.candidates.length,
+        next: state => {
+            const result = lookup({
+                topology: in.topology,
+                candidates: in.candidates[state.row]
+            })
+
+            const selected = result.selected
+
+            if (result.multiple) {
+                state.row += 1
+            } else if (selected == null) {
+                state.action = Action.Missing
+            } else {
+                state.action = Action.Unify
+                state.value = selected ?? value
+            }
+        },
+        return: state => state
+    })
+}
