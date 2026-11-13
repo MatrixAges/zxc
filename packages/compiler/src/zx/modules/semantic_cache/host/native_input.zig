@@ -81,7 +81,6 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .origin_names = artifact.nominal_types.names,
         .base = &self.base,
         .base_origins = &self.base_origins,
-        .module_id = @backingInt(current.module),
         .type_ids = self.type_ids,
         .type_mapping = @ptrCast(&self.type_ids),
     };

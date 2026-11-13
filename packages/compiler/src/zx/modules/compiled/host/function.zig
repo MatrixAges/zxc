@@ -21,8 +21,15 @@ pub fn copy(allocator: std.mem.Allocator, source: ir.Function) std.mem.Allocator
 fn copyExternal(allocator: std.mem.Allocator, source: ir.External) std.mem.Allocator.Error!ir.External {
     var result = source;
     result.member = try strings(allocator, source.member);
-    result.errors = if (source.errors) |errors| try strings(allocator, errors) else null;
     result.export_name = if (source.export_name) |name| try allocator.dupe(u8, name) else null;
+
+    return copyExternalDetails(allocator, result);
+}
+
+pub fn copyExternalDetails(allocator: std.mem.Allocator, source: ir.External) std.mem.Allocator.Error!ir.External {
+    var result = source;
+
+    result.errors = if (source.errors) |errors| try strings(allocator, errors) else null;
 
     if (source.input) |input| {
         const names = try allocator.alloc(?[]const u8, input.names.len);

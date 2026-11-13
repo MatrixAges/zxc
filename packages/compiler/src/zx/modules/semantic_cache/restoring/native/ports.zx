@@ -1,20 +1,16 @@
 import integers from "std:integer"
 
-import type { Complete } from "core/function_table/complete"
+import type { Ports } from "./result"
 
 export type Input = {
-    source: Complete,
-    mapping: u32[],
-    module_id: u32
+    source: Ports,
+    mapping: u32[]
 }
 
-export type Output = Complete
+export type Output = Ports
 
 export default function (in: Input): Output {
-    const module_id: u32? = in.module_id
-
     return {
-        ...in.source,
         input_types: in.source.input_types.map(
             id => in.mapping[integers.widen(
                 id
@@ -23,7 +19,6 @@ export default function (in: Input): Output {
         output_types:
             in.source.output_types.map(id => in.mapping[integers.widen(
                 id
-            )])[0],
-        native_modules: in.source.native_modules.map(id => module_id)[0]
+            )])[0]
     }
 }

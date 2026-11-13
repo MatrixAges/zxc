@@ -1,17 +1,27 @@
-import type { Complete } from "core/function_table/complete"
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
+
+export enum Status {
+    Ready,
+    InvalidModule,
+    InvalidIr,
+    MissingNominalOrigin,
+    ConflictingNominalType
+}
+
+export type Ports = {
+    input_types: u32[],
+    output_types: u32[]
+}
 
 export type Value = {
     types: Table,
     origins: Bindings,
-    functions: Complete,
-    export_names: string[],
-    export_types: u32[],
-    member_names: string[]
+    ports: Ports,
+    export_types: u32[]
 }
 
 export type Result = {
-    status: u64,
+    status: Status,
     value?: Value
 }

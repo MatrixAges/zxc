@@ -1,44 +1,39 @@
 <Module>
     <Type from="../../../../analysis/semantic/merging/model" as="Merge" />
     <Type from="restore_input" as="Restore" />
-    <Type from="program" as="Program" />
     <Type from="failed" as="Failed" />
 
-    <Args
-        in={{
-            input: Restore.Input,
-            program: Program.Output
-        }}
-        out={Failed.Output}
-    />
+    <Args in={Restore.Input} out={Failed.Output} />
 
     <Call
         fn="../../../compiled/loading/type_base"
         in={{
-            table: $in.input.base,
-            scalar_count: $in.input.validation.scalar_count
+            table: $in.base,
+            scalar_count: $in.validation.scalar_count
         }}
     />
 
     <Call
         module="../../../compiled/loading/types"
         in={{
-            source: $in.input.validation.types,
-            origins: $in.input.validation.request.origins,
-            names: $in.input.origin_names,
+            source: $in.validation.types,
+            origins: $in.validation.request.origins,
+            names: $in.origin_names,
             base: $ctx.type_base,
-            base_origins: $in.input.base_origins,
-            mapping: $in.input.type_mapping
+            base_origins: $in.base_origins,
+            mapping: $in.type_mapping
         }}
     />
 
     <If on={$ctx.types.status == Merge.Status.Ready}>
         <Call
-            fn="functions"
+            fn="ports"
             in={{
-                source: $in.program.context.functions,
-                mapping: $in.input.type_ids,
-                module_id: $in.input.module_id
+                source: $in.validation.request.signatures.pick([
+                    "input_types",
+                    "output_types"
+                ]),
+                mapping: $in.type_ids
             }}
         />
 
@@ -47,18 +42,18 @@
             in={{
                 base: $ctx.type_base,
                 delta: $ctx.types.delta,
-                existing_count: $in.input.base.kinds.length
+                existing_count: $in.base.kinds.length
             }}
         />
 
         <Call
             fn="publish"
             in={{
-                request: $in.input.validation.request,
+                export_types: $in.validation.request.export_types,
                 types: $ctx.type_delta,
                 origins: $ctx.types.origins,
-                functions: $ctx.functions,
-                mapping: $in.input.type_ids
+                ports: $ctx.ports,
+                mapping: $in.type_ids
             }}
         />
 

@@ -1,6 +1,7 @@
 <Module>
     <Type from="restore_input" as="Restore" />
     <Type from="failed" as="Failed" />
+    <Type from="result" as="Result" />
 
     <Args in={Restore.Input} out={Failed.Output} />
 
@@ -15,25 +16,19 @@
         />
 
         <If on={$ctx.validate}>
-            <Call
-                module="merge"
-                in={{
-                    input: $in,
-                    program: $ctx.program
-                }}
-            />
+            <Call module="merge" in={$in} />
 
             <Return value={$ctx.merge} />
 
             <Else>
-                <Call fn="failed" in={2} />
+                <Call fn="failed" in={Result.Status.InvalidIr} />
 
                 <Return value={$ctx.failed} />
             </Else>
         </If>
 
         <Else>
-            <Call fn="failed" in={1} />
+            <Call fn="failed" in={Result.Status.InvalidModule} />
 
             <Return value={$ctx.failed} />
         </Else>

@@ -21,13 +21,12 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
     };
 
     switch (result.status) {
-        0 => {},
-        1 => return error.InvalidModule,
-        2 => return error.InvalidIr,
-        3 => return error.MissingNominalOrigin,
-        4 => return error.ConflictingNominalType,
-        else => unreachable,
+        .Ready => {},
+        .InvalidModule => return error.InvalidModule,
+        .InvalidIr => return error.InvalidIr,
+        .MissingNominalOrigin => return error.MissingNominalOrigin,
+        .ConflictingNominalType => return error.ConflictingNominalType,
     }
 
-    return @import("native_publish.zig").apply(allocator, result.value.?, current);
+    return @import("native_publish.zig").apply(allocator, result.value.?, &artifact, &entry, current);
 }

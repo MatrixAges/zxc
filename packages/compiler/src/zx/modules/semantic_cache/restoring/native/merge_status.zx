@@ -1,13 +1,14 @@
-import { Status } from "../../../../analysis/semantic/merging/model"
+import { Status as Merge } from "../../../../analysis/semantic/merging/model"
+import { Status } from "./result"
 
-export type Input = Status
+export type Input = Merge
 
-export type Output = u64
+export type Output = Status
 
 export default function (in: Input): Output {
     return match in {
-        Status.MissingOrigin => 3,
-        Status.Conflict => 4,
-        _ => 1
+        Merge.MissingOrigin => Status.MissingNominalOrigin,
+        Merge.Conflict => Status.ConflictingNominalType,
+        _ => Status.InvalidModule
     }
 }
