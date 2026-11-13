@@ -3,7 +3,9 @@ const zx = @import("zx");
 const Types = @import("frontend").types;
 const Scalar = @import("scalar.zig");
 const FieldAccess = @import("fields/access.zig");
+const Known = @import("known.zig");
 const Nodes = @import("nodes.zig");
+const Registration = @import("assignment/registration.zig");
 const Self = @This();
 pub const Id = enum(u32) { _ };
 pub const Mask = Scalar.Mask;
@@ -19,6 +21,7 @@ const Projections = @import("projections.zig");
 
 allocator: std.mem.Allocator,
 scratch: std.mem.Allocator,
+registration: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
 nodes: Nodes.Storage = .empty,
@@ -29,13 +32,13 @@ value_uses: std.MultiArrayList(Bindings.Use) = .empty,
 binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
 binding_lookups: std.ArrayList(Bindings.Lookup) = .empty,
 assignments: std.MultiArrayList(Assignment.Edge) = .empty,
-assignment_keys: std.AutoHashMapUnmanaged([2]Id, void) = .empty,
+assignment_keys: Registration = .{},
 constructions: std.MultiArrayList(@import("construction.zig").Object) = .empty,
 construction_parts: std.MultiArrayList(@import("construction.zig").Part) = .empty,
 selections: std.MultiArrayList(@import("selection.zig").Selection) = .empty,
 sequences: std.MultiArrayList(@import("sequences.zig").Sequence) = .empty,
 nonnull: std.MultiArrayList(@import("non_null.zig").Projection) = .empty,
-known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
+known_types: Known = .{},
 revision: usize = 0,
 /// Changes that affect the roots or known types seen by object rules.
 object_revision: usize = 0,
@@ -47,7 +50,7 @@ pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, reporter: 
     try types.items.appendDelta(allocator, try @import("frontend").type_table.copy(allocator, existing));
     try types.initialize();
 
-    return .{ .allocator = allocator, .scratch = scratch, .reporter = reporter, .types = types };
+    return .{ .allocator = allocator, .scratch = scratch, .registration = allocator, .reporter = reporter, .types = types };
 }
 
 pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
@@ -63,12 +66,19 @@ pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
 
 pub fn known(self: *Self, type_id: zx.ir.TypeId, span: zx.Span) zx.Error!Id {
     if (@backingInt(type_id) >= self.types.items.view().count()) return self.reporter.fail(.contract, span, "inference type is outside the shared table");
+    if (self.known_types.get(type_id)) |id| return id;
 
-    const entry = try self.known_types.getOrPut(self.allocator, type_id);
+    const id = try self.add(.{ .known = type_id }, span);
 
-    if (!entry.found_existing) entry.value_ptr.* = try self.add(.{ .known = type_id }, span);
+    self.known_types.put(self.registration, type_id, id) catch |err| {
+        self.nodes.len -= 1;
 
-    return entry.value_ptr.*;
+        self.forest.rollback();
+
+        return err;
+    };
+
+    return id;
 }
 
 pub fn scalar(self: *Self, value: zx.ir.Scalar, span: zx.Span) zx.Error!Id {
@@ -99,16 +109,7 @@ pub fn unify(self: *Self, left: Id, right: Id, span: zx.Span) zx.Error!void {
     return @import("unify.zig").merge(self, left, right, span, 0);
 }
 
-/// Keys are root pairs at insertion time; a union may leave a stale key and admit one duplicate edge, which only costs another fixpoint round.
-pub fn expect(self: *Self, value: Id, expected: Id, span: zx.Span) zx.Error!void {
-    const key = [2]Id{ self.root(value), self.root(expected) };
-
-    if (key[0] == key[1]) return;
-    if ((try self.assignment_keys.getOrPut(self.allocator, key)).found_existing) return;
-    try self.assignments.append(self.allocator, .{ .value = key[0], .expected = key[1], .span = span });
-
-    self.revision += 1;
-}
+pub const expect = Registration.expect;
 
 pub fn requireValue(self: *Self, value: Id, span: zx.Span) zx.Error!void {
     return Bindings.requireValue(self, value, span);

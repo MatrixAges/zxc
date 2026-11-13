@@ -23,6 +23,10 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, id: Id) std.mem.Allocat
     };
 }
 
+pub fn rollback(self: *Self) void {
+    self.state.items.len -= 1;
+}
+
 pub fn parent(self: *const Self, id: Id) Id {
     return @fromBackingInt(self.state.items[@backingInt(id)]);
 }

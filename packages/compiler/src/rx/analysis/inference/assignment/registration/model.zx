@@ -1,0 +1,25 @@
+import type { U32Buffer } from "std:memory"
+import type { Index } from "core/integer/wide_index/model"
+
+export type Endpoints = {
+    parents: U32Buffer,
+    left: u32,
+    right: u32
+}
+
+export type Input = {
+    endpoints: Endpoints,
+    index: Index,
+    needs_reserve: bool
+}
+
+export type Pair = {
+    left: u32,
+    right: u32,
+    key: u64
+}
+
+export type Output = {
+    pair: Pair,
+    skip: bool
+}

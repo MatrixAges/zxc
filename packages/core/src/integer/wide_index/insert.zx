@@ -1,12 +1,12 @@
 import integers from "std:integer"
 
+import { max_u32 } from "../../const"
 import {
     initial_capacity,
     capacity_growth,
     load_numerator,
     load_denominator
 } from "../index/const"
-import get from "./get"
 import grow from "./grow"
 import probe from "./probe"
 
@@ -14,35 +14,51 @@ import type { Inserted as Output } from "./model"
 import type { Key as Input } from "./model"
 
 export default function (in: Input): Output {
-    const previous = get(in)
+    const capacity = in.index.buckets.length
 
-    if (previous != null) {
-        return {
-            index: in.index,
-            position: previous,
-            found: true
+    const existing_slot = match {
+        capacity == 0 => 0,
+        _ => probe({
+            ...in.index.omit(["count"]),
+            key: in.key
+        })
+    }
+
+    if (capacity != 0) {
+        const previous = in.index.buckets[existing_slot]
+
+        if (previous != max_u32) {
+            return {
+                index: in.index,
+                position: integers.widen(previous),
+                found: true
+            }
         }
     }
 
     const count = in.index.count + 1
     const position = integers.narrow(count) - 1
-    const limit = in.index.buckets.length * load_numerator / load_denominator
+    const limit = capacity * load_numerator / load_denominator
+    const needs_growth = count > limit
 
     const prepared = match {
-        count > limit => grow({
+        needs_growth => grow({
             index: in.index,
             capacity: match {
-                in.index.buckets.length == 0 => initial_capacity,
-                _ => in.index.buckets.length * capacity_growth
+                capacity == 0 => initial_capacity,
+                _ => capacity * capacity_growth
             }
         }),
         _ => in.index
     }
 
-    const slot = probe({
-        ...prepared.omit(["count"]),
-        key: in.key
-    })
+    const slot = match {
+        needs_growth => probe({
+            ...prepared.omit(["count"]),
+            key: in.key
+        }),
+        _ => existing_slot
+    }
 
     const keys = match {
         prepared.count < prepared.keys.length =>

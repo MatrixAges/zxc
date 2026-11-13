@@ -1,0 +1,40 @@
+<Module>
+    <Type from="model" as="Registration" />
+
+    <Args in={Registration.Input} out={Registration.Output} />
+
+    <Call fn="endpoints" in={$in.endpoints} />
+
+    <If on={$ctx.endpoints.left == $ctx.endpoints.right}>
+        <Return
+            value={{
+                pair: $ctx.endpoints,
+                skip: true
+            }}
+        />
+    </If>
+
+    <If on={$in.needs_reserve}>
+        <Call
+            fn="duplicate"
+            in={{
+                index: $in.index,
+                key: $ctx.endpoints.key
+            }}
+        />
+
+        <Return
+            value={{
+                pair: $ctx.endpoints,
+                skip: $ctx.duplicate
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            pair: $ctx.endpoints,
+            skip: false
+        }}
+    />
+</Module>

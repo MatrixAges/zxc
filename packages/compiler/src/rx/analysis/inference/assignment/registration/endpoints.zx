@@ -1,0 +1,27 @@
+import integers from "std:integer"
+
+import representative from "../../forest/borrowed_root"
+import { node_id_bits } from "./const"
+
+import type { Endpoints as Input, Pair as Output } from "./model"
+
+export default function (in: Input): Output {
+    const left = representative({
+        parents: in.parents,
+        value: in.left
+    })
+
+    const right = representative({
+        parents: in.parents,
+        value: in.right
+    })
+
+    const high = integers.shiftLeft(integers.widen(left), node_id_bits)
+    const key = high + integers.widen(right)
+
+    return {
+        left,
+        right,
+        key
+    }
+}

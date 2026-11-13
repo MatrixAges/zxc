@@ -1,0 +1,14 @@
+import get from "core/integer/wide_index/get"
+
+import type { Index } from "core/integer/wide_index/model"
+
+export type Input = {
+    index: Index,
+    key: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return get(in) != null
+}

@@ -215,9 +215,24 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
 
     var reporter: zx.Reporter = .{};
     var graph = Graph.init(allocator, backing, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
-    const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs) catch |err| return reported(allocator, source_map, reporter, err);
 
-    graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
+    const states = collect: {
+        var registration = std.heap.ArenaAllocator.init(backing);
+
+        defer registration.deinit();
+
+        graph.registration = registration.allocator();
+
+        const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs) catch |err| return reported(allocator, source_map, reporter, err);
+
+        graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
+
+        graph.known_types = .{};
+        graph.assignment_keys = .{};
+        graph.registration = backing;
+
+        break :collect states;
+    };
 
     const resolved = @import("project/signatures.zig").resolve(&graph, states) catch |err| return reported(allocator, source_map, reporter, err);
 
