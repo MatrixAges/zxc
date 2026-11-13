@@ -1,0 +1,29 @@
+export enum Stage {
+    ValidateUses,
+    Bindings,
+    NonNull,
+    Sequences,
+    Constructions,
+    Selections,
+    Lengths,
+    Indexes,
+    AssignmentClasses,
+    SequenceDefault,
+    Materialize,
+    IndexDefault,
+    FinalNonNull,
+    FinalSelections,
+    FinalConstructions,
+    ValidateLengths,
+    FinalBindings,
+    ValidateAssignments,
+    Restart,
+    Done
+}
+
+export type Input = {
+    stage: Stage,
+    changed: bool
+}
+
+export type Output = Stage

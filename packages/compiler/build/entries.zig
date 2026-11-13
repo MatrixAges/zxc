@@ -87,6 +87,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/inference/assignment/classes/build.rx", .name = "assignment_classes", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/classes/payloads.zx", .name = "assignment_payloads", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/validation/scan.zx", .name = "assignment_validation", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/inference/solve/advance.rx", .name = "rx_constraint_schedule", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/depth/solve.rx", .name = "assignment_depth", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/application/merge.zx", .name = "assignment_next_merge", .owner = .rx_analysis },
     .{ .path = "rx/analysis/inference/assignment/application/materialize.zx", .name = "assignment_next_materialization", .owner = .rx_analysis },

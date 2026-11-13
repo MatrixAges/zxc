@@ -16,7 +16,6 @@ pub const Node = struct { shape: Shape, span: zx.Span, allowed: ?Mask = null, fa
 
 const Bindings = @import("bindings.zig");
 const Assignment = @import("assignment.zig");
-const ObjectClosure = @import("object_closure.zig");
 const Projections = @import("projections.zig");
 
 allocator: std.mem.Allocator,
@@ -154,54 +153,7 @@ pub fn payload(self: *Self, id: Id, kind: enum { list, optional }, span: zx.Span
     return child;
 }
 
-pub fn finish(self: *Self) zx.Error!void {
-    var workspace = std.heap.ArenaAllocator.init(self.scratch);
-    var object_closure = ObjectClosure.init(self.scratch);
-
-    defer workspace.deinit();
-    defer object_closure.deinit();
-
-    while (true) {
-        const revision = self.revision;
-
-        try Bindings.validateUses(self);
-        try Bindings.propagate(self, false);
-        try @import("non_null.zig").propagate(self, false);
-
-        const sequences = self.pending.sequences.slice();
-
-        for (0..sequences.len) |index| try @import("sequences.zig").propagate(self, sequences.get(index));
-        for (0..self.pending.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.pending.constructions.get(index), false);
-        for (0..self.pending.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.pending.selections.get(index), false);
-        try Projections.applyLengths(self);
-        try @import("index.zig").replay(self);
-        if (revision != self.revision) continue;
-
-        _ = workspace.reset(.retain_capacity);
-        const scratch = workspace.allocator();
-        const base = try Assignment.Base.init(self, scratch);
-
-        try base.propagate(self);
-
-        if (revision != self.revision) continue;
-        if (try @import("sequences/defaults/apply.zig").apply(self, base, scratch)) continue;
-        try Assignment.materialize(self, base, scratch);
-        if (revision != self.revision) continue;
-        if (try @import("index.zig").defaultLists(self)) continue;
-        try @import("non_null.zig").propagate(self, true);
-        if (revision != self.revision) continue;
-        for (0..self.pending.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.pending.selections.get(index), true);
-        if (revision != self.revision) continue;
-        for (0..self.pending.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.pending.constructions.get(index), true);
-        if (revision != self.revision) continue;
-
-        break;
-    }
-
-    try Projections.validateLengths(self);
-    try Bindings.propagate(self, true);
-    try Assignment.validate(self);
-}
+pub const finish = @import("solve.zig").finish;
 
 pub fn resolve(self: *Self, id: Id) zx.Error!zx.ir.TypeId {
     return @import("resolve.zig").resolve(self, id);

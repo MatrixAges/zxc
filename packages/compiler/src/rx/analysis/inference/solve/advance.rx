@@ -1,0 +1,111 @@
+<Module>
+    <Type from="model" as="Solve" />
+
+    <Args in={Solve.Input} out={Solve.Output} />
+
+    <Switch on={$in.stage}>
+        <Case value={Solve.Stage.ValidateUses}>
+            <Return value={Solve.Stage.Bindings} />
+        </Case>
+
+        <Case value={Solve.Stage.Bindings}>
+            <Return value={Solve.Stage.NonNull} />
+        </Case>
+
+        <Case value={Solve.Stage.NonNull}>
+            <Return value={Solve.Stage.Sequences} />
+        </Case>
+
+        <Case value={Solve.Stage.Sequences}>
+            <Return value={Solve.Stage.Constructions} />
+        </Case>
+
+        <Case value={Solve.Stage.Constructions}>
+            <Return value={Solve.Stage.Selections} />
+        </Case>
+
+        <Case value={Solve.Stage.Selections}>
+            <Return value={Solve.Stage.Lengths} />
+        </Case>
+
+        <Case value={Solve.Stage.Lengths}>
+            <Return value={Solve.Stage.Indexes} />
+        </Case>
+
+        <Case value={Solve.Stage.Indexes}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.AssignmentClasses} />
+        </Case>
+
+        <Case value={Solve.Stage.AssignmentClasses}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.SequenceDefault} />
+        </Case>
+
+        <Case value={Solve.Stage.SequenceDefault}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.Materialize} />
+        </Case>
+
+        <Case value={Solve.Stage.Materialize}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.IndexDefault} />
+        </Case>
+
+        <Case value={Solve.Stage.IndexDefault}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.FinalNonNull} />
+        </Case>
+
+        <Case value={Solve.Stage.FinalNonNull}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.FinalSelections} />
+        </Case>
+
+        <Case value={Solve.Stage.FinalSelections}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.FinalConstructions} />
+        </Case>
+
+        <Case value={Solve.Stage.FinalConstructions}>
+            <If on={$in.changed}>
+                <Return value={Solve.Stage.Restart} />
+            </If>
+
+            <Return value={Solve.Stage.ValidateLengths} />
+        </Case>
+
+        <Case value={Solve.Stage.ValidateLengths}>
+            <Return value={Solve.Stage.FinalBindings} />
+        </Case>
+
+        <Case value={Solve.Stage.FinalBindings}>
+            <Return value={Solve.Stage.ValidateAssignments} />
+        </Case>
+
+        <Default>
+            <Return value={Solve.Stage.Done} />
+        </Default>
+    </Switch>
+</Module>
