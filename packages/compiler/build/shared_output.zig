@@ -26,12 +26,15 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Alloca
         try top.append(allocator, .{ .path = name, .source = module.file.source });
         try modules.append(allocator, .{ .name = module.name, .file = name });
 
-        const adapter = try compiler.zig.host.bootstrapReexports(allocator, workspace, .{
-            .member = module.name,
-            .value_entry = module.value_entry,
-            .state_entry = module.state_entry,
-            .allocator_entry = module.allocator_entry,
-        });
+        const adapter = if (module.constant_only)
+            try compiler.zig.host.reexports(allocator, "generated", module.name, &.{compiler.zig.constant_namespace})
+        else
+            try compiler.zig.host.bootstrapReexports(allocator, workspace, .{
+                .member = module.name,
+                .value_entry = module.value_entry,
+                .state_entry = module.state_entry,
+                .allocator_entry = module.allocator_entry,
+            });
 
         try files.append(allocator, .{ .path = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), .source = adapter });
     }

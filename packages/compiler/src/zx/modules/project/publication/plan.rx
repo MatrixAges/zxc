@@ -1,0 +1,31 @@
+<Module>
+    <Type from="model" as="Publication" />
+
+    <Args in={Publication.Request} out={Publication.Plan} />
+
+    <Call fn="slot" in={$in} />
+
+    <Call
+        fn="recursion"
+        in={{
+            module: $in,
+            candidate: $ctx.slot.id
+        }}
+    />
+
+    <Call
+        module="classify"
+        in={{
+            type_only: $in.type_only,
+            entry: $in.entry,
+            recursive: $ctx.recursion
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.slot,
+            publication: $ctx.classify
+        }}
+    />
+</Module>

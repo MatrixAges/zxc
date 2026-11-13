@@ -9,7 +9,6 @@ const Kind = enum { source, native };
 io: std.Io,
 allocator: std.mem.Allocator,
 directory: []const u8,
-file_limit: usize,
 buffer: std.Io.Writer.Allocating,
 loaded: usize = 0,
 discarded: usize = 0,
@@ -19,7 +18,7 @@ native_written: usize = 0,
 pub fn init(io: std.Io, allocator: std.mem.Allocator, backing: std.mem.Allocator, root: []const u8) !Self {
     const directory = try std.fs.path.join(allocator, &.{ root, ".zxc", "cache", "semantic", &std.fmt.bytesToHex(identity(), .lower) });
 
-    return .{ .io = io, .allocator = allocator, .directory = directory, .file_limit = SemanticCache.fileLimit(), .buffer = .init(backing) };
+    return .{ .io = io, .allocator = allocator, .directory = directory, .buffer = .init(backing) };
 }
 
 pub fn deinit(self: *Self) void {
@@ -71,7 +70,7 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
 
     defer self.allocator.free(location);
 
-    const bytes = @import("cache/buffer.zig").read(&self.buffer, self.io, location, self.file_limit) catch |err| switch (err) {
+    const bytes = @import("cache/buffer.zig").read(&self.buffer, self.io, location, SemanticCache.maximum_file_size) catch |err| switch (err) {
         error.FileNotFound => return false,
         error.StreamTooLong => {
             self.discarded += 1;
@@ -113,7 +112,7 @@ fn saveEntries(self: *Self, entries: *SemanticCache.entry_store.Map, kind: Kind)
 
         const bytes = self.buffer.writer.buffered();
 
-        if (bytes.len >= self.file_limit) continue;
+        if (bytes.len >= SemanticCache.maximum_file_size) continue;
         try @import("artifacts.zig").write(self.io, location, bytes);
 
         entry.dirty = false;

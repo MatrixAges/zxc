@@ -1,0 +1,46 @@
+export type Body = {
+    type_only: bool,
+    entry: bool,
+    recursive: bool
+}
+
+export enum Publication {
+    Types,
+    Dependency,
+    Entry,
+    RecursiveDependency,
+    RecursiveEntry
+}
+
+export type Request = {
+    type_only: bool,
+    entry: bool,
+    declared: bool,
+    restored: bool,
+    restored_function?: u32,
+    linked_count: u64,
+    calls: u32[]
+}
+
+export type Slot = {
+    id?: u32,
+    append: bool
+}
+
+export type Plan = {
+    id?: u32,
+    append: bool,
+    publication: Publication
+}
+
+export type Entry = {
+    type_only: bool,
+    own?: u32,
+    calls: u32[],
+    linked_count: u64
+}
+
+export type Final = {
+    forward?: u32,
+    visible_count: u64
+}

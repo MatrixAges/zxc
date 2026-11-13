@@ -1,0 +1,28 @@
+import integers from "std:integer"
+
+import type { Request, Slot } from "./model"
+
+export type Input = Request
+
+export type Output = Slot
+
+export default function (in: Input): Output {
+    if (in.restored_function != null) {
+        return {
+            id: in.restored_function,
+            append: false
+        }
+    }
+
+    if (in.type_only) {
+        return {
+            id: null,
+            append: false
+        }
+    }
+
+    return {
+        id: integers.narrow(in.linked_count),
+        append: true
+    }
+}

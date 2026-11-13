@@ -5,7 +5,6 @@ const Origins = @import("../../nominal_origins.zig");
 const Context = @import("../../../analysis/analyze.zig").Context;
 const enabled = @import("parser_options").generated_parser;
 pub const Admission = if (enabled) Output(@import("generated_project_state_open")) else enum { Ready, Types, Native, Nominal };
-pub const Publication = if (enabled) Output(@import("generated_project_body_publish")) else enum { Types, Dependency, Entry, RecursiveDependency, RecursiveEntry };
 
 fn Output(comptime module: type) type {
     return @typeInfo(@TypeOf(module.executeValue(undefined, undefined))).error_union.payload;
@@ -73,19 +72,4 @@ fn admission(context: *const Context) std.mem.Allocator.Error!Admission {
 
 fn failure(message: []const u8) Open {
     return .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = message } };
-}
-
-pub fn publish(type_only: bool, entry: bool, recursive: bool) Publication {
-    if (comptime enabled) {
-        const generated = @import("generated_project_body_publish");
-        var empty = std.heap.FixedBufferAllocator.init(&.{});
-        const input: std.meta.Child(generated.Input) = .{ .type_only = type_only, .entry = entry, .recursive = recursive };
-
-        return zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
-    }
-
-    if (type_only) return .Types;
-    if (entry) return if (recursive) .RecursiveEntry else .Entry;
-
-    return if (recursive) .RecursiveDependency else .Dependency;
 }

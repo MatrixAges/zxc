@@ -6,7 +6,17 @@ const names = @import("names.zig");
 const references = @import("genz").zx.references;
 const Cache = @import("cache.zig");
 pub const Error = modules.Error || validation.Error || error{InvalidModule};
-pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false, state_entry: bool = false, allocator_entry: bool = false, requirements: ?@import("genz").zx.state.Requirements = null };
+
+pub const PublicModule = struct {
+    name: []const u8,
+    file: modules.File,
+    value_entry: bool = false,
+    state_entry: bool = false,
+    allocator_entry: bool = false,
+    constant_only: bool = false,
+    requirements: ?@import("genz").zx.state.Requirements = null,
+};
+
 pub const Options = struct { signatures: bool = false };
 
 pub const Bundle = struct {
@@ -162,6 +172,8 @@ fn create(allocator: std.mem.Allocator, output: std.mem.Allocator, library: *con
             .value_entry = public_batch.analysis.value.hasValueEntry(),
             .state_entry = public_batch.analysis.value.hasStateEntry(view),
             .allocator_entry = public_batch.analysis.value.hasAllocatorEntry(),
+            .constant_only = view.type_only and view.constant_exports.len != 0 and
+                view.exports.len == 0 and exported.members.len == 0,
             .requirements = .{ .io = public_batch.analysis.value.entry_flags.io, .process = public_batch.analysis.value.entry_flags.process },
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),

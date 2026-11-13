@@ -15,6 +15,7 @@ pub const names = @import("names.zig");
 pub const partition = @import("partition.zig");
 pub const prepare = @import("inline_call/root.zig").prepare;
 pub const function_analysis = @import("function_analysis.zig");
+pub const constant_namespace = @import("module/constants.zig").namespace;
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
     return emitWithConcurrency(allocator, program, false);

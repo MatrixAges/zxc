@@ -8,6 +8,7 @@ pub const codec = @import("semantic_cache/codec.zig");
 pub const contextDigest = @import("semantic_cache/fingerprint/context/host.zig").digest;
 pub const filePath = @import("semantic_cache/fingerprint/file_key.zig").path;
 pub const prefetch = @import("semantic_cache/discovery/host.zig").prefetch;
+pub const maximum_file_size: usize = @import("generated_semantic_cache_constants").@"zx.constants".maximum_file_size;
 
 allocator: std.mem.Allocator,
 parse_cache: ParseCache,
@@ -18,15 +19,6 @@ reused: usize = 0,
 uncacheable: usize = 0,
 pub fn init(allocator: std.mem.Allocator) Self {
     return .{ .allocator = allocator, .parse_cache = .{ .allocator = allocator }, .native = .{ .allocator = allocator } };
-}
-
-pub fn fileLimit() usize {
-    if (comptime !@import("parser_options").generated_parser) return 64 * 1024 * 1024;
-
-    const generated = @import("generated_semantic_cache_file_limit");
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    return @intCast(generated.executeValue(empty.allocator(), {}) catch unreachable);
 }
 
 pub fn deinit(self: *Self) void {

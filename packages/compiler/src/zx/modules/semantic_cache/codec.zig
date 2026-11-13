@@ -1,7 +1,8 @@
 const std = @import("std");
 const zx = @import("zx");
 const Artifact = @import("../artifact/model.zig");
-pub const marker = "zxc.module.v7\n";
+const generated = @import("parser_options").generated_parser;
+pub const marker = if (generated) @import("generated_semantic_cache_constants").@"zx.constants".marker else "zxc.module.v7\n";
 
 fn Payload(comptime Version: type) type {
     return struct { ir_version: Version, context_digest: [32]u8, module: Artifact.Module };
@@ -9,7 +10,6 @@ fn Payload(comptime Version: type) type {
 
 pub const Decoded = struct { result: Artifact.Result, context_digest: [32]u8 };
 pub const Error = std.mem.Allocator.Error || error{InvalidCache};
-const generated = @import("parser_options").generated_parser;
 
 pub fn encode(allocator: std.mem.Allocator, module: Artifact.Module, context_digest: [32]u8, compiler_digest: [32]u8) std.mem.Allocator.Error![]u8 {
     var out: std.Io.Writer.Allocating = .init(allocator);

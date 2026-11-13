@@ -1,0 +1,29 @@
+<Module>
+    <Type from="model" as="Publication" />
+
+    <Args in={Publication.Entry} out={Publication.Final} />
+
+    <Call
+        fn="../../artifact/remapping/recursive"
+        in={{
+            calls: $in.calls,
+            candidate: $in.own
+        }}
+    />
+
+    <If on={$in.type_only || $ctx.recursive != null}>
+        <Return
+            value={{
+                forward: $ctx.recursive,
+                visible_count: $in.linked_count
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            forward: null,
+            visible_count: $in.linked_count - 1
+        }}
+    />
+</Module>

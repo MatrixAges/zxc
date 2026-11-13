@@ -503,22 +503,14 @@ const Project = struct {
             break :analyze_block try input.analyze(&analyzer, unit.path);
         };
 
-        const restored_recursive = if (restored) |result| result.recursive else null;
+        const publication = try @import("project/publication/host.zig").module(&program, entry, input.header().functionName() != null, self.functions.count(), if (restored) |*value| value else null);
 
-        if (restored_recursive) |id| {
-            unit.function = id;
-        } else if (!program.type_only) {
-            unit.function = @fromBackingInt(@intCast(self.functions.count()));
+        unit.function = publication.id;
 
-            try self.functions.append(self.allocator, @import("function_body.zig").value(program));
-        }
-
-        const recursive = !program.type_only and input.header().functionName() != null and
-            (if (restored != null) restored_recursive != null else @import("function_body.zig").calls(program.expressions, unit.function.?));
-
-        const publication = State.publish(program.type_only, entry, recursive);
+        if (publication.append) try self.functions.append(self.allocator, @import("function_body.zig").value(program));
 
         if (restored == null and !@TypeOf(input).completes_ownership) {
+            const recursive = publication.publication == .RecursiveEntry or publication.publication == .RecursiveDependency;
             const count = self.functions.count() - @intFromBool(!program.type_only and !recursive);
 
             program.functions = self.functions.view().prefix(count);
@@ -555,12 +547,12 @@ const Project = struct {
             .imports = dependencies.items,
             .type_imports = aliases.items,
             .function_imports = imports.items,
-            .body = switch (publication) {
+            .body = switch (publication.publication) {
                 .Types => .types,
                 .Entry, .RecursiveEntry => .entry,
                 .Dependency, .RecursiveDependency => .{ .function = unit.function.? },
             },
-            .own_function = switch (publication) {
+            .own_function = switch (publication.publication) {
                 .RecursiveEntry, .RecursiveDependency => unit.function,
                 else => null,
             },
@@ -898,17 +890,12 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     program.types = project.types.view();
     program.native_modules = project.native_modules.view();
-    const own = project.units[root].function;
-    const recursive = if (own) |id| @import("function_body.zig").calls(program.expressions, id) else false;
-    const count = project.functions.count() - @intFromBool(!program.type_only and !recursive);
+    const publication = @import("project/publication/host.zig").finalize(&program, project.units[root].function, project.functions.count());
 
-    program.functions = project.functions.view().prefix(count);
+    program.functions = project.functions.view().prefix(publication.visible_count);
 
-    if (recursive) try @import("function_body.zig").entry(temporary, &program, own.?);
-
-    const verified = @min(count, project.verified_functions);
-
-    if (try Validate.validateProjectPrefix(allocator, program, verified, project.verified_types)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
+    if (publication.forward) |id| try @import("function_body.zig").entry(temporary, &program, id);
+    if (try Validate.validateProjectPrefix(allocator, program, @min(publication.visible_count, project.verified_functions), project.verified_types)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
     var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 

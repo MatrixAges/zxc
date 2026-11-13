@@ -85,6 +85,8 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
                 .store_mode = program.store_mode,
                 .type_only = program.type_only,
             });
+
+            if (program.constant_exports.len != 0) self.write(program.constant_exports);
         },
         .types => {
             self.write(state_plan.keys.len);

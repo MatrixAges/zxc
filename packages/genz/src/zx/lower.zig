@@ -95,6 +95,7 @@ pub fn declarations(self: *Self) Error!@import("../node/stored.zig").Declaration
     if (self.function_modules == null) self.native_names = try @import("imports.zig").lower(self, &output);
     try @import("types.zig").lower(self, &output, false);
     try @import("module/emitting.zig").exports(self, &output);
+    try @import("module/constants.zig").append(self, &output);
     if (self.program.type_only) return self.builder.nodes.declarations(self.allocator, output.items);
     try @import("shape.zig").lower(self, &output);
     try @import("module/emitting.zig").contracts(self, &output);
