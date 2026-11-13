@@ -1,17 +1,32 @@
 import integers from "std:integer"
 
-import type { Alias } from "./model"
+import type { Aliases } from "./model"
 
-export type Input = Alias
+export type Input = Aliases
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const index = integers.widen(in.previous_type)
+    const { previous, current, types } = in
 
-    if (index >= in.types.length || in.previous_name != in.current_name) {
-        return false
-    }
+    return loop({
+        row: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.row < previous.length,
+        next: state => {
+            const left = previous[state.row]
+            const right = current[state.row]
+            const index = integers.widen(left.type_id)
+            const matches = (
+                - index < types.length
+                - and left.name == right.name
+                - and types[index] == right.type_id
+            )
 
-    return in.types[index] == in.current_type
+            state.valid = matches
+            state.row += 1
+        },
+        return: state => state.valid
+    })
 }

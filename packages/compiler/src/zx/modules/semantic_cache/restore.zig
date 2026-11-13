@@ -85,13 +85,12 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
 
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
 
-    for (module.type_imports, current.aliases) |*previous, *alias| {
-        const same = if (comptime generated)
-            Host.alias(previous, alias, mapping)
-        else
-            std.mem.eql(u8, previous.name, alias.name) and try nodes.types.include(previous.type_id) == alias.type_id;
-
-        if (!same) return error.InvalidModule;
+    if (comptime generated) {
+        if (!Host.aliases(module.type_imports, current.aliases, mapping)) return error.InvalidModule;
+    } else {
+        for (module.type_imports, current.aliases) |*previous, *alias| {
+            if (!std.mem.eql(u8, previous.name, alias.name) or try nodes.types.include(previous.type_id) != alias.type_id) return error.InvalidModule;
+        }
     }
 
     if (comptime generated) {
@@ -100,10 +99,10 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
 
     const imported = function_mapping[0..module.functions.count()];
 
-    for (module.function_imports, current.imports) |*previous, *binding| {
-        if (comptime generated) {
-            if (!Host.bind(previous, binding, imported, mapping, current.functions.count())) return error.InvalidModule;
-        } else try Seed.bind(previous, binding, imported, nodes.types, current.functions.count());
+    if (comptime generated) {
+        if (!Host.bindings(module.function_imports, current.imports, imported, mapping, current.functions.count())) return error.InvalidModule;
+    } else {
+        for (module.function_imports, current.imports) |*previous, *binding| try Seed.bind(previous, binding, imported, nodes.types, current.functions.count());
     }
 
     const linked = ir.SignatureTable.fromFunctions(current.functions);

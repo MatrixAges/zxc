@@ -20,11 +20,23 @@ export type Binding = {
 }
 
 export type Alias = {
-    previous_name: string,
-    current_name: string,
-    previous_type: u32,
-    current_type: u32,
+    name: string,
+    type_id: u32
+}
+
+export type Aliases = {
+    previous: Alias[],
+    current: Alias[],
     types: u32[]
+}
+
+export type Bindings = {
+    previous: Import[],
+    current: Import[],
+    mapping: u32?[],
+    target: OptionalU32Buffer,
+    types: u32[],
+    current_count: u64
 }
 
 export type Signatures = {

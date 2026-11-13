@@ -17,6 +17,11 @@ export type Pair = {
     current: Dependency
 }
 
+export type Batch = {
+    previous: Dependency[],
+    current: Dependency[]
+}
+
 export type Names = {
     previous: string[],
     current: string[]

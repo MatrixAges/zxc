@@ -1,6 +1,9 @@
-import type { Import } from "./model"
-
-export type Input = Import
+export type Input = {
+    id: u32?,
+    input_type: u32?,
+    output_type: u32?,
+    intrinsic: u8?
+}
 
 export type Output = bool
 

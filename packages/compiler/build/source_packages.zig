@@ -17,6 +17,8 @@ pub const entries: []const Package = &.{
     .{ .specifier = "genz/abi/model", .entry = "genz/analysis/abi/view/model.zx" },
     .{ .specifier = "compiler/compiled_native", .entry = "zx/modules/compiled/loading/native/step.rx" },
     .{ .specifier = "compiler/artifact_named_item", .entry = "zx/modules/link/dependencies/item.rx" },
+    .{ .specifier = "compiler/artifact_dependency_equal", .entry = "zx/modules/semantic_cache/restoring/dependencies/equal.rx" },
+    .{ .specifier = "compiler/artifact_binding_restore", .entry = "zx/modules/semantic_cache/restoring/functions/bind.rx" },
     .{ .specifier = "compiler/compiled_function", .entry = "zx/modules/compiled/loading/functions/remap.rx" },
     .{ .specifier = "compiler/compiled_contract", .entry = "zx/modules/compiled/loading/remap/contract.rx" },
     .{ .specifier = "compiler/ir_unit_structure", .entry = "zx/ir/canonical/validation/structure/unit.rx" },
