@@ -1,12 +1,17 @@
 import type { U32Buffer } from "std:memory"
 import type { Constraints } from "../../scalar/model"
+import type { Graph, Output as Restriction } from "../../scalar/restriction"
 
 export type Input = {
     parents: U32Buffer,
+    graph: Graph,
     parent: u32,
     child: u32,
     left: Constraints,
     right: Constraints
 }
 
-export type Output = Constraints
+export type Output = {
+    fallback?: u32,
+    restriction?: Restriction
+}

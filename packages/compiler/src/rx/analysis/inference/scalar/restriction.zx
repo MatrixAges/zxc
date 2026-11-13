@@ -1,13 +1,36 @@
+import type { U32Buffer } from "std:memory"
+import type { Kind } from "../unification/model"
 import type { Issue, Shape } from "./model"
 
-export type Input = {
+export type Graph = {
+    parents: U32Buffer,
+    kinds: Kind[],
+    arguments: u32[],
+    allowed: u16?[],
+    type_kinds: u8[],
+    type_arguments: u32[]
+}
+
+export type Target = {
+    graph: Graph,
+    node: u32
+}
+
+export type Current = {
+    root: u32,
     previous?: u64,
-    requested: u64,
     shape: Shape,
     scalar: u32
 }
 
+export type Input = {
+    target: Target,
+    requested: u64
+}
+
 export type Output = {
+    root: u32,
     allowed: u64,
-    issue: Issue
+    issue: Issue,
+    changed: bool
 }

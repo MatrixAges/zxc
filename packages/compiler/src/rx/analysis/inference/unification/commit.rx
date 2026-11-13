@@ -14,10 +14,36 @@
     <Call
         fn="../forest/link"
         in={$in.omit([
+            "graph",
             "left",
             "right"
         ])}
     />
 
-    <Return value={$ctx.combine} />
+    <If on={$ctx.combine.allowed == null}>
+        <Return
+            value={{
+                fallback: $ctx.combine.fallback,
+                restriction: null
+            }}
+        />
+    </If>
+
+    <Call
+        module="../scalar/restrict"
+        in={{
+            target: {
+                graph: $in.graph,
+                node: $in.parent
+            },
+            requested: $ctx.combine.allowed ?? 0
+        }}
+    />
+
+    <Return
+        value={{
+            fallback: $ctx.combine.fallback,
+            restriction: $ctx.restrict
+        }}
+    />
 </Module>

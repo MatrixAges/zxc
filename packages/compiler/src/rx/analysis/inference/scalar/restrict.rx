@@ -4,10 +4,12 @@
 
     <Args in={Restriction.Input} out={Restriction.Output} />
 
+    <Call fn="target" in={$in.target} />
+
     <Call
         fn="intersect"
         in={{
-            left: $in.previous,
+            left: $ctx.target.previous,
             right: $in.requested
         }}
     />
@@ -15,8 +17,10 @@
     <If on={($ctx.intersect ?? 0) == 0}>
         <Return
             value={{
+                root: $ctx.target.root,
                 allowed: 0,
-                issue: Scalar.Issue.Empty
+                issue: Scalar.Issue.Empty,
+                changed: false
             }}
         />
     </If>
@@ -25,15 +29,17 @@
         fn="admit"
         in={{
             allowed: $ctx.intersect ?? 0,
-            shape: $in.shape,
-            scalar: $in.scalar
+            shape: $ctx.target.shape,
+            scalar: $ctx.target.scalar
         }}
     />
 
     <Return
         value={{
+            root: $ctx.target.root,
             allowed: $ctx.intersect ?? 0,
-            issue: $ctx.admit
+            issue: $ctx.admit,
+            changed: $ctx.target.previous != $ctx.intersect
         }}
     />
 </Module>

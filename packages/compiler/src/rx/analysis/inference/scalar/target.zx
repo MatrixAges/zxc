@@ -1,0 +1,49 @@
+import integers from "std:integer"
+import { kind_scalar } from "core/type_table/const"
+
+import representative from "../forest/borrowed_root"
+import { Kind } from "../unification/model"
+import { Shape } from "./model"
+
+import type { Current, Target } from "./restriction"
+
+export type Input = Target
+
+export type Output = Current
+
+export default function (in: Input): Output {
+    const graph = in.graph
+
+    const root = representative({
+        parents: graph.parents,
+        value: in.node
+    })
+
+    const index = integers.widen(root)
+    const kind = graph.kinds[index]
+    const allowed = graph.allowed[index]
+
+    const previous: u64? = match {
+        allowed == null => null,
+        _ => integers.widenShort(allowed)
+    }
+
+    if (kind == Kind.Known) {
+        const type_id = integers.widen(graph.arguments[index])
+        const scalar = graph.type_kinds[type_id] == kind_scalar
+
+        return {
+            root,
+            previous,
+            shape: scalar ? Shape.Scalar : Shape.Concrete,
+            scalar: graph.type_arguments[type_id]
+        }
+    }
+
+    return {
+        root,
+        previous,
+        shape: kind == Kind.Unknown ? Shape.Open : Shape.Structure,
+        scalar: 0
+    }
+}

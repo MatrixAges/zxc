@@ -115,40 +115,7 @@ pub fn requireValue(self: *Self, value: Id, span: zx.Span) zx.Error!void {
     return Bindings.requireValue(self, value, span);
 }
 
-pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void {
-    const index = @backingInt(self.root(id));
-    const current = self.shapeAt(index);
-    const rows = self.nodes.slice();
-    const previous = &rows.items(.allowed)[index];
-
-    const known_scalar: ?zx.ir.Scalar = if (current == .known) switch (self.types.get(current.known)) {
-        .scalar => |value| value,
-        else => null,
-    } else null;
-
-    const constraint_shape: Scalar.Shape = switch (current) {
-        .unknown => .open,
-        .known => if (known_scalar != null) .scalar else .concrete,
-        else => .structure,
-    };
-
-    const merged = Scalar.restrict(Nodes.allowed(rows, index), allowed, constraint_shape, known_scalar);
-
-    switch (merged.issue) {
-        .none => {},
-        .empty => return self.reporter.fail(.type_mismatch, span, "incompatible inferred scalar requirements"),
-        .operator => return self.reporter.fail(.type_mismatch, span, "inferred type does not satisfy the operator"),
-        .structure => return self.reporter.fail(.type_mismatch, span, "the operator requires a scalar value"),
-    }
-
-    const bits: u16 = @intCast(merged.allowed.bits.mask);
-
-    if (previous.* == null or previous.*.? != bits) {
-        self.revision += 1;
-    }
-
-    previous.* = bits;
-}
+pub const restrict = @import("scalar/restriction.zig").restrict;
 
 pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.Error!Id {
     const number_type = Scalar.literal(text, negative);

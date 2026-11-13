@@ -70,32 +70,6 @@ pub fn operator(value: zx.syntax.Operator) Operator {
     };
 }
 
-pub fn restrict(previous: ?Mask, requested: Mask, shape: Shape, scalar: ?zx.ir.Scalar) Restriction {
-    if (!enabled) return seed.restrict(previous, requested, shape, scalar);
-
-    const result = call(@import("generated_rx_scalar_restriction"), &.{
-        .previous = bits(previous),
-        .requested = requested.bits.mask,
-        .shape = switch (shape) {
-            .open => .Open,
-            .scalar => .Scalar,
-            .concrete => .Concrete,
-            .structure => .Structure,
-        },
-        .scalar = if (scalar) |value| @backingInt(value) else 0,
-    });
-
-    return .{
-        .allowed = fromBits(result.allowed),
-        .issue = switch (result.issue) {
-            .None => .none,
-            .Empty => .empty,
-            .Operator => .operator,
-            .Structure => .structure,
-        },
-    };
-}
-
 pub fn default(allowed: ?Mask, fallback: zx.ir.Scalar) ?zx.ir.Scalar {
     if (!enabled) return seed.default(allowed, fallback);
 
