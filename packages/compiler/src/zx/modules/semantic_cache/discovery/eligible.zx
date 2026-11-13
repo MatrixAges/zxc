@@ -1,0 +1,36 @@
+import integers from "std:integer"
+
+import classify from "../../specifier/check"
+import { Kind } from "../../specifier/model"
+
+export type Input = string[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const mask: u64 = 0
+
+    return loop({
+        index: 0,
+        mask
+    }, {
+        while: state => state.index < in.length,
+        next: state => {
+            const eligible = match classify(in[state.index]) {
+                Kind.File => false,
+                Kind.Package => false,
+                Kind.Invalid => false,
+                _ => true
+            }
+
+            if (eligible) {
+                const bit = integers.bitMask(state.index)
+
+                state.mask = integers.orBits(state.mask, bit)
+            }
+
+            state.index += 1
+        },
+        return: state => state.mask
+    })
+}

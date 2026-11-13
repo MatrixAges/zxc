@@ -15,6 +15,7 @@ const Input = @import("module_input.zig");
 const Loading = @import("project/load/host.zig");
 const State = @import("project/state/host.zig");
 const Target = @import("project/target/host.zig");
+const target_registry = @import("project/target/registry.zig");
 pub const signature_project = @import("signature_project.zig");
 pub const import_binding = @import("binding.zig");
 pub const import_view = @import("import_view.zig");
@@ -639,20 +640,14 @@ const Project = struct {
         return id;
     }
     fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export), constants: *std.ArrayList(ir.Constant)) zx.Error!?[]const u8 {
-        var found: ?NativeInterface = null;
         const path = self.units[self.current_source].path;
-        const registry = package_scope.nativeInterfaces(self.options.package_scopes, path, self.options.native_interfaces);
+        const scoped = package_scope.nativeInterfaces(self.options.package_scopes, path, self.options.native_interfaces);
 
-        for ([_][]const NativeInterface{ &@import("interface.zig").standard, registry }) |interfaces| {
-            for (interfaces) |entry| {
-                if (!std.mem.eql(u8, entry.specifier, item.path)) continue;
-                if (found != null) return self.reporter.fail(.module, item.span, "duplicate native interface module");
-
-                found = entry;
-            }
-        }
-
-        const entry = found orelse return null;
+        const entry = switch (target_registry.native(scoped, item.path, true)) {
+            .missing => return null,
+            .duplicate => return self.reporter.fail(.module, item.span, "duplicate native interface module"),
+            .found => |value| value.*,
+        };
 
         for (package_scope.externals(self.options.package_scopes, path, self.options.externals)) |legacy| {
             if (std.mem.eql(u8, legacy.specifier, item.path)) return self.reporter.fail(.module, item.span, "native declarations conflict with legacy external signatures");

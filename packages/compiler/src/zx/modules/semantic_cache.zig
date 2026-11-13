@@ -7,6 +7,7 @@ const NativeCache = @import("semantic_cache/native.zig");
 pub const codec = @import("semantic_cache/codec.zig");
 pub const contextDigest = @import("semantic_cache/fingerprint/context/host.zig").digest;
 pub const filePath = @import("semantic_cache/fingerprint/file_key.zig").path;
+pub const prefetch = @import("semantic_cache/discovery/host.zig").prefetch;
 
 allocator: std.mem.Allocator,
 parse_cache: ParseCache,

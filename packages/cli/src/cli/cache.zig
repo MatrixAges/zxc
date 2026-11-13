@@ -42,27 +42,26 @@ pub fn load(self: *Self, sources: []const compiler.project.Source, project: comp
 
         if (parsed.diagnostic() != null) continue;
 
+        const imports: ImportLoader = .{ .disk = self, .cache = cache, .seen = &seen };
+
         switch (parsed.*) {
-            .native => |result| try self.loadImports(zx.syntax.header.Native{ .program = result.value.parsed.ast }, path, project, cache, &seen),
-            .indexed => |*result| if (compiler.project.ParseCache.indexed_enabled) try self.loadImports(result.header(), path, project, cache, &seen) else unreachable,
+            .native => |result| try SemanticCache.prefetch(zx.syntax.header.Native{ .program = result.value.parsed.ast }, path, &project, imports),
+            .indexed => |*result| if (compiler.project.ParseCache.indexed_enabled) try SemanticCache.prefetch(result.header(), path, &project, imports) else unreachable,
         }
     }
 }
 
-fn loadImports(self: *Self, header: anytype, path: []const u8, project: compiler.project.Options, cache: *SemanticCache, seen: *std.StringHashMapUnmanaged(void)) !void {
-    for (0..header.importCount()) |index| {
-        const item = header.importAt(index);
-        const kind = compiler.project.specifier.classify(item.path) catch continue;
+const ImportLoader = struct {
+    disk: *Self,
+    cache: *SemanticCache,
+    seen: *std.StringHashMapUnmanaged(void),
+    pub fn loadNative(self: @This(), key: []const u8) !void {
+        const found = try self.seen.getOrPut(self.disk.allocator, key);
 
-        if (kind == .file or kind == .package) continue;
-
-        const key = registered(item.path, path, project) orelse continue;
-        const found = try seen.getOrPut(self.allocator, key);
-
-        if (found.found_existing) continue;
-        if (try self.loadEntry(cache.allocator, &cache.native.items, key, .native)) self.native_loaded += 1;
+        if (found.found_existing) return;
+        if (try self.disk.loadEntry(self.cache.allocator, &self.cache.native.items, key, .native)) self.disk.native_loaded += 1;
     }
-}
+};
 
 fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.entry_store.Map, key: []const u8, kind: Kind) !bool {
     const location = try self.filePath(key, kind);
@@ -140,16 +139,4 @@ pub fn finish(self: *Self, cache: *SemanticCache, options: @import("options.zig"
 
 fn filePath(self: *const Self, source: []const u8, kind: Kind) std.mem.Allocator.Error![]u8 {
     return SemanticCache.filePath(self.allocator, self.directory, source, kind == .native);
-}
-
-fn registered(specifier: []const u8, path: []const u8, project: compiler.project.Options) ?[]const u8 {
-    for (compiler.project.standard) |entry| {
-        if (std.mem.eql(u8, entry.specifier, specifier)) return entry.specifier;
-    }
-
-    for (compiler.project.package_scope.nativeInterfaces(project.package_scopes, path, project.native_interfaces)) |entry| {
-        if (std.mem.eql(u8, entry.specifier, specifier)) return entry.key();
-    }
-
-    return null;
 }

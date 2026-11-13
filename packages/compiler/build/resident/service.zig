@@ -24,6 +24,10 @@ pub fn run(init: std.process.Init, request: Request) !void {
     var resident = try Resident.init(init.io, init.gpa);
     const summary = try generator.generate(init.io, allocator, &resident, request);
 
+    resident.endRequest();
+
+    _ = resident.emission.reset(.free_all);
+
     resident.persist();
 
     try print(init.io, summary);

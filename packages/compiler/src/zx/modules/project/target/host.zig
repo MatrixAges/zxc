@@ -6,6 +6,7 @@ const specifier = @import("../../specifier.zig");
 const intrinsic = @import("../../intrinsic.zig").specifier;
 const source_index = @import("../../source_index.zig");
 const compiled = @import("../../compiled.zig");
+const registry = @import("registry.zig");
 const enabled = @import("parser_options").generated_parser;
 
 pub const Target = union(enum) { source: []const u8, compiled: compiled.Target };
@@ -154,7 +155,7 @@ pub fn resolve(allocator: std.mem.Allocator, from: []const u8, path: []const u8,
 }
 
 fn dependency(allocator: std.mem.Allocator, path: []const u8, root: []const u8, packages: []const scopes.Package, reporter: *zx.Reporter, span: zx.Span) zx.Error!Target {
-    const selected = if (comptime enabled) packageSelection(packages, path) else packageSelectionSeed(packages, path);
+    const selected = registry.select(packages, "specifier", path, true);
     const index = selected.first orelse return reporter.fail(.module, span, "ZX package is not declared in the project dependencies");
     const package = &packages[index];
 
@@ -183,51 +184,6 @@ fn dependency(allocator: std.mem.Allocator, path: []const u8, root: []const u8, 
     }
 
     return .{ .source = try std.fs.path.resolve(allocator, &.{ root, package.entry }) };
-}
-
-const PackageSelection = struct { first: ?u64 = null, duplicate: bool = false };
-
-fn packageSelection(packages: []const scopes.Package, path: []const u8) PackageSelection {
-    const generated = @import("generated_project_package_select");
-    const Input = std.meta.Child(generated.Input);
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-    var specifiers: [scopes.lookup_batch_size][]const u8 = undefined;
-    var first: ?u64 = null;
-    var offset: usize = 0;
-
-    while (offset < packages.len) {
-        const batch = packages[offset..][0..@min(specifiers.len, packages.len - offset)];
-
-        for (batch, specifiers[0..batch.len]) |*package, *specifier_name| specifier_name.* = package.specifier;
-
-        const input: Input = .{ .specifiers = specifiers[0..batch.len], .name = path, .offset = offset, .first = first };
-        const result = zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
-
-        if (result.duplicate) return .{ .first = result.first, .duplicate = true };
-
-        first = result.first;
-        offset += batch.len;
-    }
-
-    return .{ .first = first };
-}
-
-fn packageSelectionSeed(packages: []const scopes.Package, path: []const u8) PackageSelection {
-    var selected: PackageSelection = .{};
-
-    for (packages, 0..) |*package, index| {
-        if (!std.mem.eql(u8, package.specifier, path)) continue;
-
-        if (selected.first != null) {
-            selected.duplicate = true;
-
-            break;
-        }
-
-        selected.first = index;
-    }
-
-    return selected;
 }
 
 fn packageShape(package: *const scopes.Package) Shape {

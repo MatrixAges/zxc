@@ -2,7 +2,8 @@ export type Input = {
     specifiers: string[],
     name: string,
     offset: u64,
-    first?: u64
+    first?: u64,
+    check_duplicates: bool
 }
 
 export type Output = {
@@ -18,7 +19,12 @@ export default function (in: Input): Output {
         first: in.first,
         duplicate: false
     }, {
-        while: state => !state.duplicate && state.row < specifiers.length,
+        while: state => {
+            const rows_left = state.row < specifiers.length
+            const search = in.check_duplicates || state.first == null
+
+            return !state.duplicate && rows_left && search
+        },
         next: state => {
             if (specifiers[state.row] == name) {
                 if (state.first == null) {
