@@ -222,8 +222,11 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
 
         var reporter: zx.Reporter = .{};
         var graph: Graph = undefined;
+        var requests: @import("project/signatures/requests.zig") = .{};
 
-        const states = solve: {
+        defer requests.deinit(backing);
+
+        const ports = solve: {
             var pending = zx.Arena.init(backing);
 
             defer pending.deinit();
@@ -235,16 +238,16 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
                 .backing = backing,
             }, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
 
-            const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs) catch |err| return reported(allocator, source_map, reporter, err);
+            const ports = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs, &requests) catch |err| return reported(allocator, source_map, reporter, err);
 
             graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
 
             graph.pending = undefined;
 
-            break :solve states;
+            break :solve ports;
         };
 
-        const resolved = @import("project/signatures.zig").resolve(allocator, &graph, states) catch |err| return reported(allocator, source_map, reporter, err);
+        const resolved = @import("project/signatures.zig").resolve(allocator, &graph, ports, requests) catch |err| return reported(allocator, source_map, reporter, err);
 
         break :inference .{ .signatures = resolved, .types = graph.types.items.view() };
     };

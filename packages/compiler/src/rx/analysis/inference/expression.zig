@@ -10,6 +10,7 @@ const path_buffer_size = 128;
 pub const Binding = struct { name: []const u8, value: Graph.Id, span: zx.Span = .{ .start = 0, .end = 0 } };
 
 graph: *Graph,
+scope: std.mem.Allocator,
 aliases: []const zx.ir.Export = &.{},
 input: Graph.Id,
 input_used: bool = false,
@@ -199,7 +200,7 @@ fn lookup(self: *Self, name: ?paths.Path, span: zx.Span) zx.Error!?Graph.Id {
 }
 
 pub fn assumeNonNull(self: *Self, expression: anytype) zx.Error!void {
-    try @import("../condition.zig").publish(self.graph.allocator, expression, self.bindings.items, true, &self.nonnull);
+    try @import("../condition.zig").publish(self.scope, expression, self.bindings.items, true, &self.nonnull);
 }
 
 fn refined(self: *Self, name: ?paths.Path, value: Graph.Id, span: zx.Span) zx.Error!Graph.Id {

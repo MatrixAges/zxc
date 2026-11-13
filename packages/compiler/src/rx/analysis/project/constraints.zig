@@ -9,11 +9,11 @@ const Prepared = @import("prepare.zig");
 const Inputs = @import("call_inputs.zig");
 const target = @import("../call/target.zig");
 const paths = frontend.binding_path;
-const State = struct { input: Graph.Id, output: Graph.Id, input_fixed: bool, bindings: []const Expression.Binding = &.{}, tasks: []const Task = &.{} };
-pub const States = std.MultiArrayList(State).Slice;
-pub const Task = struct { id: usize, output: Graph.Id };
+const Requests = @import("signatures/requests.zig");
+const State = struct { input: Graph.Id, output: Graph.Id, input_fixed: bool, binding_end: usize = 0, task_end: usize = 0 };
+pub const Ports = std.MultiArrayList(State).Slice;
 
-pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap, arguments: *const Inputs) zx.Error!States {
+pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: SourceMap, arguments: *const Inputs, requests: *Requests) zx.Error!Ports {
     var storage: std.MultiArrayList(State) = .empty;
 
     try storage.ensureTotalCapacity(graph.allocator, modules.len);
@@ -51,24 +51,30 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
     const inputs = states.items(.input);
     const outputs = states.items(.output);
     const fixed = states.items(.input_fixed);
-    const bindings = states.items(.bindings);
-    const tasks = states.items(.tasks);
+    const binding_ends = states.items(.binding_end);
+    const task_ends = states.items(.task_end);
     var unused: usize = 0;
+    var scope = zx.Arena.init(graph.scratch);
+
+    defer scope.deinit();
 
     for (modules, 0..) |module, index| {
+        scope.reset(std.heap.page_size_min);
+
         const location = module.source.node.location;
         const input = inputs[index];
         const output = outputs[index];
 
         var expression = Expression{
             .graph = graph,
+            .scope = scope.allocator(),
             .aliases = module.value_imports,
             .input = input,
             .attribute = .{ .name = "", .value = "", .location = location, .value_location = location },
             .span_offset = source_map.base(index),
         };
 
-        var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = output, .arguments = arguments.module(index) };
+        var walker = Walker{ .expression = &expression, .module = module, .states = states, .output = output, .arguments = arguments.module(index), .requests = requests };
 
         if (module.shortcut) |call_index| {
             const call = module.calls[call_index];
@@ -80,24 +86,24 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
             try walker.bindResult(call.node, output, .call);
 
             fixed[index] = true;
-            bindings[index] = walker.bindings.items;
+        } else {
+            try walker.steps(module.steps);
 
-            continue;
+            if (!walker.returned) {
+                const span = graph.nodes.items(.span)[@backingInt(output)];
+
+                try graph.unify(output, try graph.scalar(.void, span), span);
+            }
+
+            fixed[index] = fixed[index] or expression.input_used;
+            unused += @intFromBool(!fixed[index]);
         }
 
-        try walker.steps(module.steps);
-
-        if (!walker.returned) {
-            const span = graph.nodes.items(.span)[@backingInt(output)];
-
-            try graph.unify(output, try graph.scalar(.void, span), span);
-        }
-
-        fixed[index] = fixed[index] or expression.input_used;
-        unused += @intFromBool(!fixed[index]);
-        bindings[index] = walker.bindings.items;
-        tasks[index] = walker.tasks.items;
+        binding_ends[index] = requests.bindings.items.len;
+        task_ends[index] = requests.tasks.items.len;
     }
+
+    scope.reset(0);
 
     try @import("input_defaults.zig").apply(graph, inputs, fixed, unused);
 
@@ -107,12 +113,11 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 const Walker = struct {
     expression: *Expression,
     module: Prepared.Module,
-    states: States,
+    states: Ports,
     arguments: Inputs.Module,
     output: Graph.Id,
-    bindings: std.ArrayList(Expression.Binding) = .empty,
+    requests: *Requests,
     returned: bool = false,
-    tasks: std.ArrayList(Task) = .empty,
     fn steps(self: *Walker, sequence: []const @import("flow.zig").Step) zx.Error!void {
         const expression = self.expression;
 
@@ -121,6 +126,8 @@ const Walker = struct {
             .parallel => |branches| {
                 const count = expression.bindings.items.len;
                 var outputs: std.ArrayList(Expression.Binding) = .empty;
+
+                defer outputs.deinit(expression.scope);
 
                 for (branches) |branch| {
                     switch (branch) {
@@ -136,7 +143,7 @@ const Walker = struct {
 
                             try self.steps(task.body);
                             if (!self.returned) try expression.graph.unify(output, try expression.graph.scalar(.void, span), span);
-                            try self.tasks.append(expression.graph.allocator, .{ .id = task.id, .output = output });
+                            try self.requests.tasks.append(expression.graph.scratch, .{ .id = task.id, .value = output });
 
                             self.output = parent_output;
                             self.returned = parent_returned;
@@ -146,7 +153,7 @@ const Walker = struct {
                         },
                     }
 
-                    try outputs.appendSlice(expression.graph.allocator, expression.bindings.items[count..]);
+                    try outputs.appendSlice(expression.scope, expression.bindings.items[count..]);
 
                     expression.bindings.shrinkRetainingCapacity(count);
                 }
@@ -156,7 +163,7 @@ const Walker = struct {
                         if (paths.overlaps(previous.name, binding.name)) try @import("../inference/bindings.zig").distinct(expression.graph, previous.value, binding.value, binding.span, "Parallel result binding paths must not overlap");
                     }
 
-                    try expression.bindings.append(expression.graph.allocator, binding);
+                    try expression.bindings.append(expression.scope, binding);
                 }
             },
             .result => |attribute| {
@@ -179,7 +186,7 @@ const Walker = struct {
             .selection => |selection| {
                 const condition = @import("../condition.zig");
                 const owner = self.module.source.path;
-                const allocator = expression.graph.allocator;
+                const allocator = expression.scope;
                 var parsed = try @import("../attribute.zig").parse(allocator, selection.subject, owner);
 
                 defer parsed.deinit();
@@ -236,7 +243,7 @@ const Walker = struct {
             expression.attribute = value;
             const count = expression.bindings.items.len;
 
-            for (invocation.getters) |getter| try expression.bindings.append(graph.allocator, .{ .name = getter.name, .value = try graph.known(getter.slot.type_id, span) });
+            for (invocation.getters) |getter| try expression.bindings.append(expression.scope, .{ .name = getter.name, .value = try graph.known(getter.slot.type_id, span) });
 
             _ = if (Inputs.input(self.arguments, index)) |parsed|
                 try inferParsedAttribute(expression, parsed, value, input)
@@ -268,14 +275,14 @@ const Walker = struct {
         const name = try std.fmt.allocPrint(graph.types.allocator, "{s}.{s}", .{ prefix, result.name });
         const binding = Expression.Binding{ .name = name, .value = output, .span = span };
 
-        try self.bindings.append(graph.allocator, binding);
+        try self.requests.bindings.append(graph.scratch, .{ .name = name, .value = output });
         if (@import("../inference/bindings.zig").isVoid(graph, output)) return;
 
         for (expression.bindings.items) |previous| {
             if (paths.overlaps(previous.name, name)) try @import("../inference/bindings.zig").distinct(graph, previous.value, output, span, "flow result paths must not overlap; each visible Call target name must be unique");
         }
 
-        try expression.bindings.append(graph.allocator, binding);
+        try expression.bindings.append(expression.scope, binding);
     }
 };
 
