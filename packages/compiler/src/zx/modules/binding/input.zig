@@ -37,9 +37,9 @@ pub fn init(allocator: std.mem.Allocator, item: anytype, symbols: *const Symbols
     }
 
     const exports = try record(@FieldType(Record, "exports"), allocator, .{ .names = export_names, .ids = export_ids });
-    const constants = try allocator.alloc([]const u8, symbols.constants.len);
+    const constants = try allocator.alloc([]const u8, if (item.kind == .type_only) 0 else symbols.constants.len);
 
-    for (symbols.constants, constants) |value, *name| name.* = value.name;
+    for (symbols.constants[0..constants.len], constants) |*value, *name| name.* = value.name;
 
     return record(Input, allocator, .{
         .target = @as(@FieldType(Record, "target"), switch (symbols.target) {

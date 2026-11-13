@@ -16,6 +16,13 @@ pub const Native = struct {
     pub fn importCount(self: Native) usize {
         return self.program.imports.len;
     }
+    pub fn importBindingCount(self: Native) usize {
+        var count: usize = 0;
+
+        for (self.program.imports) |*item| count += item.names.len;
+
+        return count;
+    }
     pub fn importAt(self: Native, index: usize) Import {
         const item = self.program.imports[index];
 

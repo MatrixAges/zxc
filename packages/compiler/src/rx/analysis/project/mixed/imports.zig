@@ -32,22 +32,16 @@ pub fn collect(state: *State, header: anytype, index: usize, signature: frontend
         };
 
         const temporary = state.scratch.allocator();
-        const count = dependency.members.len + @intFromBool(dependency.function != null);
-        const members = try temporary.alloc(Binding, count);
-        const names = try temporary.alloc([]const u8, count);
-        var first: usize = 0;
-
-        if (dependency.function) |id| {
-            const function = state.functions.at(@backingInt(id));
-            members[0] = .{ .name = "", .id = id, .input_type = function.input_type, .output_type = function.output_type };
-            first = 1;
-        }
-
-        @memcpy(members[first..], dependency.members);
-
-        for (members, names) |member, *name| name.* = member.name;
-
         const binding = frontend.project.import_binding;
+
+        const own: ?Binding = if (dependency.function) |id| own: {
+            const row = @backingInt(id);
+
+            break :own .{ .name = "", .id = id, .input_type = @fromBackingInt(state.functions.input_types.items[row]), .output_type = @fromBackingInt(state.functions.output_types.items[row]) };
+        } else null;
+
+        const members: binding.Members = .{ .default = if (own) |*value| value else null, .named = dependency.members };
+        const names = try members.names(temporary);
         const symbols = binding.Symbols{ .target = if (edge.target == .source) .source else .compiled, .types = state.types.items.view(), .exports = dependency.types, .constants = dependency.constants, .functions = names };
         var reporter: zx.Reporter = .{};
         const view = frontend.project.import_view.get(header, import_index);
@@ -61,7 +55,7 @@ pub fn collect(state: *State, header: anytype, index: usize, signature: frontend
         const destination = if (item.exported) &published else &bindings;
 
         for (selected.functions.names, selected.functions.indices) |name, selected_index| {
-            var member = members[@intCast(selected_index)];
+            var member = members.at(@intCast(selected_index)).*;
             member.name = try state.allocator.dupe(u8, name);
 
             try destination.append(state.allocator, member);

@@ -86,7 +86,8 @@ const LoadFrame = struct {
     next_import: usize = 0,
     pending: ?usize = null,
     aliases: std.ArrayList(ir.Export) = .empty,
-    imported_names: std.StringHashMapUnmanaged(void) = .empty,
+    imported_names: source_index.Map = .empty,
+    imported_count: usize = 0,
     imports: std.ArrayList(FunctionImport) = .empty,
     constant_imports: std.ArrayList(ir.Constant) = .empty,
     dependencies: std.ArrayList(ModuleRecord.Import) = .empty,
@@ -222,7 +223,6 @@ const Project = struct {
         const header = input.header();
         const import_count = header.importCount();
         const aliases = &frame.aliases;
-        const imported_names = &frame.imported_names;
         const imports = &frame.imports;
         const constants = &frame.constant_imports;
         var paths = std.heap.ArenaAllocator.init(self.arena.child_allocator);
@@ -239,12 +239,17 @@ const Project = struct {
             var path_memory = std.heap.BufferFirstAllocator.init(&path_buffer, paths.allocator());
 
             const target: ImportTarget = if (pending) |resumed| .{ .source = self.units[resumed].path } else target_block: {
-                if (!item.exported) for (0..item.nameCount()) |name_index| {
-                    const name = item.nameAt(name_index);
-                    const entry = try imported_names.getOrPut(self.arena.child_allocator, name.text);
+                if (!item.exported and item.nameCount() != 0) {
+                    if (frame.imported_count == 0) frame.imported_names = try source_index.Map.init(self.arena.child_allocator, header.importBindingCount());
 
-                    if (entry.found_existing) return self.reporter.fail(.name, name.span, "duplicate import binding");
-                };
+                    for (0..item.nameCount()) |name_index| {
+                        const name = item.nameAt(name_index);
+
+                        if (!frame.imported_names.claim(frame.imported_count, name.text)) return self.reporter.fail(.name, name.span, "duplicate import binding");
+
+                        frame.imported_count += 1;
+                    }
+                }
 
                 const route = Target.classify(item.path);
 
@@ -384,56 +389,39 @@ const Project = struct {
     }
     fn bindSignature(self: *Project, frame: *LoadFrame, item: anytype, imported: Imported) zx.Error!void {
         const temporary = self.bindingAllocator();
-        const signatures = if (imported.signatures.len != 0) imported.signatures else try self.memberSignatures(temporary, imported.default_member, imported.members);
-        const names = try temporary.alloc([]const u8, signatures.len);
+        const members: import_binding.Members = .{ .default = if (imported.default_member) |*member| member else null, .named = imported.members };
 
-        for (signatures, names) |member, *name| name.* = member.name;
+        const names = if (item.kind == .type_only) &.{} else if (imported.signatures.len == 0) try members.names(temporary) else projected: {
+            const result = try temporary.alloc([]const u8, imported.signatures.len);
+
+            for (imported.signatures, result) |*member, *name| name.* = member.name;
+
+            break :projected result;
+        };
 
         const symbols = import_binding.Symbols{ .target = .source, .types = self.types.view(), .exports = imported.exports, .constants = imported.constant_exports, .functions = names };
         const selected = try import_binding.select(temporary, self.allocator, item, &symbols, self.reporter);
         const aliases = if (item.exported) &frame.export_aliases else &frame.aliases;
         const constants = if (item.exported) &frame.export_constants else &frame.constant_imports;
 
-        for (selected.aliases.names, selected.aliases.indices) |name, index| {
-            try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name), .type_id = imported.exports[@intCast(index)].type_id });
-        }
-
-        for (selected.constants.names, selected.constants.indices) |name, index| {
-            var value = try @import("../analysis/constants/copy.zig").copy(self.allocator, imported.constant_exports[@intCast(index)]);
-
-            value.name = try self.allocator.dupe(u8, name);
-
-            try constants.append(self.allocator, value);
-        }
+        try import_binding.publishTypes(self.allocator, selected, imported.exports, imported.constant_exports, aliases, constants);
 
         if (item.exported) for (selected.functions.names, selected.functions.indices) |name, index| {
-            var member = signatures[@intCast(index)];
-
+            const row: usize = @intCast(index);
+            var member = if (imported.signatures.len == 0) self.memberSignature(members.at(row)) else imported.signatures[row];
             member.name = try self.allocator.dupe(u8, name);
 
             try frame.signature_members.append(self.allocator, member);
         };
     }
-    fn memberSignatures(self: *Project, allocator: std.mem.Allocator, default: ?FunctionImport, members: []const FunctionImport) std.mem.Allocator.Error![]const Signature.Member {
-        const first: usize = @intFromBool(default != null);
-        const result = try allocator.alloc(Signature.Member, first + members.len);
+    fn memberSignature(self: *const Project, member: *const FunctionImport) Signature.Member {
+        if (member.intrinsic) |operation| return .{ .name = member.name, .ports = null, .intrinsic = operation };
 
-        if (default) |member| self.writeMemberSignatures(&.{member}, result[0..1]);
-
-        self.writeMemberSignatures(members, result[first..]);
-
-        return result;
-    }
-
-    fn writeMemberSignatures(self: *const Project, members: []const FunctionImport, result: []Signature.Member) void {
-        for (members, result) |member, *signature| {
-            if (member.intrinsic) |operation| {
-                signature.* = .{ .name = member.name, .ports = null, .intrinsic = operation };
-            } else {
-                const function = self.functions.at(@backingInt(member.id.?));
-                signature.* = .{ .name = member.name, .ports = .{ .input_type = member.input_type.?, .output_type = member.output_type.? }, .has_store = function.stores.count() != 0 };
-            }
-        }
+        return .{
+            .name = member.name,
+            .ports = .{ .input_type = member.input_type.?, .output_type = member.output_type.? },
+            .has_store = self.functions.stores.items[@backingInt(member.id.?)].count() != 0,
+        };
     }
     fn publishSignature(self: *Project, frame: *LoadFrame, signature: *Signature.Result) zx.Error!void {
         const own: usize = @intFromBool(!signature.type_only);
@@ -444,7 +432,8 @@ const Project = struct {
         if (own != 0) members[0] = .{ .name = "", .ports = signature.ports, .has_store = signature.has_store };
 
         @memcpy(members[own..][0..forwarded.len], forwarded);
-        self.writeMemberSignatures(native, members[own + forwarded.len ..]);
+
+        for (native, members[own + forwarded.len ..]) |*member, *binding| binding.* = self.memberSignature(member);
 
         signature.exports = try public_exports.merge(ir.Export, self.allocator, signature.exports, frame.export_aliases.items);
         signature.constant_exports = try public_exports.merge(ir.Constant, self.allocator, signature.constant_exports, frame.export_constants.items);

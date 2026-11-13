@@ -54,10 +54,10 @@ pub fn select(allocator: std.mem.Allocator, item: anytype, symbols: *const Symbo
         try names.append(allocator, .{ .original = name.text, .local = item.nameAt(index).text, .span = name.span });
     }
 
-    const constant_names = try allocator.alloc([]const u8, symbols.constants.len);
+    const constant_names = try allocator.alloc([]const u8, if (item.kind == .type_only) 0 else symbols.constants.len);
     const type_names = try allocator.alloc([]const u8, symbols.exports.len);
 
-    for (symbols.constants, constant_names) |value, *name| name.* = value.name;
+    for (symbols.constants[0..constant_names.len], constant_names) |*value, *name| name.* = value.name;
     for (symbols.exports, type_names) |value, *name| name.* = value.name;
 
     for (names.items) |name| {

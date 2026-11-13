@@ -9,6 +9,9 @@ pub fn View(comptime Storage: type) type {
         pub fn importCount(self: Self) usize {
             return self.storage.imports.len;
         }
+        pub fn importBindingCount(self: Self) usize {
+            return self.storage.import_names.len;
+        }
         pub fn importAt(self: Self, index: usize) Header.Import {
             const item = self.storage.imports[index];
 
