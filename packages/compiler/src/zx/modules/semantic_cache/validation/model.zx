@@ -38,3 +38,11 @@ export type Bindings = {
     input_types: u32[],
     output_types: u32[]
 }
+
+export type Request = {
+    path: string,
+    expected_path?: string,
+    header?: Header,
+    bindings: Bindings,
+    function_body?: Function
+}

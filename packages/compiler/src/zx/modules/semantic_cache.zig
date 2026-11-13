@@ -20,6 +20,15 @@ pub fn init(allocator: std.mem.Allocator) Self {
     return .{ .allocator = allocator, .parse_cache = .{ .allocator = allocator }, .native = .{ .allocator = allocator } };
 }
 
+pub fn fileLimit() usize {
+    if (comptime !@import("parser_options").generated_parser) return 64 * 1024 * 1024;
+
+    const generated = @import("generated_semantic_cache_file_limit");
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+    return @intCast(generated.executeValue(empty.allocator(), {}) catch unreachable);
+}
+
 pub fn deinit(self: *Self) void {
     entry_store.deinit(self.allocator, &self.entries);
     self.native.deinit();

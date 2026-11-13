@@ -20,15 +20,3 @@ pub fn version(cached_source: *const [32]u8, source: *const [32]u8, cached_conte
 
     return std.mem.eql(u8, cached_source, source) and std.mem.eql(u8, cached_context, context);
 }
-
-pub fn observe(path: []const u8, expected: []const u8) bool {
-    if (comptime enabled) {
-        const generated = @import("generated_semantic_cache_entry_observe");
-        const input: std.meta.Child(generated.Input) = .{ .path = path, .expected = expected };
-        var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-        return zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
-    }
-
-    return std.mem.eql(u8, path, expected);
-}

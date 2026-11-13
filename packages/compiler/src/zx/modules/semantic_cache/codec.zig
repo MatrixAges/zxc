@@ -28,7 +28,19 @@ pub fn encode(allocator: std.mem.Allocator, module: Artifact.Module, context_dig
 }
 
 pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: [32]u8) Error!Decoded {
-    if (!generated) return decodeSeed(allocator, bytes, compiler_digest);
+    return decodeForPath(allocator, bytes, compiler_digest, null);
+}
+
+pub fn decodeForPath(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: [32]u8, expected: ?[]const u8) Error!Decoded {
+    if (!generated) {
+        var decoded = try decodeSeed(allocator, bytes, compiler_digest);
+
+        errdefer decoded.result.deinit();
+
+        if (expected) |path| if (!std.mem.eql(u8, path, decoded.result.value.path)) return error.InvalidCache;
+
+        return decoded;
+    }
 
     const payload = @import("envelope.zig").open(bytes, compiler_digest) orelse return error.InvalidCache;
     var arena = std.heap.ArenaAllocator.init(allocator);
@@ -42,7 +54,7 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
         else => return error.InvalidCache,
     };
 
-    if (!try @import("validation.zig").validate(allocator, &parsed.module)) return error.InvalidCache;
+    if (!try @import("validation.zig").validate(allocator, &parsed.module, expected)) return error.InvalidCache;
 
     return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
 }

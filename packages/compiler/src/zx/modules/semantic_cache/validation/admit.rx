@@ -1,0 +1,41 @@
+<Module>
+    <Type from="model" as="Artifact" />
+
+    <Args in={Artifact.Request} out={bool} />
+
+    <If on={$in.header != null}>
+        <If on={$in.expected_path != null}>
+            <Call
+                fn="../state/observe"
+                in={{
+                    path: $in.path,
+                    expected: $in.expected_path
+                }}
+            />
+
+            <If on={!$ctx.observe}>
+                <Return value={false} />
+            </If>
+        </If>
+
+        <Call module="header" in={$in.header} />
+
+        <If on={!$ctx.header}>
+            <Return value={false} />
+        </If>
+    </If>
+
+    <Call fn="binding" in={$in.bindings} />
+
+    <If on={!$ctx.binding}>
+        <Return value={false} />
+    </If>
+
+    <If on={$in.function_body != null}>
+        <Call module="body" in={$in.function_body} />
+
+        <Return value={$ctx.body} />
+    </If>
+
+    <Return value={true} />
+</Module>

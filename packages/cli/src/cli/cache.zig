@@ -9,6 +9,7 @@ const Kind = enum { source, native };
 io: std.Io,
 allocator: std.mem.Allocator,
 directory: []const u8,
+file_limit: usize,
 loaded: usize = 0,
 discarded: usize = 0,
 written: usize = 0,
@@ -17,7 +18,7 @@ native_written: usize = 0,
 pub fn init(io: std.Io, allocator: std.mem.Allocator, root: []const u8) !Self {
     const directory = try std.fs.path.join(allocator, &.{ root, ".zxc", "cache", "semantic", &std.fmt.bytesToHex(identity(), .lower) });
 
-    return .{ .io = io, .allocator = allocator, .directory = directory };
+    return .{ .io = io, .allocator = allocator, .directory = directory, .file_limit = SemanticCache.fileLimit() };
 }
 
 pub fn deinit(self: *Self) void {
@@ -68,7 +69,7 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
 
     defer self.allocator.free(location);
 
-    const bytes = std.Io.Dir.cwd().readFileAlloc(self.io, location, self.allocator, .limited(64 * 1024 * 1024)) catch |err| switch (err) {
+    const bytes = std.Io.Dir.cwd().readFileAlloc(self.io, location, self.allocator, .limited(self.file_limit)) catch |err| switch (err) {
         error.FileNotFound => return false,
         error.StreamTooLong => {
             self.discarded += 1;
@@ -112,7 +113,7 @@ fn saveEntries(self: *Self, entries: *SemanticCache.entry_store.Map, kind: Kind)
 
         defer self.allocator.free(bytes);
 
-        if (bytes.len > 64 * 1024 * 1024) continue;
+        if (bytes.len >= self.file_limit) continue;
         try @import("artifacts.zig").write(self.io, location, bytes);
 
         entry.dirty = false;

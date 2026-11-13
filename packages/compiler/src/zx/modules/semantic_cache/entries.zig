@@ -43,11 +43,9 @@ pub fn put(allocator: std.mem.Allocator, entries: *Map, result: Artifact.Result,
 }
 
 pub fn load(allocator: std.mem.Allocator, entries: *Map, bytes: []const u8, compiler_digest: [32]u8, expected: []const u8) codec.Error!void {
-    var decoded = try codec.decode(allocator, bytes, compiler_digest);
+    var decoded = try codec.decodeForPath(allocator, bytes, compiler_digest, expected);
 
     errdefer decoded.result.deinit();
-
-    if (!State.observe(decoded.result.value.path, expected)) return error.InvalidCache;
 
     try install(allocator, entries, .{
         .dirty = false,
