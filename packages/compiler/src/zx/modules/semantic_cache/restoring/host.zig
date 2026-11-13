@@ -3,6 +3,32 @@ const zx = @import("zx");
 const ir = zx.ir;
 const Record = @import("../../module_record.zig");
 const FunctionImport = @import("../../function_import.zig");
+const Artifact = @import("../../artifact/model.zig");
+const Current = @import("../restore.zig").Current;
+
+pub fn preflight(module: *const Artifact.Module, current: *const Current) bool {
+    const generated = @import("generated_semantic_restore_preflight");
+    const Input = std.meta.Child(generated.Input);
+    const Modules = std.meta.Child(@FieldType(Input, "cached_modules"));
+    const Signatures = std.meta.Child(@FieldType(Input, "signatures"));
+    const previous_modules = zx.columns.columns(Modules, module.native_modules);
+    const current_modules = zx.columns.columns(Modules, current.native_modules);
+    const previous_signatures = zx.columns.columns(Signatures, module.functions);
+
+    const input: Input = .{
+        .signatures = &previous_signatures,
+        .cached_modules = &previous_modules,
+        .current_modules = &current_modules,
+        .types = module.type_imports.len,
+        .current_types = current.aliases.len,
+        .functions = module.function_imports.len,
+        .current_functions = current.imports.len,
+        .constants = module.constant_imports.len,
+        .current_constants = current.constant_imports.len,
+    };
+
+    return check(generated, &input);
+}
 
 pub fn dependencies(previous: []const Record.Import, current: []const Record.Import) bool {
     if (previous.len != current.len) return false;
@@ -70,14 +96,12 @@ pub fn bind(previous: *const FunctionImport, current: *const FunctionImport, map
         .previous = &left,
         .current = &right,
         .mapping = @ptrCast(mapping),
+        .target = @ptrCast(&mapping),
         .types = @ptrCast(types),
         .current_count = current_count,
     };
 
-    if (!check(generated, &input)) return false;
-    if (previous.id) |id| mapping[@backingInt(id)] = current.id;
-
-    return true;
+    return check(generated, &input);
 }
 
 fn binding(comptime Binding: type, value: *const FunctionImport) Binding {
@@ -91,27 +115,24 @@ fn binding(comptime Binding: type, value: *const FunctionImport) Binding {
     };
 }
 
-pub fn sameSignature(previous: ir.Signature, current: ir.Signature, types: []const ir.TypeId) bool {
-    const generated = @import("generated_semantic_restore_signature");
+pub fn signatures(temporary: std.mem.Allocator, previous: ir.SignatureTable, current: ir.SignatureTable, types: []const ir.TypeId, functions: []const ?ir.FunctionId, modules: []const ?ir.NativeModuleId) Artifact.Error!bool {
+    const generated = @import("generated_semantic_restore_signatures");
     const Input = std.meta.Child(generated.Input);
-    const Signature = std.meta.Child(@FieldType(Input, "previous"));
-    const left = signature(Signature, previous);
-    const right = signature(Signature, current);
-    const input: Input = .{ .previous = &left, .current = &right, .types = @ptrCast(types) };
+    const Table = std.meta.Child(@FieldType(Input, "previous"));
+    const left = zx.columns.columns(Table, previous);
+    const right = zx.columns.columns(Table, current);
 
-    return check(generated, &input);
-}
+    const input: Input = .{
+        .previous = &left,
+        .current = &right,
+        .types = @ptrCast(types),
+        .functions = @ptrCast(functions),
+        .modules = @ptrCast(modules),
+    };
 
-fn signature(comptime Signature: type, value: ir.Signature) Signature {
-    return .{
-        .file = value.file_name,
-        .input_type = @backingInt(value.input_type),
-        .output_type = @backingInt(value.output_type),
-        .ownership = switch (value.output_ownership) {
-            .copy => .Copy,
-            .borrowed => .Borrowed,
-            .owned => .Owned,
-        },
+    return zx.columns.invoke(generated.executeValue, temporary, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => return error.InvalidModule,
     };
 }
 

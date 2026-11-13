@@ -1,4 +1,5 @@
-import type { Ownership } from "core/symbol_table/model"
+import type { OptionalU32Buffer } from "std:memory"
+import type { Table } from "core/signature_table/model"
 
 export type Import = {
     namespace?: string,
@@ -13,6 +14,7 @@ export type Binding = {
     previous: Import,
     current: Import,
     mapping: u32?[],
+    target: OptionalU32Buffer,
     types: u32[],
     current_count: u64
 }
@@ -25,15 +27,16 @@ export type Alias = {
     types: u32[]
 }
 
-export type Signature = {
-    file: string,
-    input_type: u32,
-    output_type: u32,
-    ownership: Ownership
+export type Signatures = {
+    previous: Table,
+    current: Table,
+    types: u32[],
+    functions: u32?[],
+    modules: u32?[]
 }
 
-export type Comparison = {
-    previous: Signature,
-    current: Signature,
-    types: u32[]
+export type Row = {
+    signatures: Signatures,
+    previous: u64,
+    current: u64
 }

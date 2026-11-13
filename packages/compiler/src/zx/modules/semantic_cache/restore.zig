@@ -3,7 +3,6 @@ const ir = @import("zx").ir;
 const model = @import("../artifact/model.zig");
 const Nodes = @import("../artifact/nodes.zig");
 const Types = @import("../link/types.zig");
-const native = @import("../link/native.zig");
 const Origins = @import("../nominal_origins.zig");
 const Record = @import("../module_record.zig");
 const FunctionImport = @import("../function_import.zig");
@@ -35,16 +34,9 @@ pub fn restore(module: *const model.Module, current: Current) std.mem.Allocator.
 }
 
 fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Program {
-    if (!module.native_modules.validStructure() or !module.functions.validStructure() or !current.native_modules.validStructure()) return error.InvalidModule;
-
-    const same_dependencies = if (comptime generated)
-        Host.dependencies(module.dependencies, current.dependencies)
-    else
-        Seed.sameDependencies(module.dependencies, current.dependencies);
-
-    if (!same_dependencies) return error.InvalidModule;
-    if (module.type_imports.len != current.aliases.len or module.function_imports.len != current.imports.len) return error.InvalidModule;
-    if (module.constant_imports.len != current.constant_imports.len) return error.InvalidModule;
+    if (comptime generated) {
+        if (!Host.preflight(module, &current) or !Host.dependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
+    } else if (!Seed.preflight(module, &current)) return error.InvalidModule;
 
     var arena = std.heap.ArenaAllocator.init(current.backing);
     var buffer: [2048]u8 = undefined;
@@ -106,7 +98,7 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
         const previous = module.native_modules.at(previous_row);
 
         id.* = if (comptime generated)
-            try native.restore(temporary, current.native_modules, previous, mapping)
+            try @import("../link/native.zig").restore(temporary, current.native_modules, previous, mapping)
         else
             try Seed.restoreNative(current.native_modules, previous, nodes.types);
     }
@@ -121,35 +113,9 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
 
     const linked = ir.SignatureTable.fromFunctions(current.functions);
 
-    for (imported, 0..) |id, row| {
-        const previous = module.functions.at(row);
-        const function = linked.at(@backingInt(id orelse return error.InvalidModule));
-
-        const same = if (comptime generated)
-            Host.sameSignature(previous, function, mapping)
-        else
-            try Seed.sameSignature(previous, function, nodes.types);
-
-        if (!same) return error.InvalidModule;
-
-        if (previous.external) |external| {
-            if (external.member.len == 0) return error.InvalidModule;
-
-            const implementation = function.external orelse return error.InvalidModule;
-
-            if (comptime generated) {
-                var mapped = external;
-
-                mapped.module = try nodes.native_modules.get(external.module);
-
-                if (!try @import("../link/native/signature.zig").compatible(temporary, mapped, implementation)) return error.InvalidModule;
-            } else {
-                const mapped = try nodes.external(external);
-
-                if (!std.mem.eql(u8, mapped.exportName(), implementation.exportName()) or !native.sameExternalSeed(mapped, implementation)) return error.InvalidModule;
-            }
-        } else if (function.external != null) return error.InvalidModule;
-    }
+    if (comptime generated) {
+        if (!try Host.signatures(temporary, module.functions, linked, mapping, imported, native_mapping)) return error.InvalidModule;
+    } else try Seed.signatures(&nodes, module.functions, linked, imported);
 
     if (module.function != null) function_mapping[module.functions.count()] = @fromBackingInt(@intCast(current.functions.count()));
 

@@ -1,0 +1,14 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Table } from "core/signature_table/model"
+
+export type Input = {
+    signatures: Table,
+    cached_modules: Modules,
+    current_modules: Modules,
+    types: u64,
+    current_types: u64,
+    functions: u64,
+    current_functions: u64,
+    constants: u64,
+    current_constants: u64
+}

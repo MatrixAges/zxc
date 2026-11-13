@@ -7,6 +7,14 @@ const Record = @import("../../module_record.zig");
 const FunctionImport = @import("../../function_import.zig");
 const Error = model.Error;
 
+pub fn preflight(module: *const model.Module, current: *const @import("../restore.zig").Current) bool {
+    return module.native_modules.validStructure() and module.functions.validStructure() and
+        current.native_modules.validStructure() and sameDependencies(module.dependencies, current.dependencies) and
+
+        module.type_imports.len == current.aliases.len and module.function_imports.len == current.imports.len and
+        module.constant_imports.len == current.constant_imports.len;
+}
+
 pub fn bind(previous: *const FunctionImport, binding: *const FunctionImport, mapping: []?ir.FunctionId, types: Nodes.TypeMap, current_count: usize) Error!void {
     if (!previous.valid() or !binding.valid() or previous.intrinsic != binding.intrinsic) return error.InvalidModule;
     if (!std.mem.eql(u8, previous.name, binding.name) or !optionalName(previous.namespace, binding.namespace)) return error.InvalidModule;
@@ -24,7 +32,25 @@ pub fn bind(previous: *const FunctionImport, binding: *const FunctionImport, map
     mapping[index] = binding.id;
 }
 
-pub fn sameSignature(previous: ir.Signature, current: ir.Signature, types: Nodes.TypeMap) Error!bool {
+pub fn signatures(nodes: *Nodes, previous: ir.SignatureTable, current: ir.SignatureTable, mapping: []const ?ir.FunctionId) Error!void {
+    for (mapping, 0..) |id, row| {
+        const original = previous.at(row);
+        const linked = current.at(@backingInt(id orelse return error.InvalidModule));
+
+        if (!try sameSignature(original, linked, nodes.types)) return error.InvalidModule;
+
+        if (original.external) |external| {
+            if (external.member.len == 0) return error.InvalidModule;
+
+            const implementation = linked.external orelse return error.InvalidModule;
+            const mapped = try nodes.external(external);
+
+            if (!std.mem.eql(u8, mapped.exportName(), implementation.exportName()) or !native.sameExternalSeed(mapped, implementation)) return error.InvalidModule;
+        } else if (linked.external != null) return error.InvalidModule;
+    }
+}
+
+fn sameSignature(previous: ir.Signature, current: ir.Signature, types: Nodes.TypeMap) Error!bool {
     return std.mem.eql(u8, previous.file_name, current.file_name) and
         try types.include(previous.input_type) == current.input_type and
         try types.include(previous.output_type) == current.output_type and

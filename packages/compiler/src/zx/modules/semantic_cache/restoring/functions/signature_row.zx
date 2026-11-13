@@ -1,0 +1,91 @@
+import integers from "std:integer"
+
+import compatible from "../../../link/native/signature/compatible"
+
+import type { Row } from "./model"
+
+export type Input = Row
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { signatures, previous, current } = in
+
+    const left = signatures.previous
+    const right = signatures.current
+
+    if (left.files[previous] != right.files[current]) {
+        return false
+    }
+
+    if (left.ownership[previous] != right.ownership[current]) {
+        return false
+    }
+
+    const input = integers.widen(left.input_types[previous])
+    const output = integers.widen(left.output_types[previous])
+    const types = signatures.types
+
+    if (input >= types.length || output >= types.length) {
+        return false
+    }
+
+    const inputs_equal = types[input] == right.input_types[current]
+    const outputs_equal = types[output] == right.output_types[current]
+
+    if (!inputs_equal || !outputs_equal) {
+        return false
+    }
+
+    const module = left.native_modules[previous]
+    const linked = right.native_modules[current]
+
+    if (module == null) {
+        return linked == null
+    }
+
+    if (linked == null) {
+        return false
+    }
+
+    if (left.native_members[previous].length == 0) {
+        return false
+    }
+
+    const index = integers.widen(module)
+
+    if (index >= signatures.modules.length) {
+        return false
+    }
+
+    const mapped = signatures.modules[index]
+
+    if (mapped == null) {
+        return false
+    }
+
+    return compatible({
+        left: {
+            module_id: mapped,
+            member: left.native_members[previous],
+            export_name: left.native_exports[previous],
+            input: left.native_inputs[previous],
+            allocator_argument: left.native_allocators[previous],
+            io_argument: left.native_io[previous],
+            process_argument: left.native_process[previous],
+            expand_tuple: left.native_tuples[previous],
+            fallible: left.native_fallible[previous]
+        },
+        right: {
+            module_id: linked,
+            member: right.native_members[current],
+            export_name: right.native_exports[current],
+            input: right.native_inputs[current],
+            allocator_argument: right.native_allocators[current],
+            io_argument: right.native_io[current],
+            process_argument: right.native_process[current],
+            expand_tuple: right.native_tuples[current],
+            fallible: right.native_fallible[current]
+        }
+    })
+}

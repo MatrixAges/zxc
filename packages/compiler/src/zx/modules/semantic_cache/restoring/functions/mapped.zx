@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import memory from "std:memory"
 
 import type { Binding } from "./model"
 
@@ -32,5 +33,11 @@ export default function (in: Input): Output {
     const input_matches = types[input] == (current.input_type ?? 0)
     const output_matches = types[output] == (current.output_type ?? 0)
 
-    return input_matches && output_matches
+    if (!input_matches || !output_matches) {
+        return false
+    }
+
+    memory.writeOptionalU32(in.target, index, id)
+
+    return true
 }

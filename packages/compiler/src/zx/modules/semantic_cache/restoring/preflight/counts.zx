@@ -1,0 +1,11 @@
+import type { Input } from "./model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const types = in.types == in.current_types
+    const functions = in.functions == in.current_functions
+    const constants = in.constants == in.current_constants
+
+    return types && functions && constants
+}
