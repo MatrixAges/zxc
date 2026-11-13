@@ -1,14 +1,23 @@
 import integers from "std:integer"
+import { kind_native_reference } from "core/type_table/const"
 import { Kind } from "core/type_table/model"
 
 import kind from "../kind"
 
 import type { Table } from "core/type_table/model"
 
+export type Prefix = {
+    rows: u64,
+    children: u64,
+    fields: u64,
+    names: u64
+}
+
 export type Input = {
     table: Table,
     scalar_count: u64,
-    maximum_count: u64
+    maximum_count: u64,
+    prefix?: Prefix
 }
 
 export type Output = bool
@@ -40,13 +49,33 @@ export default function (in: Input): Output {
         return false
     }
 
+    const prefix = in.prefix
+    const first_row = prefix == null ? 0 : prefix.rows
+    const child_end = prefix == null ? 0 : prefix.children
+    const field_end = prefix == null ? 0 : prefix.fields
+    const name_end = prefix == null ? 0 : prefix.names
+    const child_limit = in.table.children.length
+    const field_limit = in.table.field_types.length
+    const name_limit = in.table.names.length
+
+    const invalid_prefix = (
+        - first_row > count
+        - or child_end > child_limit
+        - or field_end > field_limit
+        - or name_end > name_limit
+    )
+
+    if (invalid_prefix) {
+        return false
+    }
+
     const state = loop({
         table: in.table,
         scalar_count: in.scalar_count,
-        index: 0,
-        child_end: 0,
-        field_end: 0,
-        name_end: 0,
+        index: first_row,
+        child_end,
+        field_end,
+        name_end,
         valid: true
     }, {
         while: current => current.valid && current.index < current.table.kinds.length,
@@ -60,7 +89,7 @@ export default function (in: Input): Output {
                 type_kind != Kind.NativeReference
 
             const condition_2 = match {
-                code > 8 => true,
+                code > kind_native_reference => true,
                 unnamed => current.table.labels[current.index] != "",
                 _ => false
             }

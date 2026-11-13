@@ -1,6 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
+const Validate = @import("../ir/validate.zig");
 pub const ParseCache = @import("parse_cache.zig");
 pub const SemanticCache = @import("semantic_cache.zig");
 pub const artifact = @import("artifact.zig");
@@ -115,6 +116,7 @@ const Project = struct {
     modules: std.ArrayList(ModuleRecord) = .empty,
     functions: ir.FunctionStorage = .{},
     verified_functions: usize = 0,
+    verified_types: ?Validate.TypePrefix = null,
     native_modules: ir.NativeModuleStorage = .{},
     native_units: std.StringHashMapUnmanaged(NativeUnit) = .empty,
     store_initializers: std.ArrayList(compiled.StoreInitializer) = .empty,
@@ -457,6 +459,7 @@ const Project = struct {
                     .origins = &self.nominal_origins,
                     .functions = &self.functions,
                     .verified_functions = self.verified_functions,
+                    .verified_types = self.verified_types,
                     .native_modules = self.native_modules.view(),
                     .aliases = aliases.items,
                     .imports = imports.items,
@@ -465,7 +468,10 @@ const Project = struct {
                 })) |program| {
                     restored = program;
 
-                    if (comptime @import("parser_options").generated_parser) self.verified_functions = program.program.functions.count();
+                    if (comptime @import("parser_options").generated_parser) {
+                        self.verified_functions = program.program.functions.count();
+                        self.verified_types = Validate.TypePrefix.fromTable(program.program.types);
+                    }
 
                     unit.reused = true;
                     cache.reused += 1;
@@ -902,7 +908,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     const verified = @min(count, project.verified_functions);
 
-    if (try @import("../ir/validate.zig").validateProjectPrefix(allocator, program, verified)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
+    if (try Validate.validateProjectPrefix(allocator, program, verified, project.verified_types)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
     var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 

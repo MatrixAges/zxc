@@ -5,6 +5,7 @@ import type { Body } from "core/ir/body"
 import type { Modules } from "core/native_module_table/model"
 import type { Ownership } from "core/symbol_table/model"
 import type { Table } from "core/type_table/model"
+import type { Prefix } from "../../../analysis/semantic/types/validation/shape"
 
 export type Context = {
     table: Table,
@@ -13,7 +14,8 @@ export type Context = {
     max_offset: u64,
     scalar_count: u64,
     maximum_count: u64,
-    verified: u64
+    verified: u64,
+    verified_types?: Prefix
 }
 
 export type Unit = {

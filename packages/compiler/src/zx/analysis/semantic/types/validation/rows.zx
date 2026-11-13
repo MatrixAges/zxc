@@ -1,10 +1,12 @@
 import row from "./row"
 
 import type { Table } from "core/type_table/model"
+import type { Prefix } from "./shape"
 
 export type Input = {
     table: Table,
-    scalar_count: u64
+    scalar_count: u64,
+    prefix?: Prefix
 }
 
 export type Output = bool
@@ -14,10 +16,13 @@ export default function (in: Input): Output {
         return false
     }
 
+    const prefix = in.prefix
+    const first = prefix == null ? 0 : prefix.rows
+
     return loop({
         table: in.table,
         scalar_count: in.scalar_count,
-        index: 0,
+        index: first,
         valid: true
     }, {
         while: current => current.valid && current.index < current.table.kinds.length,

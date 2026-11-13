@@ -17,6 +17,7 @@ pub const Current = struct {
     origins: *Origins,
     functions: *ir.FunctionStorage,
     verified_functions: usize,
+    verified_types: ?@import("../../ir/validate.zig").TypePrefix,
     native_modules: ir.NativeModuleTable,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
@@ -146,7 +147,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         _ = current.functions.pop(allocator);
     };
 
-    if (try @import("../../ir/validate.zig").validateProjectPrefix(temporary, program, current.verified_functions) != null) return error.InvalidIr;
+    if (try @import("../../ir/validate.zig").validateProjectPrefix(temporary, program, current.verified_functions, current.verified_types) != null) return error.InvalidIr;
 
     return .{ .program = program, .recursive = header.recursive };
 }

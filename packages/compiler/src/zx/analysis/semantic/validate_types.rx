@@ -1,12 +1,14 @@
 <Module>
     <Type from="constructing/delta" as="Delta" />
+    <Type from="types/validation/shape" as="Shape" />
 
     <Args
         in={{
             maximum_count: u64,
             scalar_count: u64,
             table: Delta.Output,
-            trusted: bool
+            trusted: bool,
+            prefix?: Shape.Prefix
         }}
         out={bool}
     />
@@ -17,11 +19,7 @@
 
     <Call
         fn="types/validation/shape"
-        in={$in.pick([
-            "table",
-            "scalar_count",
-            "maximum_count"
-        ])}
+        in={$in.omit(["trusted"])}
     />
 
     <If on={$ctx.shape}>
@@ -29,7 +27,8 @@
             fn="types/validation/rows"
             in={{
                 table: $in.table,
-                scalar_count: $in.scalar_count
+                scalar_count: $in.scalar_count,
+                prefix: $in.prefix
             }}
         />
 

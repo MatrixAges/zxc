@@ -2,24 +2,34 @@ const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
 const borrow = @import("../borrow.zig");
+const TypePrefix = @import("type_prefix.zig");
 
 pub fn Storage(comptime Input: type) type {
     const Context = std.meta.Child(@FieldType(Input, "context"));
     const Unit = std.meta.Child(@FieldType(Input, "unit"));
     const Body = std.meta.Child(@FieldType(Unit, "body"));
+    const Prefix = std.meta.Child(@typeInfo(@FieldType(Context, "verified_types")).optional.child);
 
     return struct {
         const Self = @This();
 
         table: std.meta.Child(@FieldType(Context, "table")),
         functions: std.meta.Child(@FieldType(Context, "functions")),
+        prefix: Prefix,
         body: Body,
         context: Context,
         unit: Unit,
         input: Input,
-        pub fn init(self: *Self, allocator: std.mem.Allocator, program: *const ir.Program, verified: usize) std.mem.Allocator.Error!void {
+        pub fn init(self: *Self, allocator: std.mem.Allocator, program: *const ir.Program, verified: usize, prefix: ?TypePrefix) std.mem.Allocator.Error!void {
             self.table = ir.TypeTable.borrow(@TypeOf(self.table), program.types);
             self.functions = @import("../functions/input.zig").view(@TypeOf(self.functions), program.functions);
+
+            if (prefix) |value| self.prefix = .{
+                .rows = value.rows,
+                .children = value.children,
+                .fields = value.fields,
+                .names = value.names,
+            };
 
             self.context = .{
                 .table = &self.table,
@@ -29,6 +39,7 @@ pub fn Storage(comptime Input: type) type {
                 .scalar_count = std.enums.values(ir.Scalar).len,
                 .maximum_count = std.math.maxInt(u32),
                 .verified = verified,
+                .verified_types = if (prefix != null) &self.prefix else null,
             };
 
             self.body = .{
