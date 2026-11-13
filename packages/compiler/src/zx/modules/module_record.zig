@@ -28,6 +28,7 @@ type_imports: []const zx.ir.Export,
 function_imports: []const @import("function_import.zig"),
 body: union(enum) { types, entry, function: zx.ir.FunctionId },
 own_function: ?zx.ir.FunctionId = null,
+/// Source targets borrow the normalized unit path held by the project arena.
 pub fn copyImport(allocator: std.mem.Allocator, item: anytype, target: Target) std.mem.Allocator.Error!Import {
     const names = try allocator.alloc([]const u8, item.nameCount());
 
@@ -56,9 +57,8 @@ pub fn copyImport(allocator: std.mem.Allocator, item: anytype, target: Target) s
         .names = names,
         .span = item.span,
         .target = switch (target) {
-            .source => |path| .{ .source = try allocator.dupe(u8, path) },
             .compiled => |value| .{ .compiled = try @import("compiled.zig").copyTarget(allocator, value) },
-            .native, .external, .intrinsic => target,
+            else => target,
         },
     };
 }

@@ -17,15 +17,19 @@ export type Frame = {
 }
 
 export enum SourceAction {
-    Load,
+    Descend,
+    BindBody,
+    BindSignature,
     DeferSignature,
     SkipSignature,
-    RejectRx
+    RejectRx,
+    Missing
 }
 
 export type Source = {
     rx: bool,
     signature: bool,
     function_import: bool,
-    exported: bool
+    exported: bool,
+    state?: State
 }

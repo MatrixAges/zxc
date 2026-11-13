@@ -83,7 +83,7 @@ const LoadFrame = struct {
     index: usize,
     parsed: ParseCache.Version,
     next_import: usize = 0,
-    pending: ?struct { path: []const u8, index: usize } = null,
+    pending: ?usize = null,
     aliases: std.ArrayList(ir.Export) = .empty,
     imported_names: std.StringHashMapUnmanaged(void) = .empty,
     imports: std.ArrayList(FunctionImport) = .empty,
@@ -102,7 +102,6 @@ const Project = struct {
     sources: []const Source,
     parse_cache: *ParseCache,
     semantic_cache: ?*SemanticCache = null,
-    phase: Loading.Phase = .body,
     load_frames: std.ArrayList(LoadFrame) = .empty,
     entry_program: ?ir.Program = null,
     empty_context_digest: ?[32]u8 = null,
@@ -128,7 +127,7 @@ const Project = struct {
         return self.binding_scratch.allocator();
     }
     fn load(self: *Project, index: usize) zx.Error!ir.Program {
-        try self.loadFrames(index);
+        try self.loadFrames(index, .body);
 
         var program = self.entry_program.?;
         const unit = &self.units[index];
@@ -155,7 +154,7 @@ const Project = struct {
 
         return program;
     }
-    fn loadFrames(self: *Project, index: usize) zx.Error!void {
+    fn loadFrames(self: *Project, index: usize, comptime phase: Loading.Phase) zx.Error!void {
         const frames = &self.load_frames;
 
         try self.pushFrame(index);
@@ -165,8 +164,8 @@ const Project = struct {
             self.current_source = frame.index;
 
             const dependency = switch (frame.parsed.result.*) {
-                .native => |result| try self.loadInput(frame, Input.Native{ .value = result.value.parsed }),
-                .indexed => |*result| if (ParseCache.indexed_enabled) try self.loadInput(frame, Input.Indexed{ .value = result }) else unreachable,
+                .native => |result| try self.loadInput(frame, Input.Native{ .value = result.value.parsed }, phase),
+                .indexed => |*result| if (ParseCache.indexed_enabled) try self.loadInput(frame, Input.Indexed{ .value = result }, phase) else unreachable,
             };
 
             if (dependency) |child| {
@@ -216,23 +215,29 @@ const Project = struct {
 
         try frames.append(self.arena.child_allocator, .{ .index = index, .parsed = parsed });
     }
-    fn loadInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!?usize {
+    fn loadInput(self: *Project, frame: *LoadFrame, input: anytype, comptime phase: Loading.Phase) zx.Error!?usize {
         const index = frame.index;
         const unit = &self.units[index];
         const header = input.header();
+        const import_count = header.importCount();
         const aliases = &frame.aliases;
         const imported_names = &frame.imported_names;
         const imports = &frame.imports;
         const constants = &frame.constant_imports;
+        var paths = std.heap.ArenaAllocator.init(self.arena.child_allocator);
 
-        while (frame.next_import < header.importCount()) : (frame.next_import += 1) {
+        defer paths.deinit();
+
+        while (frame.next_import < import_count) : (frame.next_import += 1) {
             const item = @import("import_view.zig").get(header, frame.next_import);
             const selected_aliases = if (item.exported) &frame.export_aliases else aliases;
             const selected_imports = if (item.exported) &frame.export_functions else imports;
             const selected_constants = if (item.exported) &frame.export_constants else constants;
             const pending = frame.pending;
+            var path_buffer: [512]u8 = undefined;
+            var path_memory = std.heap.BufferFirstAllocator.init(&path_buffer, paths.allocator());
 
-            const target: ImportTarget = if (pending) |resumed| .{ .source = resumed.path } else target_block: {
+            const target: ImportTarget = if (pending) |resumed| .{ .source = self.units[resumed].path } else target_block: {
                 if (!item.exported) for (0..item.nameCount()) |name_index| {
                     const name = item.nameAt(name_index);
                     const entry = try imported_names.getOrPut(self.arena.child_allocator, name.text);
@@ -252,53 +257,62 @@ const Project = struct {
                             .members = &@import("intrinsic.zig").exports,
                         }, self.reporter, selected_aliases, selected_imports, selected_constants);
 
-                        try self.rememberImport(frame, item, .intrinsic, null);
+                        if (phase == .body) try self.rememberImport(frame, item, .intrinsic, null);
 
                         continue;
                     },
                     .Interface => {
                         if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
-                            try self.rememberImport(frame, item, .native, identity);
+                            if (phase == .body) try self.rememberImport(frame, item, .native, identity);
 
                             continue;
                         }
 
                         if (item.kind != .function or item.nameCount() != 1) return self.reporter.fail(.module, item.span, "external interfaces require a default function import");
                         try self.importExternal(item, imports);
-                        try self.rememberImport(frame, item, .external, null);
+                        if (phase == .body) try self.rememberImport(frame, item, .external, null);
 
                         continue;
                     },
-                    .File, .Package => break :target_block try Target.resolve(self.allocator, unit.path, item.path, route, self.options, self.reporter, item.span),
+                    .File, .Package => break :target_block try Target.resolve(path_memory.allocator(), unit.path, item.path, route, self.options, self.reporter, item.span),
                 }
             };
 
+            defer _ = paths.reset(.retain_capacity);
+            var source_path: ?[]const u8 = null;
+
             const imported = switch (target) {
                 .source => |path| block: {
-                    if (pending == null) switch (Loading.source(path, self.phase, item.kind == .function, item.exported)) {
-                        .Load => {},
+                    const rx = pending == null and std.mem.endsWith(u8, path, ".rx");
+                    const dependency = pending orelse if (!rx) self.find(path) else null;
+                    const state = if (dependency) |child| self.units[child].state else null;
+
+                    switch (Loading.source(rx, phase, item.kind == .function, item.exported, state)) {
                         .SkipSignature => continue,
-                        .DeferSignature => break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null, .source = path }} },
+                        .DeferSignature => {
+                            const retained = try self.allocator.dupe(u8, path);
+
+                            break :block Imported{ .exports = &.{}, .signatures = &.{.{ .name = "", .ports = null, .source = retained }} };
+                        },
                         .RejectRx => return self.reporter.fail(.module, item.span, "ZX package entry must be a .zx source file"),
-                    };
+                        .Missing => return self.reporter.fail(.module, item.span, "import target is missing from the source set"),
+                        .Descend => {
+                            frame.pending = dependency.?;
 
-                    const dependency = if (pending) |resumed| resumed.index else self.find(path) orelse return self.reporter.fail(.module, item.span, "import target is missing from the source set");
+                            return dependency;
+                        },
+                        .BindSignature => {
+                            const signature = &self.units[dependency.?].signature.?;
 
-                    if (self.units[dependency].state != .Done) {
-                        frame.pending = .{ .path = path, .index = dependency };
+                            break :block Imported{ .exports = signature.exports, .constant_exports = signature.constant_exports, .signatures = signature.members };
+                        },
+                        .BindBody => {
+                            const loaded = &self.units[dependency.?];
+                            source_path = loaded.path;
 
-                        return dependency;
+                            break :block Imported{ .exports = loaded.exports, .constant_exports = loaded.constants, .members = loaded.members };
+                        },
                     }
-
-                    if (self.phase == .signature) {
-                        const signature = self.units[dependency].signature.?;
-
-                        break :block Imported{ .exports = signature.exports, .constant_exports = signature.constant_exports, .signatures = signature.members };
-                    }
-
-                    const loaded = &self.units[dependency];
-
-                    break :block Imported{ .exports = loaded.exports, .constant_exports = loaded.constants, .members = loaded.members };
                 },
                 .compiled => |value| try self.loadCompiled(value, item.span),
             };
@@ -306,23 +320,25 @@ const Project = struct {
             frame.pending = null;
             self.current_source = index;
 
-            if (self.phase == .signature) {
+            if (phase == .signature) {
                 try self.bindSignature(frame, item, imported);
-            } else try @import("binding.zig").apply(self.allocator, self.bindingAllocator(), item, .{
-                .target = if (target == .source) .source else .compiled,
-                .types = self.types.view(),
-                .exports = imported.exports,
-                .constant_exports = imported.constant_exports,
-                .members = imported.members,
-            }, self.reporter, selected_aliases, selected_imports, selected_constants);
+            } else {
+                try @import("binding.zig").apply(self.allocator, self.bindingAllocator(), item, .{
+                    .target = if (target == .source) .source else .compiled,
+                    .types = self.types.view(),
+                    .exports = imported.exports,
+                    .constant_exports = imported.constant_exports,
+                    .members = imported.members,
+                }, self.reporter, selected_aliases, selected_imports, selected_constants);
 
-            try self.rememberImport(frame, item, switch (target) {
-                .source => |path| .{ .source = path },
-                .compiled => |value| .{ .compiled = value },
-            }, null);
+                try self.rememberImport(frame, item, switch (target) {
+                    .source => .{ .source = source_path.? },
+                    .compiled => |value| .{ .compiled = value },
+                }, null);
+            }
         }
 
-        if (self.phase == .signature) {
+        if (phase == .signature) {
             var types = @import("../analysis/types.zig"){
                 .allocator = self.allocator,
                 .reporter = self.reporter,
@@ -349,8 +365,6 @@ const Project = struct {
         return null;
     }
     fn rememberImport(self: *Project, frame: *LoadFrame, item: anytype, target: ModuleRecord.Target, identity: ?[]const u8) zx.Error!void {
-        if (self.phase == .signature) return;
-
         var dependency = try ModuleRecord.copyImport(self.allocator, item, target);
 
         if (identity) |name| dependency.identity = try self.allocator.dupe(u8, name);
@@ -794,7 +808,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(owned, &.{ options.root_dir, source.path }) };
 
-    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .units = units, .options = options, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
 
     defer project.deinitScratch();
 
@@ -808,7 +822,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
         const path = try std.fs.path.resolve(owned, &.{ options.root_dir, entry });
         const index = project.find(path) orelse return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "signature entry module is missing" } } };
 
-        project.loadFrames(index) catch |err| {
+        project.loadFrames(index, .signature) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             var issue = reporter.diagnostic.?;

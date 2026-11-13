@@ -3,17 +3,29 @@
 
     <Args in={Load.Source} out={Load.SourceAction} />
 
-    <If on={!$in.rx}>
-        <Return value={Load.SourceAction.Load} />
+    <If on={$in.rx}>
+        <If on={!$in.signature}>
+            <Return value={Load.SourceAction.RejectRx} />
+        </If>
+
+        <If on={$in.function_import && !$in.exported}>
+            <Return value={Load.SourceAction.SkipSignature} />
+        </If>
+
+        <Return value={Load.SourceAction.DeferSignature} />
     </If>
 
-    <If on={!$in.signature}>
-        <Return value={Load.SourceAction.RejectRx} />
+    <If on={$in.state == null}>
+        <Return value={Load.SourceAction.Missing} />
     </If>
 
-    <If on={$in.function_import && !$in.exported}>
-        <Return value={Load.SourceAction.SkipSignature} />
+    <If on={$in.state != Load.State.Done}>
+        <Return value={Load.SourceAction.Descend} />
     </If>
 
-    <Return value={Load.SourceAction.DeferSignature} />
+    <If on={$in.signature}>
+        <Return value={Load.SourceAction.BindSignature} />
+    </If>
+
+    <Return value={Load.SourceAction.BindBody} />
 </Module>
