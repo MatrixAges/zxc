@@ -49,7 +49,7 @@ pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, sour
         if (!executable) return true;
 
         for (signed.value.data.modules) |module| {
-            const delegated = module.signature.deferredSource() orelse continue;
+            const delegated = module.signature.deferred_source orelse continue;
 
             const registered = for (modules) |source_module| {
                 const absolute = try std.fs.path.resolve(allocator, &.{ loaded.project.root_dir, source_module.path });

@@ -3,23 +3,39 @@
 
     <Args in={Exports.Input} out={Exports.Output} />
 
-    <Call fn="duplicate" in={$in.names} />
+    <Call
+        fn="names"
+        in={{
+            names: $in.names,
+            first_function: $in.first_function,
+            roots: $in.roots
+        }}
+    />
 
-    <If on={$ctx.duplicate != null}>
+    <If on={$ctx.names.invalid_name != null || $ctx.names.default_member == null}>
         <Return
             value={{
-                duplicate: $ctx.duplicate,
-                default_member: null
+                names: $ctx.names,
+                action: Exports.Action.None
             }}
         />
     </If>
 
-    <Call fn="default_member" in={$in} />
+    <If on={$in.signature != null}>
+        <Call fn="signature" in={$in.signature} />
+
+        <Return
+            value={{
+                names: $ctx.names,
+                action: $ctx.signature
+            }}
+        />
+    </If>
 
     <Return
         value={{
-            duplicate: null,
-            default_member: $ctx.default_member
+            names: $ctx.names,
+            action: Exports.Action.None
         }}
     />
 </Module>

@@ -21,6 +21,7 @@ pub const Frame = struct {
     stores: []const @import("rx").ModuleSource = &.{},
     modules: []const @import("rx").ModuleSource,
     dependencies: @import("source_graph/model.zig").Graph,
+    export_roots: []const usize,
     definitions: []@import("../store.zig").Definition,
     loaded: @import("prepare.zig").Loaded,
     signatures: frontend.project.signature_project.Data,

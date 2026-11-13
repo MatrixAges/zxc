@@ -68,10 +68,10 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
     const path = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.entry });
     const entry = paths.get(path) orelse return failure(allocator, path, .{ .offset = 0, .line = 1, .column = 1 }, "entry module is missing from the registered source set");
     const roots = try allocator.alloc(usize, options.additional_roots.len + options.stores.len + 1);
-
     roots[0] = entry;
+    const additional_roots = roots[1..][0..options.additional_roots.len];
 
-    for (options.additional_roots, roots[1..][0..options.additional_roots.len]) |source_path, *root| {
+    for (options.additional_roots, additional_roots) |source_path, *root| {
         const resolved = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source_path });
 
         root.* = paths.get(resolved) orelse return failure(allocator, resolved, .{ .offset = 0, .line = 1, .column = 1 }, "source graph root is missing from the registered input set");
@@ -90,7 +90,13 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
     };
 
     return switch (try @import("source_graph/order.zig").build(allocator, backing, modules, roots)) {
-        .schedule => |schedule| .{ .graph = .{ .modules = modules, .order = schedule.order, .batch_ends = schedule.batch_ends, .entry = entry } },
+        .schedule => |schedule| .{ .graph = .{
+            .modules = modules,
+            .order = schedule.order,
+            .batch_ends = schedule.batch_ends,
+            .entry = entry,
+            .additional_roots = additional_roots,
+        } },
         .diagnostic => |issue| .{ .diagnostic = issue },
     };
 }

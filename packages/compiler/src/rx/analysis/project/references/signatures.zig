@@ -22,7 +22,7 @@ pub fn init(allocator: std.mem.Allocator, graph: Graph, modules: []const Module,
 
         indices[source] = index;
 
-        if (module.signature.deferredSource()) |path| {
+        if (module.signature.deferred_source) |path| {
             if (forwards.len == 0) {
                 forwards = try allocator.alloc(Forward, modules.len);
 

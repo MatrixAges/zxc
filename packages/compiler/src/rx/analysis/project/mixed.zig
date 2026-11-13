@@ -148,7 +148,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
     contract.input_type = contract.program.input_type;
     contract.output_type = contract.program.output_type;
 
-    contract.exports = @import("mixed/exports.zig").collect(&state, exports) catch |err| {
+    contract.exports = @import("mixed/exports.zig").collect(&state, exports, derived.export_roots) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = state.issue.? };

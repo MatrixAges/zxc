@@ -258,6 +258,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
         .modules = modules,
         .stores = options.stores,
         .dependencies = dependencies.value.graph,
+        .export_roots = dependencies.value.graph.additional_roots[modules.len..],
         .definitions = registry.data.definitions,
         .loaded = try prepare.completeShortcuts(allocator, prepared.loaded, inferred.signatures),
         .signatures = signatures,

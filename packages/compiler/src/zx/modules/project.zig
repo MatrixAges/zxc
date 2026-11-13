@@ -8,7 +8,7 @@ pub const artifact = @import("artifact.zig");
 const HostContext = @import("../analysis/analyzer/host/context.zig");
 pub const FunctionImport = @import("function_import.zig");
 const Signature = @import("source_signature.zig");
-const PublicExports = @import("public_exports.zig");
+pub const public_exports = @import("public_exports.zig");
 const Analysis = @import("../analysis/analyze.zig");
 const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
@@ -418,26 +418,27 @@ const Project = struct {
         @memcpy(members[own..][0..forwarded.len], forwarded);
         self.writeMemberSignatures(native, members[own + forwarded.len ..]);
 
-        signature.exports = try PublicExports.merge(ir.Export, self.allocator, signature.exports, frame.export_aliases.items);
-        signature.constant_exports = try PublicExports.merge(ir.Constant, self.allocator, signature.constant_exports, frame.export_constants.items);
+        signature.exports = try public_exports.merge(ir.Export, self.allocator, signature.exports, frame.export_aliases.items);
+        signature.constant_exports = try public_exports.merge(ir.Constant, self.allocator, signature.constant_exports, frame.export_constants.items);
         signature.members = members;
 
         if (frame.export_aliases.items.len + frame.export_constants.items.len + forwarded.len + native.len == 0) return;
 
-        const selected = try PublicExports.plan(self.allocator, self.arena.child_allocator, signature.exports, signature.constant_exports, members, self.reporter) orelse return;
-        const member = members[selected];
+        const selected = try public_exports.plan(self.allocator, self.arena.child_allocator, signature.exports, signature.constant_exports, members, self.reporter);
 
-        const ports = member.ports orelse {
-            if (member.source != null or member.intrinsic != null) return;
+        switch (selected.action) {
+            .None, .Intrinsic => {},
+            .Invalid => return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source"),
+            .Deferred => signature.deferred_source = members[selected.default_member.?].source,
+            .Callable => {
+                const member = members[selected.default_member.?];
 
-            return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source");
-        };
-
-        signature.ports = ports;
-        signature.has_store = member.has_store;
-        signature.type_only = false;
+                signature.ports = member.ports.?;
+                signature.has_store = member.has_store;
+                signature.type_only = false;
+            },
+        }
     }
-
     fn finishInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!void {
         const unit = &self.units[frame.index];
         const aliases = frame.aliases;
@@ -524,14 +525,14 @@ const Project = struct {
         }
 
         const own: ?FunctionImport = if (unit.function) |id| .{ .name = "", .id = id, .input_type = program.input_type, .output_type = program.output_type } else null;
-        unit.exports = try PublicExports.merge(ir.Export, self.allocator, program.exports, frame.export_aliases.items);
-        unit.constants = try PublicExports.merge(ir.Constant, self.allocator, program.constant_exports, frame.export_constants.items);
-        unit.members = try PublicExports.prepend(FunctionImport, self.allocator, own, frame.export_functions.items);
+        unit.exports = try public_exports.merge(ir.Export, self.allocator, program.exports, frame.export_aliases.items);
+        unit.constants = try public_exports.merge(ir.Constant, self.allocator, program.constant_exports, frame.export_constants.items);
+        unit.members = try public_exports.prepend(FunctionImport, self.allocator, own, frame.export_functions.items);
 
         if (frame.export_aliases.items.len + frame.export_constants.items.len + frame.export_functions.items.len != 0) {
-            const selected = try PublicExports.plan(self.allocator, self.arena.child_allocator, unit.exports, unit.constants, unit.members, self.reporter);
+            const selected = try public_exports.plan(self.allocator, self.arena.child_allocator, unit.exports, unit.constants, unit.members, self.reporter);
 
-            if (unit.function == null) if (selected) |member| {
+            if (unit.function == null) if (selected.default_member) |member| {
                 unit.function = unit.members[member].id;
             };
         }
@@ -611,7 +612,7 @@ const Project = struct {
             return .{
                 .exports = exported.types,
                 .constant_exports = exported.constants,
-                .members = try PublicExports.prepend(FunctionImport, self.allocator, own, exported.members),
+                .members = try public_exports.prepend(FunctionImport, self.allocator, own, exported.members),
             };
         }
 

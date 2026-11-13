@@ -1,0 +1,14 @@
+import { Action } from "./model"
+
+import type { Signature as Input } from "./model"
+
+export type Output = Action
+
+export default function (in: Input): Output {
+    return match {
+        in.callable => Action.Callable,
+        in.deferred => Action.Deferred,
+        in.intrinsic => Action.Intrinsic,
+        _ => Action.Invalid
+    }
+}

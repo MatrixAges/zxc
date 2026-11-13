@@ -31,7 +31,15 @@ pub const Schedule = struct {
 };
 
 pub const Scheduled = union(enum) { schedule: Schedule, diagnostic: Diagnostic };
-pub const Graph = struct { modules: []const Module, order: []const usize, batch_ends: []const usize, entry: usize };
+
+pub const Graph = struct {
+    modules: []const Module,
+    order: []const usize,
+    batch_ends: []const usize,
+    entry: usize,
+    additional_roots: []const usize = &.{},
+};
+
 pub const Value = union(enum) { graph: Graph, diagnostic: Diagnostic };
 
 pub const Result = struct {

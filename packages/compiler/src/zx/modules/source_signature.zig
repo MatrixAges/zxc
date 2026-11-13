@@ -16,13 +16,7 @@ pub const Result = struct {
     members: []const Member = &.{},
     type_only: bool,
     has_store: bool,
-    pub fn deferredSource(self: Result) ?[]const u8 {
-        for (self.members) |member| {
-            if (member.name.len == 0 and member.ports == null) return member.source;
-        }
-
-        return null;
-    }
+    deferred_source: ?[]const u8 = null,
 };
 
 pub fn ports(types: *Types, program: anytype) zx.Error!Ports {

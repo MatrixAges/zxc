@@ -1,0 +1,64 @@
+import bytes from "std:bytes"
+import claim from "core/bytes/index/claim"
+
+import type { Index } from "core/bytes/index/model"
+import type { Names as Output } from "./model"
+
+export type Input = {
+    names: string[],
+    first_function: u64,
+    roots: bool
+}
+
+export default function (in: Input): Output {
+    const seen: Index = {
+        keys: [],
+        values: [],
+        buckets: []
+    }
+
+    const invalid_name: u64? = null
+    const default_member: u64? = null
+
+    const { names, first_function, roots } = in
+
+    return loop({
+        seen,
+        invalid_name,
+        default_member,
+        index: 0
+    }, {
+        while: state => state.invalid_name == null && state.index < names.length,
+        next: state => {
+            const name = names[state.index]
+
+            if (roots && name == "") {
+                state.invalid_name = state.index
+            } else {
+                if (state.index >= first_function && name == "") {
+                    state.default_member = state.index - first_function
+                }
+
+                const entered = claim({
+                    index: state.seen,
+                    key: bytes.fromText(name),
+                    value: 0
+                })
+
+                state.seen = entered.index
+
+                if (entered.previous != null) {
+                    state.invalid_name = state.index
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => {
+            return {
+                invalid_name: state.invalid_name,
+                default_member: state.default_member
+            }
+        }
+    })
+}

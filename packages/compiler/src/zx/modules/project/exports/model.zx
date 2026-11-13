@@ -1,9 +1,30 @@
 export type Input = {
     names: string[],
-    first_function: u64
+    first_function: u64,
+    roots: bool,
+    signature?: Signature
+}
+
+export type Names = {
+    invalid_name?: u64,
+    default_member?: u64
+}
+
+export type Signature = {
+    callable: bool,
+    deferred: bool,
+    intrinsic: bool
+}
+
+export enum Action {
+    None,
+    Callable,
+    Deferred,
+    Intrinsic,
+    Invalid
 }
 
 export type Output = {
-    duplicate?: u64,
-    default_member?: u64
+    names: Names,
+    action: Action
 }
