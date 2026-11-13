@@ -1,0 +1,30 @@
+export enum Route {
+    Native,
+    Legacy,
+    Duplicate,
+    Conflict,
+    InvalidLegacy
+}
+
+export type Import = {
+    found: bool,
+    duplicate: bool,
+    legacy_conflict: bool,
+    function_import: bool,
+    binding_count: u64
+}
+
+export type Legacy = {
+    export_name?: string,
+    local: string,
+    duplicate: bool,
+    count: u64,
+    previous_default: bool
+}
+
+export type Binding = {
+    valid: bool,
+    default_export: bool,
+    name: string,
+    namespace?: string
+}

@@ -1,0 +1,28 @@
+import type { Binding, Legacy } from "./model"
+
+export type Input = Legacy
+
+export type Output = Binding
+
+export default function (in: Input): Output {
+    const default_export = in.export_name == null
+    const exclusive = in.previous_default || default_export
+    const conflict = in.count != 0 && exclusive
+    const valid = !in.duplicate && !conflict
+
+    if (in.export_name == null) {
+        return {
+            valid,
+            default_export,
+            name: in.local,
+            namespace: null
+        }
+    }
+
+    return {
+        valid,
+        default_export,
+        name: in.export_name,
+        namespace: in.local
+    }
+}

@@ -14,14 +14,6 @@ pub fn nativeInterfaces(scopes: []const Scope, path: []const u8, fallback: []con
     return scopes[index].native_interfaces;
 }
 
-pub fn externals(scopes: []const Scope, path: []const u8, fallback: []const interface.External) []const interface.External {
-    if (scopes.len == 0) return fallback;
-
-    const index = owner(scopes, path) orelse return &.{};
-
-    return scopes[index].externals;
-}
-
 pub fn owner(scopes: []const Scope, path: []const u8) ?usize {
     if (comptime @import("parser_options").generated_parser) return generatedOwner(scopes, path);
 

@@ -41,10 +41,12 @@ pub fn apply(allocator: std.mem.Allocator, temporary: std.mem.Allocator, item: a
         try aliases.append(allocator, .{ .name = try allocator.dupe(u8, name), .type_id = context.exports[@intCast(index)].type_id });
     }
 
+    const namespace = if (selected.functions.names.len != 0 and selected.namespace != null) try allocator.dupe(u8, selected.namespace.?) else null;
+
     for (selected.functions.names, selected.functions.indices) |name, index| {
         var imported = context.members[@intCast(index)];
         imported.name = try allocator.dupe(u8, name);
-        imported.namespace = if (selected.namespace) |namespace| try allocator.dupe(u8, namespace) else null;
+        imported.namespace = namespace;
 
         try imports.append(allocator, imported);
     }

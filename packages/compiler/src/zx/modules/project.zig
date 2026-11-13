@@ -14,6 +14,7 @@ const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
 const Input = @import("module_input.zig");
 const Loading = @import("project/load/host.zig");
+const Interface = @import("project/interface/host.zig");
 const State = @import("project/state/host.zig");
 const Target = @import("project/target/host.zig");
 const target_registry = @import("project/target/registry.zig");
@@ -262,15 +263,25 @@ const Project = struct {
                         continue;
                     },
                     .Interface => {
-                        if (try self.importNative(item, selected_imports, selected_aliases, selected_constants)) |identity| {
-                            if (phase == .body) try self.rememberImport(frame, item, .native, identity);
+                        const scopes = self.options.package_scopes;
+                        const owner = package_scope.owner(scopes, unit.path);
+                        const scope = if (owner) |id| &scopes[id] else null;
+                        const scoped = if (scope) |value| value.native_interfaces else if (scopes.len == 0) self.options.native_interfaces else &.{};
+                        const externals = if (scope) |value| value.externals else if (scopes.len == 0) self.options.externals else &.{};
 
-                            continue;
+                        switch (Interface.route(scoped, externals, item)) {
+                            .native => |entry| {
+                                try self.importNative(entry.*, item, selected_imports, selected_aliases, selected_constants);
+                                if (phase == .body) try self.rememberImport(frame, item, .native, entry.key());
+                            },
+                            .legacy => {
+                                try self.importExternal(externals, item, imports);
+                                if (phase == .body) try self.rememberImport(frame, item, .external, null);
+                            },
+                            .duplicate => return self.reporter.fail(.module, item.span, "duplicate native interface module"),
+                            .conflict => return self.reporter.fail(.module, item.span, "native declarations conflict with legacy external signatures"),
+                            .invalid_legacy => return self.reporter.fail(.module, item.span, "external interfaces require a default function import"),
                         }
-
-                        if (item.kind != .function or item.nameCount() != 1) return self.reporter.fail(.module, item.span, "external interfaces require a default function import");
-                        try self.importExternal(item, imports);
-                        if (phase == .body) try self.rememberImport(frame, item, .external, null);
 
                         continue;
                     },
@@ -663,20 +674,7 @@ const Project = struct {
 
         return id;
     }
-    fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export), constants: *std.ArrayList(ir.Constant)) zx.Error!?[]const u8 {
-        const path = self.units[self.current_source].path;
-        const scoped = package_scope.nativeInterfaces(self.options.package_scopes, path, self.options.native_interfaces);
-
-        const entry = switch (target_registry.native(scoped, item.path, true)) {
-            .missing => return null,
-            .duplicate => return self.reporter.fail(.module, item.span, "duplicate native interface module"),
-            .found => |value| value.*,
-        };
-
-        for (package_scope.externals(self.options.package_scopes, path, self.options.externals)) |legacy| {
-            if (std.mem.eql(u8, legacy.specifier, item.path)) return self.reporter.fail(.module, item.span, "native declarations conflict with legacy external signatures");
-        }
-
+    fn importNative(self: *Project, entry: NativeInterface, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export), constants: *std.ArrayList(ir.Constant)) zx.Error!void {
         const unit = self.native_units.get(entry.key()) orelse blk: {
             const module_id = try self.nativeModule(entry.specifier, entry.identity, entry.module, item.span);
 
@@ -698,18 +696,18 @@ const Project = struct {
             self.native_modules.type_ids.items[native_index] = bindings.type_ids;
 
             const members = try self.allocator.alloc(FunctionImport, loaded.members.len);
+            const first = self.functions.count();
 
-            for (loaded.members, members) |member, *binding| {
-                const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
-
+            for (loaded.members, members, first..) |*member, *binding, index| {
                 try self.functions.append(self.allocator, member.function);
 
-                binding.* = .{ .name = member.name, .id = id, .input_type = member.function.input_type, .output_type = member.function.output_type };
+                binding.* = .{ .name = member.name, .id = @fromBackingInt(@as(u32, @intCast(index))), .input_type = member.function.input_type, .output_type = member.function.output_type };
             }
 
             const result = NativeUnit{ .exports = loaded.exports, .members = members };
+            const key = self.native_modules.view().at(native_index).key();
 
-            try self.native_units.put(self.allocator, try self.allocator.dupe(u8, entry.key()), result);
+            try self.native_units.put(self.allocator, key, result);
 
             break :blk result;
         };
@@ -720,25 +718,18 @@ const Project = struct {
             .exports = unit.exports,
             .members = unit.members,
         }, self.reporter, aliases, imports, constants);
-
-        return entry.key();
     }
-    fn importExternal(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport)) zx.Error!void {
-        const registry = package_scope.externals(self.options.package_scopes, self.units[self.current_source].path, self.options.externals);
-        var exports: std.StringHashMapUnmanaged(void) = .empty;
-        var count: usize = 0;
-        var default_export = false;
+    fn importExternal(self: *Project, registry: []const External, item: anytype, imports: *std.ArrayList(FunctionImport)) zx.Error!void {
+        const local = item.nameAt(0).text;
+        var bindings: Interface.Legacy = .{};
+        var namespace: ?[]const u8 = null;
+
+        defer bindings.names.deinit(self.arena.child_allocator);
 
         for (registry) |entry| {
             if (!std.mem.eql(u8, entry.specifier, item.path)) continue;
 
-            const member = entry.export_name orelse "";
-            const found = try exports.getOrPut(self.allocator, member);
-
-            if (found.found_existing or (count != 0 and (default_export or entry.export_name == null))) return self.reporter.fail(.module, item.span, "external modules require unique members or one default function");
-
-            default_export = entry.export_name == null;
-            count += 1;
+            const binding = try bindings.bind(self.arena.child_allocator, entry.export_name, local) orelse return self.reporter.fail(.module, item.span, "external modules require unique members or one default function");
 
             const shared = @import("../analysis/types.zig").Shared{ .origins = &self.nominal_origins, .origin = .{ .external = .{
                 .module = entry.key(),
@@ -750,16 +741,20 @@ const Project = struct {
 
             try self.functions.append(self.allocator, imported.function);
 
+            if (namespace == null) {
+                if (binding.namespace) |name| namespace = try self.allocator.dupe(u8, name);
+            }
+
             try imports.append(self.allocator, .{
-                .namespace = if (entry.export_name != null) try self.allocator.dupe(u8, item.nameAt(0).text) else null,
-                .name = try self.allocator.dupe(u8, entry.export_name orelse item.nameAt(0).text),
+                .namespace = namespace,
+                .name = try self.allocator.dupe(u8, binding.name),
                 .id = function_id,
                 .input_type = imported.function.input_type,
                 .output_type = imported.function.output_type,
             });
         }
 
-        if (count == 0) return self.reporter.fail(.capability, item.span, "this module has no registered pure interfaces");
+        if (bindings.names.count() == 0) return self.reporter.fail(.capability, item.span, "this module has no registered pure interfaces");
     }
 };
 

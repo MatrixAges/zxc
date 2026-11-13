@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="Interface" />
+
+    <Args in={Interface.Import} out={Interface.Route} />
+
+    <If on={$in.duplicate}>
+        <Return value={Interface.Route.Duplicate} />
+    </If>
+
+    <If on={$in.found}>
+        <If on={$in.legacy_conflict}>
+            <Return value={Interface.Route.Conflict} />
+        </If>
+
+        <Return value={Interface.Route.Native} />
+    </If>
+
+    <If on={!$in.function_import || $in.binding_count != 1}>
+        <Return value={Interface.Route.InvalidLegacy} />
+    </If>
+
+    <Return value={Interface.Route.Legacy} />
+</Module>
