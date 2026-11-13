@@ -17,6 +17,7 @@ pub const Index = opaque {};
 const Storage = struct {
     root: *const ast.Node,
     entries: []const Entry,
+    attributes: []const ast.Attribute,
     flow: []const Fact,
     module_steps: usize,
     parallel_tasks: usize,
@@ -94,6 +95,31 @@ pub fn sourceExtent(index: *const Index, node: *const ast.Node) ?usize {
     return if (ast.sameStorage(node, storage.root)) storage.source_extent else null;
 }
 
+pub const Positions = struct {
+    attributes: []const ast.Attribute,
+    pub fn attributeAt(self: Positions, offset: usize) ?*const ast.Attribute {
+        const end = std.sort.upperBound(ast.Attribute, self.attributes, offset, struct {
+            fn compare(value: usize, attribute: ast.Attribute) std.math.Order {
+                return std.math.order(value, attribute.value_location.offset);
+            }
+        }.compare);
+
+        if (end == 0) return null;
+
+        const attribute = &self.attributes[end - 1];
+
+        if (offset - attribute.value_location.offset <= attribute.raw_value.?.len) return attribute;
+
+        return null;
+    }
+};
+
+pub fn positionsForNode(index: *const Index, node: *const ast.Node) ?Positions {
+    const storage: *const Storage = @ptrCast(@alignCast(index));
+
+    return if (ast.sameStorage(node, storage.root)) .{ .attributes = storage.attributes } else null;
+}
+
 // The XML parser admits at most 256 nested elements.
 const xml_nesting_limit = 256;
 
@@ -138,6 +164,7 @@ pub fn build(comptime scan: anytype, allocator: std.mem.Allocator, temporary: st
     index.* = .{
         .root = &nodes[0],
         .entries = entries,
+        .attributes = attributes,
         .flow = @ptrCast(facts),
         .module_steps = @intCast(result.module_steps),
         .parallel_tasks = @intCast(result.parallel_tasks),

@@ -1,0 +1,22 @@
+import {
+    utf8_ascii_last,
+    utf8_four_byte_last,
+    utf8_four_byte_lead,
+    utf8_three_byte_lead,
+    utf8_two_byte_lead
+} from "./const"
+
+export type Input = u8
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match {
+        in <= utf8_ascii_last => 1,
+        in < utf8_two_byte_lead => 0,
+        in < utf8_three_byte_lead => 2,
+        in < utf8_four_byte_lead => 3,
+        in <= utf8_four_byte_last => 4,
+        _ => 0
+    }
+}

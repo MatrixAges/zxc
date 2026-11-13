@@ -1,5 +1,5 @@
 import memory from "std:memory"
-import { ascii_line_feed } from "core/ascii/const"
+import { ascii_carriage_return, ascii_line_feed } from "core/ascii/const"
 
 import type { U64Buffer } from "std:memory"
 
@@ -8,6 +8,7 @@ export type Input = {
     count: u64,
     line: u64,
     column: u64,
+    xml_newlines: bool,
     position: U64Buffer
 }
 
@@ -17,17 +18,27 @@ export default function (in: Input): Output {
     const final = loop({
         index: 0,
         line: in.line,
-        column: in.column
+        column: in.column,
+        previous_cr: false
     }, {
         while: state => state.index < in.count,
         next: state => {
-            if (in.raw[state.index] == ascii_line_feed) {
+            const byte = in.raw[state.index]
+            const cr = in.xml_newlines && byte == ascii_carriage_return
+            const lf = byte == ascii_line_feed
+            const newline = (
+                - cr
+                - or (lf && !state.previous_cr)
+            )
+
+            if (newline) {
                 state.line += 1
                 state.column = 1
-            } else {
+            } else if (!lf) {
                 state.column += 1
             }
 
+            state.previous_cr = cr
             state.index += 1
         },
         return: state => state

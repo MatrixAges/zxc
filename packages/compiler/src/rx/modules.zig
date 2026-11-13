@@ -30,6 +30,11 @@ pub const Source = struct {
 
         return references.sourceExtent(index, &self.node);
     }
+    pub fn indexedPositions(self: *const Source) ?references.Positions {
+        const index = self.references orelse return null;
+
+        return references.positionsForNode(index, &self.node);
+    }
 };
 
 pub fn markIndexedSchema(source: *Source) void {

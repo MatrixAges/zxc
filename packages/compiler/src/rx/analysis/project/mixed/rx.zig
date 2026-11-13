@@ -73,9 +73,8 @@ pub fn prepare(state: *State, allocator: std.mem.Allocator, index: usize, module
 /// other may lower at once.
 pub fn lower(state: *const State, allocator: std.mem.Allocator, prepared: Prepared) std.mem.Allocator.Error!Module.Value {
     return @import("../../module_compile.zig").compile(allocator, state.scratch.child_allocator, .{
-        .owner = prepared.module.source.path,
         .aliases = prepared.module.value_imports,
-        .module = prepared.module.source.node,
+        .module = prepared.module.source,
         .calls = prepared.calls,
         .steps = prepared.module.steps,
         .bindings = prepared.signature.bindings,

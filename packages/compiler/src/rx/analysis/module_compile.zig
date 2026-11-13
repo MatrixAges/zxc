@@ -7,9 +7,8 @@ const expression = @import("expression.zig");
 const target = @import("call/target.zig");
 
 pub const Options = struct {
-    owner: []const u8,
     aliases: []const zx.ir.Export = &.{},
-    module: rx.ast.Node,
+    module: rx.ModuleSource,
     calls: []const Module.Loaded,
     steps: []const @import("project/flow.zig").Step,
     bindings: []const Module.Binding,
@@ -33,7 +32,7 @@ pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options
         .allocator = allocator,
         .scratch = scratch,
         .binding_allocator = scope.allocator(),
-        .owner = options.owner,
+        .owner = options.module.path,
         .aliases = options.aliases,
         .types = options.types,
         .native_modules = options.native_modules,
@@ -51,7 +50,7 @@ pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options
     const steps = flow.steps(options.steps) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        return diagnostic(allocator, options.owner, flow.issue.?);
+        return diagnostic(allocator, options.module.path, flow.issue.?);
     };
 
     const types = flow.types;
@@ -61,7 +60,7 @@ pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options
     const native_modules = if (options.shared_functions != null) options.native_modules else @import("module_native.zig").merge(allocator, calls.items, types, options.native_modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        const failed = try target.failure(allocator, .{ .path = options.owner, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "RX calls contain conflicting native interfaces" });
+        const failed = try target.failure(allocator, .{ .path = options.module.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "RX calls contain conflicting native interfaces" });
 
         return .{ .diagnostic = failed.diagnostic };
     };
@@ -79,7 +78,7 @@ pub fn compile(allocator: std.mem.Allocator, scratch: std.mem.Allocator, options
         program.native_modules = native_modules;
     }
 
-    const lowered = @import("program.zig").lower(allocator, .{ .owner = options.owner, .types = types, .input_type = options.input_type, .output_type = options.output_type, .calls = calls.items, .native_modules = native_modules, .shared_functions = options.shared_functions, .store_initializers = options.store_initializers, .steps = steps }) catch |err| {
+    const lowered = @import("program.zig").lower(allocator, .{ .owner = options.module.path, .types = types, .input_type = options.input_type, .output_type = options.output_type, .calls = calls.items, .native_modules = native_modules, .shared_functions = options.shared_functions, .store_initializers = options.store_initializers, .steps = steps }) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
         if (err == error.UnreachableFlow or err == error.IncompleteFlow) return invalid(allocator, options, .{ .code = .return_path, .span = .{ .start = 0, .end = 0 }, .message = if (err == error.UnreachableFlow) "steps after a terminating Return or Switch are unreachable" else "every RX path must return Output" });
 
@@ -107,7 +106,8 @@ fn diagnostic(allocator: std.mem.Allocator, owner: []const u8, issue: expression
 }
 
 fn invalid(allocator: std.mem.Allocator, options: Options, issue: zx.Diagnostic) std.mem.Allocator.Error!Module.Value {
-    const failed = try target.failure(allocator, .{ .path = options.owner, .location = Module.locate(options.module, issue.span.start) orelse options.module.location, .code = @tagName(issue.code), .message = issue.message });
+    const location = @import("source_map.zig").locateSource(options.module, issue.span.start);
+    const failed = try target.failure(allocator, .{ .path = options.module.path, .location = location, .code = @tagName(issue.code), .message = issue.message });
 
     return .{ .diagnostic = failed.diagnostic };
 }

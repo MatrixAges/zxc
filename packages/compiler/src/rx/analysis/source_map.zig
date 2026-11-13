@@ -1,6 +1,5 @@
 const std = @import("std");
 const rx = @import("rx");
-const zx = @import("zx");
 const Self = @This();
 const generated = @import("rx_options").generated_graph;
 
@@ -45,7 +44,7 @@ pub fn locate(self: Self, offset: usize) ?Origin {
     return .{
         .source_index = index,
         .path = source.path,
-        .location = locateNode(source.node, offset - self.base(index)) orelse source.node.location,
+        .location = locateSource(source, offset - self.base(index)),
     };
 }
 
@@ -75,6 +74,32 @@ fn moduleAt(self: Self, offset: usize) usize {
     return low;
 }
 
+pub fn locateSource(source: rx.ModuleSource, offset: usize) rx.ast.Location {
+    if (source.indexedPositions()) |positions| {
+        if (positions.attributeAt(offset)) |attribute| {
+            return rx.rawAttributeLocation(attribute.raw_value.?, attribute.value_location, offset, false);
+        }
+
+        if (offset == source.node.location.offset) return source.node.location;
+
+        return locateTag(source.node, offset) orelse source.node.location;
+    }
+
+    return locateNode(source.node, offset) orelse source.node.location;
+}
+
+fn locateTag(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
+    const child = std.sort.upperBound(rx.ast.Node, node.children, offset, struct {
+        fn compare(value: usize, item: rx.ast.Node) std.math.Order {
+            return std.math.order(value, item.location.offset);
+        }
+    }.compare);
+
+    if (child != 0) return locateTag(node.children[child - 1], offset);
+
+    return if (node.location.offset == offset) node.location else null;
+}
+
 pub fn locateNode(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
     for (node.attributes) |attribute| {
         const source = attribute.raw_value orelse continue;
@@ -82,7 +107,7 @@ pub fn locateNode(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
 
         if (offset < start or offset - start > source.len) continue;
 
-        return position(source, attribute.value_location, offset);
+        return rx.rawAttributeLocation(source, attribute.value_location, offset, false);
     }
 
     for (node.children) |child| {
@@ -92,31 +117,6 @@ pub fn locateNode(node: rx.ast.Node, offset: usize) ?rx.ast.Location {
     if (offset == node.location.offset) return node.location;
 
     return null;
-}
-
-fn position(raw: []const u8, start: rx.ast.Location, offset: usize) rx.ast.Location {
-    if (offset == start.offset) return start;
-
-    if (generated) {
-        var result: [2]u64 = undefined;
-        const destination: []u64 = &result;
-        var buffer: [@sizeOf([8]u64) + @alignOf(u64)]u8 = undefined;
-        var scratch = std.heap.FixedBufferAllocator.init(&buffer);
-
-        @import("generated_rx_source_position").executeValue(scratch.allocator(), &.{
-            .raw = raw,
-            .count = offset - start.offset,
-            .line = start.line,
-            .column = start.column,
-            .position = @ptrCast(&destination),
-        }) catch unreachable;
-
-        return .{ .offset = offset, .line = @intCast(result[0]), .column = @intCast(result[1]) };
-    }
-
-    const location = zx.source.locate(raw, offset - start.offset);
-
-    return .{ .offset = offset, .line = start.line + location.line - 1, .column = if (location.line == 1) start.column + location.column - 1 else location.column };
 }
 
 fn extent(node: rx.ast.Node) error{SourceTooLarge}!usize {

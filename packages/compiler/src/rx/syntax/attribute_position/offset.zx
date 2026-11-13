@@ -1,0 +1,60 @@
+import bytes from "std:bytes"
+import {
+    ascii_ampersand,
+    ascii_carriage_return,
+    ascii_line_feed,
+    ascii_semicolon
+} from "core/ascii/const"
+
+import leadingWidth from "./leading_width"
+
+export type Input = {
+    raw: u8[],
+    decoded: u8[],
+    offset: u64,
+    end_bias: bool
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const lf = ascii_line_feed
+
+    return loop({
+        raw: 0,
+        decoded: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.decoded < in.offset,
+        next: state => {
+            if (state.raw == in.raw.length) {
+                state.valid = false
+            } else if (in.raw[state.raw] == ascii_ampersand) {
+                const end = bytes.indexOfScalar(in.raw, state.raw, ascii_semicolon)
+                const width = leadingWidth(in.decoded[state.decoded])
+
+                if (end == null || width == 0) {
+                    state.valid = false
+                } else if (!in.end_bias && in.offset - state.decoded < width) {
+                    state.decoded = in.offset
+                } else {
+                    state.raw = end + 1
+                    state.decoded += width
+                }
+            } else {
+                const next = state.raw + 1
+                const cr = in.raw[state.raw] == ascii_carriage_return
+                const has_next = next < in.raw.length
+                const crlf = (
+                    - cr
+                    - and has_next
+                    - and in.raw[next] == lf
+                )
+
+                state.raw = crlf ? next + 1 : next
+                state.decoded += 1
+            }
+        },
+        return: state => state.valid ? state.raw : null
+    })
+}
