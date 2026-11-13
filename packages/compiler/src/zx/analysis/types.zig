@@ -11,6 +11,7 @@ const construction = @import("semantic/construction.zig");
 const seed = @import("types/construct_seed.zig");
 
 allocator: std.mem.Allocator,
+scratch: ?std.mem.Allocator = null,
 reporter: *zx.Reporter,
 declarations: []const zx.ast.Declaration,
 items: ir.TypeStorage = .{},

@@ -50,7 +50,7 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
 }
 
 fn propagate(graph: *Graph, bounds: []Bound) zx.Error!void {
-    const assignments = graph.assignments.slice();
+    const assignments = graph.pending.assignments.slice();
 
     for (0..bounds.len + 1) |_| {
         var changed = false;

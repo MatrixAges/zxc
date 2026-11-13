@@ -4,7 +4,7 @@ const Graph = @import("../types.zig");
 const Edges = std.MultiArrayList(@import("../assignment.zig").Edge).Slice;
 
 pub fn validate(graph: *Graph) zx.Error!void {
-    const edges = graph.assignments.slice();
+    const edges = graph.pending.assignments.slice();
 
     if (!@import("rx_options").generated_graph) return seed(graph, edges);
     if (edges.len == 0) return;

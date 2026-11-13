@@ -1,0 +1,12 @@
+import type { Input as Names } from "./validate_names"
+
+export type Input = {
+    has_imports: bool,
+    has_constants: bool,
+    has_contracts: bool,
+    has_body: bool,
+    has_store: bool,
+    names: Names
+}
+
+export type Output = bool

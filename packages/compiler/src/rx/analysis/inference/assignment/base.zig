@@ -19,7 +19,7 @@ fn build(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
     const generated = @import("generated_assignment_classes");
     const payloads = try Payloads.collect(graph, allocator);
     const rows = graph.nodes.slice();
-    const edges = graph.assignments.slice();
+    const edges = graph.pending.assignments.slice();
 
     const classes = generated.executeValue(allocator, &.{
         .payloads = &.{ .initial = payloads.initial, .registered = payloads.registered },
@@ -45,7 +45,7 @@ fn seed(graph: *Graph, allocator: std.mem.Allocator) zx.Error!Self {
 
     @memset(representatives, null);
 
-    const edges = graph.assignments.slice();
+    const edges = graph.pending.assignments.slice();
 
     for (edges.items(.value), edges.items(.expected)) |value, expected| {
         const left = root(parents, @backingInt(try payload(graph, value)));

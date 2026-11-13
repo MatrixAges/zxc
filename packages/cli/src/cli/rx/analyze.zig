@@ -89,7 +89,16 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
     if (!try @import("compiled.zig").collect(allocator, .{ .io = io, .modules = loaded.data.modules, .project = project, .libraries = &libraries, .inputs = options.inputs, .writer = options.writer })) return null;
 
     project.compiled_libraries = libraries.libraries.items;
-    var inferred = try analysis.project.infer(allocator, .{ .entry = owner, .exports = options.exports, .modules = loaded.data.modules, .stores = loaded.data.stores, .sources = sources.items, .project = project });
+
+    var inferred = try analysis.project.infer(allocator, .{
+        .entry = owner,
+        .exports = options.exports,
+        .modules = loaded.data.modules,
+        .stores = loaded.data.stores,
+        .sources = sources.items,
+        .project = project,
+        .scratch_allocator = std.heap.smp_allocator,
+    });
 
     errdefer inferred.deinit();
 

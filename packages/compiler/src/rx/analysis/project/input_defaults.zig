@@ -6,7 +6,7 @@ const Edges = std.MultiArrayList(@import("../inference/assignment.zig").Edge).Sl
 pub fn apply(graph: *Graph, inputs: []const Graph.Id, fixed: []const bool, unused: usize) zx.Error!void {
     if (unused == 0) return;
 
-    const edges = graph.assignments.slice();
+    const edges = graph.pending.assignments.slice();
 
     if (!@import("rx_options").generated_graph) return seed(graph, inputs, fixed, edges);
 
@@ -63,7 +63,7 @@ fn mark(graph: *const Graph, edges: Edges, scratch: std.mem.Allocator) zx.Error!
 
     const marked = result.marked.items;
 
-    const protected: ?u32 = if (graph.known_types.get(void_type)) |node| anchor: {
+    const protected: ?u32 = if (graph.pending.known_types.get(void_type)) |node| anchor: {
         if (marked[@backingInt(graph.root(node))]) break :anchor @backingInt(node);
 
         break :anchor null;

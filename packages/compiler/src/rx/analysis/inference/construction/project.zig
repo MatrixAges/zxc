@@ -85,7 +85,7 @@ fn project(graph: *Graph, closure: *ObjectClosure, allocator: std.mem.Allocator,
 
     const count: usize = @intCast(object.count);
     const first: usize = @intCast(object.first);
-    const part_names = graph.construction_parts.items(.name)[first..][0..count];
+    const part_names = graph.pending.construction_parts.items(.name)[first..][0..count];
 
     const spreads = for (part_names) |name| {
         if (name == null) break true;

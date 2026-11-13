@@ -22,33 +22,33 @@ pub fn expect(graph: *Graph, value: Graph.Id, expected: Graph.Id, span: zx.Span)
     const plan = prepare.executeValue(scratch.allocator(), &.{
         .endpoints = &.{ .parents = @ptrCast(&parents), .left = @backingInt(value), .right = @backingInt(expected) },
         .index = &.{
-            .count = graph.assignment_keys.index.count,
-            .keys = graph.assignment_keys.index.keys.items,
-            .buckets = graph.assignment_keys.index.buckets.items,
+            .count = graph.pending.assignment_keys.index.count,
+            .keys = graph.pending.assignment_keys.index.keys.items,
+            .buckets = graph.pending.assignment_keys.index.buckets.items,
         },
-        .needs_reserve = graph.assignments.len == graph.assignments.capacity,
+        .needs_reserve = graph.pending.assignments.len == graph.pending.assignments.capacity,
     }) catch unreachable;
 
     if (plan.skip) return;
 
-    try graph.assignments.ensureUnusedCapacity(graph.allocator, 1);
+    try graph.pending.assignments.ensureUnusedCapacity(graph.pending.allocator, 1);
 
     const Parameter = @typeInfo(@TypeOf(insert.executeState)).@"fn".param_types[1].?;
     const Input = if (@typeInfo(Parameter) == .pointer) std.meta.Child(Parameter) else Parameter;
-    const input: Input = .{ .index = graph.assignment_keys.index, .key = plan.pair.key };
+    const input: Input = .{ .index = graph.pending.assignment_keys.index, .key = plan.pair.key };
 
-    const result = insert.executeState(graph.registration, if (@typeInfo(Parameter) == .pointer) &input else input) catch |err| switch (@as(anyerror, err)) {
+    const result = insert.executeState(graph.pending.allocator, if (@typeInfo(Parameter) == .pointer) &input else input) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
         else => unreachable,
     };
 
-    graph.assignment_keys.index = result.index;
+    graph.pending.assignment_keys.index = result.index;
 
     if (!result.found) append(graph, @fromBackingInt(plan.pair.left), @fromBackingInt(plan.pair.right), span);
 }
 
 fn append(graph: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span) void {
-    graph.assignments.appendAssumeCapacity(.{ .value = left, .expected = right, .span = span });
+    graph.pending.assignments.appendAssumeCapacity(.{ .value = left, .expected = right, .span = span });
 
     graph.revision += 1;
 }
@@ -56,9 +56,9 @@ fn append(graph: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span) void {
 fn seed(graph: *Graph, value: Graph.Id, expected: Graph.Id, span: zx.Span) zx.Error!void {
     const key = [2]Graph.Id{ graph.root(value), graph.root(expected) };
 
-    if (key[0] == key[1] or graph.assignment_keys.index.contains(key)) return;
-    try graph.assignments.ensureUnusedCapacity(graph.allocator, 1);
-    try graph.assignment_keys.index.put(graph.registration, key, {});
+    if (key[0] == key[1] or graph.pending.assignment_keys.index.contains(key)) return;
+    try graph.pending.assignments.ensureUnusedCapacity(graph.pending.allocator, 1);
+    try graph.pending.assignment_keys.index.put(graph.pending.allocator, key, {});
 
     append(graph, key[0], key[1], span);
 }

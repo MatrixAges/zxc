@@ -1,0 +1,17 @@
+<Module>
+    <Type from="validation" as="Validation" />
+
+    <Args in={Validation.Input} out={Validation.Output} />
+
+    <If on={$in.has_imports || $in.has_constants || $in.has_contracts}>
+        <Return value={false} />
+    </If>
+
+    <If on={$in.has_body || $in.has_store}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="validate_names" in={$in.names} />
+
+    <Return value={$ctx.validate_names} />
+</Module>

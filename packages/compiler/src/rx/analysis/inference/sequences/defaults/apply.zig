@@ -4,11 +4,11 @@ const Graph = @import("../../types.zig");
 const Base = @import("../../assignment/base.zig");
 
 pub fn apply(graph: *Graph, base: Base, scratch: std.mem.Allocator) zx.Error!bool {
-    if (graph.sequences.len == 0) return false;
+    if (graph.pending.sequences.len == 0) return false;
     if (!@import("rx_options").generated_graph) return @import("seed.zig").apply(graph, base);
 
     const generated = @import("generated_rx_sequence_default");
-    const sequences = graph.sequences.slice();
+    const sequences = graph.pending.sequences.slice();
     const rows = graph.nodes.slice();
     const parents: []u32 = @constCast(graph.forest.state.items);
 

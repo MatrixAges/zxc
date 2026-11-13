@@ -5,7 +5,7 @@ const Sequence = @import("../../sequences.zig").Sequence;
 
 pub fn apply(graph: *Graph, base: Base) zx.Error!bool {
     var unresolved: ?Sequence = null;
-    const sequences = graph.sequences.slice();
+    const sequences = graph.pending.sequences.slice();
 
     for (0..sequences.len) |index| {
         const sequence = sequences.get(index);

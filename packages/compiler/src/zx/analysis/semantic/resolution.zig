@@ -16,7 +16,7 @@ pub fn Request(comptime View: type) type {
 }
 
 pub fn execute(types: *Types, view: anytype, request: Request(@TypeOf(view))) zx.Error!zx.ir.TypeId {
-    var arena = std.heap.ArenaAllocator.init(types.allocator);
+    var arena = std.heap.ArenaAllocator.init(types.scratch orelse types.allocator);
 
     defer arena.deinit();
 

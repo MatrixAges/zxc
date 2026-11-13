@@ -15,12 +15,12 @@ pub fn requireValue(graph: *Graph, value: Graph.Id, span: zx.Span) zx.Error!void
     switch (rules.status(graph, value)) {
         .Void => return graph.reporter.fail(.name, span, missing_message),
         .Value => {},
-        .Pending => try graph.value_uses.append(graph.allocator, .{ .value = value, .span = span }),
+        .Pending => try graph.pending.value_uses.append(graph.pending.allocator, .{ .value = value, .span = span }),
     }
 }
 
 pub fn validateUses(graph: *const Graph) zx.Error!void {
-    const uses = graph.value_uses.slice();
+    const uses = graph.pending.value_uses.slice();
     const index = rules.missing(graph, uses.items(.value)) orelse return;
 
     return graph.reporter.fail(.name, uses.items(.span)[index], missing_message);
@@ -30,7 +30,7 @@ pub fn distinct(graph: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, m
     switch (rules.pair(graph, left, right, false)) {
         .Ignore => {},
         .Conflict => return graph.reporter.fail(.name, span, message),
-        .Defer => try graph.binding_collisions.append(graph.allocator, .{ .left = left, .right = right, .span = span, .message = message }),
+        .Defer => try graph.pending.binding_collisions.append(graph.pending.allocator, .{ .left = left, .right = right, .span = span, .message = message }),
     }
 }
 
@@ -38,7 +38,7 @@ pub fn distinct(graph: *Graph, left: Graph.Id, right: Graph.Id, span: zx.Span, m
 pub fn lookup(graph: *Graph, candidates: []const Graph.Id, span: zx.Span) zx.Error!Graph.Id {
     const value = try graph.add(.unknown, span);
 
-    try graph.binding_lookups.append(graph.allocator, .{ .candidates = candidates, .value = value, .span = span });
+    try graph.pending.binding_lookups.append(graph.pending.allocator, .{ .candidates = candidates, .value = value, .span = span });
 
     return value;
 }
@@ -46,8 +46,8 @@ pub fn lookup(graph: *Graph, candidates: []const Graph.Id, span: zx.Span) zx.Err
 pub fn propagate(graph: *Graph, final: bool) zx.Error!void {
     if (!@import("rx_options").generated_graph) return seed(graph, final);
 
-    const collisions = graph.binding_collisions.slice();
-    const lookups = graph.binding_lookups.slice();
+    const collisions = graph.pending.binding_collisions.slice();
+    const lookups = graph.pending.binding_lookups.slice();
 
     if (collisions.len == 0 and lookups.len == 0) return;
 
@@ -83,7 +83,7 @@ pub fn propagate(graph: *Graph, final: bool) zx.Error!void {
 }
 
 fn seed(graph: *Graph, final: bool) zx.Error!void {
-    const collisions = graph.binding_collisions.slice();
+    const collisions = graph.pending.binding_collisions.slice();
 
     for (0..collisions.len) |index| {
         const row = collisions.get(index);
@@ -91,7 +91,7 @@ fn seed(graph: *Graph, final: bool) zx.Error!void {
         if (rules.pair(graph, row.left, row.right, final) == .Conflict) return graph.reporter.fail(.name, row.span, row.message);
     }
 
-    const lookups = graph.binding_lookups.slice();
+    const lookups = graph.pending.binding_lookups.slice();
 
     for (0..lookups.len) |index| {
         const query = lookups.get(index);

@@ -89,20 +89,6 @@ fn seed(self: *Self) std.mem.Allocator.Error!void {
     self.ends = ends;
 }
 
-pub fn valid(self: Self, view: anytype) bool {
-    const declarations = view.declarations();
-
-    if (declarations.count() != self.names.len) return false;
-
-    var iterator = declarations.iterator();
-
-    for (self.names) |name| {
-        if (!std.mem.eql(u8, iterator.next().?.name.text, name)) return false;
-    }
-
-    return true;
-}
-
 pub fn span(self: Self, source_map: SourceMap, offset: usize) zx.Span {
     const selected = self.locate(offset);
     const entry = self.entries.slice().get(selected.index);

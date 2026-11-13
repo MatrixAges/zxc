@@ -17,7 +17,7 @@ const Fields = union(enum) {
     fn id(self: Fields, graph: *const Graph, index: usize) Graph.Id {
         return switch (self) {
             .inferred => |fields| fields.values()[index],
-            .known => |fields| graph.known_types.get(@fromBackingInt(@intCast(fields.types[index]))).?,
+            .known => |fields| graph.pending.known_types.get(@fromBackingInt(@intCast(fields.types[index]))).?,
         };
     }
 };

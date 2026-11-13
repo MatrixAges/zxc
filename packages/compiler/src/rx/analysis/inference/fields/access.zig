@@ -88,7 +88,7 @@ pub fn at(graph: *Graph, target: Graph.Id, root: Graph.Id, name: []const u8, spa
         .DeferLength => {
             const result = try graph.add(.unknown, span);
 
-            try graph.lengths.append(graph.allocator, .{ .target = target, .value = result, .span = span });
+            try graph.pending.lengths.append(graph.pending.allocator, .{ .target = target, .value = result, .span = span });
 
             return result;
         },
@@ -111,7 +111,7 @@ fn append(graph: *Graph, index: usize, fields: Graph.Fields, name: []const u8, s
     const extended = try Graph.Fields.init(graph.allocator, fields.len + 1);
 
     fields.copyTo(extended);
-    extended.set(fields.len, try graph.allocator.dupe(u8, name), result);
+    extended.set(fields.len, try graph.types.allocator.dupe(u8, name), result);
     graph.setShape(index, .{ .object = extended });
 
     graph.revision += 1;

@@ -10,7 +10,7 @@ pub fn read(graph: *Graph, source: Graph.Id, span: zx.Span) zx.Error!Graph.Id {
 
     const value = try graph.add(.unknown, span);
 
-    try graph.nonnull.append(graph.allocator, .{ .source = source, .value = value, .span = span });
+    try graph.pending.nonnull.append(graph.pending.allocator, .{ .source = source, .value = value, .span = span });
 
     return value;
 }
@@ -18,7 +18,7 @@ pub fn read(graph: *Graph, source: Graph.Id, span: zx.Span) zx.Error!Graph.Id {
 pub fn propagate(graph: *Graph, infer_source: bool) zx.Error!void {
     if (!@import("rx_options").generated_graph) return seed(graph, infer_source);
 
-    const projections = graph.nonnull.slice();
+    const projections = graph.pending.nonnull.slice();
 
     if (projections.len == 0) return;
 
@@ -66,7 +66,7 @@ pub fn propagate(graph: *Graph, infer_source: bool) zx.Error!void {
 }
 
 fn seed(graph: *Graph, infer_source: bool) zx.Error!void {
-    const projections = graph.nonnull.slice();
+    const projections = graph.pending.nonnull.slice();
 
     for (0..projections.len) |index| {
         const projection = projections.get(index);

@@ -11,7 +11,7 @@ pub fn materialize(graph: *Graph, base: Base, scratch: std.mem.Allocator) zx.Err
     if (!@import("rx_options").generated_graph) return seedMaterialize(graph, base, depths);
 
     const generated = @import("generated_assignment_next_materialization");
-    const indexes = graph.indexes.slice();
+    const indexes = graph.pending.indexes.slice();
     var empty = std.heap.FixedBufferAllocator.init(&.{});
     var start: usize = 0;
 

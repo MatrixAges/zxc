@@ -26,9 +26,9 @@ pub fn build(graph: *const Graph, allocator: std.mem.Allocator) std.mem.Allocato
     const roots = @import("generated_object_closure_roots");
     const layout = @import("generated_object_closure_layout");
     const rows = graph.nodes.slice();
-    const constructions = graph.constructions.slice();
-    const parts = graph.construction_parts.slice();
-    const selections = graph.selections.slice();
+    const constructions = graph.pending.constructions.slice();
+    const parts = graph.pending.construction_parts.slice();
+    const selections = graph.pending.selections.slice();
 
     const normalized = roots.executeState(allocator, .{
         .columns = &.{

@@ -17,7 +17,7 @@ pub fn create(types: *Types, value: zx.ir.TypeValue) zx.Error!zx.ir.TypeId {
     const table = zx.ir.TypeTable.borrow(Table, types.items.view());
     const candidate = @import("candidate.zig").borrow(Candidate, value, &fields);
     const input: Input = .{ .table = &table, .candidate = &candidate };
-    var arena = std.heap.ArenaAllocator.init(types.allocator);
+    var arena = std.heap.ArenaAllocator.init(types.scratch orelse types.allocator);
 
     defer arena.deinit();
 
@@ -29,7 +29,7 @@ pub fn create(types: *Types, value: zx.ir.TypeValue) zx.Error!zx.ir.TypeId {
     if (result.diagnostic.message.len != 0) return types.reporter.fail(
         std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), result.diagnostic.code) orelse unreachable,
         .{ .start = 0, .end = 0 },
-        result.diagnostic.message,
+        if (types.scratch != null) try types.allocator.dupe(u8, result.diagnostic.message) else result.diagnostic.message,
     );
 
     var delta: zx.ir.TypeTable = undefined;

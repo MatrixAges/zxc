@@ -19,6 +19,8 @@ pub const Options = struct {
     stores: []const rx.ModuleSource = &.{},
     sources: []const frontend.project.Source,
     project: frontend.project.Options = .{ .entry = "" },
+    /// Backing for temporary analysis arenas when `allocator` itself retains freed allocations.
+    scratch_allocator: ?std.mem.Allocator = null,
     /// Shared with earlier source graph passes so each module is parsed once; it must outlive the result.
     parse_cache: ?*frontend.project.ParseCache = null,
     /// Reuses modules of the analysis it names; the parse cache must then keep the results that analysis used.
@@ -32,7 +34,7 @@ pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
     errdefer arena.deinit();
 
-    const value = try inferIn(arena.allocator(), allocator, options);
+    const value = try inferIn(arena.allocator(), options.scratch_allocator orelse allocator, options);
 
     return .{ .arena = arena, .value = value };
 }
@@ -213,39 +215,50 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
         return failed(allocator, .{ .path = entry, .location = if (entry_index) |index| modules[index].node.location else .{ .offset = 0, .line = 1, .column = 1 }, .code = "unsupported", .message = "RX source positions exceed the supported address range" });
     };
 
-    var reporter: zx.Reporter = .{};
-    var graph = Graph.init(allocator, backing, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
+    const inferred = inference: {
+        var workspace = zx.Arena.init(backing);
 
-    const states = collect: {
-        var registration = std.heap.ArenaAllocator.init(backing);
+        defer workspace.deinit();
 
-        defer registration.deinit();
+        var reporter: zx.Reporter = .{};
+        var graph: Graph = undefined;
 
-        graph.registration = registration.allocator();
+        const states = solve: {
+            var pending = zx.Arena.init(backing);
 
-        const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs) catch |err| return reported(allocator, source_map, reporter, err);
+            defer pending.deinit();
 
-        graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
+            graph = Graph.init(.{
+                .graph = workspace.allocator(),
+                .pending = pending.allocator(),
+                .result = allocator,
+                .backing = backing,
+            }, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
 
-        graph.known_types = .{};
-        graph.assignment_keys = .{};
-        graph.registration = backing;
+            const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map, inputs) catch |err| return reported(allocator, source_map, reporter, err);
 
-        break :collect states;
+            graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
+
+            graph.pending = undefined;
+
+            break :solve states;
+        };
+
+        const resolved = @import("project/signatures.zig").resolve(allocator, &graph, states) catch |err| return reported(allocator, source_map, reporter, err);
+
+        break :inference .{ .signatures = resolved, .types = graph.types.items.view() };
     };
-
-    const resolved = @import("project/signatures.zig").resolve(&graph, states) catch |err| return reported(allocator, source_map, reporter, err);
 
     return .{ .frame = .{
         .modules = modules,
         .stores = options.stores,
         .dependencies = dependencies.value.graph,
         .definitions = registry.data.definitions,
-        .loaded = try prepare.completeShortcuts(allocator, prepared.loaded, resolved),
+        .loaded = try prepare.completeShortcuts(allocator, prepared.loaded, inferred.signatures),
         .signatures = signatures,
         .signature_indices = indexed.indices,
-        .resolved = resolved,
-        .types = graph.types.items.view(),
+        .resolved = inferred.signatures,
+        .types = inferred.types,
     } };
 }
 

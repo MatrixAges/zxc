@@ -10,7 +10,7 @@ const Match = struct { row: usize, root: Graph.Id };
 pub const Length = struct { target: Graph.Id, value: Graph.Id, span: zx.Span };
 
 pub fn applyLengths(graph: *Graph) zx.Error!void {
-    const lengths = graph.lengths.slice();
+    const lengths = graph.pending.lengths.slice();
     const targets = lengths.items(.target);
 
     if (!enabled) {
@@ -33,7 +33,7 @@ pub fn applyLengths(graph: *Graph) zx.Error!void {
 }
 
 pub fn validateLengths(graph: *Graph) zx.Error!void {
-    const lengths = graph.lengths.slice();
+    const lengths = graph.pending.lengths.slice();
     const targets = lengths.items(.target);
 
     const pending = if (enabled)

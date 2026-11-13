@@ -10,7 +10,7 @@ pub const Object = struct {
     count: u64,
     span: zx.Span,
     pub fn part(self: Object, graph: *const Graph, index: usize) Part {
-        return graph.construction_parts.get(@as(usize, @intCast(self.first)) + index);
+        return graph.pending.construction_parts.get(@as(usize, @intCast(self.first)) + index);
     }
 };
 

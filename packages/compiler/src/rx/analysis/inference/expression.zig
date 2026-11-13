@@ -170,22 +170,23 @@ pub fn sourceSpan(self: *const Self, value: zx.Span) zx.Span {
 
 fn lookup(self: *Self, name: ?paths.Path, span: zx.Span) zx.Error!?Graph.Id {
     const path = name orelse return null;
+    const allocator = self.graph.pending.allocator;
     var selected: ?Graph.Id = null;
     var candidates: std.ArrayList(Graph.Id) = .empty;
 
-    errdefer candidates.deinit(self.graph.allocator);
+    errdefer candidates.deinit(allocator);
 
     for (self.bindings.items) |binding| {
         if (!std.mem.eql(u8, path.text, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
 
         if (selected) |previous| {
             if (candidates.items.len == 0) {
-                try candidates.ensureTotalCapacityPrecise(self.graph.allocator, 2);
+                try candidates.ensureTotalCapacityPrecise(allocator, 2);
 
                 candidates.appendAssumeCapacity(previous);
                 candidates.appendAssumeCapacity(binding.value);
             } else {
-                try candidates.append(self.graph.allocator, binding.value);
+                try candidates.append(allocator, binding.value);
             }
         }
 

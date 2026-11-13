@@ -8,13 +8,13 @@ pub fn prove(graph: *const Graph, value: Graph.Id, query: Query, depth: usize) b
     const root = graph.root(value);
 
     if (query == .spread) {
-        for (graph.selections.items(.result)) |selection| {
+        for (graph.pending.selections.items(.result)) |selection| {
             if (graph.root(selection) == root) return true;
         }
     }
 
-    for (0..graph.constructions.len) |index| {
-        const object = graph.constructions.get(index);
+    for (0..graph.pending.constructions.len) |index| {
+        const object = graph.pending.constructions.get(index);
 
         if (graph.root(object.result) != root) continue;
 
@@ -28,7 +28,7 @@ pub fn prove(graph: *const Graph, value: Graph.Id, query: Query, depth: usize) b
     }
 
     if (query == .selection) {
-        for (graph.selections.items(.result), graph.selections.items(.source)) |result, source| {
+        for (graph.pending.selections.items(.result), graph.pending.selections.items(.source)) |result, source| {
             if (graph.root(result) == root and prove(graph, source, query, depth + 1)) return true;
         }
     }

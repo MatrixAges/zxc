@@ -13,7 +13,7 @@ pub fn infer(self: *Expression, expression: anytype) zx.Error!Graph.Id {
 
     var reporter: zx.Reporter = .{};
 
-    const keys = selection.keys(self.graph.allocator, expression, &reporter) catch |err| {
+    const keys = selection.keys(self.graph.pending.allocator, expression, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         const issue = reporter.diagnostic.?;
@@ -26,7 +26,7 @@ pub fn infer(self: *Expression, expression: anytype) zx.Error!Graph.Id {
     const span = self.sourceSpan(expression.span);
     const result = try self.graph.add(.{ .object = .{} }, span);
 
-    try self.graph.selections.append(self.graph.allocator, .{ .source = source, .result = result, .keys = keys, .omit = std.mem.eql(u8, field.name.text, "omit"), .span = span });
+    try self.graph.pending.selections.append(self.graph.pending.allocator, .{ .source = source, .result = result, .keys = keys, .omit = std.mem.eql(u8, field.name.text, "omit"), .span = span });
 
     return result;
 }

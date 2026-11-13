@@ -21,36 +21,48 @@ const Projections = @import("projections.zig");
 
 allocator: std.mem.Allocator,
 scratch: std.mem.Allocator,
-registration: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
 nodes: Nodes.Storage = .empty,
 forest: @import("forest.zig") = .{},
-lengths: std.MultiArrayList(Projections.Length) = .empty,
-indexes: std.MultiArrayList(@import("index.zig").Projection) = .empty,
-value_uses: std.MultiArrayList(Bindings.Use) = .empty,
-binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
-binding_lookups: std.MultiArrayList(Bindings.Lookup) = .empty,
-assignments: std.MultiArrayList(Assignment.Edge) = .empty,
-assignment_keys: Registration = .{},
-constructions: std.MultiArrayList(@import("construction.zig").Object) = .empty,
-construction_parts: std.MultiArrayList(@import("construction.zig").Part) = .empty,
-selections: std.MultiArrayList(@import("selection.zig").Selection) = .empty,
-sequences: std.MultiArrayList(@import("sequences.zig").Sequence) = .empty,
-nonnull: std.MultiArrayList(@import("non_null.zig").Projection) = .empty,
-known_types: Known = .{},
+pending: Constraints,
 revision: usize = 0,
 /// Changes that affect the roots or known types seen by object rules.
 object_revision: usize = 0,
-pub fn init(allocator: std.mem.Allocator, scratch: std.mem.Allocator, reporter: *zx.Reporter, existing: zx.ir.TypeTable) zx.Error!Self {
+const Constraints = struct {
+    allocator: std.mem.Allocator,
+    lengths: std.MultiArrayList(Projections.Length) = .empty,
+    indexes: std.MultiArrayList(@import("index.zig").Projection) = .empty,
+    value_uses: std.MultiArrayList(Bindings.Use) = .empty,
+    binding_collisions: std.MultiArrayList(Bindings.Collision) = .empty,
+    binding_lookups: std.MultiArrayList(Bindings.Lookup) = .empty,
+    assignments: std.MultiArrayList(Assignment.Edge) = .empty,
+    assignment_keys: Registration = .{},
+    constructions: std.MultiArrayList(@import("construction.zig").Object) = .empty,
+    construction_parts: std.MultiArrayList(@import("construction.zig").Part) = .empty,
+    selections: std.MultiArrayList(@import("selection.zig").Selection) = .empty,
+    sequences: std.MultiArrayList(@import("sequences.zig").Sequence) = .empty,
+    nonnull: std.MultiArrayList(@import("non_null.zig").Projection) = .empty,
+    known_types: Known = .{},
+};
+
+pub const Memory = struct {
+    graph: std.mem.Allocator,
+    pending: std.mem.Allocator,
+    result: std.mem.Allocator,
+    backing: std.mem.Allocator,
+};
+
+pub fn init(memory: Memory, reporter: *zx.Reporter, existing: zx.ir.TypeTable) zx.Error!Self {
     if (existing.count() != 0 and !@import("frontend").validateTypes(existing)) return reporter.fail(.contract, .{ .start = 0, .end = 0 }, "invalid inference type table");
 
-    var types = Types{ .allocator = allocator, .reporter = reporter, .declarations = &.{} };
+    var types = Types{ .allocator = memory.result, .scratch = memory.backing, .reporter = reporter, .declarations = &.{} };
 
-    try types.items.appendDelta(allocator, try @import("frontend").type_table.copy(allocator, existing));
+    types.items = try @import("frontend").type_table.storage(memory.result, existing);
+
     try types.initialize();
 
-    return .{ .allocator = allocator, .scratch = scratch, .registration = allocator, .reporter = reporter, .types = types };
+    return .{ .allocator = memory.graph, .scratch = memory.backing, .pending = .{ .allocator = memory.pending }, .reporter = reporter, .types = types };
 }
 
 pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
@@ -66,11 +78,11 @@ pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
 
 pub fn known(self: *Self, type_id: zx.ir.TypeId, span: zx.Span) zx.Error!Id {
     if (@backingInt(type_id) >= self.types.items.view().count()) return self.reporter.fail(.contract, span, "inference type is outside the shared table");
-    if (self.known_types.get(type_id)) |id| return id;
+    if (self.pending.known_types.get(type_id)) |id| return id;
 
     const id = try self.add(.{ .known = type_id }, span);
 
-    self.known_types.put(self.registration, type_id, id) catch |err| {
+    self.pending.known_types.put(self.pending.allocator, type_id, id) catch |err| {
         self.nodes.len -= 1;
 
         self.forest.rollback();
@@ -156,11 +168,11 @@ pub fn finish(self: *Self) zx.Error!void {
         try Bindings.propagate(self, false);
         try @import("non_null.zig").propagate(self, false);
 
-        const sequences = self.sequences.slice();
+        const sequences = self.pending.sequences.slice();
 
         for (0..sequences.len) |index| try @import("sequences.zig").propagate(self, sequences.get(index));
-        for (0..self.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.constructions.get(index), false);
-        for (0..self.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.selections.get(index), false);
+        for (0..self.pending.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.pending.constructions.get(index), false);
+        for (0..self.pending.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.pending.selections.get(index), false);
         try Projections.applyLengths(self);
         try @import("index.zig").replay(self);
         if (revision != self.revision) continue;
@@ -178,9 +190,9 @@ pub fn finish(self: *Self) zx.Error!void {
         if (try @import("index.zig").defaultLists(self)) continue;
         try @import("non_null.zig").propagate(self, true);
         if (revision != self.revision) continue;
-        for (0..self.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.selections.get(index), true);
+        for (0..self.pending.selections.len) |index| try @import("selection.zig").propagate(self, &object_closure, self.pending.selections.get(index), true);
         if (revision != self.revision) continue;
-        for (0..self.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.constructions.get(index), true);
+        for (0..self.pending.constructions.len) |index| try @import("construction.zig").propagate(self, &object_closure, self.pending.constructions.get(index), true);
         if (revision != self.revision) continue;
 
         break;

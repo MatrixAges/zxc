@@ -9,9 +9,9 @@ const generated = @import("rx_options").generated_graph;
 pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Error!Graph.Id {
     const span = self.sourceSpan(expression.span);
     const fields = syntax.value(expression).object;
-    const first = self.graph.construction_parts.len;
+    const first = self.graph.pending.construction_parts.len;
 
-    try self.graph.construction_parts.resize(self.graph.allocator, first + fields.len);
+    try self.graph.pending.construction_parts.resize(self.graph.pending.allocator, first + fields.len);
 
     var buffer: [32]u32 = undefined;
 
@@ -33,12 +33,12 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
         }
 
         const part: Construction.Part = .{
-            .name = if (field.spread) null else try self.graph.allocator.dupe(u8, field.name.text),
+            .name = if (field.spread) null else try self.graph.pending.allocator.dupe(u8, field.name.text),
             .value = try self.infer(field.value, hint),
             .span = self.sourceSpan(field.value.span),
         };
 
-        self.graph.construction_parts.set(first + index, part);
+        self.graph.pending.construction_parts.set(first + index, part);
 
         if (field.spread and self.graph.shape(part.value) == .unknown) {
             try self.graph.unify(part.value, try self.graph.add(.{ .object = .{} }, part.span), part.span);
@@ -48,14 +48,15 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
     const result = try self.graph.add(.{ .object = .{} }, span);
 
     if (expected) |target| try self.graph.expect(result, target, span);
-    try self.graph.constructions.append(self.graph.allocator, .{ .result = result, .first = first, .count = fields.len, .span = span });
+
+    try self.graph.pending.constructions.append(self.graph.pending.allocator, .{ .result = result, .first = first, .count = fields.len, .span = span });
 
     return result;
 }
 
 fn markHints(graph: *Graph, fields: anytype, first: usize, buffer: []u32) std.mem.Allocator.Error![]u32 {
     const hints = if (fields.len <= buffer.len) buffer[0..fields.len] else try graph.scratch.alloc(u32, fields.len);
-    const names = graph.construction_parts.items(.name)[first..][0..fields.len];
+    const names = graph.pending.construction_parts.items(.name)[first..][0..fields.len];
 
     for (names, 0..) |*name, index| {
         const field = syntax.item(fields, index);

@@ -18,27 +18,33 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
     try storage.ensureTotalCapacity(graph.allocator, modules.len);
 
-    const declared = try @import("contracts.zig").resolve(graph, modules, source_map);
-    var port: usize = 0;
+    {
+        var declarations = zx.Arena.init(graph.scratch);
 
-    for (modules, 0..) |module, index| {
-        const offset = source_map.base(index) + module.source.node.location.offset;
-        const span = zx.Span{ .start = offset, .end = offset };
-        var input: ?zx.ir.TypeId = null;
-        var output: ?zx.ir.TypeId = null;
+        defer declarations.deinit();
 
-        while (port < declared.len and declared[port].module == index) : (port += 1) {
-            switch (declared[port].kind) {
-                .input => input = declared[port].type_id,
-                .output => output = declared[port].type_id,
+        const declared = try @import("contracts.zig").resolve(declarations.allocator(), graph, modules, source_map);
+        var port: usize = 0;
+
+        for (modules, 0..) |module, index| {
+            const offset = source_map.base(index) + module.source.node.location.offset;
+            const span = zx.Span{ .start = offset, .end = offset };
+            var input: ?zx.ir.TypeId = null;
+            var output: ?zx.ir.TypeId = null;
+
+            while (port < declared.len and declared[port].module == index) : (port += 1) {
+                switch (declared[port].kind) {
+                    .input => input = declared[port].type_id,
+                    .output => output = declared[port].type_id,
+                }
             }
-        }
 
-        storage.appendAssumeCapacity(.{
-            .input = if (input) |id| try graph.known(id, span) else try graph.add(.unknown, span),
-            .output = if (output) |id| try graph.known(id, span) else try graph.add(.unknown, span),
-            .input_fixed = input != null,
-        });
+            storage.appendAssumeCapacity(.{
+                .input = if (input) |id| try graph.known(id, span) else try graph.add(.unknown, span),
+                .output = if (output) |id| try graph.known(id, span) else try graph.add(.unknown, span),
+                .input_fixed = input != null,
+            });
+        }
     }
 
     const states = storage.slice();
@@ -259,7 +265,7 @@ const Walker = struct {
         if (kind == .call and std.mem.eql(u8, result.name, "task")) return graph.reporter.fail(.name, span, "Call target name task is reserved for Task results");
 
         const prefix: []const u8 = if (kind == .task) "$ctx.task" else "$ctx";
-        const name = try std.fmt.allocPrint(graph.allocator, "{s}.{s}", .{ prefix, result.name });
+        const name = try std.fmt.allocPrint(graph.types.allocator, "{s}.{s}", .{ prefix, result.name });
         const binding = Expression.Binding{ .name = name, .value = output, .span = span };
 
         try self.bindings.append(graph.allocator, binding);

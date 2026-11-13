@@ -63,6 +63,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/project/contracts/assemble.rx", .name = "rx_args_source", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/contracts/render.zx", .name = "rx_args_render", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/contracts/location.zx", .name = "rx_args_location", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/contracts/validate.rx", .name = "rx_args_validate", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/shorthand/route.zx", .name = "rx_shortcut_route", .owner = .rx_analysis },
     .{ .path = "rx/analysis/condition/plan.zx", .name = "rx_condition_plan", .owner = .rx_analysis },
     .{ .path = "rx/analysis/condition/coverage.zx", .name = "rx_condition_coverage", .owner = .rx_analysis },

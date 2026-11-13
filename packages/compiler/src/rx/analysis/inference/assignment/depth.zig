@@ -6,7 +6,7 @@ pub fn solve(graph: *Graph, scratch: std.mem.Allocator) zx.Error![]const u64 {
     if (!@import("rx_options").generated_graph) return @import("depth/seed.zig").solve(graph, scratch);
 
     const rows = graph.nodes.slice();
-    const assignments = graph.assignments.slice();
+    const assignments = graph.pending.assignments.slice();
     const left: []u32 = @ptrCast(assignments.items(.value));
     const right: []u32 = @ptrCast(assignments.items(.expected));
     const parents: []u32 = @constCast(graph.forest.state.items);

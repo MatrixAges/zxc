@@ -18,7 +18,7 @@ pub fn infer(self: *Expression, source: anytype) zx.Error!Graph.Id {
     const value = try self.graph.add(.unknown, span);
     const projection = Projection{ .target = target, .value = value, .position = try literalIndex(self, item.index), .span = span, .index_span = self.sourceSpan(item.index.span) };
 
-    if (!try propagate(self.graph, projection)) try self.graph.indexes.append(self.graph.allocator, projection);
+    if (!try propagate(self.graph, projection)) try self.graph.pending.indexes.append(self.graph.pending.allocator, projection);
 
     return value;
 }
@@ -69,7 +69,7 @@ fn apply(graph: *Graph, projection: Projection, route: anytype, child: u32, decl
 }
 
 pub fn replay(graph: *Graph) zx.Error!void {
-    const indexes = graph.indexes.slice();
+    const indexes = graph.pending.indexes.slice();
     const resolved = indexes.items(.resolved);
 
     if (!@import("rx_options").generated_graph) {
@@ -106,7 +106,7 @@ pub fn replay(graph: *Graph) zx.Error!void {
 }
 
 pub fn isResult(graph: *const Graph, id: Graph.Id) bool {
-    const indexes = graph.indexes.slice();
+    const indexes = graph.pending.indexes.slice();
 
     for (indexes.items(.value), indexes.items(.resolved)) |value, resolved| {
         if (!resolved and graph.root(value) == graph.root(id)) return true;
@@ -116,7 +116,7 @@ pub fn isResult(graph: *const Graph, id: Graph.Id) bool {
 }
 
 pub fn defaultLists(graph: *Graph) zx.Error!bool {
-    const indexes = graph.indexes.slice();
+    const indexes = graph.pending.indexes.slice();
 
     const index = if (@import("rx_options").generated_graph)
         if (Projections.next(graph, indexes.items(.target), &.{}, .DefaultIndex, 0)) |result| result.row else null

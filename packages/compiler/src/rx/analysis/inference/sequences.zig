@@ -14,8 +14,8 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
     if (expected) |target| try self.graph.expect(value, target, span);
 
     const items = syntax.value(expression).list;
-    const elements = try self.graph.allocator.alloc(Graph.Id, items.len);
-    const spans = try self.graph.allocator.alloc(zx.Span, items.len);
+    const elements = try self.graph.pending.allocator.alloc(Graph.Id, items.len);
+    const spans = try self.graph.pending.allocator.alloc(zx.Span, items.len);
 
     for (elements, 0..) |*element, index| {
         const item = syntax.item(items, index);
@@ -24,7 +24,7 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
         element.* = try self.infer(item, null);
     }
 
-    try self.graph.sequences.append(self.graph.allocator, .{ .value = value, .elements = elements, .spans = spans, .span = span });
+    try self.graph.pending.sequences.append(self.graph.pending.allocator, .{ .value = value, .elements = elements, .spans = spans, .span = span });
 
     return value;
 }
