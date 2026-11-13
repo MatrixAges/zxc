@@ -447,7 +447,7 @@ const Project = struct {
         if (self.semantic_cache) |cache| {
             unit.context_digest = try self.contextDigest(entry);
 
-            if (cache.get(unit.path, source_digest, unit.context_digest)) |cached| {
+            if (SemanticCache.entry_store.find(&cache.entries, unit.path, source_digest, unit.context_digest)) |cached| {
                 if (try @import("semantic_cache/restore.zig").restore(cached, .{
                     .allocator = self.allocator,
                     .backing = self.arena.child_allocator,

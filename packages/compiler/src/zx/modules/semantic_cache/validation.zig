@@ -3,22 +3,19 @@ const zx = @import("zx");
 const ir = zx.ir;
 const columns = zx.columns;
 const Artifact = @import("../artifact/model.zig");
-const constants = @import("../../analysis/constants/check.zig");
 const header = @import("generated_semantic_cache_header");
 const binding = @import("generated_semantic_cache_binding");
 const function = @import("generated_semantic_cache_function");
 const Error = std.mem.Allocator.Error;
 
-pub fn validate(allocator: std.mem.Allocator, artifact_allocator: std.mem.Allocator, module: *const Artifact.Module) Error!bool {
-    if (!validHeader(module)) return false;
-    if (!try constants.validate(artifact_allocator, module.types, module.constant_exports)) return false;
-    if (!try constants.validate(artifact_allocator, module.types, module.constant_imports)) return false;
+pub fn validate(allocator: std.mem.Allocator, module: *const Artifact.Module) Error!bool {
+    if (!try validHeader(allocator, module)) return false;
     if (!validBindings(module)) return false;
 
     return if (module.function) |*body| validFunction(allocator, body) else true;
 }
 
-fn validHeader(module: *const Artifact.Module) bool {
+fn validHeader(allocator: std.mem.Allocator, module: *const Artifact.Module) Error!bool {
     const Input = std.meta.Child(header.Input);
     const Tables = std.meta.Child(@FieldType(Input, "tables"));
     const signatures = columns.columns(std.meta.Child(@FieldType(Tables, "signatures")), module.functions);
@@ -26,17 +23,37 @@ fn validHeader(module: *const Artifact.Module) bool {
     const stores = columns.columns(std.meta.Child(@FieldType(Tables, "stores")), module.stores);
     const tables: Tables = .{ .signatures = &signatures, .modules = &modules, .stores = &stores };
     const types = ir.TypeTable.borrow(std.meta.Child(@FieldType(Input, "types")), module.types);
+    const Constants = std.meta.Child(@typeInfo(@FieldType(Input, "constants")).optional.child);
+    const TypeTables = std.meta.Child(@FieldType(Constants, "types"));
+    const Values = std.meta.Child(@typeInfo(@FieldType(Constants, "imports")).optional.child);
+    const empty_types = ir.TypeTable.borrow(std.meta.Child(@FieldType(TypeTables, "delta")), .{});
+    const base = ir.TypeTable.borrow(std.meta.Child(@FieldType(TypeTables, "base")), module.types);
+    const type_tables: TypeTables = .{ .base = &base, .delta = &empty_types };
+    const marshal = @import("../../analysis/constants/input.zig").marshal;
+    var arena = zx.Arena.init(allocator);
+
+    defer arena.deinit();
+
+    const temporary = arena.allocator();
+
+    const values: Constants = .{
+        .types = &type_tables,
+        .exports = try marshal(Values, temporary, module.constant_exports),
+        .imports = try marshal(Values, temporary, module.constant_imports),
+    };
 
     const input: Input = .{
         .tables = &tables,
         .types = &types,
         .scalar_count = std.enums.values(ir.Scalar).len,
         .maximum_count = std.math.maxInt(u32),
+        .constants = if (values.exports != null or values.imports != null) &values else null,
     };
 
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    return columns.invoke(header.executeValue, empty.allocator(), &input) catch unreachable;
+    return columns.invoke(header.executeValue, temporary, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory => error.OutOfMemory,
+        else => false,
+    };
 }
 
 fn validBindings(module: *const Artifact.Module) bool {

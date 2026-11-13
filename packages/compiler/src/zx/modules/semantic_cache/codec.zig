@@ -42,7 +42,7 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
         else => return error.InvalidCache,
     };
 
-    if (!try @import("validation.zig").validate(allocator, memory, &parsed.module)) return error.InvalidCache;
+    if (!try @import("validation.zig").validate(allocator, &parsed.module)) return error.InvalidCache;
 
     return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
 }

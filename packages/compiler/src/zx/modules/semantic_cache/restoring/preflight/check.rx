@@ -9,18 +9,23 @@
         <Return value={false} />
     </If>
 
-    <Task name="cached" out={$ctx.structure}>
-        <Call fn="../../../../ir/canonical/native/structure" in={$in.cached_modules} />
-    </Task>
+    <If on={!$in.decoded}>
+        <Task name="cached" out={$ctx.structure}>
+            <Call
+                fn="../../../../ir/canonical/native/structure"
+                in={$in.cached_modules}
+            />
+        </Task>
 
-    <If on={!$ctx.task.cached}>
-        <Return value={false} />
-    </If>
+        <If on={!$ctx.task.cached}>
+            <Return value={false} />
+        </If>
 
-    <Call fn="signatures" in={$in.signatures} />
+        <Call fn="signatures" in={$in.signatures} />
 
-    <If on={!$ctx.signatures}>
-        <Return value={false} />
+        <If on={!$ctx.signatures}>
+            <Return value={false} />
+        </If>
     </If>
 
     <Call fn="../../../../ir/canonical/native/structure" in={$in.current_modules} />

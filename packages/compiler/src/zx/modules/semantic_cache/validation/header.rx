@@ -19,5 +19,15 @@
         }}
     />
 
-    <Return value={$ctx.validate_types} />
+    <If on={!$ctx.validate_types}>
+        <Return value={false} />
+    </If>
+
+    <If on={$in.constants != null}>
+        <Call module="constants" in={$in.constants} />
+
+        <Return value={$ctx.constants} />
+    </If>
+
+    <Return value={true} />
 </Module>

@@ -1,7 +1,15 @@
 const std = @import("std");
 const Artifact = @import("../artifact/model.zig");
 const State = @import("state/host.zig");
-pub const Entry = struct { dirty: bool = true, context_digest: [32]u8, result: Artifact.Result };
+const codec = @import("codec.zig");
+
+pub const Entry = struct {
+    dirty: bool = true,
+    decoded: bool = false,
+    context_digest: [32]u8,
+    result: Artifact.Result,
+};
+
 pub const Map = std.StringHashMapUnmanaged(*Entry);
 
 pub fn deinit(allocator: std.mem.Allocator, entries: *Map) void {
@@ -17,35 +25,50 @@ pub fn deinit(allocator: std.mem.Allocator, entries: *Map) void {
 }
 
 pub fn get(entries: *const Map, path: []const u8, source_digest: [32]u8, context_digest: [32]u8) ?*const Artifact.Module {
-    const entry = entries.get(path) orelse return null;
-
-    if (!State.version(&entry.result.value.source_digest, &source_digest, &entry.context_digest, &context_digest)) return null;
+    const entry = find(entries, path, source_digest, context_digest) orelse return null;
 
     return &entry.result.value;
 }
 
+pub fn find(entries: *const Map, path: []const u8, source_digest: [32]u8, context_digest: [32]u8) ?*const Entry {
+    const entry = entries.get(path) orelse return null;
+
+    if (!State.version(&entry.result.value.source_digest, &source_digest, &entry.context_digest, &context_digest)) return null;
+
+    return entry;
+}
+
 pub fn put(allocator: std.mem.Allocator, entries: *Map, result: Artifact.Result, context_digest: [32]u8) std.mem.Allocator.Error!void {
-    try install(allocator, entries, result, context_digest, true);
+    try install(allocator, entries, .{ .result = result, .context_digest = context_digest });
 }
 
-/// Takes ownership only when the decoded path matches the requested key and installation succeeds.
-pub fn putLoaded(allocator: std.mem.Allocator, entries: *Map, result: Artifact.Result, context_digest: [32]u8, expected: []const u8) std.mem.Allocator.Error!bool {
-    if (!State.observe(result.value.path, expected)) return false;
-    try install(allocator, entries, result, context_digest, false);
+pub fn load(allocator: std.mem.Allocator, entries: *Map, bytes: []const u8, compiler_digest: [32]u8, expected: []const u8) codec.Error!void {
+    var decoded = try codec.decode(allocator, bytes, compiler_digest);
 
-    return true;
+    errdefer decoded.result.deinit();
+
+    if (!State.observe(decoded.result.value.path, expected)) return error.InvalidCache;
+
+    try install(allocator, entries, .{
+        .dirty = false,
+        .decoded = true,
+        .result = decoded.result,
+        .context_digest = decoded.context_digest,
+    });
 }
 
-fn install(allocator: std.mem.Allocator, entries: *Map, result: Artifact.Result, context_digest: [32]u8, dirty: bool) std.mem.Allocator.Error!void {
-    if (entries.get(result.value.path)) |entry| {
+fn install(allocator: std.mem.Allocator, entries: *Map, value: Entry) std.mem.Allocator.Error!void {
+    const path = value.result.value.path;
+
+    if (entries.get(path)) |entry| {
         entry.result.deinit();
 
-        entry.* = .{ .dirty = dirty, .context_digest = context_digest, .result = result };
+        entry.* = value;
 
         return;
     }
 
-    const key = try allocator.dupe(u8, result.value.path);
+    const key = try allocator.dupe(u8, path);
 
     errdefer allocator.free(key);
 
@@ -53,7 +76,7 @@ fn install(allocator: std.mem.Allocator, entries: *Map, result: Artifact.Result,
 
     errdefer allocator.destroy(entry);
 
-    entry.* = .{ .dirty = dirty, .context_digest = context_digest, .result = result };
+    entry.* = value;
 
     try entries.put(allocator, key, entry);
 }

@@ -22,7 +22,12 @@ pub fn append(self: *Self, temporary: std.mem.Allocator, module: Module) Error![
 
 /// Extends a shared table while the caller owns only a temporary type-ID map.
 pub fn appendTemporary(self: *Self, mapping_allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Module) Error![]const ir.TypeId {
-    return self.appendValues(mapping_allocator, temporary, module.types, module.nominal_types, 0, false);
+    return self.appendTemporaryValidated(mapping_allocator, temporary, module, false);
+}
+
+/// The decoded cache already validated the source type rows. Merging still validates nominal origins and the target.
+pub fn appendTemporaryValidated(self: *Self, mapping_allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Module, validated: bool) Error![]const ir.TypeId {
+    return self.appendValues(mapping_allocator, temporary, module.types, module.nominal_types, 0, false, validated);
 }
 
 pub fn compact(self: *Self, temporary: std.mem.Allocator, first: usize, origin_count: usize) Error![]const ir.TypeId {
@@ -51,18 +56,18 @@ pub fn compact(self: *Self, temporary: std.mem.Allocator, first: usize, origin_c
 }
 
 pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize) Error![]const ir.TypeId {
-    return self.appendValues(self.allocator, temporary, values, nominal_types, first, false);
+    return self.appendValues(self.allocator, temporary, values, nominal_types, first, false, false);
 }
 
 /// Extends the shared table with a result analyzed against its existing prefix.
 pub fn appendAnalyzed(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize) Error![]const ir.TypeId {
-    return self.appendValues(self.allocator, temporary, values, nominal_types, first, true);
+    return self.appendValues(self.allocator, temporary, values, nominal_types, first, true, false);
 }
 
-fn appendValues(self: *Self, mapping_allocator: std.mem.Allocator, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize, comptime analyzed: bool) Error![]const ir.TypeId {
+fn appendValues(self: *Self, mapping_allocator: std.mem.Allocator, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize, comptime analyzed: bool, validated: bool) Error![]const ir.TypeId {
     const checked = !analyzed or @import("../../ir/validate.zig").internal;
 
-    if ((first == 0 or checked) and !@import("../../ir/type_rules.zig").validate(values)) return error.InvalidModule;
+    if (!validated and (first == 0 or checked) and !@import("../../ir/type_rules.zig").validate(values)) return error.InvalidModule;
 
     var prepared = try @import("../../analysis/semantic/preflight.zig").prepare(mapping_allocator, temporary, values, nominal_types, self.items.view(), first, !analyzed);
 

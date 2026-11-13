@@ -81,7 +81,7 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
 
     defer self.allocator.free(bytes);
 
-    var decoded = SemanticCache.codec.decode(allocator, bytes, identity()) catch |err| {
+    SemanticCache.entry_store.load(allocator, entries, bytes, identity(), key) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         self.discarded += 1;
@@ -89,19 +89,7 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
         return false;
     };
 
-    const installed = SemanticCache.entry_store.putLoaded(allocator, entries, decoded.result, decoded.context_digest, key) catch |err| {
-        decoded.result.deinit();
-
-        return err;
-    };
-
-    if (!installed) {
-        decoded.result.deinit();
-
-        self.discarded += 1;
-    }
-
-    return installed;
+    return true;
 }
 
 pub fn save(self: *Self, cache: *SemanticCache) !void {

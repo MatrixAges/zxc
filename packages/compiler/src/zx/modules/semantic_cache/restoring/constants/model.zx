@@ -1,9 +1,8 @@
 import type { Values } from "core/constant/model"
-import type { Tables } from "core/type_table/model"
+import type { Constants } from "../../validation/model"
 
 export type Input = {
-    types: Tables,
-    exports?: Values,
+    unchecked?: Constants,
     imports?: Values,
     current?: Values,
     mapping: u32[]

@@ -7,7 +7,7 @@ const Artifact = @import("../../artifact/model.zig");
 const Current = @import("../restore.zig").Current;
 pub const constants = @import("constants/host.zig").check;
 
-pub fn preflight(module: *const Artifact.Module, current: *const Current) bool {
+pub fn preflight(module: *const Artifact.Module, current: *const Current, decoded: bool) bool {
     const generated = @import("generated_semantic_restore_preflight");
     const Input = std.meta.Child(generated.Input);
     const Modules = std.meta.Child(@FieldType(Input, "cached_modules"));
@@ -26,6 +26,7 @@ pub fn preflight(module: *const Artifact.Module, current: *const Current) bool {
         .current_functions = current.imports.len,
         .constants = module.constant_imports.len,
         .current_constants = current.constant_imports.len,
+        .decoded = decoded,
     };
 
     return check(generated, &input);

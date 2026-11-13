@@ -25,17 +25,17 @@ pub const Current = struct {
 
 const Error = Types.Error || model.Error;
 
-pub fn restore(module: *const model.Module, current: Current) std.mem.Allocator.Error!?ir.Program {
-    return restoreChecked(module, current) catch |err| {
+pub fn restore(entry: *const @import("entries.zig").Entry, current: Current) std.mem.Allocator.Error!?ir.Program {
+    return restoreChecked(&entry.result.value, current, generated and entry.decoded) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return null;
     };
 }
 
-fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Program {
+fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) Error!ir.Program {
     if (comptime generated) {
-        if (!Host.preflight(module, &current) or !Host.dependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
+        if (!Host.preflight(module, &current, decoded) or !Host.dependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
     } else if (!Seed.preflight(module, &current)) return error.InvalidModule;
 
     var arena = std.heap.ArenaAllocator.init(current.backing);
@@ -71,10 +71,10 @@ fn restoreChecked(module: *const model.Module, current: Current) Error!ir.Progra
         for (std.enums.values(ir.Scalar)) |scalar| try types.items.append(allocator, .{ .scalar = scalar });
     }
 
-    const mapping = try types.appendTemporary(temporary, temporary, module);
+    const mapping = try types.appendTemporaryValidated(temporary, temporary, module, decoded);
 
     if (comptime generated) {
-        if (!try Host.constants(temporary, module, current.constant_imports, mapping)) return error.InvalidModule;
+        if (!try Host.constants(temporary, module, current.constant_imports, mapping, decoded)) return error.InvalidModule;
     } else if (!try Seed.constants(temporary, module, current.constant_imports, mapping)) return error.InvalidModule;
 
     const function_mapping = try temporary.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));

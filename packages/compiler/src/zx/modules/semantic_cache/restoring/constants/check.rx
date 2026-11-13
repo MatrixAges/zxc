@@ -4,30 +4,12 @@
 
     <Args in={Constants.Input} out={bool} />
 
-    <Task name="exports" out={$ctx.validate}>
-        <Call
-            module="../../../../analysis/constants/validate"
-            in={{
-                types: $in.types,
-                constants: $in.exports
-            }}
-        />
-    </Task>
+    <If on={$in.unchecked != null}>
+        <Call module="../../validation/constants" in={$in.unchecked} />
 
-    <If on={!$ctx.task.exports}>
-        <Return value={false} />
-    </If>
-
-    <Call
-        module="../../../../analysis/constants/validate"
-        in={{
-            types: $in.types,
-            constants: $in.imports
-        }}
-    />
-
-    <If on={!$ctx.validate}>
-        <Return value={false} />
+        <If on={!$ctx.constants}>
+            <Return value={false} />
+        </If>
     </If>
 
     <Call
