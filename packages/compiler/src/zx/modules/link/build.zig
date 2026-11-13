@@ -14,7 +14,7 @@ type_mappings: []const []const ir.TypeId,
 functions: ir.FunctionStorage = .{},
 native_modules: ir.NativeModuleStorage = .{},
 module_functions: []?ir.FunctionId,
-pub fn module(self: *Self, index: usize) Error!?ir.Function {
+pub fn module(self: *Self, index: usize, detect_recursion: bool) Error!?Nodes.FunctionEntry {
     const value = &self.modules[index];
 
     if (!value.native_modules.validStructure() or !value.functions.validStructure()) return error.InvalidModule;
@@ -65,11 +65,13 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
     }
 
     if (value.function) |function| {
-        function_mapping[value.functions.count()] = @fromBackingInt(@intCast(self.functions.count()));
+        const own: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
+
+        function_mapping[value.functions.count()] = own;
 
         if (function.external != null or !std.mem.eql(u8, function.file_name, value.path)) return error.InvalidModule;
 
-        return try nodes.function(function);
+        return try nodes.functionEntry(function, if (detect_recursion) own else null);
     }
 
     return null;

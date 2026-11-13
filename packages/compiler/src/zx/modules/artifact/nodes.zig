@@ -44,7 +44,16 @@ pub fn functionId(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
 }
 
 pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
-    if (comptime generated) return self.linkedFunction(value);
+    return (try self.functionEntry(value, null)).body;
+}
+
+pub const FunctionEntry = struct {
+    body: ir.Function,
+    recursive: ?ir.FunctionId = null,
+};
+
+pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId) Error!FunctionEntry {
+    if (comptime generated) return self.linkedFunction(value, candidate);
 
     var result = value;
 
@@ -58,11 +67,13 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     result.contracts = try self.contracts(value.contracts, {});
     result.external = if (value.external) |entry| try self.external(entry) else null;
 
-    return result;
+    const recursive = if (candidate) |id| if (@import("../function_body.zig").calls(result.expressions, id)) id else null else null;
+
+    return .{ .body = result, .recursive = recursive };
 }
 
-fn linkedFunction(self: *Self, value: ir.Function) Error!ir.Function {
-    const mapped = try @import("nodes/remap.zig").function(self, &value);
+fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId) Error!FunctionEntry {
+    const mapped = try @import("nodes/remap.zig").function(self, &value, candidate);
     var result = value;
     result.file_name = try self.allocator.dupe(u8, value.file_name);
     result.input_type = @fromBackingInt(mapped.ports.input);
@@ -74,7 +85,7 @@ fn linkedFunction(self: *Self, value: ir.Function) Error!ir.Function {
     result.contracts = try self.contracts(value.contracts, mapped.contracts);
     result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
 
-    return result;
+    return .{ .body = result, .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
 }
 
 pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {

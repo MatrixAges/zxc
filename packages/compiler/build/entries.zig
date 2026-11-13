@@ -185,7 +185,6 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/link/placement/place.zx", .name = "artifact_placement" },
     .{ .path = "zx/modules/link/signature/bind.rx", .name = "artifact_signature" },
     .{ .path = "zx/modules/link/surface/admit.rx", .name = "artifact_type_admission" },
-    .{ .path = "zx/modules/link/result/publish.rx", .name = "artifact_result" },
     .{ .path = "zx/modules/forward_entry/build.rx", .name = "recursive_forward_entry" },
     .{ .path = "zx/ir/canonical/refinement/facts/mark.rx", .name = "refinement_mark" },
     .{ .path = "zx/ir/canonical/refinement/facts/restore.rx", .name = "refinement_restore" },

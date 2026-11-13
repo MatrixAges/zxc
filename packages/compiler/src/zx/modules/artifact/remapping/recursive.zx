@@ -1,0 +1,26 @@
+export type Input = {
+    calls: u32[],
+    candidate?: u32
+}
+
+export type Output = u32?
+
+export default function (in: Input): Output {
+    const { calls, candidate } = in
+
+    if (candidate == null) {
+        return null
+    }
+
+    return loop({
+        row: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.row < calls.length,
+        next: state => {
+            state.found = calls[state.row] == candidate
+            state.row += 1
+        },
+        return: state => state.found ? candidate : null
+    })
+}

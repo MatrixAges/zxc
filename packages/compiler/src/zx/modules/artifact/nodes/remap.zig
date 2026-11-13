@@ -27,7 +27,7 @@ pub fn columns(allocator: std.mem.Allocator, nodes: *const Nodes, types: []const
     return zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| return failure(err);
 }
 
-pub fn function(nodes: *const Nodes, value: *const ir.Function) Error!FunctionOutput {
+pub fn function(nodes: *const Nodes, value: *const ir.Function, candidate: ?ir.FunctionId) Error!FunctionOutput {
     if (!value.symbols.validStructure() or !value.expressions.validStructure() or !value.stores.validStructure() or !value.contracts.validStructure()) return error.InvalidModule;
 
     for (value.contracts.symbols, value.contracts.expressions) |symbols, expressions| {
@@ -58,6 +58,7 @@ pub fn function(nodes: *const Nodes, value: *const ir.Function) Error!FunctionOu
         .expressions = value.expressions.types,
         .calls = value.expressions.call_functions,
         .stores = value.stores.types,
+        .candidate = if (candidate) |id| @backingInt(id) else null,
     };
 
     return zx.columns.invoke(functions.executeValue, nodes.allocator, &input) catch |err| return failure(err);

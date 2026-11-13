@@ -55,7 +55,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     for (order[0..entry_position]) |index| {
         const module = &modules[index];
-        const function = try builder.module(index);
+        const function = try builder.module(index, false);
 
         if (!module_scratch.reset(.retain_capacity)) return error.OutOfMemory;
 
@@ -65,22 +65,21 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
             .Append => {
                 function_ids[index] = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
 
-                try builder.functions.append(owned, function.?);
+                try builder.functions.append(owned, function.?.body);
             },
         }
     }
 
     const entry_index = order[entry_position];
-    const function = try builder.module(entry_index);
-    const body = if (function) |*value| value else null;
-    const candidate: ir.FunctionId = @fromBackingInt(@as(u32, @intCast(builder.functions.count())));
+    const function = try builder.module(entry_index, true);
+    const body = if (function) |*value| &value.body else null;
+    const recursive = if (function) |*value| value.recursive else null;
+
     _ = module_scratch.reset(.free_all);
 
-    const header = try result.publish(scratch, body, candidate);
+    if (recursive != null) try builder.functions.append(owned, body.?.*);
 
-    if (header.recursive != null) try builder.functions.append(owned, function.?);
-
-    const program = try result.materialize(owned, scratch, &modules[entry_index], body, header, .{
+    const program = try result.materialize(owned, scratch, &modules[entry_index], body, recursive, .{
         .types = types.items.view(),
         .functions = builder.functions.view(),
         .native_modules = builder.native_modules.view(),

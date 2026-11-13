@@ -124,30 +124,28 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     else
         try Seed.own(function_mapping, module.functions.count(), current.functions.count(), module.function != null);
 
-    const function = if (module.function) |value| try nodes.function(value) else null;
-    const body = if (function) |*value| value else null;
+    const function = if (module.function) |value| try nodes.functionEntry(value, own) else null;
+    const body = if (function) |*value| &value.body else null;
+    const recursive = if (function) |*value| value.recursive else null;
     const result = @import("../link/result/host.zig");
-    const header = try result.publish(temporary, body, own);
 
-    var program = try result.assemble(allocator, temporary, module, body, header, .{
+    var program = try result.assemble(allocator, temporary, module, body, .{
         .types = types.items.view(),
         .functions = current.functions.view(),
         .native_modules = current.native_modules,
     }, mapping);
 
-    const recursive = header.recursive != null;
-
-    if (recursive) {
+    if (recursive != null) {
         try current.functions.append(allocator, @import("../function_body.zig").value(program));
 
         program.functions = current.functions.view();
     }
 
-    errdefer if (recursive) {
+    errdefer if (recursive != null) {
         _ = current.functions.pop(allocator);
     };
 
     if (try @import("../../ir/validate.zig").validateProjectPrefix(temporary, program, current.verified_functions, current.verified_types) != null) return error.InvalidIr;
 
-    return .{ .program = program, .recursive = header.recursive };
+    return .{ .program = program, .recursive = recursive };
 }

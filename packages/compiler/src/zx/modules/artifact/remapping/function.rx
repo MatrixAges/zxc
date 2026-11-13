@@ -12,7 +12,8 @@
             contracts: Contract.Contracts,
             types: References.Mapping,
             functions: References.Mapping,
-            natives: References.Mapping
+            natives: References.Mapping,
+            candidate?: u32
         }}
         out={{
             ports: References.Ports,
@@ -20,7 +21,8 @@
             expressions: u32[],
             calls: u32[],
             stores: u32[],
-            contracts: References.ContractColumns
+            contracts: References.ContractColumns,
+            recursive?: u32
         }}
     />
 
@@ -72,6 +74,14 @@
         }}
     />
 
+    <Call
+        fn="recursive"
+        in={{
+            calls: $ctx.columns.functions,
+            candidate: $in.candidate
+        }}
+    />
+
     <Return
         value={{
             ports: $ctx.ports,
@@ -79,7 +89,8 @@
             expressions: $ctx.columns.types,
             calls: $ctx.columns.functions,
             stores: $ctx.task.stores,
-            contracts: $ctx.contracts
+            contracts: $ctx.contracts,
+            recursive: $ctx.recursive
         }}
     />
 </Module>
