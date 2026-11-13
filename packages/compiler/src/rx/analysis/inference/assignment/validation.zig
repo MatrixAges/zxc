@@ -28,7 +28,7 @@ pub fn validate(graph: *Graph) zx.Error!void {
 
         const result = generated.executeState(empty.allocator(), .{
             .graph = &view,
-            .edges = &.{ .left = @ptrCast(edges.items(.value)), .right = @ptrCast(edges.items(.expected)) },
+            .edges = .{ .left = .{ .items = @ptrCast(edges.items(.value)), .storage = .plain }, .right = .{ .items = @ptrCast(edges.items(.expected)), .storage = .plain } },
             .parents = graph.forest.state,
             .index = index,
             .source_type = source,

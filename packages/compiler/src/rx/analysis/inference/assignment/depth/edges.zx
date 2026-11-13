@@ -1,72 +1,47 @@
 import integers from "std:integer"
+import memory from "std:memory"
 
-import representative from "../../forest/representative"
+import representative from "../../forest/borrowed_root"
 import { Kind } from "../../unification/model"
 
-import type { Kind as ShapeKind } from "../../unification/model"
+import type { Edges } from "../model"
+import type { OptionalRoots } from "./model"
 
-export type Input = {
-    kinds: ShapeKind[],
-    arguments: u32[],
-    parents: u32[],
-    left: u32[],
-    right: u32[],
-    index: u64,
-    count: u64,
-    position: u64,
-    collecting: bool
-}
+export type Input = OptionalRoots
 
-export type Output = {
-    parents: u32[],
-    left: u32[],
-    right: u32[]
-}
+export type Output = Edges
 
 export default function (in: Input): Output {
-    const zero: u32 = 0
+    const kinds = in.graph.nodes.kinds
+    const left: u32[] = []
+    const right: u32[] = []
 
-    return loop(in, {
-        while: state => !state.collecting || state.index < state.kinds.length,
+    return loop({
+        left,
+        right,
+        index: 0
+    }, {
+        while: state => state.index < kinds.length,
         next: state => {
-            if (state.index == state.kinds.length) {
-                state.collecting = true
+            const index = state.index
 
-                if (state.count != 0) {
-                    const rows = state.kinds.splice(0, state.count, [])[1]
+            if (kinds[index] == Kind.Optional) {
+                const node = memory.readU32(in.parents, index)
 
-                    state.left = rows.map(kind => zero)[0]
-                    state.right = rows.map(kind => zero)[0]
-                    state.index = 0
+                if (integers.widen(node) == index) {
+                    const child = representative({
+                        parents: in.parents,
+                        value: in.graph.arguments[index]
+                    })
+
+                    state.left = state.left.push(child)[0]
+                    state.right = state.right.push(node)[0]
                 }
-            } else {
-                const index = state.index
-                const optional = state.kinds[index] == Kind.Optional
-
-                if (
-                    optional && integers.widen(state.parents[index]) == index
-                ) {
-                    if (state.collecting) {
-                        const root = representative({
-                            parents: state.parents,
-                            value: state.arguments[index]
-                        })
-                        const parent = integers.narrow(index)
-
-                        state.parents = root.parents
-                        state.left[state.position] = root.item
-                        state.right[state.position] = parent
-                        state.position += 1
-                    } else {
-                        state.count += 1
-                    }
-                }
-
-                state.index += 1
             }
+
+            state.index += 1
         },
         return: state => ({
-            parents: state.parents,
             left: state.left,
             right: state.right
         })

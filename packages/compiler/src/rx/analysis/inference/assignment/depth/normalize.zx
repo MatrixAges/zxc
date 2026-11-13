@@ -1,0 +1,38 @@
+import memory from "std:memory"
+
+import representative from "../../forest/borrowed_root"
+
+import type { Normalization } from "./model"
+
+export type Input = Normalization
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { assignments, parents } = in
+
+    return loop({
+        index: 0
+    }, {
+        while: state => state.index < assignments.count,
+        next: state => {
+            const index = state.index
+            const left = representative({
+                parents,
+                value: memory.readU32(assignments.left, index)
+            })
+
+            memory.writeU32(assignments.left, index, left)
+
+            const right = representative({
+                parents,
+                value: memory.readU32(assignments.right, index)
+            })
+
+            memory.writeU32(assignments.right, index, right)
+
+            state.index += 1
+        },
+        return: state => state.index
+    })
+}

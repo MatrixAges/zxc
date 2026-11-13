@@ -1,3 +1,4 @@
+import type { U32Buffer } from "std:memory"
 import type { Types } from "../../optional/model"
 import type { Edges, Nodes } from "../model"
 
@@ -23,14 +24,44 @@ export type Graph = {
     types: Types
 }
 
-export type Input = {
+export type Problem = {
     graph: Graph,
     assignments: Edges,
     optionals: Edges
 }
 
-export type Output = {
+export type Solution = {
     depths: u64[],
     issue: Issue,
     position: u64
+}
+
+export type AssignmentRows = {
+    left: U32Buffer,
+    right: U32Buffer,
+    count: u64
+}
+
+export type Normalization = {
+    assignments: AssignmentRows,
+    parents: U32Buffer
+}
+
+export type OptionalRoots = {
+    graph: Graph,
+    parents: U32Buffer
+}
+
+export type Input = {
+    graph: Graph,
+    assignments: Edges,
+    write: AssignmentRows,
+    parents: U32Buffer
+}
+
+export type Output = {
+    depths: u64[],
+    issue: Issue,
+    position: u64,
+    node?: u32
 }

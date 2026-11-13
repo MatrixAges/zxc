@@ -24,7 +24,7 @@ pub fn apply(graph: *Graph, inputs: []const Graph.Id, fixed: []const bool, unuse
         const result = next.executeState(empty.allocator(), .{
             .inputs = .{ .items = @ptrCast(inputs), .storage = .plain },
             .fixed = .{ .items = fixed, .storage = .plain },
-            .edges = &.{ .left = @ptrCast(edges.items(.value)), .right = @ptrCast(edges.items(.expected)) },
+            .edges = .{ .left = .{ .items = @ptrCast(edges.items(.value)), .storage = .plain }, .right = .{ .items = @ptrCast(edges.items(.expected)), .storage = .plain } },
             .parents = graph.forest.state,
             .marked = .{ .items = references.marked, .storage = .plain },
             .protected = references.protected,
@@ -48,7 +48,7 @@ fn mark(graph: *const Graph, edges: Edges, scratch: std.mem.Allocator) zx.Error!
     const void_type = @import("frontend").types.scalarId(.void);
 
     const result = @import("generated_rx_input_default_marks").executeState(scratch, .{
-        .edges = &.{ .left = @ptrCast(edges.items(.value)), .right = @ptrCast(edges.items(.expected)) },
+        .edges = .{ .left = .{ .items = @ptrCast(edges.items(.value)), .storage = .plain }, .right = .{ .items = @ptrCast(edges.items(.expected)), .storage = .plain } },
         .parents = graph.forest.state,
         .kinds = .{ .items = graph.nodes.items(.kind), .storage = .plain },
         .marked = .{ .items = &.{}, .storage = .plain },

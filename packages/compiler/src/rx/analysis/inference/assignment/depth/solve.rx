@@ -3,19 +3,64 @@
 
     <Args in={OptionalDepth.Input} out={OptionalDepth.Output} />
 
-    <If on={$in.assignments.left.length == 0 && $in.optionals.left.length == 0}>
+    <Call
+        fn="normalize"
+        in={{
+            assignments: $in.write,
+            parents: $in.parents
+        }}
+    />
+
+    <Call
+        fn="edges"
+        in={{
+            graph: $in.graph,
+            parents: $in.parents
+        }}
+    />
+
+    <If on={$ctx.normalize == 0 && $ctx.edges.left.length == 0}>
         <Call fn="lower" in={$in.graph} />
 
         <Return
             value={{
                 depths: $ctx.lower,
                 issue: OptionalDepth.Issue.None,
-                position: 0
+                position: 0,
+                node: null
             }}
         />
     </If>
 
-    <Call fn="settle" in={$in} />
+    <Call
+        fn="settle"
+        in={{
+            graph: $in.graph,
+            assignments: $in.assignments,
+            optionals: $ctx.edges
+        }}
+    />
 
-    <Return value={$ctx.settle} />
+    <If
+        on={$ctx.settle.issue == OptionalDepth.Issue.Bounds ||
+            $ctx.settle.issue == OptionalDepth.Issue.OptionalToRequired}
+    >
+        <If on={$ctx.settle.position >= $ctx.normalize}>
+            <Return
+                value={{
+                    ...$ctx.settle,
+                    node:
+                        $ctx.edges
+                        .right[$ctx.settle.position - $ctx.normalize]
+                }}
+            />
+        </If>
+    </If>
+
+    <Return
+        value={{
+            ...$ctx.settle,
+            node: null
+        }}
+    />
 </Module>
