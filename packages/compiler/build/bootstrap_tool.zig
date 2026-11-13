@@ -19,13 +19,17 @@ pub fn create(b: *std.Build, optimize: std.builtin.OptimizeMode) *std.Build.Step
     // imported module keeps safe so the compiler code still runs with its runtime safety checks.
     const generator_root: std.builtin.OptimizeMode = if (optimize == .debug or optimize == .safe) .small else optimize;
 
-    const executable = b.addExecutable(.{ .name = "generate-parser", .root_module = b.createModule(.{
-        .root_source_file = b.path("build/generate_parser.zig"),
-        .target = target,
-        .optimize = generator_root,
-        .strip = false,
-        .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
-    }) });
+    const executable = b.addExecutable(.{
+        .name = "generate-parser",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("build/generate_parser.zig"),
+            .target = target,
+            .optimize = generator_root,
+            // Keep symbols for debugging and profiling outside ReleaseSmall.
+            .strip = optimize == .small,
+            .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
+        }),
+    });
 
     @import("compiler_rt.zig").configure(b, executable);
 

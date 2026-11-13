@@ -1,0 +1,19 @@
+<Module>
+    <Type from="model" as="Library" />
+
+    <Args in={Library.Input} out={Library.Status} />
+
+    <If on={$in.duplicate}>
+        <Return value={Library.Status.Conflict} />
+    </If>
+
+    <If on={$in.registered != null}>
+        <If on={$in.registered == $in.requested}>
+            <Return value={Library.Status.Found} />
+        </If>
+
+        <Return value={Library.Status.Conflict} />
+    </If>
+
+    <Return value={Library.Status.Missing} />
+</Module>

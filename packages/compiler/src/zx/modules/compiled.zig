@@ -28,6 +28,7 @@ pub const Library = struct {
 pub const Loaded = struct { types: ir.TypeTable, nominal_types: Origins.Table, exports: []const Export, store_initializers: []const StoreInitializer = &.{} };
 pub const identity = @import("compiled/identity.zig");
 pub const resolve = @import("compiled/resolve.zig");
+pub const imports = @import("compiled/imports.zig");
 pub const load = @import("compiled/load.zig").load;
 pub const loadCalls = @import("compiled/load.zig").loadCalls;
 pub const loadInto = @import("compiled/load.zig").loadInto;

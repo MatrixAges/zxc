@@ -30,9 +30,11 @@ pub fn select(allocator: std.mem.Allocator, diagnostics: std.mem.Allocator, item
 }
 
 pub fn apply(allocator: std.mem.Allocator, temporary: std.mem.Allocator, item: anytype, context: Context, reporter: *zx.Reporter, aliases: *std.ArrayList(zx.ir.Export), imports: *std.ArrayList(FunctionImport), constants: *std.ArrayList(zx.ir.Constant)) zx.Error!void {
-    const functions = try temporary.alloc([]const u8, context.members.len);
+    const first: usize = @intFromBool(context.default_member != null);
+    const functions = try temporary.alloc([]const u8, first + context.members.len);
 
-    for (context.members, functions) |value, *name| name.* = value.name;
+    if (context.default_member) |member| functions[0] = member.name;
+    for (context.members, functions[first..]) |*value, *name| name.* = value.name;
 
     const symbols = Symbols{ .target = context.target, .types = context.types, .exports = context.exports, .constants = context.constant_exports, .functions = functions };
     const selected = try select(temporary, allocator, item, &symbols, reporter);
@@ -44,7 +46,8 @@ pub fn apply(allocator: std.mem.Allocator, temporary: std.mem.Allocator, item: a
     const namespace = if (selected.functions.names.len != 0 and selected.namespace != null) try allocator.dupe(u8, selected.namespace.?) else null;
 
     for (selected.functions.names, selected.functions.indices) |name, index| {
-        var imported = context.members[@intCast(index)];
+        var imported = if (index < first) context.default_member.? else context.members[@intCast(index - first)];
+
         imported.name = try allocator.dupe(u8, name);
         imported.namespace = namespace;
 

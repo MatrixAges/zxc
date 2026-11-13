@@ -77,7 +77,7 @@ const Unit = struct {
 };
 
 const NativeUnit = struct { exports: []const ir.Export, members: []const FunctionImport };
-const Imported = struct { exports: []const ir.Export, constant_exports: []const ir.Constant = &.{}, members: []const FunctionImport = &.{}, signatures: []const Signature.Member = &.{} };
+const Imported = struct { exports: []const ir.Export, constant_exports: []const ir.Constant = &.{}, members: []const FunctionImport = &.{}, default_member: ?FunctionImport = null, signatures: []const Signature.Member = &.{} };
 pub const ImportTarget = Target.Target;
 
 const LoadFrame = struct {
@@ -120,7 +120,7 @@ const Project = struct {
     native_modules: ir.NativeModuleStorage = .{},
     native_units: std.StringHashMapUnmanaged(NativeUnit) = .empty,
     store_initializers: std.ArrayList(compiled.StoreInitializer) = .empty,
-    compiled_units: std.AutoHashMapUnmanaged(usize, []const compiled.Export) = .empty,
+    compiled_units: compiled.imports.Cache = .empty,
     current_source: usize = 0,
     fn bindingAllocator(self: *Project) std.mem.Allocator {
         _ = self.binding_scratch.reset(.retain_capacity);
@@ -340,6 +340,7 @@ const Project = struct {
                     .exports = imported.exports,
                     .constant_exports = imported.constant_exports,
                     .members = imported.members,
+                    .default_member = imported.default_member,
                 }, self.reporter, selected_aliases, selected_imports, selected_constants);
 
                 try self.rememberImport(frame, item, switch (target) {
@@ -383,7 +384,7 @@ const Project = struct {
     }
     fn bindSignature(self: *Project, frame: *LoadFrame, item: anytype, imported: Imported) zx.Error!void {
         const temporary = self.bindingAllocator();
-        const signatures = if (imported.signatures.len != 0) imported.signatures else try self.memberSignatures(temporary, imported.members);
+        const signatures = if (imported.signatures.len != 0) imported.signatures else try self.memberSignatures(temporary, imported.default_member, imported.members);
         const names = try temporary.alloc([]const u8, signatures.len);
 
         for (signatures, names) |member, *name| name.* = member.name;
@@ -413,11 +414,13 @@ const Project = struct {
             try frame.signature_members.append(self.allocator, member);
         };
     }
+    fn memberSignatures(self: *Project, allocator: std.mem.Allocator, default: ?FunctionImport, members: []const FunctionImport) std.mem.Allocator.Error![]const Signature.Member {
+        const first: usize = @intFromBool(default != null);
+        const result = try allocator.alloc(Signature.Member, first + members.len);
 
-    fn memberSignatures(self: *Project, allocator: std.mem.Allocator, members: []const FunctionImport) std.mem.Allocator.Error![]const Signature.Member {
-        const result = try allocator.alloc(Signature.Member, members.len);
+        if (default) |member| self.writeMemberSignatures(&.{member}, result[0..1]);
 
-        self.writeMemberSignatures(members, result);
+        self.writeMemberSignatures(members, result[first..]);
 
         return result;
     }
@@ -605,44 +608,24 @@ const Project = struct {
         return digest;
     }
     fn loadCompiled(self: *Project, target: compiled.Target, span: zx.Span) zx.Error!Imported {
-        const index = switch (try compiled.resolve.library(self.allocator, self.options.compiled_libraries, self.options.root_dir, target)) {
-            .found => |value| value,
-            .conflict => return self.reporter.fail(.module, span, "compiled package instance has conflicting artifacts"),
-            .missing => return self.reporter.fail(.module, span, "compiled library is missing from the input set"),
+        const exported = compiled.imports.load(self.allocator, &self.options, target, .{
+            .types = &self.types,
+            .origins = &self.nominal_origins,
+            .functions = &self.functions,
+            .native_modules = &self.native_modules,
+        }, &self.compiled_units, &self.store_initializers) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            return self.reporter.fail(.module, span, compiled.imports.message(err));
         };
 
-        const exports = self.compiled_units.get(index) orelse block: {
-            const value = compiled.loadInto(self.allocator, self.options.compiled_libraries[index], .{
-                .types = &self.types,
-                .origins = &self.nominal_origins,
-                .functions = &self.functions,
-                .native_modules = &self.native_modules,
-            }) catch |err| {
-                if (err == error.OutOfMemory) return error.OutOfMemory;
+        const default: ?FunctionImport = if (exported.function) |id| binding: {
+            const index = @backingInt(id);
 
-                return self.reporter.fail(.module, span, "compiled library has invalid IR or conflicting identities");
-            };
+            break :binding .{ .name = "", .id = id, .input_type = @fromBackingInt(self.functions.input_types.items[index]), .output_type = @fromBackingInt(self.functions.output_types.items[index]) };
+        } else null;
 
-            try self.store_initializers.appendSlice(self.allocator, value.store_initializers);
-            try self.compiled_units.put(self.allocator, index, value.exports);
-
-            break :block value.exports;
-        };
-
-        for (exports) |exported| {
-            if (!std.mem.eql(u8, exported.name, target.name)) continue;
-
-            const function = if (exported.function) |id| self.functions.at(@backingInt(id)) else null;
-            const own: ?FunctionImport = if (exported.function) |id| .{ .name = "", .id = id, .input_type = function.?.input_type, .output_type = function.?.output_type } else null;
-
-            return .{
-                .exports = exported.types,
-                .constant_exports = exported.constants,
-                .members = try public_exports.prepend(FunctionImport, self.allocator, own, exported.members),
-            };
-        }
-
-        return self.reporter.fail(.module, span, "compiled library does not export this public module");
+        return .{ .exports = exported.types, .constant_exports = exported.constants, .members = exported.members, .default_member = default };
     }
     fn find(self: *Project, path: []const u8) ?usize {
         return self.unit_indices.get(path);
@@ -840,7 +823,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
     for (libraries) |*library| {
         const entry = iterator.next().?;
 
-        library.* = .{ .index = entry.key_ptr.*, .exports = entry.value_ptr.* };
+        library.* = .{ .index = entry.key_ptr.*, .unit = entry.value_ptr.* };
     }
 
     return .{ .arena = arena, .value = .{ .data = .{

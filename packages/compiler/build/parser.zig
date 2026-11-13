@@ -81,6 +81,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
                     .path = b.fmt("{s}/analysis/iteration/transfer/history", .{directories[3]}),
                     .prefix = "genz/analysis/iteration/transfer/history/",
                 } },
+                .growth, .host => manifest_roots[2..],
                 else => &manifest_roots,
             },
             .entries = entries.of(set),
@@ -109,6 +110,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
                 addSources(run, tracked[2]);
                 inline for (collection_roots) |path| addSubtree(run, tracked[3], path);
             },
+            .growth, .host => for (tracked[2..]) |inputs| addSources(run, inputs),
             else => for (tracked) |inputs| addSources(run, inputs),
         }
 

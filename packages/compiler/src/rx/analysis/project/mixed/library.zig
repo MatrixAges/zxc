@@ -1,37 +1,19 @@
-const std = @import("std");
 const frontend = @import("frontend");
 const rx = @import("rx");
 const State = @import("state.zig");
 const compiled = frontend.project.compiled;
 
 pub fn load(state: *State, target: compiled.Target, location: rx.ast.Location) State.Error!compiled.Export {
-    const index = switch (try compiled.resolve.library(state.allocator, state.options.compiled_libraries, state.options.root_dir, target)) {
-        .found => |value| value,
-        .conflict => return state.fail(location, "compiled package instance has conflicting artifacts"),
-        .missing => return state.fail(location, "compiled library is missing from the input set"),
+    const exported = compiled.imports.load(state.allocator, &state.options, target, .{
+        .types = &state.types.items,
+        .origins = &state.types.origins,
+        .functions = &state.functions,
+        .native_modules = &state.native_modules,
+    }, &state.libraries, &state.initializers) catch |err| {
+        if (err == error.OutOfMemory) return error.OutOfMemory;
+
+        return state.fail(location, compiled.imports.message(err));
     };
 
-    const exports = state.libraries.get(index) orelse block: {
-        const loaded = compiled.loadInto(state.allocator, state.options.compiled_libraries[index], .{
-            .types = &state.types.items,
-            .origins = &state.types.origins,
-            .functions = &state.functions,
-            .native_modules = &state.native_modules,
-        }) catch |err| {
-            if (err == error.OutOfMemory) return error.OutOfMemory;
-
-            return state.fail(location, "compiled library has invalid IR or conflicting identities");
-        };
-
-        try state.initializers.appendSlice(state.allocator, loaded.store_initializers);
-        try state.libraries.put(state.allocator, index, loaded.exports);
-
-        break :block loaded.exports;
-    };
-
-    for (exports) |exported| {
-        if (std.mem.eql(u8, exported.name, target.name)) return exported;
-    }
-
-    return state.fail(location, "compiled library does not export this public module");
+    return exported.*;
 }

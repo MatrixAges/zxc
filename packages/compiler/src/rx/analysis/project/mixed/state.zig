@@ -19,7 +19,7 @@ functions: ir.FunctionStorage = .{},
 verified: usize = 0,
 native_modules: ir.NativeModuleStorage = .{},
 initializers: std.ArrayList(frontend.project.compiled.StoreInitializer) = .empty,
-libraries: std.AutoHashMapUnmanaged(usize, []const frontend.project.compiled.Export) = .empty,
+libraries: frontend.project.compiled.imports.Cache = .empty,
 finished: []?Source.Loaded,
 /// The signature of each graph module, by index into `signatures.modules`.
 signature_indices: []const ?usize,
@@ -47,7 +47,7 @@ pub fn init(allocator: std.mem.Allocator, backing: std.mem.Allocator, graph: Sou
     };
 
     for (0..signatures.functions.count()) |index| try self.functions.append(allocator, signatures.functions.at(index));
-    for (signatures.libraries) |library| try self.libraries.put(allocator, library.index, library.exports);
+    for (signatures.libraries) |library| try self.libraries.put(allocator, library.index, library.unit);
     try self.initializers.appendSlice(allocator, signatures.store_initializers);
 
     return self;

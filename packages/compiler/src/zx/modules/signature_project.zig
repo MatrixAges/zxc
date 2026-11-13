@@ -12,7 +12,7 @@ pub const Module = struct {
     reexport_functions: []const @import("function_import.zig") = &.{},
 };
 
-pub const Library = struct { index: usize, exports: []const @import("compiled.zig").Export };
+pub const Library = struct { index: usize, unit: @import("compiled.zig").imports.Unit };
 
 pub const Data = struct {
     types: zx.ir.TypeTable,
