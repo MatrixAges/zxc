@@ -114,6 +114,7 @@ const Project = struct {
     nominal_origins: NominalOrigins,
     modules: std.ArrayList(ModuleRecord) = .empty,
     functions: ir.FunctionStorage = .{},
+    verified_functions: usize = 0,
     native_modules: ir.NativeModuleStorage = .{},
     native_units: std.StringHashMapUnmanaged(NativeUnit) = .empty,
     store_initializers: std.ArrayList(compiled.StoreInitializer) = .empty,
@@ -455,6 +456,7 @@ const Project = struct {
                     .types = &self.types,
                     .origins = &self.nominal_origins,
                     .functions = &self.functions,
+                    .verified_functions = self.verified_functions,
                     .native_modules = self.native_modules.view(),
                     .aliases = aliases.items,
                     .imports = imports.items,
@@ -462,6 +464,9 @@ const Project = struct {
                     .dependencies = dependencies.items,
                 })) |program| {
                     restored = program;
+
+                    if (comptime @import("parser_options").generated_parser) self.verified_functions = program.program.functions.count();
+
                     unit.reused = true;
                     cache.reused += 1;
                 }
@@ -643,6 +648,8 @@ const Project = struct {
 
         try self.native_modules.append(self.allocator, .{ .specifier = try self.allocator.dupe(u8, source), .identity = if (identity) |key| try self.allocator.dupe(u8, key) else null, .import_name = try self.allocator.dupe(u8, name) });
 
+        self.verified_functions = 0;
+
         return id;
     }
     fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export), constants: *std.ArrayList(ir.Constant)) zx.Error!?[]const u8 {
@@ -674,6 +681,7 @@ const Project = struct {
             const bindings = try ir.NativeBindings.fromValues(self.allocator, loaded.exports);
             const native_index = @backingInt(module_id);
 
+            self.verified_functions = 0;
             self.native_modules.type_namespaces.items[native_index] = namespace;
             self.native_modules.type_names.items[native_index] = bindings.names;
             self.native_modules.type_ids.items[native_index] = bindings.type_ids;
@@ -891,7 +899,10 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     program.functions = project.functions.view().prefix(count);
 
     if (recursive) try @import("function_body.zig").entry(temporary, &program, own.?);
-    if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
+
+    const verified = @min(count, project.verified_functions);
+
+    if (try @import("../ir/validate.zig").validateProjectPrefix(allocator, program, verified)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
     var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 

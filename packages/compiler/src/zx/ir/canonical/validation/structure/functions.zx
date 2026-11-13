@@ -2,7 +2,8 @@ import type { Complete } from "core/function_table/complete"
 
 export type Input = {
     functions: Complete,
-    maximum_count: u64
+    maximum_count: u64,
+    verified: u64
 }
 
 export type Output = bool
@@ -31,6 +32,7 @@ export default function (in: Input): Output {
 
     const condition = (
         - count > in.maximum_count
+        - or in.verified > count
         - or different_input_types
         - or different_output_types
         - or different_ownership
@@ -60,7 +62,7 @@ export default function (in: Input): Output {
 
     return loop({
         table,
-        index: 0,
+        index: in.verified,
         valid: true
     }, {
         while: current => current.valid && current.index < current.table.files.length,
