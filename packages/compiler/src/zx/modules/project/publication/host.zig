@@ -67,12 +67,12 @@ pub const Entry = struct {
     visible_count: usize,
 };
 
-pub fn finalize(program: *const ir.Program, own: ?ir.FunctionId, linked: usize) Entry {
+pub fn finalize(program: *const ir.Program, own: ?ir.FunctionId, linked: usize, entry_type_only: bool) Entry {
     if (comptime enabled) {
         const generated = @import("generated_project_entry_publish");
 
         const input: std.meta.Child(generated.Input) = .{
-            .type_only = program.type_only,
+            .type_only = entry_type_only,
             .own = if (own) |id| @backingInt(id) else null,
             .linked_count = linked,
             .calls = program.expressions.call_functions,
@@ -88,7 +88,7 @@ pub fn finalize(program: *const ir.Program, own: ?ir.FunctionId, linked: usize) 
     }
 
     const recursive = if (own) |id| functions.calls(program.expressions, id) else false;
-    const count = linked - @intFromBool(!program.type_only and !recursive);
+    const count = linked - @intFromBool(!entry_type_only and !recursive);
 
     return .{ .forward = if (recursive) own else null, .visible_count = count };
 }

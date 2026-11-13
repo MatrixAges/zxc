@@ -478,6 +478,7 @@ const Project = struct {
                     .native_modules = self.native_modules.view(),
                     .aliases = aliases.items,
                     .imports = imports.items,
+                    .members = frame.export_functions.items,
                     .constant_imports = frame.constant_imports.items,
                     .dependencies = dependencies.items,
                 })) |program| {
@@ -905,7 +906,13 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     program.types = project.types.view();
     program.native_modules = project.native_modules.view();
-    const publication = @import("project/publication/host.zig").finalize(&program, project.units[root].function, project.functions.count());
+
+    const publication = @import("project/publication/host.zig").finalize(
+        &program,
+        project.units[root].function,
+        project.functions.count(),
+        project.entry_program.?.type_only,
+    );
 
     program.functions = project.functions.view().prefix(publication.visible_count);
 

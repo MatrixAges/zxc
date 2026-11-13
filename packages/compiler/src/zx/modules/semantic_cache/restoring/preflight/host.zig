@@ -11,6 +11,8 @@ const Dependencies = std.meta.Child(@FieldType(Input, "dependencies"));
 const Dependency = std.meta.Child(std.meta.Elem(@FieldType(Dependencies, "previous")));
 
 pub fn check(module: *const Artifact.Module, current: *const Current, decoded: bool) bool {
+    if (module.members.len != current.members.len) return false;
+
     const previous_modules = zx.columns.columns(Modules, module.native_modules);
     const current_modules = zx.columns.columns(Modules, current.native_modules);
     const previous_signatures = zx.columns.columns(Signatures, module.functions);

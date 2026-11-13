@@ -12,7 +12,7 @@ pub fn preflight(module: *const model.Module, current: *const @import("../restor
         current.native_modules.validStructure() and sameDependencies(module.dependencies, current.dependencies) and
 
         module.type_imports.len == current.aliases.len and module.function_imports.len == current.imports.len and
-        module.constant_imports.len == current.constant_imports.len;
+        module.constant_imports.len == current.constant_imports.len and module.members.len == current.members.len;
 }
 
 pub fn mergeTypes(temporary: std.mem.Allocator, module: *const model.Module, current: *const @import("../restore.zig").Current) (@import("../../link/types.zig").Error || Error)![]const ir.TypeId {
@@ -49,6 +49,7 @@ pub fn rebind(module: *const model.Module, current: *const @import("../restore.z
     const imported = mapping[0..module.functions.count()];
 
     for (module.function_imports, current.imports) |*previous, *binding| try bind(previous, binding, imported, nodes.types, current.functions.count());
+    for (module.members, current.members) |*previous, *binding| try bind(previous, binding, imported, nodes.types, current.functions.count());
 
     const linked = ir.SignatureTable.fromFunctions(current.functions.view());
 

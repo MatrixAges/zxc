@@ -19,6 +19,7 @@ pub const Current = struct {
     native_modules: ir.NativeModuleTable,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
+    members: []const FunctionImport = &.{},
     constant_imports: []const ir.Constant = &.{},
     dependencies: []const Record.Import,
 };
