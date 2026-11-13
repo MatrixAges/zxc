@@ -6,6 +6,12 @@ export default function (in: Input): Output {
     const types = in.types == in.current_types
     const functions = in.functions == in.current_functions
     const constants = in.constants == in.current_constants
+    const dependencies = in.dependency_count == in.current_dependency_count
 
-    return types && functions && constants
+    return (
+        - types
+        - and functions
+        - and constants
+        - and dependencies
+    )
 }

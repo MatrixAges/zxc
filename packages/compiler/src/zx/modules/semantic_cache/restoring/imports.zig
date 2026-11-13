@@ -1,33 +1,8 @@
 const std = @import("std");
-const zx = @import("zx");
 const Record = @import("../../module_record.zig");
 pub const batch_size = @import("../../package_scope.zig").lookup_batch_size;
 
-pub fn dependencies(previous: []const Record.Import, current: []const Record.Import) bool {
-    const rule = @import("generated_semantic_restore_dependencies");
-    const Input = std.meta.Child(rule.Input);
-
-    if (previous.len != current.len) return false;
-
-    const Row = std.meta.Child(std.meta.Elem(@FieldType(Input, "previous")));
-    var batch: Batch(Row) = undefined;
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-    var offset: usize = 0;
-
-    while (offset < previous.len) {
-        const end = offset + @min(batch_size, previous.len - offset);
-        const rows = batch.project(previous[offset..end], current[offset..end], dependency);
-        const input: Input = .{ .previous = rows.previous, .current = rows.current };
-
-        if (!(zx.columns.invoke(rule.executeValue, empty.allocator(), &input) catch unreachable)) return false;
-
-        offset = end;
-    }
-
-    return true;
-}
-
-fn dependency(comptime Row: type, value: *const Record.Import) Row {
+pub fn dependency(comptime Row: type, value: *const Record.Import) Row {
     const target = &value.target;
     const compiled = if (target.* == .compiled) &target.compiled else null;
 
@@ -36,10 +11,10 @@ fn dependency(comptime Row: type, value: *const Record.Import) Row {
         .identity = value.identity orelse value.specifier,
         .names = value.names,
         .source_names = if (value.source_names.len == 0) value.names else value.source_names,
-        .kind = @intFromEnum(value.kind),
+        .kind = @backingInt(value.kind),
         .exported = value.exported,
         .wildcard = value.wildcard,
-        .target = @intFromEnum(std.meta.activeTag(target.*)),
+        .target = @backingInt(std.meta.activeTag(target.*)),
         .path = switch (target.*) {
             .source => |path| path,
             .compiled => |artifact| artifact.artifact,

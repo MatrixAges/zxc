@@ -3,32 +3,40 @@
 
     <Args in={Preflight.Input} out={bool} />
 
-    <Call fn="counts" in={$in} />
+    <If on={$in.first}>
+        <Call fn="counts" in={$in} />
 
-    <If on={!$ctx.counts}>
-        <Return value={false} />
-    </If>
-
-    <If on={!$in.decoded}>
-        <Task name="cached" out={$ctx.structure}>
-            <Call
-                fn="../../../../ir/canonical/native/structure"
-                in={$in.cached_modules}
-            />
-        </Task>
-
-        <If on={!$ctx.task.cached}>
+        <If on={!$ctx.counts}>
             <Return value={false} />
         </If>
 
-        <Call fn="signatures" in={$in.signatures} />
+        <If on={!$in.decoded}>
+            <Task name="cached" out={$ctx.structure}>
+                <Call
+                    fn="../../../../ir/canonical/native/structure"
+                    in={$in.cached_modules}
+                />
+            </Task>
 
-        <If on={!$ctx.signatures}>
+            <If on={!$ctx.task.cached}>
+                <Return value={false} />
+            </If>
+
+            <Call fn="signatures" in={$in.signatures} />
+
+            <If on={!$ctx.signatures}>
+                <Return value={false} />
+            </If>
+        </If>
+
+        <Call fn="../../../../ir/canonical/native/structure" in={$in.current_modules} />
+
+        <If on={!$ctx.structure}>
             <Return value={false} />
         </If>
     </If>
 
-    <Call fn="../../../../ir/canonical/native/structure" in={$in.current_modules} />
+    <Call fn="../dependencies/check" in={$in.dependencies} />
 
-    <Return value={$ctx.structure} />
+    <Return value={$ctx.check} />
 </Module>

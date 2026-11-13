@@ -1,5 +1,6 @@
 import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/signature_table/model"
+import type { Batch } from "../dependencies/model"
 
 export type Input = {
     signatures: Table,
@@ -11,5 +12,9 @@ export type Input = {
     current_functions: u64,
     constants: u64,
     current_constants: u64
-    decoded: bool
+    decoded: bool,
+    first: bool,
+    dependency_count: u64,
+    current_dependency_count: u64,
+    dependencies: Batch
 }

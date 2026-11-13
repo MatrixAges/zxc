@@ -1,0 +1,22 @@
+import type { Values } from "core/constant/model"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+import type { Request } from "../../../compiled/loading/types/model"
+
+export type Input = {
+    merge: Request,
+    current_types: Table,
+    empty: Table,
+    current_constants?: Values,
+    cached_constants?: Values,
+    cached_exports?: Values,
+    type_ids: u32[],
+    scalar_count: u64,
+    maximum_count: u64,
+    decoded: bool
+}
+
+export type Plan = {
+    delta: Table,
+    origins: Bindings
+}

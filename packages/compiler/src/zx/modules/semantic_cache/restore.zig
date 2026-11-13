@@ -2,12 +2,10 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const model = @import("../artifact/model.zig");
 const Nodes = @import("../artifact/nodes.zig");
-const Types = @import("../link/types.zig");
 const Origins = @import("../nominal_origins.zig");
 const Record = @import("../module_record.zig");
 const FunctionImport = @import("../function_import.zig");
 const generated = @import("parser_options").generated_parser;
-const Host = @import("restoring/host.zig");
 const Seed = @import("restoring/seed.zig");
 
 pub const Current = struct {
@@ -25,7 +23,7 @@ pub const Current = struct {
     dependencies: []const Record.Import,
 };
 
-const Error = Types.Error || model.Error;
+const Error = @import("../link/types.zig").Error || model.Error;
 
 pub const Restored = struct {
     program: ir.Program,
@@ -42,7 +40,7 @@ pub fn restore(entry: *const @import("entries.zig").Entry, current: Current) std
 
 fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) Error!Restored {
     if (comptime generated) {
-        if (!Host.preflight(module, &current, decoded) or !Host.dependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
+        if (!@import("restoring/preflight/host.zig").check(module, &current, decoded)) return error.InvalidModule;
     } else if (!Seed.preflight(module, &current)) return error.InvalidModule;
 
     var arena = std.heap.ArenaAllocator.init(current.backing);
@@ -52,37 +50,19 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     defer arena.deinit();
 
     const temporary = scratch.allocator();
-    const constants = @import("../../analysis/constants/check.zig");
-
-    if (!try constants.validate(temporary, current.types.view(), current.constant_imports)) return error.InvalidModule;
-
     const allocator = current.allocator;
     const first_type = current.types.count();
     const first_origin = current.origins.items.view().count();
-    var types = Types{ .allocator = allocator, .items = current.types.*, .origins = current.origins.* };
-
-    current.types.* = .{};
-    current.origins.items = .{};
-
-    defer {
-        current.types.* = types.items;
-        current.origins.* = types.origins;
-    }
 
     errdefer {
-        types.items.retainPrefix(first_type);
-        types.origins.items.retainPrefix(first_origin);
+        current.types.retainPrefix(first_type);
+        current.origins.items.retainPrefix(first_origin);
     }
 
-    if (types.items.count() == 0) {
-        for (std.enums.values(ir.Scalar)) |scalar| try types.items.append(allocator, .{ .scalar = scalar });
-    }
-
-    const mapping = try types.appendTemporaryValidated(temporary, temporary, module, decoded);
-
-    if (comptime generated) {
-        if (!try Host.constants(temporary, module, current.constant_imports, mapping, decoded)) return error.InvalidModule;
-    } else if (!try Seed.constants(temporary, module, current.constant_imports, mapping)) return error.InvalidModule;
+    const mapping = if (comptime generated)
+        try @import("restoring/types/host.zig").merge(temporary, module, &current, decoded)
+    else
+        try Seed.mergeTypes(temporary, module, &current);
 
     const function_mapping = try temporary.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
     const native_mapping = try temporary.alloc(?ir.NativeModuleId, module.native_modules.count());
@@ -93,7 +73,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
 
     const own = if (comptime generated)
-        try Host.rebind(temporary, module, &current, .{
+        try @import("restoring/rebind/host.zig").check(temporary, module, &current, .{
             .types = mapping,
             .functions = function_mapping,
             .natives = native_mapping,
@@ -109,7 +89,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     const result = @import("../link/result/host.zig");
 
     var program = try result.assemble(allocator, temporary, module, body, .{
-        .types = types.items.view(),
+        .types = current.types.view(),
         .functions = current.functions.view(),
         .native_modules = current.native_modules,
     }, mapping);

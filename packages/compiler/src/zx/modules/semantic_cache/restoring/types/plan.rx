@@ -1,0 +1,86 @@
+<Module>
+    <Type from="model" as="Plan" />
+    <Type from="../../../../analysis/semantic/merging/model" as="Merge" />
+    <Type from="../../../../analysis/constants/bindings/model" as="Bindings" />
+
+    <Args in={Plan.Input} out={Plan.Plan?} />
+
+    <If on={$in.current_constants != null}>
+        <Call
+            module="../../../../analysis/constants/validate"
+            in={{
+                types: {
+                    base: $in.current_types,
+                    delta: $in.empty
+                },
+                constants: $in.current_constants
+            }}
+        />
+
+        <If on={!$ctx.validate}>
+            <Return value={null} />
+        </If>
+    </If>
+
+    <If on={!$in.decoded}>
+        <Call
+            module="../../../../analysis/semantic/validate_types"
+            in={{
+                table: $in.merge.source,
+                scalar_count: $in.scalar_count,
+                maximum_count: $in.maximum_count,
+                trusted: false
+            }}
+        />
+
+        <If on={!$ctx.validate_types}>
+            <Return value={null} />
+        </If>
+    </If>
+
+    <Call module="../../../compiled/loading/types" in={$in.merge} />
+
+    <If on={$ctx.types.status != Merge.Status.Ready}>
+        <Return value={null} />
+    </If>
+
+    <If on={!$in.decoded}>
+        <Call
+            module="../../validation/constants"
+            in={{
+                types: {
+                    base: $in.merge.source,
+                    delta: $in.empty
+                },
+                exports: $in.cached_exports,
+                imports: $in.cached_constants
+            }}
+        />
+
+        <If on={!$ctx.constants}>
+            <Return value={null} />
+        </If>
+    </If>
+
+    <If on={$in.current_constants != null}>
+        <Call
+            module="../../../../analysis/constants/bindings"
+            in={{
+                previous: $in.cached_constants,
+                current: $in.current_constants,
+                mapping: $in.type_ids
+            }}
+        />
+
+        <If on={$ctx.bindings != Bindings.Comparison.Equal}>
+            <Return value={null} />
+        </If>
+    </If>
+
+    <Return
+        value={$ctx.types.pick([
+            "delta",
+            "origins"
+        ])}
+    />
+</Module>

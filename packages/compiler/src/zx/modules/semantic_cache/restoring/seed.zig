@@ -15,6 +15,30 @@ pub fn preflight(module: *const model.Module, current: *const @import("../restor
         module.constant_imports.len == current.constant_imports.len;
 }
 
+pub fn mergeTypes(temporary: std.mem.Allocator, module: *const model.Module, current: *const @import("../restore.zig").Current) (@import("../../link/types.zig").Error || Error)![]const ir.TypeId {
+    const validate = @import("../../../analysis/constants/check.zig").validate;
+
+    if (!try validate(temporary, current.types.view(), current.constant_imports)) return error.InvalidModule;
+
+    const Types = @import("../../link/types.zig");
+    var types = Types{ .allocator = current.allocator, .items = current.types.*, .origins = current.origins.* };
+
+    defer {
+        current.types.* = types.items;
+        current.origins.* = types.origins;
+    }
+
+    if (types.items.count() == 0) {
+        for (std.enums.values(ir.Scalar)) |scalar| try types.items.append(current.allocator, .{ .scalar = scalar });
+    }
+
+    const mapping = try types.appendTemporary(temporary, temporary, module);
+
+    if (!try constants(temporary, module, current.constant_imports, mapping)) return error.InvalidModule;
+
+    return mapping;
+}
+
 pub fn rebind(module: *const model.Module, current: *const @import("../restore.zig").Current, nodes: *Nodes, mapping: []?ir.FunctionId, native_mapping: []?ir.NativeModuleId) Error!?ir.FunctionId {
     for (module.type_imports, current.aliases) |*previous, *alias| {
         if (!std.mem.eql(u8, previous.name, alias.name) or try nodes.types.include(previous.type_id) != alias.type_id) return error.InvalidModule;
@@ -86,7 +110,7 @@ fn sameSignature(previous: ir.Signature, current: ir.Signature, types: Nodes.Typ
         previous.output_ownership == current.output_ownership;
 }
 
-pub fn constants(temporary: std.mem.Allocator, module: *const model.Module, current: []const ir.Constant, mapping: []const ir.TypeId) std.mem.Allocator.Error!bool {
+fn constants(temporary: std.mem.Allocator, module: *const model.Module, current: []const ir.Constant, mapping: []const ir.TypeId) std.mem.Allocator.Error!bool {
     const validate = @import("../../../analysis/constants/check.zig").validate;
 
     if (!try validate(temporary, module.types, module.constant_exports)) return false;
