@@ -30,16 +30,35 @@
         <Return value={false} />
     </If>
 
-    <Call
-        module="../native_modules_check"
-        in={{
-            table: $in.context.table,
-            modules: $in.context.modules
-        }}
-    />
+    <If on={$in.context.verified_native && $in.context.verified_types != null}>
+        <Call
+            fn="../native/owners"
+            in={{
+                context: {
+                    table: $in.context.table,
+                    modules: $in.context.modules
+                },
+                first: $in.context.verified_types.rows
+            }}
+        />
 
-    <If on={!$ctx.native_modules_check}>
-        <Return value={false} />
+        <If on={!$ctx.owners}>
+            <Return value={false} />
+        </If>
+
+        <Else>
+            <Call
+                module="../native_modules_check"
+                in={{
+                    table: $in.context.table,
+                    modules: $in.context.modules
+                }}
+            />
+
+            <If on={!$ctx.native_modules_check}>
+                <Return value={false} />
+            </If>
+        </Else>
     </If>
 
     <Call module="content" in={$in} />

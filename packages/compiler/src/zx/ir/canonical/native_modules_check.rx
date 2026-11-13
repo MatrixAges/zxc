@@ -12,7 +12,13 @@
             <Call module="./native/bindings_check" in={$in} />
 
             <If on={$ctx.bindings_check}>
-                <Call fn="./native/owners" in={$in} />
+                <Call
+                    fn="native/owners"
+                    in={{
+                        context: $in,
+                        first: 0
+                    }}
+                />
 
                 <Return value={$ctx.owners} />
 

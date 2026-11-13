@@ -2,7 +2,7 @@ const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
 const borrow = @import("../borrow.zig");
-const TypePrefix = @import("type_prefix.zig");
+const Verified = @import("../../validate.zig").Verified;
 
 pub fn Storage(comptime Input: type) type {
     const Context = std.meta.Child(@FieldType(Input, "context"));
@@ -20,11 +20,11 @@ pub fn Storage(comptime Input: type) type {
         context: Context,
         unit: Unit,
         input: Input,
-        pub fn init(self: *Self, allocator: std.mem.Allocator, program: *const ir.Program, verified: usize, prefix: ?TypePrefix) std.mem.Allocator.Error!void {
+        pub fn init(self: *Self, allocator: std.mem.Allocator, program: *const ir.Program, verified: Verified) std.mem.Allocator.Error!void {
             self.table = ir.TypeTable.borrow(@TypeOf(self.table), program.types);
             self.functions = @import("../functions/input.zig").view(@TypeOf(self.functions), program.functions);
 
-            if (prefix) |value| self.prefix = .{
+            if (verified.types) |value| self.prefix = .{
                 .rows = value.rows,
                 .children = value.children,
                 .fields = value.fields,
@@ -38,8 +38,9 @@ pub fn Storage(comptime Input: type) type {
                 .max_offset = std.math.maxInt(usize),
                 .scalar_count = std.enums.values(ir.Scalar).len,
                 .maximum_count = std.math.maxInt(u32),
-                .verified = verified,
-                .verified_types = if (prefix != null) &self.prefix else null,
+                .verified = verified.functions,
+                .verified_types = if (verified.types != null) &self.prefix else null,
+                .verified_native = verified.native,
             };
 
             self.body = .{

@@ -26,7 +26,7 @@ pub fn validate(workspace: std.mem.Allocator, program: zx.ir.Program, native_mod
 
     var storage: Storage = undefined;
 
-    try storage.init(arena.allocator(), &program, 0, null);
+    try storage.init(arena.allocator(), &program, .{});
 
     return entry.execute(&arena, &storage.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,

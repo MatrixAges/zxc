@@ -7,6 +7,7 @@ const Record = @import("../module_record.zig");
 const FunctionImport = @import("../function_import.zig");
 const generated = @import("parser_options").generated_parser;
 const Seed = @import("restoring/seed.zig");
+const Validate = @import("../../ir/validate.zig");
 
 pub const Current = struct {
     allocator: std.mem.Allocator,
@@ -14,8 +15,7 @@ pub const Current = struct {
     types: *ir.TypeStorage,
     origins: *Origins,
     functions: *ir.FunctionStorage,
-    verified_functions: usize,
-    verified_types: ?@import("../../ir/validate.zig").TypePrefix,
+    verified: *Validate.Verified,
     native_modules: ir.NativeModuleTable,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
@@ -117,7 +117,13 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         _ = current.functions.pop(allocator);
     };
 
-    if (try @import("../../ir/validate.zig").validateProjectPrefix(temporary, program.*, current.verified_functions, current.verified_types) != null) return error.InvalidIr;
+    if (try Validate.validateProjectPrefix(temporary, program.*, current.verified.*) != null) return error.InvalidIr;
+
+    if (comptime generated) current.verified.* = .{
+        .functions = program.functions.count(),
+        .types = Validate.TypePrefix.fromTable(program.types),
+        .native = true,
+    };
 
     return restored;
 }

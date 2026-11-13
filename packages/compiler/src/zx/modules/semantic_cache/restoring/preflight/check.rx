@@ -29,10 +29,15 @@
             </If>
         </If>
 
-        <Call fn="../../../../ir/canonical/native/structure" in={$in.current_modules} />
+        <If on={!$in.verified_native}>
+            <Call
+                fn="../../../../ir/canonical/native/structure"
+                in={$in.current_modules}
+            />
 
-        <If on={!$ctx.structure}>
-            <Return value={false} />
+            <If on={!$ctx.structure}>
+                <Return value={false} />
+            </If>
         </If>
     </If>
 
