@@ -1,0 +1,83 @@
+<Module>
+    <Type from="model" as="Interface" />
+
+    <Args in={Interface.Lookup} out={Interface.Result} />
+
+    <If on={$in.previous == null && $in.offset == 0}>
+        <Call
+            fn="../select"
+            in={{
+                specifiers: $in.standard,
+                name: $in.name,
+                offset: 0,
+                first: null,
+                check_duplicates: $in.check_duplicates
+            }}
+        />
+
+        <If on={$ctx.select.duplicate}>
+            <Return
+                value={{
+                    selected: null,
+                    duplicate: true
+                }}
+            />
+        </If>
+
+        <If on={$ctx.select.first != null}>
+            <Call
+                module="standard"
+                in={{
+                    lookup: $in,
+                    index: $ctx.select.first
+                }}
+            />
+
+            <Return value={$ctx.standard} />
+        </If>
+    </If>
+
+    <If on={$in.previous != null}>
+        <If on={$in.previous.source == Interface.Source.Standard}>
+            <Call
+                module="standard"
+                in={{
+                    lookup: $in,
+                    index: $in.previous.index
+                }}
+            />
+
+            <Return value={$ctx.standard} />
+        </If>
+    </If>
+
+    <Call
+        fn="../select"
+        in={{
+            specifiers: $in.scoped,
+            name: $in.name,
+            offset: $in.offset,
+            first: $in.previous != null ? $in.previous.index : null,
+            check_duplicates: $in.check_duplicates
+        }}
+    />
+
+    <If on={$ctx.select.first != null}>
+        <Return
+            value={{
+                selected: {
+                    source: Interface.Source.Scoped,
+                    index: $ctx.select.first
+                },
+                duplicate: $ctx.select.duplicate
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            selected: null,
+            duplicate: false
+        }}
+    />
+</Module>

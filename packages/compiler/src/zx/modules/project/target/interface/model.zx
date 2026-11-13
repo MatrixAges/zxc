@@ -1,0 +1,23 @@
+export enum Source {
+    Standard,
+    Scoped
+}
+
+export type Match = {
+    source: Source,
+    index: u64
+}
+
+export type Lookup = {
+    standard: string[],
+    scoped: string[],
+    name: string,
+    check_duplicates: bool,
+    offset: u64,
+    previous?: Match
+}
+
+export type Result = {
+    selected?: Match,
+    duplicate: bool
+}

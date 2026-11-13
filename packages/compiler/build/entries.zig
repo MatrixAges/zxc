@@ -141,6 +141,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/project/target/file.rx", .name = "project_file_target" },
     .{ .path = "zx/modules/project/target/package.zx", .name = "project_package_shape" },
     .{ .path = "zx/modules/project/target/select.zx", .name = "project_package_select" },
+    .{ .path = "zx/modules/project/target/interface/lookup.rx", .name = "project_interface_lookup" },
+    .{ .path = "zx/modules/project/target/interface/register.rx", .name = "project_interface_register" },
     .{ .path = "zx/modules/project/target/scope/owner.zx", .name = "project_package_owner" },
     .{ .path = "zx/modules/project/load/admit.zx", .name = "project_load_admission" },
     .{ .path = "zx/modules/project/load/source.rx", .name = "project_load_source" },

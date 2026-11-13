@@ -1,0 +1,44 @@
+<Module>
+    <Type from="model" as="Interface" />
+
+    <Args
+        in={{
+            lookup: Interface.Lookup,
+            index: u64
+        }}
+        out={Interface.Result}
+    />
+
+    <If on={$in.lookup.check_duplicates}>
+        <Call
+            fn="../select"
+            in={{
+                specifiers: $in.lookup.scoped,
+                name: $in.lookup.name,
+                offset: $in.lookup.offset,
+                first: null,
+                check_duplicates: false
+            }}
+        />
+
+        <Return
+            value={{
+                selected: {
+                    source: Interface.Source.Standard,
+                    index: $in.index
+                },
+                duplicate: $ctx.select.first != null
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            selected: {
+                source: Interface.Source.Standard,
+                index: $in.index
+            },
+            duplicate: false
+        }}
+    />
+</Module>

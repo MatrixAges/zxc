@@ -2,6 +2,8 @@ const std = @import("std");
 const zx = @import("zx");
 const interface = @import("../../interface.zig");
 const Native = interface.Native;
+const NativeSelection = union(enum) { missing, duplicate, found: *const Native };
+pub const Registration = struct { valid: bool, existing: ?usize = null };
 const enabled = @import("parser_options").generated_parser;
 const batch_size = @import("../../package_scope.zig").lookup_batch_size;
 
@@ -66,12 +68,53 @@ const standard_names = blk: {
     break :blk names;
 };
 
-pub fn native(scoped: []const Native, name: []const u8, check_duplicates: bool) union(enum) { missing, duplicate, found: *const Native } {
-    const standard = if (comptime enabled)
-        scan(&standard_names, name, check_duplicates, 0, null)
+pub fn native(scoped: []const Native, name: []const u8, check_duplicates: bool) NativeSelection {
+    if (comptime !enabled) return seedNative(scoped, name, check_duplicates);
 
-    else
-        select(&interface.standard, "specifier", name, check_duplicates);
+    const generated = @import("generated_project_interface_lookup");
+    const Input = std.meta.Child(generated.Input);
+    const Selected = std.meta.Child(@typeInfo(@FieldType(Input, "previous")).optional.child);
+    var selected: ?Selected = null;
+    var names: [batch_size][]const u8 = undefined;
+    var offset: usize = 0;
+    var scratch = std.heap.FixedBufferAllocator.init(&.{});
+
+    while (true) {
+        const size = @min(names.len, scoped.len - offset);
+        const batch = names[0..size];
+
+        for (scoped[offset..][0..size], batch) |*row, *key| key.* = row.specifier;
+
+        const input: Input = .{
+            .standard = &standard_names,
+            .scoped = batch,
+            .name = name,
+            .check_duplicates = check_duplicates,
+            .offset = offset,
+            .previous = if (selected) |*value| value else null,
+        };
+
+        const result = zx.columns.invoke(generated.executeValue, scratch.allocator(), &input) catch unreachable;
+
+        if (result.duplicate) return .duplicate;
+
+        offset += size;
+
+        if (offset == scoped.len or (!check_duplicates and result.selected != null)) {
+            const matched = result.selected orelse return .missing;
+
+            return .{ .found = switch (matched.source) {
+                .Standard => &interface.standard[@intCast(matched.index)],
+                .Scoped => &scoped[@intCast(matched.index)],
+            } };
+        }
+
+        selected = if (result.selected) |value| .{ .source = value.source, .index = value.index } else null;
+    }
+}
+
+fn seedNative(scoped: []const Native, name: []const u8, check_duplicates: bool) NativeSelection {
+    const standard = select(&interface.standard, "specifier", name, check_duplicates);
 
     if (standard.duplicate) return .duplicate;
 
@@ -86,4 +129,27 @@ pub fn native(scoped: []const Native, name: []const u8, check_duplicates: bool) 
     if (local.duplicate) return .duplicate;
 
     return if (local.first) |index| .{ .found = &scoped[index] } else .missing;
+}
+
+pub fn registration(modules: zx.ir.NativeModuleTable, identity: []const u8, name: []const u8) Registration {
+    if (comptime enabled) {
+        const generated = @import("generated_project_interface_register");
+        const Input = std.meta.Child(generated.Input);
+        const table = zx.columns.columns(std.meta.Child(@FieldType(Input, "modules")), modules);
+        const input: Input = .{ .modules = &table, .identity = identity, .name = name };
+        var scratch = std.heap.FixedBufferAllocator.init(&.{});
+        const result = zx.columns.invoke(generated.executeValue, scratch.allocator(), &input) catch unreachable;
+
+        return .{ .valid = result.valid, .existing = if (result.existing) |index| @intCast(index) else null };
+    }
+
+    if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return .{ .valid = false };
+
+    for (0..modules.count()) |index| {
+        const row = modules.at(index);
+
+        if (zx.bytes.equal(row.key(), identity) and zx.bytes.equal(row.import_name, name)) return .{ .valid = true, .existing = index };
+    }
+
+    return .{ .valid = true };
 }

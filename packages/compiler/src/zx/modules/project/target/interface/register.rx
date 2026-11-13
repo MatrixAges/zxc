@@ -1,0 +1,31 @@
+<Module>
+    <Type from="registered" as="Registry" />
+
+    <Args
+        in={Registry.Input}
+        out={{
+            valid: bool,
+            existing?: u64
+        }}
+    />
+
+    <Call fn="../../../../ir/canonical/native/text" in={$in.name} />
+
+    <If on={!$ctx.text}>
+        <Return
+            value={{
+                valid: false,
+                existing: null
+            }}
+        />
+    </If>
+
+    <Call fn="registered" in={$in} />
+
+    <Return
+        value={{
+            valid: true,
+            existing: $ctx.registered
+        }}
+    />
+</Module>

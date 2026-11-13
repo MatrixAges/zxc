@@ -650,13 +650,10 @@ const Project = struct {
         return unique;
     }
     fn nativeModule(self: *Project, source: []const u8, identity: ?[]const u8, name: []const u8, span: zx.Span) zx.Error!ir.NativeModuleId {
-        if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
+        const selected = target_registry.registration(self.native_modules.view(), identity orelse source, name);
 
-        for (0..self.native_modules.count()) |index| {
-            const module = self.native_modules.at(index);
-
-            if (std.mem.eql(u8, module.key(), identity orelse source) and std.mem.eql(u8, module.import_name, name)) return @fromBackingInt(@intCast(index));
-        }
+        if (!selected.valid) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
+        if (selected.existing) |index| return @fromBackingInt(@as(u32, @intCast(index)));
 
         const id: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.count()));
 

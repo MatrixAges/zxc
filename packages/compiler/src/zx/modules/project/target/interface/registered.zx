@@ -1,0 +1,42 @@
+import key from "core/native_module_table/key"
+
+import type { Modules } from "core/native_module_table/model"
+
+export type Input = {
+    modules: Modules,
+    identity: string,
+    name: string
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const found: u64? = null
+
+    const { modules, identity, name } = in
+
+    return loop({
+        index: 0,
+        found
+    }, {
+        while: state =>
+            state.found == null && state.index < modules.specifiers.length,
+        next: state => {
+            const index = state.index
+
+            if (modules.import_names[index] == name) {
+                const registered = key({
+                    modules,
+                    index
+                })
+
+                if (registered == identity) {
+                    state.found = index
+                }
+            }
+
+            state.index += 1
+        },
+        return: state => state.found
+    })
+}
