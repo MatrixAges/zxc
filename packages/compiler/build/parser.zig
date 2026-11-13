@@ -1,7 +1,6 @@
 const std = @import("std");
 const entries = @import("entries.zig");
-
-pub const Sources = struct { standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath, ordered: std.Build.LazyPath, collections: std.Build.LazyPath, growth: std.Build.LazyPath, host: std.Build.LazyPath };
+pub const Sources = struct { lexer: std.Build.LazyPath, standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath, ordered: std.Build.LazyPath, collections: std.Build.LazyPath, growth: std.Build.LazyPath, host: std.Build.LazyPath };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8, partitions: u32, executable: *std.Build.Step.Compile) Sources {
     const target = b.graph.host;
@@ -38,11 +37,23 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         .{ .path = directories[3], .prefix = "genz/" },
     };
 
-    var tracked: [roots.len][]const std.Build.LazyPath = undefined;
+    var tracked: [roots.len][]const SourceInput = undefined;
 
     for (roots, directories, &tracked) |root, directory, *inputs| {
         inputs.* = sourceInputs(b, root, directory) catch @panic("unable to track RX and ZX bootstrap sources");
     }
+
+    const lexer_root = "zx/frontend/lexer";
+    const lexer_run = generatorRun(b, executable, stage0);
+
+    lexer_run.addArg("--lexer");
+    lexer_run.addDirectoryArg2(roots[0].path(b, lexer_root), .{});
+    lexer_run.addDirectoryArg2(roots[2], .{});
+    lexer_run.addFileInput(roots[2].path(b, "const.zx"));
+    lexer_run.addFileInput(roots[2].path(b, "ascii/const.zx"));
+    addSubtree(lexer_run, tracked[0], lexer_root);
+
+    sources.lexer = lexer_run.addOutputFileArg("lexer.zig");
 
     // Each entry set runs as its own step, so builds that never import the checks do not generate them.
     for ([_]entries.Set{ .main, .checks, .constant_seed, .snapshot_seed, .partition_seed, .ordered, .collections, .growth, .host }) |set| {
@@ -92,33 +103,13 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         run.addFileArg(manifest_path);
         run.addFileInput(b.dependency("zxc_std", .{}).path("interfaces/string.d.zx"));
 
-        if (set == .ordered or set == .collections) {
-            const relative = if (set == .ordered) "src/analysis/uniqueness/replay/ordered" else "src/analysis/members";
-            const directory = genz_dependency.builder.root.joinString(b.allocator, relative) catch @panic("out of memory");
-
-            trackSources(b, run, genz_dependency.path(relative), directory) catch @panic("unable to track comparison sources");
-
-            if (set == .ordered) {
-                const renewals = "src/analysis/uniqueness/renewals";
-                const renewal_directory = genz_dependency.builder.root.joinString(b.allocator, renewals) catch @panic("out of memory");
-
-                trackSources(b, run, genz_dependency.path(renewals), renewal_directory) catch @panic("unable to track renewal sources");
-            } else {
+        switch (set) {
+            .ordered => inline for (ordered_roots) |path| addSubtree(run, tracked[3], path),
+            .collections => {
                 addSources(run, tracked[2]);
-
-                inline for (.{ "src/analysis/state/locals", "src/analysis/state/queries" }) |relative_state| {
-                    const state_directory = genz_dependency.builder.root.joinString(b.allocator, relative_state) catch @panic("out of memory");
-
-                    trackSources(b, run, genz_dependency.path(relative_state), state_directory) catch @panic("unable to track local state sources");
-                }
-
-                const history = "src/analysis/iteration/transfer/history";
-                const history_directory = genz_dependency.builder.root.joinString(b.allocator, history) catch @panic("out of memory");
-
-                trackSources(b, run, genz_dependency.path(history), history_directory) catch @panic("unable to track transfer history");
-            }
-        } else for (tracked) |inputs| {
-            addSources(run, inputs);
+                inline for (collection_roots) |path| addSubtree(run, tracked[3], path);
+            },
+            else => for (tracked) |inputs| addSources(run, inputs),
         }
 
         const directory = run.addOutputDirectoryArg(@tagName(set));
@@ -170,15 +161,29 @@ fn generatorRun(b: *std.Build, seed: *std.Build.Step.Compile, stage0: []const u8
     return run;
 }
 
-fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
-    addSources(run, try sourceInputs(b, root, absolute));
+const ordered_roots = [_][]const u8{ "analysis/uniqueness/replay/ordered", "analysis/uniqueness/renewals" };
+const collection_roots = [_][]const u8{ "analysis/state/locals", "analysis/state/queries", "analysis/members", "analysis/iteration/transfer/history" };
+const SourceInput = struct { relative: []const u8, path: std.Build.LazyPath };
+
+fn addSubtree(run: *std.Build.Step.Run, inputs: []const SourceInput, comptime directory: []const u8) void {
+    const prefix = comptime blk: {
+        var text = (directory ++ "/").*;
+
+        std.mem.replaceScalar(u8, &text, '/', std.fs.path.sep);
+
+        break :blk text;
+    };
+
+    for (inputs) |input| {
+        if (std.mem.startsWith(u8, input.relative, &prefix)) run.addFileInput(input.path);
+    }
 }
 
-fn addSources(run: *std.Build.Step.Run, inputs: []const std.Build.LazyPath) void {
-    for (inputs) |input| run.addFileInput(input);
+fn addSources(run: *std.Build.Step.Run, inputs: []const SourceInput) void {
+    for (inputs) |input| run.addFileInput(input.path);
 }
 
-fn sourceInputs(b: *std.Build, root: std.Build.LazyPath, absolute: []const u8) ![]const std.Build.LazyPath {
+fn sourceInputs(b: *std.Build, root: std.Build.LazyPath, absolute: []const u8) ![]const SourceInput {
     var directory = try std.Io.Dir.cwd().openDir(b.graph.io, absolute, .{ .iterate = true });
 
     defer directory.close(b.graph.io);
@@ -200,9 +205,9 @@ fn sourceInputs(b: *std.Build, root: std.Build.LazyPath, absolute: []const u8) !
 
     std.mem.sort([]const u8, paths.items, {}, lessThan);
 
-    const inputs = try b.allocator.alloc(std.Build.LazyPath, paths.items.len);
+    const inputs = try b.allocator.alloc(SourceInput, paths.items.len);
 
-    for (paths.items, inputs) |path, *input| input.* = root.path(b, path);
+    for (paths.items, inputs) |path, *input| input.* = .{ .relative = path, .path = root.path(b, path) };
 
     return inputs;
 }

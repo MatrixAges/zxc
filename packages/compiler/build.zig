@@ -11,7 +11,6 @@ pub fn build(b: *std.Build) void {
 
     const lexer = @import("build/lexer.zig");
     const generator = @import("build/bootstrap_tool.zig").create(b, optimize);
-    const lexer_source = lexer.generate(b, stage0, generator);
     const parser = @import("build/parser.zig");
     const generated_partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects; artifacts link them by importing `generated_objects` (0 = one unit)") orelse 0;
     const parser_source = parser.generate(b, optimize, stage0, generated_partitions, generator);
@@ -37,7 +36,7 @@ pub fn build(b: *std.Build) void {
     }
 
     const parser_modules = parser.modules(b, target, optimize, parser_source, natives, generated_strip);
-    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser_modules, lint);
+    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, parser_source.lexer, generated_strip), parser_modules, lint);
 
     b.addNamedLazyPath("host_metadata_tool", parser_modules.host_metadata.getEmittedBin());
 
@@ -124,7 +123,7 @@ pub fn build(b: *std.Build) void {
     const run_rx_tests = b.addRunArtifact(rx_tests);
 
     b.step("test-rx", "Run RX syntax and dependency graph tests").dependOn(&run_rx_tests.step);
-    b.step("bootstrap-lexer", "Generate the ZX lexer with the host seed compiler").dependOn(&b.addInstallFile(lexer_source, "bootstrap/lexer.zig").step);
+    b.step("bootstrap-lexer", "Generate the ZX lexer with the host seed compiler").dependOn(&b.addInstallFile(parser_source.lexer, "bootstrap/lexer.zig").step);
 
     const bootstrap_parser = b.step("bootstrap-parser", "Generate RX and ZX syntax parsers with the host seed compiler");
 
