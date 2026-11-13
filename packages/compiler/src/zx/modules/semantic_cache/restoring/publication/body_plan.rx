@@ -1,0 +1,18 @@
+<Module>
+    <Type from="../../../artifact/remapping/model" as="Remap" />
+
+    <Args
+        in={{
+            source?: Remap.FunctionInput
+        }}
+        out={Remap.FunctionOutput?}
+    />
+
+    <If on={$in.source != null}>
+        <Call module="../../../artifact/remapping/body_columns" in={$in.source} />
+
+        <Return value={$ctx.body_columns} />
+    </If>
+
+    <Return value={null} />
+</Module>

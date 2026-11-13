@@ -76,18 +76,26 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId,
 
 fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId, structure: Structure) Error!FunctionEntry {
     const mapped = try @import("nodes/remap.zig").function(self, &value, candidate, structure);
-    var result = value;
+    var result = try self.materializeBody(&value, mapped, structure);
     result.file_name = try self.allocator.dupe(u8, value.file_name);
-    result.input_type = @fromBackingInt(mapped.ports.input);
-    result.output_type = @fromBackingInt(mapped.ports.output);
-    result.symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols });
-    result.expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls });
-    result.body = try self.body(value.body, structure);
     result.stores = try own(self.allocator, value.stores, .{ .types = mapped.stores });
-    result.contracts = try self.contracts(value.contracts, mapped.contracts);
     result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
 
     return .{ .body = result, .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
+}
+
+pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, structure: Structure) Error!ir.Function {
+    return .{
+        .file_name = value.file_name,
+        .input_type = @fromBackingInt(mapped.ports.input),
+        .output_type = @fromBackingInt(mapped.ports.output),
+        .output_ownership = value.output_ownership,
+        .store_mode = value.store_mode,
+        .symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols }),
+        .expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls }),
+        .body = try self.body(value.body, structure),
+        .contracts = try self.contracts(value.contracts, mapped.contracts),
+    };
 }
 
 pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {

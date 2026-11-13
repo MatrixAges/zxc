@@ -1,0 +1,35 @@
+<Module>
+    <Type from="model" as="Publication" />
+
+    <Args in={Publication.Input} out={Publication.Plan?} />
+
+    <Call
+        module="body_plan"
+        in={{
+            source: $in.body
+        }}
+    />
+
+    <Call
+        module="stores"
+        in={{
+            source: $in.stores,
+            mapping: $in.exports.mapping,
+            body: $ctx.body_plan,
+            reuse: $in.reuse_store_types
+        }}
+    />
+
+    <If on={$ctx.stores != null}>
+        <Call fn="exports" in={$in.exports} />
+
+        <Return
+            value={{
+                body: $ctx.body_plan,
+                store_types: $ctx.stores
+            }}
+        />
+    </If>
+
+    <Return value={null} />
+</Module>

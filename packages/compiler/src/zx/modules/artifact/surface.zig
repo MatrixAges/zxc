@@ -56,7 +56,7 @@ pub fn publish(memory: std.mem.Allocator, nodes: *const Nodes, source: Surface, 
     return result;
 }
 
-fn copyExports(allocator: std.mem.Allocator, source: []const ir.Export, types: *[]const u32) Error![]const ir.Export {
+pub fn copyExports(allocator: std.mem.Allocator, source: []const ir.Export, types: *[]const u32) Error![]const ir.Export {
     const result = try allocator.alloc(ir.Export, source.len);
 
     for (source, result) |item, *target| target.* = .{
@@ -67,7 +67,7 @@ fn copyExports(allocator: std.mem.Allocator, source: []const ir.Export, types: *
     return result;
 }
 
-fn copyConstants(allocator: std.mem.Allocator, source: []const ir.Constant, types: *[]const u32) Error![]const ir.Constant {
+pub fn copyConstants(allocator: std.mem.Allocator, source: []const ir.Constant, types: *[]const u32) Error![]const ir.Constant {
     const result = try allocator.alloc(ir.Constant, source.len);
     const copy = @import("../../analysis/constants/copy.zig").copy;
 

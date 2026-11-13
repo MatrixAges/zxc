@@ -83,19 +83,31 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         try Seed.rebind(module, &current, &nodes, function_mapping, native_mapping);
 
     const structure: Nodes.Structure = if (decoded) .validated else .unchecked;
-    const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;
-    const body = if (function) |*value| &value.body else null;
-    const recursive = if (function) |*value| value.recursive else null;
     const result = @import("../link/result/host.zig");
 
-    var program = try result.assemble(allocator, temporary, module, body, .{
+    const tables: result.Tables = .{
         .types = current.types.view(),
         .functions = current.functions.view(),
         .native_modules = current.native_modules,
-    }, mapping);
+    };
+
+    var restored = if (comptime generated)
+        try @import("restoring/publication/host.zig").materialize(temporary, &nodes, module, tables, own, structure)
+
+    else seed: {
+        const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;
+
+        break :seed Restored{
+            .program = try result.assemble(allocator, temporary, module, if (function) |*value| &value.body else null, tables, mapping),
+            .recursive = if (function) |value| value.recursive else null,
+        };
+    };
+
+    const program = &restored.program;
+    const recursive = restored.recursive;
 
     if (recursive != null) {
-        try current.functions.append(allocator, @import("../function_body.zig").value(program));
+        try current.functions.append(allocator, @import("../function_body.zig").value(program.*));
 
         program.functions = current.functions.view();
     }
@@ -104,7 +116,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         _ = current.functions.pop(allocator);
     };
 
-    if (try @import("../../ir/validate.zig").validateProjectPrefix(temporary, program, current.verified_functions, current.verified_types) != null) return error.InvalidIr;
+    if (try @import("../../ir/validate.zig").validateProjectPrefix(temporary, program.*, current.verified_functions, current.verified_types) != null) return error.InvalidIr;
 
-    return .{ .program = program, .recursive = recursive };
+    return restored;
 }

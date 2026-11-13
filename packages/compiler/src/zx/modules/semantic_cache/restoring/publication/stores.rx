@@ -1,0 +1,36 @@
+<Module>
+    <Type from="core/store_table/model" as="Store" />
+    <Type from="../../../artifact/remapping/model" as="Remap" />
+
+    <Args
+        in={{
+            source: Store.Stores,
+            mapping: Remap.Mapping,
+            body?: Remap.FunctionOutput,
+            reuse: bool
+        }}
+        out={u32[]?}
+    />
+
+    <Call fn="../../../../ir/canonical/stores/validate" in={$in.source} />
+
+    <If on={!$ctx.validate}>
+        <Return value={null} />
+    </If>
+
+    <If on={$in.reuse}>
+        <If on={$in.body != null}>
+            <Return value={$in.body.stores} />
+        </If>
+    </If>
+
+    <Call
+        fn="../../../artifact/remapping/ids"
+        in={{
+            values: $in.source.types,
+            mapping: $in.mapping
+        }}
+    />
+
+    <Return value={$ctx.ids} />
+</Module>

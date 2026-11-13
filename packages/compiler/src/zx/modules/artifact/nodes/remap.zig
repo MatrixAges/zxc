@@ -30,37 +30,55 @@ pub fn columns(allocator: std.mem.Allocator, nodes: *const Nodes, types: []const
 pub fn function(nodes: *const Nodes, value: *const ir.Function, candidate: ?ir.FunctionId, structure: Nodes.Structure) Error!FunctionOutput {
     if (structure == .unchecked and !validFunctionColumns(value)) return error.InvalidModule;
 
-    const FunctionMapping = std.meta.Child(@FieldType(FunctionInput, "types"));
-    const Ports = std.meta.Child(@FieldType(FunctionInput, "ports"));
-    const Contracts = std.meta.Child(@FieldType(FunctionInput, "contracts"));
-    const types_view = typeMapping(FunctionMapping, nodes.types);
-    const functions_view = idMapping(FunctionMapping, nodes.functions);
-    const natives_view = idMapping(FunctionMapping, nodes.native_modules);
-    const contracts = zx.columns.columns(Contracts, value.contracts);
+    var view: FunctionView(FunctionInput) = undefined;
 
-    const ports: Ports = .{
-        .input = @backingInt(value.input_type),
-        .output = @backingInt(value.output_type),
-        .native_module = if (value.external) |external| @backingInt(external.module) else null,
-    };
+    view.init(nodes, value, candidate);
 
-    const input: FunctionInput = .{
-        .types = &types_view,
-        .functions = &functions_view,
-        .natives = &natives_view,
-        .ports = &ports,
-        .contracts = &contracts,
-        .symbols = value.symbols.types,
-        .expressions = value.expressions.types,
-        .calls = value.expressions.call_functions,
-        .stores = value.stores.types,
-        .candidate = if (candidate) |id| @backingInt(id) else null,
-    };
-
-    return zx.columns.invoke(functions.executeValue, nodes.allocator, &input) catch |err| return failure(err);
+    return zx.columns.invoke(functions.executeValue, nodes.allocator, @as(*const FunctionInput, &view.input)) catch |err| return failure(err);
 }
 
-fn validFunctionColumns(value: *const ir.Function) bool {
+pub fn FunctionView(comptime T: type) type {
+    const FunctionMapping = std.meta.Child(@FieldType(T, "types"));
+    const Ports = std.meta.Child(@FieldType(T, "ports"));
+    const Contracts = std.meta.Child(@FieldType(T, "contracts"));
+
+    return struct {
+        const Self = @This();
+        types: FunctionMapping,
+        functions: FunctionMapping,
+        natives: FunctionMapping,
+        ports: Ports,
+        contracts: Contracts,
+        input: T,
+        pub fn init(self: *Self, nodes: *const Nodes, value: *const ir.Function, candidate: ?ir.FunctionId) void {
+            self.types = typeMapping(FunctionMapping, nodes.types);
+            self.functions = idMapping(FunctionMapping, nodes.functions);
+            self.natives = idMapping(FunctionMapping, nodes.native_modules);
+            self.contracts = zx.columns.columns(Contracts, value.contracts);
+
+            self.ports = .{
+                .input = @backingInt(value.input_type),
+                .output = @backingInt(value.output_type),
+                .native_module = if (value.external) |external| @backingInt(external.module) else null,
+            };
+
+            self.input = .{
+                .types = &self.types,
+                .functions = &self.functions,
+                .natives = &self.natives,
+                .ports = &self.ports,
+                .contracts = &self.contracts,
+                .symbols = value.symbols.types,
+                .expressions = value.expressions.types,
+                .calls = value.expressions.call_functions,
+                .stores = value.stores.types,
+                .candidate = if (candidate) |id| @backingInt(id) else null,
+            };
+        }
+    };
+}
+
+pub fn validFunctionColumns(value: *const ir.Function) bool {
     if (!value.symbols.validStructure() or !value.expressions.validStructure() or !value.stores.validStructure() or !value.contracts.validStructure()) return false;
 
     for (value.contracts.symbols, value.contracts.expressions) |symbols, expressions| {
@@ -70,7 +88,7 @@ fn validFunctionColumns(value: *const ir.Function) bool {
     return true;
 }
 
-fn typeMapping(comptime Target: type, mapping: Nodes.TypeMap) Target {
+pub fn typeMapping(comptime Target: type, mapping: Nodes.TypeMap) Target {
     return switch (mapping) {
         .collect => unreachable,
         .mapped => |ids| .{ .kind = .Dense, .dense = @ptrCast(ids), .sparse = &.{}, .planned = &.{}, .first = 0, .prefix = 0, .count = 0 },

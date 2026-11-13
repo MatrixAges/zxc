@@ -1,30 +1,7 @@
 <Module>
     <Type from="model" as="References" />
-    <Type from="core/contract_table/model" as="Contract" />
 
-    <Args
-        in={{
-            ports: References.Ports,
-            symbols: u32[],
-            expressions: u32[],
-            calls: u32[],
-            stores: u32[],
-            contracts: Contract.Contracts,
-            types: References.Mapping,
-            functions: References.Mapping,
-            natives: References.Mapping,
-            candidate?: u32
-        }}
-        out={{
-            ports: References.Ports,
-            symbols: u32[],
-            expressions: u32[],
-            calls: u32[],
-            stores: u32[],
-            contracts: References.ContractColumns,
-            recursive?: u32
-        }}
-    />
+    <Args in={References.FunctionInput} out={References.FunctionOutput} />
 
     <Call
         fn="ports"

@@ -11,12 +11,12 @@ pub const Tables = struct {
 };
 
 pub fn materialize(allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, recursive: ?ir.FunctionId, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
-    var program = try assemble(allocator, temporary, module, body, tables, mapping);
+    var assembled = try assemble(allocator, temporary, module, body, tables, mapping);
 
-    if (recursive) |id| try @import("../../function_body.zig").entry(allocator, &program, id);
-    if (try @import("../../../ir/validate.zig").validate(temporary, program) != null) return error.InvalidIr;
+    if (recursive) |id| try @import("../../function_body.zig").entry(allocator, &assembled, id);
+    if (try @import("../../../ir/validate.zig").validate(temporary, assembled) != null) return error.InvalidIr;
 
-    return program;
+    return assembled;
 }
 
 pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
@@ -37,10 +37,14 @@ pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, modu
         break :seed .{ @as([]const ir.Export, aliases), try nodes.constants(module.constant_exports) };
     };
 
+    return program(try allocator.dupe(u8, module.path), body, tables, stores, exports, constant_exports);
+}
+
+pub fn program(path: []const u8, body: ?*const ir.Function, tables: Tables, stores: ir.StoreTable, exports: []const ir.Export, constant_exports: []const ir.Constant) ir.Program {
     const unit: ir.TypeId = @fromBackingInt(@as(u32, @backingInt(ir.Scalar.void)));
 
     return .{
-        .file_name = try allocator.dupe(u8, module.path),
+        .file_name = path,
         .types = tables.types,
         .input_type = if (body) |value| value.input_type else unit,
         .output_type = if (body) |value| value.output_type else unit,
