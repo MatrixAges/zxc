@@ -11,7 +11,7 @@ pub const Entry = struct {
     result: Artifact.Result,
 };
 
-pub const Map = @import("entries/index.zig");
+pub const Map = @import("../source_index/growing.zig").Map(*Entry);
 
 pub fn deinit(allocator: std.mem.Allocator, entries: *Map) void {
     for (entries.keys.items, entries.values.items) |key, entry| {

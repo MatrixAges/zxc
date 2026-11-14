@@ -1,6 +1,7 @@
 const std = @import("std");
 const parser = @import("../frontend/parse.zig");
 const probe = @import("parse_cache/probe.zig");
+const Index = @import("source_index/growing.zig").Map(*Entry);
 const Self = @This();
 pub const ModuleResult = parser.ModuleResult;
 pub const indexed_enabled = @import("../frontend/module_result.zig").indexed_enabled;
@@ -8,7 +9,7 @@ pub const indexed_enabled = @import("../frontend/module_result.zig").indexed_ena
 const Entry = struct { digest: [32]u8, result: ModuleResult };
 
 allocator: std.mem.Allocator,
-entries: @import("zx").bytes.Map(*Entry) = .empty,
+entries: Index = .empty,
 parsed: usize = 0,
 reused: usize = 0,
 /// Keeps replaced results until `release` instead of freeing them, for analyses that still point into them.
@@ -18,12 +19,10 @@ pub fn deinit(self: *Self) void {
     self.release();
     self.replaced.deinit(self.allocator);
 
-    var entries = self.entries.iterator();
-
-    while (entries.next()) |item| {
-        item.value_ptr.*.result.deinit();
-        self.allocator.destroy(item.value_ptr.*);
-        self.allocator.free(item.key_ptr.*);
+    for (self.entries.keys.items, self.entries.values.items) |key, entry| {
+        entry.result.deinit();
+        self.allocator.destroy(entry);
+        self.allocator.free(key);
     }
 
     self.entries.deinit(self.allocator);
@@ -89,7 +88,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
                 const request = work.requests[index];
                 var digest: [32]u8 = undefined;
 
-                if (lookup(work.cache.entries.get(request.path), request.source, false, &digest) == .reuse) continue;
+                if (lookup(work.cache.entries.get(request.path), request.source, false, &digest) == .Reuse) continue;
 
                 const result = parser.parseModuleIn(std.heap.smp_allocator, &scratch, request.source, request.path) catch {
                     work.failed.store(true, .monotonic);
@@ -117,7 +116,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
     errdefer for (results[kept..]) |*result| if (result.*) |*value| value.result.deinit();
 
     for (requests, results) |request, *result| {
-        if (result.*) |*value| _ = try self.adopt(request.path, self.entries.get(request.path), value);
+        if (result.*) |*value| _ = try self.adopt(request.path, self.entries.probe(request.path), value);
 
         kept += 1;
     }
@@ -125,8 +124,8 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
     if (work.failed.load(.monotonic)) return error.OutOfMemory;
 }
 
-fn adopt(self: *Self, path: []const u8, found: ?*Entry, value: *const Entry) std.mem.Allocator.Error!*Entry {
-    if (found) |entry| {
+fn adopt(self: *Self, path: []const u8, found: Index.Slot, value: *const Entry) std.mem.Allocator.Error!*Entry {
+    if (found.existing) |entry| {
         try self.replace(entry.result);
 
         entry.* = value.*;
@@ -135,6 +134,7 @@ fn adopt(self: *Self, path: []const u8, found: ?*Entry, value: *const Entry) std
         return entry;
     }
 
+    const slot = if (try self.entries.reserve(self.allocator)) self.entries.probe(path).position else found.position;
     const key = try self.allocator.dupe(u8, path);
 
     errdefer self.allocator.free(key);
@@ -145,7 +145,7 @@ fn adopt(self: *Self, path: []const u8, found: ?*Entry, value: *const Entry) std
 
     entry.* = value.*;
 
-    try self.entries.put(self.allocator, key, entry);
+    self.entries.append(slot, key, entry);
 
     self.parsed += 1;
 
@@ -164,16 +164,16 @@ fn replace(self: *Self, result: ModuleResult) std.mem.Allocator.Error!void {
 
 fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []const u8) std.mem.Allocator.Error!*Entry {
     var digest: [32]u8 = undefined;
-    const found = self.entries.get(path);
+    const found = self.entries.probe(path);
 
-    switch (lookup(found, source, native, &digest)) {
-        .reuse => {
+    switch (lookup(found.existing, source, native, &digest)) {
+        .Reuse => {
             self.reused += 1;
 
-            return found.?;
+            return found.existing.?;
         },
-        .upgrade => digest = found.?.digest,
-        .parse => {},
+        .Upgrade => digest = found.existing.?.digest,
+        .Parse => {},
     }
 
     var prepared: Entry = .{
