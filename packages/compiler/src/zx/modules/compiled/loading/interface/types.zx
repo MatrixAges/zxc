@@ -1,0 +1,19 @@
+import integers from "std:integer"
+import strings from "std:string"
+
+import type { Type } from "./model"
+
+export type Input = {
+    names: string[],
+    ids: u32[],
+    mapping: u32[]
+}
+
+export type Output = Type[]
+
+export default function (in: Input): Output {
+    return in.names.map((name, index) => {
+        name: strings.copy(name),
+        type_id: in.mapping[integers.widen(in.ids[index])]
+    })[0]
+}

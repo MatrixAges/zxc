@@ -12,7 +12,7 @@ pub fn validate(allocator: std.mem.Allocator, graph: model.Graph) (std.mem.Alloc
 
     var input: Input = undefined;
 
-    try input.init(arena.allocator(), &graph, "", "", null, false, null, false);
+    try input.init(arena.allocator(), &graph, "", "", null, false, null);
 
     const result = generated.execute(&arena, &input.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
@@ -46,7 +46,7 @@ fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destinatio
     const graph = model.Graph{ .program = library.program, .exports = library.exports, .nominal_types = library.nominal_types, .store_initializers = library.store_initializers };
     var input: Input = undefined;
 
-    try input.init(arena.allocator(), &graph, library.instance, library.artifact, destination, seed, selected, call_scratch == null);
+    try input.init(arena.allocator(), &graph, library.instance, library.artifact, destination, seed, selected);
 
     const result = generated.execute(&arena, &input.input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
@@ -66,5 +66,5 @@ fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destinatio
         else => unreachable,
     }
 
-    return @import("publish.zig").apply(allocator, if (call_scratch) |scratch| scratch.functions else allocator, &library, result, destination);
+    return @import("publish.zig").apply(allocator, &input, &library, result, destination, call_scratch);
 }

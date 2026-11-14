@@ -1,0 +1,29 @@
+import integers from "std:integer"
+
+import store from "../../identity/store"
+
+import type { Initializers } from "../../model"
+import type { Initializer } from "./model"
+
+export type Input = {
+    source: Initializers,
+    first: u64,
+    instance: string
+}
+
+export type Output = Initializer[]
+
+export default function (in: Input): Output {
+    const { source, first, instance } = in
+
+    return source.identities.map((value, index) => {
+        identity: store({
+            instance,
+            value
+        }),
+        schema_version: source.versions[index],
+        function: integers.narrow(
+            first + integers.widen(source.functions[index])
+        )
+    })[0]
+}

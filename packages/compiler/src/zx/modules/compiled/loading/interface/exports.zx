@@ -1,0 +1,82 @@
+import integers from "std:integer"
+import strings from "std:string"
+
+import scope from "../../identity/scope"
+import constants from "./constants"
+import members from "./members"
+import types from "./types"
+
+import type { Export, ExportRequest, Reference, Surface } from "./model"
+
+export type Input = ExportRequest
+
+export type Output = Surface
+
+export default function (in: Input): Output {
+    const { source, selection, mapping, first, instance } = in
+
+    const exports: Export[] = []
+    const count = selection == null ? source.names.length : selection.rows.length
+
+    const mapped = loop({
+        index: 0,
+        exports
+    }, {
+        while: current => current.index < count,
+        next: current => {
+            const index = current.index
+            const row = selection == null ? index : selection.rows[index]
+            const id = source.functions[row]
+            const entry: Export = {
+                path: scope({
+                    instance,
+                    value: source.paths[row]
+                }),
+                function: match {
+                    id == null => null,
+                    _ => integers.narrow(first + integers.widen(id))
+                },
+                types: types({
+                    names: source.type_names[row],
+                    ids: source.type_ids[row],
+                    mapping
+                }),
+                members: members({
+                    source: source.members[row],
+                    mapping,
+                    first
+                }),
+                constants: constants({
+                    source: source.constants[row],
+                    mapping
+                })
+            }
+
+            current.exports = current.exports.push(entry)[0]
+            current.index += 1
+        },
+        return: state => state.exports
+    })
+
+    const references: Reference[] = match {
+        selection == null => source.names.map((name, row) => {
+            name: strings.copy(name),
+            row,
+            first: row
+        })[0],
+        _ => selection.names.map((name, index) => {
+            const row = selection.aliases[index]
+
+            return {
+                name: strings.copy(name),
+                row,
+                first: selection.first[row]
+            }
+        })[0]
+    }
+
+    return {
+        exports: mapped,
+        references
+    }
+}

@@ -23,23 +23,6 @@
         }}
     />
 
-    <If on={!$in.input.publish_interfaces}>
-        <Call fn="../empty" in={0} />
-
-        <Return
-            value={{
-                ...$ctx.empty,
-                types: $ctx.type_delta,
-                origins: $in.merged.origins,
-                natives: $in.native.delta,
-                functions: {
-                    types: $in.input.type_ids,
-                    natives: $in.native.mapping
-                }
-            }}
-        />
-    </If>
-
     <Call
         fn="selection/plan"
         in={{
@@ -54,26 +37,6 @@
         <Return value={$ctx.empty} />
     </If>
 
-    <Call
-        fn="exports"
-        in={{
-            source: $in.input.graph.exports,
-            selection: $ctx.plan,
-            mapping: $in.input.type_ids,
-            first: $in.input.destination.function_count,
-            instance: $in.input.instance
-        }}
-    />
-
-    <Call
-        fn="initializers"
-        in={{
-            source: $in.input.graph.initializers,
-            first: $in.input.destination.function_count,
-            instance: $in.input.instance
-        }}
-    />
-
     <Return
         value={{
             status: 0,
@@ -84,9 +47,7 @@
                 types: $in.input.type_ids,
                 natives: $in.native.mapping
             },
-            exports: $ctx.exports,
-            initializers: $ctx.initializers,
-            aliases: $ctx.plan.aliases
+            selection: $ctx.plan.selection
         }}
     />
 </Module>

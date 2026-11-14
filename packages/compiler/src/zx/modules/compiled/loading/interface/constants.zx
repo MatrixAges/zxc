@@ -1,0 +1,35 @@
+import integers from "std:integer"
+import strings from "std:string"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Values } from "core/constant/model"
+import type { Constant } from "./model"
+
+export type Input = {
+    source?: Values,
+    mapping: u32[]
+}
+
+export type Output = Constant[]
+
+export default function (in: Input): Output {
+    const { source, mapping } = in
+
+    if (source == null) {
+        return []
+    }
+
+    return source.values.map((value, index) => {
+        const text = match value.kind {
+            ExpressionKind.String => strings.copy(value.text),
+            _ => value.text
+        }
+
+        return {
+            ...value,
+            name: strings.copy(source.names[index]),
+            type_id: mapping[integers.widen(value.type_id)],
+            text
+        }
+    })[0]
+}

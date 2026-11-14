@@ -28,12 +28,6 @@ export type Selection = {
     modules: string[]
 }
 
-export type Aliases = {
-    names: string[],
-    rows: u64[],
-    first: u64[]
-}
-
 export type Graph = {
     program: Program,
     origins: Bindings,
@@ -56,7 +50,6 @@ export type Input = {
     artifact: string,
     load: bool,
     seed: bool,
-    publish_interfaces: bool,
     destination: Destination,
     type_ids: u32[],
     type_mapping: U32Buffer,
@@ -69,7 +62,12 @@ export type Result = {
     origins: Bindings,
     natives: Modules,
     functions: FunctionMapping,
-    exports: Exports,
-    initializers: Initializers,
-    aliases: Aliases
+    selection?: SelectionPlan
+}
+
+export type SelectionPlan = {
+    rows: u64[],
+    names: string[],
+    aliases: u64[],
+    first: u64[]
 }

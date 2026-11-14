@@ -66,10 +66,18 @@ pub fn value(comptime T: type, literal: ir.ConstantValue) T {
 }
 
 pub fn own(allocator: std.mem.Allocator, literal: anytype) std.mem.Allocator.Error!ir.ConstantValue {
+    var result = view(literal);
+
+    if (result == .string) result.string = try allocator.dupe(u8, result.string);
+
+    return result;
+}
+
+pub fn view(literal: anytype) ir.ConstantValue {
     return switch (literal.kind) {
         .Integer => if (literal.negative) .{ .negative_integer = literal.integer } else .{ .integer = literal.integer },
         .Float => .{ .float = literal.floating },
-        .String => .{ .string = try allocator.dupe(u8, literal.text) },
+        .String => .{ .string = literal.text },
         .Boolean => .{ .boolean = literal.boolean },
         .EnumValue => .{ .enumeration = literal.enumeration },
         else => unreachable,

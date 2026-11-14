@@ -1,0 +1,75 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Operation } from "../../../intrinsic/model"
+import type { Exports, Initializers, SelectionPlan } from "../../model"
+
+export type Type = {
+    name: string,
+    type_id: u32
+}
+
+export type Member = {
+    name: string,
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32,
+    intrinsic?: Operation
+}
+
+export type Constant = {
+    name: string,
+    type_id: u32,
+    kind: ExpressionKind,
+    integer: u64,
+    negative: bool,
+    floating: f64,
+    text: string,
+    boolean: bool,
+    enumeration: u32
+}
+
+export type Export = {
+    path: string,
+    function?: u32,
+    types: Type[],
+    members: Member[],
+    constants: Constant[]
+}
+
+export type Reference = {
+    name: string,
+    row: u64,
+    first: u64
+}
+
+export type Surface = {
+    exports: Export[],
+    references: Reference[]
+}
+
+export type ExportRequest = {
+    source: Exports,
+    selection?: SelectionPlan,
+    mapping: u32[],
+    first: u64,
+    instance: string
+}
+
+export type Request = {
+    exports: Exports,
+    initializers: Initializers,
+    selection?: SelectionPlan,
+    mapping: u32[],
+    first: u64,
+    instance: string
+}
+
+export type Initializer = {
+    identity: string,
+    schema_version: u32,
+    function: u32
+}
+
+export type Output = {
+    surface: Surface,
+    initializers: Initializer[]
+}

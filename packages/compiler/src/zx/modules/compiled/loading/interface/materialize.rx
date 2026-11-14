@@ -1,0 +1,32 @@
+<Module>
+    <Type from="model" as="Interface" />
+
+    <Args in={Interface.Request} out={Interface.Output} />
+
+    <Call
+        fn="exports"
+        in={{
+            source: $in.exports,
+            selection: $in.selection,
+            mapping: $in.mapping,
+            first: $in.first,
+            instance: $in.instance
+        }}
+    />
+
+    <Call
+        fn="initializers"
+        in={{
+            source: $in.initializers,
+            first: $in.first,
+            instance: $in.instance
+        }}
+    />
+
+    <Return
+        value={{
+            surface: $ctx.exports,
+            initializers: $ctx.initializers
+        }}
+    />
+</Module>

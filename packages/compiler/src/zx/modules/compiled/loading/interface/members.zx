@@ -1,0 +1,34 @@
+import integers from "std:integer"
+import strings from "std:string"
+
+import type { Imports } from "../../../function_import"
+import type { Member } from "./model"
+
+export type Input = {
+    source: Imports,
+    mapping: u32[],
+    first: u64
+}
+
+export type Output = Member[]
+
+export default function (in: Input): Output {
+    const { source, mapping, first } = in
+
+    return source.names.map((name, index) => {
+        const id = source.ids[index]
+        const input = source.input_types[index]
+        const output = source.output_types[index]
+
+        return {
+            name: strings.copy(name),
+            id: match {
+                id == null => null,
+                _ => integers.narrow(first + integers.widen(id))
+            },
+            input_type: input == null ? null : mapping[integers.widen(input)],
+            output_type: output == null ? null : mapping[integers.widen(output)],
+            intrinsic: source.intrinsics[index]
+        }
+    })[0]
+}
