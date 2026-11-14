@@ -8,11 +8,7 @@ export type Input = {
     natives: u64[]
 }
 
-export type Output = {
-    input: u32,
-    output: u32,
-    native_module?: u32
-}?
+export type Output = Input.Omit("types", "natives")?
 
 export default function (in: Input): Output {
     const input = integers.widen(in.input)

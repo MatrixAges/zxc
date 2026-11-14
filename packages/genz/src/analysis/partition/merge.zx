@@ -8,11 +8,7 @@ export type Input = {
     weights: u64[]
 }
 
-export type Output = {
-    used: bool[],
-    members: u32[],
-    bytes: u64
-}
+export type Output = Input.Omit("weights", "nodes")
 
 export default function (in: Input): Output {
     return loop({

@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
 需要深拷贝时使用 `clone`。Store 访问通过已声明的句柄提供，读写权限彼此独立。生命周期、持久化与提交行为由宿主代码负责。
 
-使用已安装工具链的格式化器和诊断信息。准确契约见[编译器参考](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md)。
+使用已安装工具链的格式化器和诊断信息。准确契约见[编译器参考](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md)。
 
 ### 将共享契约放进纯类型文件
 

@@ -14,10 +14,7 @@ export type Tail = {
     attached: bool
 }
 
-export type Plan = {
-    valid: bool,
-    suffix: string,
-    attached: bool,
+export type Plan = Tail & {
     length: u64
 }
 

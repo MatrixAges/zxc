@@ -1,0 +1,131 @@
+import encoding from "std:encoding"
+import integers from "std:integer"
+
+import decode from "../../../frontend/string_literal/decode"
+import plan from "../../selection/plan"
+import current from "./current"
+import fail from "./fail"
+import {
+    duplicate_key,
+    object_required,
+    omit_method,
+    pick_method,
+    unknown_key,
+    unknown_method
+} from "./operations/const"
+import fields from "./operations/fields"
+import publish from "./operations/publish"
+import pop from "./pop"
+import item from "./source/item"
+import node from "./source/node"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const head = current(in.frames)
+    const omit = head.name.text == omit_method
+
+    if (!omit && head.name.text != pick_method) {
+        return fail({
+            state: in,
+            code: "name",
+            message: unknown_method,
+            name: head.name
+        })
+    }
+
+    const source = fields({
+        tables: {
+            base: in.context.base,
+            delta: in.delta
+        },
+        id: in.result
+    })
+
+    if (source == null) {
+        return fail({
+            state: in,
+            code: "type_mismatch",
+            message: object_required,
+            name: head.name
+        })
+    }
+
+    const keys: string[] = []
+
+    const requested = loop({
+        position: head.position,
+        keys,
+        issue: ""
+    }, {
+        while: state => state.position != 0 && state.issue == "",
+        next: state => {
+            const edge = item({
+                source: in.context.source,
+                position: state.position
+            })
+
+            const literal = node({
+                source: in.context.source,
+                reference: edge.value
+            })
+
+            const key = decode({
+                source: encoding.encodeUtf8(literal.name.text),
+                template: false
+            })
+
+            if (state.keys.some(previous => previous == key)) {
+                state.issue = duplicate_key
+            } else {
+                state.keys = state.keys.push(key)[0]
+            }
+
+            state.position = edge.next
+        }
+    })
+
+    if (requested.issue != "") {
+        return fail({
+            state: in,
+            code: "name",
+            message: requested.issue,
+            name: head.name
+        })
+    }
+
+    const selected = plan({
+        names: source.names,
+        first: 0,
+        count: source.names.length,
+        keys: requested.keys,
+        omit
+    })
+
+    if (selected.missing) {
+        return fail({
+            state: in,
+            code: "name",
+            message: unknown_key,
+            name: head.name
+        })
+    }
+
+    if (selected.all) {
+        return pop(in)
+    }
+
+    return publish({
+        state: in,
+        fields: {
+            names:
+                selected.indices.map(index => source.names[integers.widen(index)])[0],
+            types:
+                selected.indices.map(index => source.types[integers.widen(index)])[0]
+        }
+    })
+}

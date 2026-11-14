@@ -3,6 +3,7 @@ import { assignment_priority, assign, arrow, pipeline, colon } from "./const"
 import {
     logical_and,
     logical_or,
+    intersection,
     coalesce,
     equal,
     not_equal,
@@ -39,6 +40,7 @@ export default function (in: Input): Output {
         coalesce => coalesce_priority,
         logical_or => or_priority,
         logical_and => and_priority,
+        intersection => and_priority,
         equal => equality_priority,
         not_equal => equality_priority,
         less => comparison_priority,

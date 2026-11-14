@@ -1,8 +1,8 @@
-# ZXC 设计文档
+# zray 设计文档
 
 ## 导入、导出与库消费
 
-**Intent**：以 Node.js 的包公开接口机制和 pnpm 的依赖、workspace 机制为参考，统一 zxc 库的开发、发布与消费。
+**Intent**：以 Node.js 的包公开接口机制和 pnpm 的依赖、workspace 机制为参考，统一 zray 库的开发、发布与消费。
 
 **Data**：参考 [Node.js Packages](https://nodejs.org/api/packages.html)、[pnpm Workspace](https://pnpm.io/workspaces) 与 [pnpm 依赖结构](https://pnpm.io/symlinked-node-modules-structure)。完整规则及实现状态见 [统一库设计](2026-10-05/统一库设计.md)。
 
@@ -12,7 +12,7 @@
 
 ## ZX 生成目录
 
-ZXC 将项目根目录下的 `src/` 视为 ZX 源码根目录，将根目录下的 `.zxc/` 视为 Zig 生成目录。默认生成路径必须满足以下规则：
+zray 将项目根目录下的 `src/` 视为 ZX 源码根目录，将根目录下的 `.zxc/` 视为 Zig 生成目录。默认生成路径必须满足以下规则：
 
 ```text
 src/<relative-path>/<name>.zx
@@ -31,7 +31,7 @@ src/user/profile/update.zx
 → .zxc/user/profile/update.zig
 ```
 
-ZXC 在写入生成文件前自动创建 `.zxc/` 下缺失的目录。`.zxc/` 只保存编译产物，不属于源码，不应提交到版本控制。
+zray 在写入生成文件前自动创建 `.zxc/` 下缺失的目录。`.zxc/` 只保存编译产物，不属于源码，不应提交到版本控制。
 
 项目根目录以执行 `zxc` 时的当前工作目录为准。输入文件必须位于项目根目录内；位于 `src/` 之外的项目内 `.zx` 文件按项目相对路径生成，例如：
 
@@ -43,5 +43,5 @@ tests/fixtures/order_quote.zx
 显式传入 `--out <path>` 时，使用指定路径覆盖默认映射规则：
 
 ```bash
-zxc src/order/create.zx --out /tmp/create.zig
+zray src/order/create.zx --out /tmp/create.zig
 ```

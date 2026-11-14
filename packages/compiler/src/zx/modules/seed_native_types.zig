@@ -41,6 +41,7 @@ fn resolve(allocator: std.mem.Allocator, view: anytype, value: @TypeOf(view).Ref
     switch (kind) {
         .named => unreachable,
         .enumeration => {},
+        .selection, .intersection => return reporter.fail(.unsupported, view.name(value).span, "declare native ABI types with explicit fields"),
         .optional, .list, .application => {
             const child = view.child(value);
 

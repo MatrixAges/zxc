@@ -9,47 +9,47 @@ import '../styles/data_flow.css'
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata() {
-	const t = await getTranslations('home')
+    const t = await getTranslations('home')
 
-	return {
-		title: { default: `zxc — ${t('title')}`, template: '%s — zxc' },
-		description: t('description'),
-		icons: { icon: { url: '/favicon.svg', type: 'image/svg+xml' } }
-	}
+    return {
+        title: { default: `zray — ${t('title')}`, template: '%s — zray' },
+        description: t('description'),
+        icons: { icon: { url: '/favicon.svg', type: 'image/svg+xml' } }
+    }
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-	const locale = await getLocale()
-	const t = await getTranslations('site')
+    const locale = await getLocale()
+    const t = await getTranslations('site')
 
-	return (
-		<html lang={locale} data-theme='dark'>
-			<head>
-				<base target='_blank' />
-			</head>
-			<body>
-				<a className='skip-link' href='#content' target='_self'>
-					{t('skip')}
-				</a>
-				<SiteHeader />
-				{children}
-				<footer className='site-footer'>
-					<span aria-hidden='true'>–––</span>
-					<nav aria-label={t('footerNavigation')}>
-						<a href={localeHref('/docs', locale)} target='_self'>
-							{t('docs')}
-						</a>
-						<span aria-hidden='true'> | </span>
-						<a href={localeHref('/llms.txt', locale)}>llms.txt</a>
-						<span aria-hidden='true'> | </span>
-						<a href='https://github.com/MatrixAges/zxc'>GitHub</a>
-					</nav>
-					<span className='footer-brand'>
-						<span className='brand-logo' aria-hidden='true' />
-						<span>© 2026 MATRIXAGES. zxc / {t('madeForAgents')}.</span>
-					</span>
-				</footer>
-			</body>
-		</html>
-	)
+    return (
+        <html lang={locale} data-theme='dark'>
+            <head>
+                <base target='_blank' />
+            </head>
+            <body>
+                <a className='skip-link' href='#content' target='_self'>
+                    {t('skip')}
+                </a>
+                <SiteHeader />
+                {children}
+                <footer className='site-footer'>
+                    <span aria-hidden='true'>–––</span>
+                    <nav aria-label={t('footerNavigation')}>
+                        <a href={localeHref('/docs', locale)} target='_self'>
+                            {t('docs')}
+                        </a>
+                        <span aria-hidden='true'> | </span>
+                        <a href={localeHref('/llms.txt', locale)}>llms.txt</a>
+                        <span aria-hidden='true'> | </span>
+                        <a href='https://github.com/MatrixAges/zray'>GitHub</a>
+                    </nav>
+                    <span className='footer-brand'>
+                        <span className='brand-logo' aria-hidden='true' />
+                        <span>© 2026 MATRIXAGES. zray / {t('madeForAgents')}.</span>
+                    </span>
+                </footer>
+            </body>
+        </html>
+    )
 }

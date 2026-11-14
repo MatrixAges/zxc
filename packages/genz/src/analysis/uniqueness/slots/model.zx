@@ -6,11 +6,7 @@ export type Types = {
     field_types: u32[]
 }
 
-export type Layout = {
-    offsets: u32[][],
-    members: u32[][],
-    unwrapped: u32[]
-}
+export type Layout = Plan.Omit("texts", "counts")
 
 export type Plan = {
     counts: u32[],

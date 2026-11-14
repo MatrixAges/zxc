@@ -14,10 +14,7 @@ export type Input = {
     value: u32
 }
 
-export type Output = {
-    scopes: Scopes,
-    local: Local,
-    value: u32,
+export type Output = Input & {
     diagnostic: Diagnostic
 }
 

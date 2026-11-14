@@ -17,11 +17,7 @@ export type Input = {
     results: u32[]
 }
 
-export type Working = {
-    known: Knowledge[],
-    reads: Read[],
-    flags: u64[]
-}
+export type Working = Output.Omit("needed", "keys")
 
 export type Stage = {
     source: Input,

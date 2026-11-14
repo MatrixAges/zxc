@@ -41,7 +41,7 @@ ZX 不使用分号；代码中的显式 `;` 会报语法错误。使用换行分
 
 数值位宽保持显式，无效算术和索引可能在运行时失败。列表修改操作消耗输入绑定并返回更新后的列表。类型检查通过，不能证明业务前置条件成立或宿主事务行为正确。
 
-详细边界见[类型与值](/docs/types-and-values)、[集合与所有权](/docs/collections-and-ownership)和[当前编译器契约](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md)。
+详细边界见[类型与值](/docs/types-and-values)、[集合与所有权](/docs/collections-and-ownership)和[当前编译器契约](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md)。
 
 ### match 表达式
 

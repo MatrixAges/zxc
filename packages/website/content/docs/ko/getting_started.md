@@ -3,8 +3,8 @@
 현재 문서의 설치 방식은 소스 빌드입니다. 이 리비전에 필요한 Zig **0.17.0**을 설치한 뒤 실행하세요.
 
 ```sh
-git clone https://github.com/MatrixAges/zxc.git
-cd zxc
+git clone https://github.com/MatrixAges/zray.git
+cd zray
 zig build
 zig build zx-example
 ```

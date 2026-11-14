@@ -19,11 +19,11 @@ export default function (in: Input): Output {
 
 ```typescript
 const result = loop(initial, {
-	while: state => state.remaining > 0,
-	next: state => {
-		state.remaining -= 1
-		state.processed += 1
-	}
+    while: state => state.remaining > 0,
+    next: state => {
+        state.remaining -= 1
+        state.processed += 1
+    }
 })
 ```
 
@@ -31,7 +31,7 @@ const result = loop(initial, {
 
 コールバックは外側の変数をキャプチャできません。必要なデータは初期状態に含めてください。既存の初期状態の束縛は変更されず、呼び出し後も読み取れます。結果は外側の新しい `const` に束縛します。RX では `Call.fn` で loop を含む ZX モジュールを呼び出します。属性値の中で関数やメソッドは呼び出せません。`forEach` は提供しません。
 
-コンパイラは通常の Zig ループを生成します。記憶領域の再利用は所有権と別名の解析に依存し、すべての操作が割り当てなしになるわけではありません。詳しい構文と検証範囲は [loop リファレンス（中国語）](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md)を参照してください。
+コンパイラは通常の Zig ループを生成します。記憶領域の再利用は所有権と別名の解析に依存し、すべての操作が割り当てなしになるわけではありません。詳しい構文と検証範囲は [loop リファレンス（中国語）](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-06/loop使用参考.md)を参照してください。
 
 ### 更新後のリストを引き継ぐ
 

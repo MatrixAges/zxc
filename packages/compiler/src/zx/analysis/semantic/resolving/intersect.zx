@@ -1,0 +1,89 @@
+import integers from "std:integer"
+
+import current from "./current"
+import fail from "./fail"
+import frame from "./frame"
+import { Operation } from "./model"
+import { conflicting_field, object_required } from "./operations/const"
+import fields from "./operations/fields"
+import merge from "./operations/merge"
+import publish from "./operations/publish"
+import replace from "./replace"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const head = current(in.frames)
+
+    if (!head.waiting) {
+        const next = replace({
+            state: in,
+            frame: {
+                ...head,
+                waiting: true,
+                index: integers.widen(in.result)
+            }
+        })
+
+        const right = frame({
+            operation: Operation.Node,
+            name: head.name,
+            reference: {
+                enumeration: false,
+                index: head.position
+            }
+        })
+
+        return {
+            ...next,
+            frames: next.frames.push(right)[0]
+        }
+    }
+
+    const tables = {
+        base: in.context.base,
+        delta: in.delta
+    }
+
+    const left = fields({
+        tables,
+        id: integers.narrow(head.index)
+    })
+
+    const right = fields({
+        tables,
+        id: in.result
+    })
+
+    if (left == null || right == null) {
+        return fail({
+            state: in,
+            code: "type_mismatch",
+            message: object_required,
+            name: head.name
+        })
+    }
+
+    const combined = merge({
+        left,
+        right
+    })
+
+    if (combined == null) {
+        return fail({
+            state: in,
+            code: "type_mismatch",
+            message: conflicting_field,
+            name: head.name
+        })
+    }
+
+    return publish({
+        state: in,
+        fields: combined
+    })
+}

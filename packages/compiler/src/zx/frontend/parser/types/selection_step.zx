@@ -1,0 +1,73 @@
+import { Kind, Symbol } from "../../lexer/token_model"
+import addItem from "./add_item"
+import addNode from "./add_node"
+import close from "./close"
+import consume from "./consume"
+import fail from "./fail"
+import { Phase, TypeKind } from "./model"
+import selection from "./selection"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const { token, phase } = in.control
+
+    if (phase == Phase.SelectName && token.kind == Kind.Identifier) {
+        return consume({
+            state: {
+                ...in,
+                control: {
+                    ...in.control,
+                    member: token.span
+                }
+            },
+            phase: Phase.SelectOpen
+        })
+    }
+
+    if (phase == Phase.SelectOpen && token.symbol == Symbol.OpenParen) {
+        return selection(in)
+    }
+
+    if (phase == Phase.SelectKey || phase == Phase.SelectSeparator) {
+        if (token.symbol == Symbol.CloseParen) {
+            return close(in)
+        }
+
+        if (phase == Phase.SelectSeparator && token.symbol == Symbol.Comma) {
+            return consume({
+                state: in,
+                phase: Phase.SelectKey
+            })
+        }
+
+        if (phase == Phase.SelectKey && token.kind == Kind.String) {
+            const key = addNode({
+                state: in,
+                kind: TypeKind.Named,
+                name: {
+                    start: token.span.start + 1,
+                    end: token.span.end - 1
+                },
+                child: 0,
+                head: 0,
+                count: 0
+            })
+
+            return consume({
+                state: addItem(key),
+                phase: Phase.SelectSeparator
+            })
+        }
+    }
+
+    return fail({
+        state: in,
+        code: "syntax",
+        message: "expected a type method with static string keys"
+    })
+}

@@ -28,12 +28,8 @@ export type Effects = {
     tasks: bool
 }
 
-export type Flags = {
+export type Flags = Effects & {
     inlined: bool,
     value: bool,
-    scalar: bool,
-    io: bool,
-    process: bool,
-    body_process: bool,
-    tasks: bool
+    scalar: bool
 }

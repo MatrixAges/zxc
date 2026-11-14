@@ -2,7 +2,7 @@
 
 [llms.txt](/llms.txt)에서 장별 색인을, [llms-full.txt](/llms-full.txt)에서 전체 문서를 읽을 수 있습니다. 각 장에는 원본 Markdown 엔드포인트가 있으며 클라이언트 JavaScript가 필요하지 않습니다.
 
-애플리케이션 규칙은 저장소의 [에이전트 가이드](https://github.com/MatrixAges/zxc/tree/master/packages/skills)도 참고하세요. 이 자료는 Markdown 지침이며, 배포된 실행 패키지가 아닙니다.
+애플리케이션 규칙은 저장소의 [에이전트 가이드](https://github.com/MatrixAges/zray/tree/master/packages/skills)도 참고하세요. 이 자료는 Markdown 지침이며, 배포된 실행 패키지가 아닙니다.
 
 ### 작업 계약
 
@@ -17,7 +17,7 @@
 실패 시 동작: <요구 사항>
 도구 체인과 호스트 런타임: <사용 가능한 기능>
 
-먼저 현재 zxc 문서를 읽으세요.
+먼저 현재 zray 문서를 읽으세요.
 RX 오케스트레이션과 ZX 비즈니스 로직을 분리하세요.
 파일 경로로 모듈을 식별하고 순환 의존성을 방지하세요.
 이 환경에서 지원하는 기능만 사용하세요.

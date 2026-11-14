@@ -18,11 +18,7 @@ export type Layout = {
     payload_size: u64
 }
 
-export type Prefix = {
-    writer: Writer,
-    compiler: u8[],
-    key: u8[]
-}
+export type Prefix = Frame.Omit("size", "reading")
 
 export type Length = {
     writer: Writer,

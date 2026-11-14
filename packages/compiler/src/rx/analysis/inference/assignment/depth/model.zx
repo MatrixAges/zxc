@@ -59,9 +59,6 @@ export type Input = {
     parents: U32Buffer
 }
 
-export type Output = {
-    depths: u64[],
-    issue: Issue,
-    position: u64,
+export type Output = Solution & {
     node?: u32
 }

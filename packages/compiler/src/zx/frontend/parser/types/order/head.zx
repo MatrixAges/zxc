@@ -10,7 +10,9 @@ export type Input = {
 export type Output = u64
 
 export default function (in: Input): Output {
-    if (in.node.kind != TypeKind.Object && in.node.kind != TypeKind.Tuple) {
+    const items = in.node.kind == TypeKind.Tuple || in.node.kind == TypeKind.Selection
+
+    if (in.node.kind != TypeKind.Object && !items) {
         return 0
     }
 

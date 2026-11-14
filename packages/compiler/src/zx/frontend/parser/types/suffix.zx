@@ -5,6 +5,7 @@ import consume from "./consume"
 import fail from "./fail"
 import { TypeKind, Phase } from "./model"
 import open from "./open"
+import selection from "./selection"
 
 import type { State } from "./model"
 
@@ -15,9 +16,33 @@ export type Output = State
 export default function (in: Input): Output {
     if (in.control.phase == Phase.Name && in.control.token.symbol == Symbol.Dot) {
         return consume({
-            state: in,
+            state: {
+                ...in,
+                control: {
+                    ...in.control,
+                    qualifier_end: in.control.name.end
+                }
+            },
             phase: Phase.NamePart
         })
+    }
+
+    if (in.control.phase == Phase.Name && in.control.member.end != 0) {
+        if (in.control.token.symbol == Symbol.OpenParen) {
+            const base = addNode({
+                state: in,
+                kind: TypeKind.Named,
+                name: {
+                    start: in.control.name.start,
+                    end: in.control.qualifier_end
+                },
+                child: 0,
+                head: 0,
+                count: 0
+            })
+
+            return selection(base)
+        }
     }
 
     if (in.control.phase == Phase.ListEnd) {
@@ -107,6 +132,23 @@ export default function (in: Input): Output {
         return consume({
             state,
             phase: Phase.ListEnd
+        })
+    }
+
+    if (state.control.token.symbol == Symbol.Dot) {
+        return consume({
+            state,
+            phase: Phase.SelectName
+        })
+    }
+
+    if (state.control.token.symbol == Symbol.Ampersand) {
+        return open({
+            state,
+            kind: TypeKind.Intersection,
+            name: state.control.token.span,
+            phase: Phase.Start,
+            operand: state.control.result
         })
     }
 

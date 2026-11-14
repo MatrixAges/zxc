@@ -35,7 +35,7 @@ Use `do` instead of `next` to run the step at least once and check the updated s
 
 The rule callbacks of `loop` still use explicit state. Include required data in the initial state. An existing initial-state binding remains readable; the update does not mutate it. Bind the result to a new outer `const`. RX must use `Call.fn` to invoke the ZX module containing `loop`; function and method calls are not allowed inside RX attribute values. There is no `forEach` operation.
 
-The compiler emits ordinary Zig loops. Storage reuse depends on ownership and alias analysis; using `loop` does not guarantee that every application operation avoids allocation. See the [loop reference](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md) for syntax and verified boundaries.
+The compiler emits ordinary Zig loops. Storage reuse depends on ownership and alias analysis; using `loop` does not guarantee that every application operation avoids allocation. See the [loop reference](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-06/loop使用参考.md) for syntax and verified boundaries.
 
 ### Carry the updated list forward
 

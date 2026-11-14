@@ -17,11 +17,7 @@ export type Input = {
     span: Span
 }
 
-export type Output = {
-    state: Prepared,
-    entries: Entries,
-    evaluation: u32[]
-}
+export type Output = Input.Omit("span", "hint")
 
 export default function (in: Input): Output {
     const hint = in.hint

@@ -2,7 +2,7 @@
 
 ## Intent
 
-Agent-first zxc website and documentation, built with Vinext App Router, React, and TypeScript.
+Agent-first zray website and documentation, built with Vinext App Router, React, and TypeScript.
 
 ## Data
 

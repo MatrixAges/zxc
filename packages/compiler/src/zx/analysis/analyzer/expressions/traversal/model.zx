@@ -169,11 +169,7 @@ export type Context = {
     pipelines: PipelineFrame[]
 }
 
-export type AsyncFrame = {
-    node: u64,
-    first: u64,
-    symbol_count: u64
-}
+export type AsyncFrame = ParallelFrame.Pick("node", "first", "symbol_count")
 
 export type ParallelFrame = {
     node: u64,

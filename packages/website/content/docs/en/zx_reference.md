@@ -43,7 +43,7 @@ Do not write `let`, `var`, `throw`, general closures, or user-defined generics. 
 
 Numeric widths remain explicit. Invalid arithmetic and invalid indexing can fail at runtime. List mutation operations consume their input binding and return the updated list. A successful type check does not prove business preconditions or host transaction behavior.
 
-Read [types and values](/docs/types-and-values), [collections and ownership](/docs/collections-and-ownership), and the [current compiler contract](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md) for the detailed boundaries.
+Read [types and values](/docs/types-and-values), [collections and ownership](/docs/collections-and-ownership), and the [current compiler contract](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md) for the detailed boundaries.
 
 ### match expressions
 

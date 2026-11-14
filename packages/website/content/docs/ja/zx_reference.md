@@ -43,7 +43,7 @@ ZX はセミコロンを使いません。コード内の明示的な `;` は構
 
 数値のビット幅は明示的なままです。無効な算術や添字は実行時に失敗することがあります。リストを変更する操作は入力の束縛を消費し、更新したリストを返します。型検査の成功は、業務上の前提やホストのトランザクション動作の正しさを証明しません。
 
-詳細は[型と値](/docs/types-and-values)、[コレクションと所有権](/docs/collections-and-ownership)、[現在のコンパイラ契約](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md)を参照してください。
+詳細は[型と値](/docs/types-and-values)、[コレクションと所有権](/docs/collections-and-ownership)、[現在のコンパイラ契約](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md)を参照してください。
 
 ### match 式
 

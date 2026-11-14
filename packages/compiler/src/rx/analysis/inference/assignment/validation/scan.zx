@@ -25,13 +25,7 @@ export type Input = {
     action: Action
 }
 
-export type Output = {
-    parents: u32[],
-    index: u64,
-    source_type?: u32,
-    node: u32,
-    action: Action
-}
+export type Output = Input.Omit("graph", "edges", "target_type")
 
 export default function (in: Input): Output {
     return loop(in, {

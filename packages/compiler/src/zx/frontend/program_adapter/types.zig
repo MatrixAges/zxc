@@ -10,6 +10,22 @@ pub fn fill(context: anytype) !void {
             .Optional => .{ .optional = context.typeValue(node.child) },
             .List => .{ .list = context.typeValue(node.child) },
             .Application => .{ .application = .{ .name = context.name(node.name), .argument = context.typeValue(node.child) } },
+            .Intersection => .{ .intersection = .{ .left = context.typeValue(node.child), .right = context.typeValue(node.head), .span = .{ .start = @intCast(node.name.start), .end = @intCast(node.name.end) } } },
+            .Selection => blk: {
+                const keys = try context.allocator.alloc(zx.ast.Name, @intCast(node.count));
+                var head = node.head;
+                var remaining = keys.len;
+
+                while (remaining != 0) {
+                    remaining -= 1;
+                    const edge = tree.items[@intCast(head - 1)];
+                    keys[remaining] = context.name(tree.nodes[@intCast(edge.value)].name);
+                    head = edge.previous;
+                }
+
+                break :blk .{ .selection = .{ .name = context.name(node.name), .base = context.typeValue(node.child), .keys = keys } };
+            },
+            .Group => unreachable,
             .Object => blk: {
                 const fields = try context.allocator.alloc(zx.ast.TypeField, @intCast(node.count));
                 var head = node.head;

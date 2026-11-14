@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
 深いコピーが必要なら `clone` を使います。Store へのアクセスは宣言済みのハンドルを通じて提供され、読み取りと書き込みの権限は独立しています。寿命、永続化、コミットはホストコードの責務です。
 
-インストール済みツールチェーンのフォーマッタと診断を使ってください。正確な契約は[コンパイラのリファレンス](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md)で確認できます。
+インストール済みツールチェーンのフォーマッタと診断を使ってください。正確な契約は[コンパイラのリファレンス](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md)で確認できます。
 
 ### 共有する契約は型専用ファイルに置く
 

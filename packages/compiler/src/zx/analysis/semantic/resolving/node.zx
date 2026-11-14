@@ -31,6 +31,35 @@ export default function (in: Input): Output {
         })
     }
 
+    if (value.kind == NodeKind.Selection || value.kind == NodeKind.Intersection) {
+        const operation = match value.kind {
+            NodeKind.Selection => Operation.Select,
+            _ => Operation.Intersect
+        }
+
+        const state = replace({
+            state: in,
+            frame: {
+                ...head,
+                operation,
+                name: value.name,
+                position: value.position,
+                count: value.count
+            }
+        })
+
+        const child = frame({
+            operation: Operation.Node,
+            name: value.name,
+            reference: value.child
+        })
+
+        return {
+            ...state,
+            frames: state.frames.push(child)[0]
+        }
+    }
+
     const condition = (
         match value.kind {
             NodeKind.Optional => true,

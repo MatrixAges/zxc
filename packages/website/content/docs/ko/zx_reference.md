@@ -43,7 +43,7 @@ ZX는 세미콜론을 사용하지 않습니다. 코드에 명시적인 `;`를 �
 
 숫자 너비는 명시적으로 유지됩니다. 유효하지 않은 산술과 인덱싱은 런타임에 실패할 수 있습니다. 리스트 변경 연산은 입력 바인딩을 소비하고 갱신된 리스트를 반환합니다. 타입 검사 성공은 비즈니스 전제조건이나 호스트 트랜잭션 동작의 증명이 아닙니다.
 
-상세 경계는 [타입과 값](/docs/types-and-values), [컬렉션과 소유권](/docs/collections-and-ownership), [현재 컴파일러 계약](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md)을 읽으세요.
+상세 경계는 [타입과 값](/docs/types-and-values), [컬렉션과 소유권](/docs/collections-and-ownership), [현재 컴파일러 계약](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md)을 읽으세요.
 
 ### match 표현식
 

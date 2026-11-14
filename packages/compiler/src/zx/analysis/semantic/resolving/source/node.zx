@@ -48,6 +48,8 @@ export default function (in: Input): Output {
         TypeKind.Optional => NodeKind.Optional,
         TypeKind.List => NodeKind.List,
         TypeKind.Tuple => NodeKind.Tuple,
+        TypeKind.Selection => NodeKind.Selection,
+        TypeKind.Intersection => NodeKind.Intersection,
         _ => NodeKind.Application
     }
 
@@ -62,6 +64,9 @@ export default function (in: Input): Output {
             index: node.child
         },
         count: node.count,
-        position: in.source.indexed.order.heads[in.reference.index]
+        position: match kind {
+            NodeKind.Intersection => node.head,
+            _ => in.source.indexed.order.heads[in.reference.index]
+        }
     }
 }

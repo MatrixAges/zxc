@@ -33,13 +33,8 @@ export type Input = {
     forwarded: bool
 }
 
-export type Shape = {
-    parameters: Layout,
-    layout: bool,
-    selected_state: bool,
-    deep: bool,
-    buffered: bool
-}
+export type Shape =
+    Output.Pick("parameters", "layout", "selected_state", "deep", "buffered")
 
 export type BindingInput = {
     layout: bool,
@@ -51,13 +46,8 @@ export type BindingInput = {
     forwarded: bool
 }
 
-export type Binding = {
-    evaluation: Evaluation,
-    local: bool,
-    by_value: bool,
-    project_fields: bool,
-    track: bool
-}
+export type Binding =
+    Output.Pick("evaluation", "local", "by_value", "project_fields", "track")
 
 export type StorageInput = {
     layout: bool,

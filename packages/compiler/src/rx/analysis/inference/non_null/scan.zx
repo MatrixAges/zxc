@@ -25,12 +25,7 @@ export type Input = {
     action: Action
 }
 
-export type Output = {
-    parents: u32[],
-    next: u64,
-    value: u32,
-    action: Action
-}
+export type Output = Input.Pick("parents", "next", "value", "action")
 
 export default function (in: Input): Output {
     return loop(in, {

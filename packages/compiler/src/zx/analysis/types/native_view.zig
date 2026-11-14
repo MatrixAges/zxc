@@ -16,6 +16,8 @@ pub fn name(_: Self, value: Ref) ast.Name {
     return switch (value.*) {
         .named => |item| item,
         .application => |item| item.name,
+        .selection => |item| item.name,
+        .intersection => |item| .{ .text = "&", .span = item.span },
         else => unreachable,
     };
 }
@@ -24,8 +26,18 @@ pub fn child(_: Self, value: Ref) Ref {
     return switch (value.*) {
         .optional, .list => |item| item,
         .application => |item| item.argument,
+        .selection => |item| item.base,
+        .intersection => |item| item.left,
         else => unreachable,
     };
+}
+
+pub fn right(_: Self, value: Ref) Ref {
+    return value.intersection.right;
+}
+
+pub fn keys(_: Self, value: Ref) Sequence(ast.Name) {
+    return .{ .items = value.selection.keys };
 }
 
 pub fn fields(_: Self, value: Ref) Sequence(ast.TypeField) {

@@ -149,8 +149,8 @@ zxc build order.rx --out build/order
 当前通过源码构建，需要 [Zig 0.16.0](https://ziglang.org/download/)：
 
 ```sh
-git clone https://github.com/MatrixAges/zxc.git
-cd zxc
+git clone https://github.com/MatrixAges/zray.git
+cd zray
 zig build
 ```
 

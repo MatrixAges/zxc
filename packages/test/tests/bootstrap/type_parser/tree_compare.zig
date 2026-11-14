@@ -73,6 +73,33 @@ pub fn same(expected: *const zx.ast.Type, actual: program.Output, index: u64) !v
             try std.testing.expectEqual(@as(u64, 0), head);
         },
         .enumeration => return error.UnexpectedEnumerationType,
+        .selection => |selection| {
+            try std.testing.expectEqual(.Selection, node.kind);
+            try sameName(selection.name, node.name);
+            try same(selection.base, actual, node.child);
+            try std.testing.expectEqual(selection.keys.len, node.count);
+
+            var head = node.head;
+            var position = selection.keys.len;
+
+            while (position > 0) {
+                position -= 1;
+                const edge = actual.tree.items[head - 1];
+
+                try sameName(selection.keys[position], actual.tree.nodes[edge.value].name);
+
+                head = edge.previous;
+            }
+
+            try std.testing.expectEqual(@as(u64, 0), head);
+        },
+        .intersection => |intersection| {
+            try std.testing.expectEqual(.Intersection, node.kind);
+            try std.testing.expectEqual(intersection.span.start, node.name.start);
+            try std.testing.expectEqual(intersection.span.end, node.name.end);
+            try same(intersection.left, actual, node.child);
+            try same(intersection.right, actual, node.head);
+        },
     }
 }
 

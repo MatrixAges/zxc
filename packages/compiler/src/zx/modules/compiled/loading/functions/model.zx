@@ -30,12 +30,4 @@ export type Request = {
     external?: External
 }
 
-export type Mapped = {
-    header: Header,
-    symbols: Symbols,
-    expressions: Expressions,
-    stores: Stores,
-    contracts: Contracts,
-    control: Control,
-    external?: External
-}
+export type Mapped = Request.Omit("first", "instance", "mapping")

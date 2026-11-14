@@ -6,7 +6,7 @@
 
 ## 1. 语言定位
 
-`.zx` 是 ZXC 的微观计算层。
+`.zx` 是 zray 的微观计算层。
 
 它的基本模型是：
 
@@ -28,7 +28,7 @@ Call Input + optional { store setter } → computation → Output
 
 `.zx` 是类 TypeScript 语法，不是 TypeScript 的完整实现。任何未列入本文白名单的语法默认不支持。
 
-这里的“无状态”是指函数不能拥有自己的常驻变量、缓存或隐藏状态。Store 为 zxc 提供显式、受控的全局共享内存状态，由 Module 声明访问范围、编译器生成具体状态代码。它跨调用和请求存活到应用结束，不属于函数自身，也不自动落盘或重启恢复。详见 [Store 设计](2026-10-05/Store设计.md)。
+这里的“无状态”是指函数不能拥有自己的常驻变量、缓存或隐藏状态。Store 为 zray 提供显式、受控的全局共享内存状态，由 Module 声明访问范围、编译器生成具体状态代码。它跨调用和请求存活到应用结束，不属于函数自身，也不自动落盘或重启恢复。详见 [Store 设计](2026-10-05/Store设计.md)。
 
 ---
 
@@ -143,14 +143,14 @@ Call 的编译上下文必须提供句柄名、完整 Store Object 路径、对�
 
 ```ts
 export type Money = {
-	amount: u64
-	currency: string
+    amount: u64
+    currency: string
 }
 
 export enum Currency {
-	CNY,
-	USD,
-	EUR
+    CNY,
+    USD,
+    EUR
 }
 ```
 
@@ -203,8 +203,8 @@ export type Output = string?
 
 ```ts
 export type User = {
-	id: u64
-	nickname?: string
+    id: u64
+    nickname?: string
 }
 ```
 
@@ -216,13 +216,13 @@ export type User = {
 
 ```ts
 export type Address = {
-	city: string
-	zip_code: string
+    city: string
+    zip_code: string
 }
 
 export type User = {
-	id: u64
-	address: Address
+    id: u64
+    address: Address
 }
 ```
 
@@ -234,9 +234,9 @@ export type User = {
 
 ```ts
 export enum PaymentStatus {
-	Success,
-	Pending,
-	Failed
+    Success,
+    Pending,
+    Failed
 }
 ```
 
@@ -248,7 +248,7 @@ export enum PaymentStatus {
 
 ```ts
 export type Input = {
-	item_ids: u64[]
+    item_ids: u64[]
 }
 ```
 
@@ -500,8 +500,8 @@ const label = match status {
 
 ```ts
 $store_v.value = {
-	...$store_v.value,
-	count: $store_v.value.count + 1
+    ...$store_v.value,
+    count: $store_v.value.count + 1
 }
 ```
 
@@ -732,11 +732,13 @@ Runtime 负责：
 - `any`、`unknown`；
 - 用户自定义泛型；
 - 复杂联合类型；
-- 交叉类型；
+- 对象交叉以外的交叉类型；
 - `interface extends`、类继承；
 - `keyof`、`typeof`、条件类型、映射类型；
-- `Pick`、`Omit` 等类型运算；
+- 用户定义的类型运算；
 - 函数重载和隐式公共契约推导。
+
+对象类型支持 `A & B`、`A.Pick("field")` 和 `A.Omit("field")`。这些表达式解析为普通对象类型。`&` 合并字段，同名字段必须具有相同类型。`.Pick()` 和 `.Omit()` 接受静态字符串字段名，保留字段原有类型及可空性。
 
 ### 14.3 对象与运行时模型
 

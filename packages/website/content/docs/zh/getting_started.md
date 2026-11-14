@@ -3,8 +3,8 @@
 当前文档采用从源码构建的安装方式。这个修订版本需要 Zig **0.17.0**，安装后执行：
 
 ```sh
-git clone https://github.com/MatrixAges/zxc.git
-cd zxc
+git clone https://github.com/MatrixAges/zray.git
+cd zray
 zig build
 zig build zx-example
 ```

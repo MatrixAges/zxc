@@ -1,6 +1,10 @@
+import { Symbol } from "../../lexer/token_model"
 import addField from "./add_field"
 import addItem from "./add_item"
+import addNode from "./add_node"
 import applicationEnd from "./application_end"
+import consume from "./consume"
+import fail from "./fail"
 import { TypeKind, Phase } from "./model"
 import objectSeparator from "./object_separator"
 import tupleSeparator from "./tuple_separator"
@@ -12,26 +16,67 @@ export type Input = State
 export type Output = State
 
 export default function (in: Input): Output {
-    if (in.frames.length == 0) {
+    const state = loop(in, {
+        while: current =>
+            current.frames.length != 0 &&
+            current.frames[current.frames.length - 1].kind ==
+            TypeKind.Intersection,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+            const result = addNode({
+                state: current,
+                kind: TypeKind.Intersection,
+                name: frame.name,
+                child: frame.operand,
+                head: current.control.result,
+                count: 0
+            })
+
+            current = {
+                ...result,
+                frames: result.frames.pop()[0]
+            }
+        }
+    })
+
+    if (state.frames.length == 0) {
         return {
-            tree: in.tree,
-            frames: in.frames,
+            tree: state.tree,
+            frames: state.frames,
             control: {
-                ...in.control,
+                ...state.control,
                 phase: Phase.Done
             }
         }
     }
 
-    const kind = in.frames[in.frames.length - 1].kind
+    const kind = state.frames[state.frames.length - 1].kind
+
+    if (kind == TypeKind.Group) {
+        if (state.control.token.symbol != Symbol.CloseParen) {
+            return fail({
+                state,
+                code: "syntax",
+                message: "expected )"
+            })
+        }
+
+        return consume({
+            state: {
+                ...state,
+                frames: state.frames.pop()[0]
+            },
+            phase: Phase.Suffix
+        })
+    }
 
     if (kind == TypeKind.Application) {
-        return applicationEnd(in)
+        return applicationEnd(state)
     }
 
     if (kind == TypeKind.Object) {
-        return objectSeparator(addField(in))
+        return objectSeparator(addField(state))
     }
 
-    return tupleSeparator(addItem(in))
+    return tupleSeparator(addItem(state))
 }

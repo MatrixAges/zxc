@@ -69,13 +69,8 @@ export type Member = {
     position: u64
 }
 
-export type Classification = {
-    kind: TypeKind,
-    scalar: u32,
-    scalar_route: ScalarRoute,
-    byte_child: bool,
-    child: u32,
-}
+export type Classification =
+    State.Pick("kind", "scalar", "scalar_route", "byte_child", "child")
 
 export type Selection = {
     state: State,

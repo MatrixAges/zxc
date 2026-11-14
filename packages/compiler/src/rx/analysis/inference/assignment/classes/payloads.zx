@@ -26,15 +26,7 @@ export type Input = {
     action: Action
 }
 
-export type Output = {
-    parents: u32[],
-    payloads: u32[],
-    next: u64,
-    source: u32,
-    origin: u32,
-    remaining: u64,
-    action: Action
-}
+export type Output = Input.Omit("graph", "start", "limit")
 
 export default function (in: Input): Output {
     return loop(in, {

@@ -2,7 +2,7 @@
 
 Fetch [llms.txt](/llms.txt) for the section index or [llms-full.txt](/llms-full.txt) for all documentation. Each section has a raw Markdown endpoint. These endpoints need no client-side JavaScript.
 
-For application conventions, also read the repository's [agent guides](https://github.com/MatrixAges/zxc/tree/master/packages/skills). They are Markdown guidance, not a published executable package.
+For application conventions, also read the repository's [agent guides](https://github.com/MatrixAges/zray/tree/master/packages/skills). They are Markdown guidance, not a published executable package.
 
 ### Task contract
 

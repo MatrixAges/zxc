@@ -72,6 +72,27 @@ fn fill(self: *Self, pending: Pending) std.mem.Allocator.Error!void {
             result.name = try self.keep(model.Name, named(application.name));
             result.child = try self.reference(application.argument);
         },
+        .selection => |selection| {
+            result.kind = .Selection;
+            result.name = try self.keep(model.Name, named(selection.name));
+            result.child = try self.reference(selection.base);
+            result.count = selection.keys.len;
+            result.position = if (selection.keys.len == 0) 0 else self.items.items.len + 1;
+
+            for (selection.keys, 0..) |key, index| {
+                const key_node = try self.keep(ast.Type, .{ .named = key });
+                const value = try self.reference(key_node);
+                const next = if (index + 1 == selection.keys.len) 0 else self.items.items.len + 2;
+
+                try self.items.append(self.allocator, try self.keep(model.Item, .{ .value = value, .next = next }));
+            }
+        },
+        .intersection => |intersection| {
+            result.kind = .Intersection;
+            result.name = try self.keep(model.Name, named(.{ .text = "&", .span = intersection.span }));
+            result.child = try self.reference(intersection.left);
+            result.position = (try self.reference(intersection.right)).index;
+        },
         .object => |fields| {
             result.kind = .Object;
             result.count = fields.len;

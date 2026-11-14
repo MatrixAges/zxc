@@ -57,11 +57,4 @@ export type Binding = {
     position: u64
 }
 
-export type Output = {
-    status: Status,
-    modules: string[],
-    writable: bool[],
-    indices: u64[],
-    access: bool[],
-    ends: u64[]
-}
+export type Output = State.Omit("types", "source", "index")

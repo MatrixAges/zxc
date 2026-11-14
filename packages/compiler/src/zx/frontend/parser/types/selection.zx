@@ -1,0 +1,18 @@
+import { Phase, TypeKind } from "./model"
+import open from "./open"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return open({
+        state: in,
+        kind: TypeKind.Selection,
+        name: in.control.member,
+        phase: Phase.SelectKey,
+        operand: in.control.result
+    })
+}

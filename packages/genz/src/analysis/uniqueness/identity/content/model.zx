@@ -21,12 +21,7 @@ export type Row = {
     payload: u64
 }
 
-export type Block = {
-    hash: Sha256State,
-    control: Control,
-    first: u64,
-    count: u64
-}
+export type Block = Input.Omit("expressions", "input_type", "output_type", "symbols")
 
 export type Optional = {
     hash: Sha256State,
@@ -47,9 +42,6 @@ export type Booleans = {
     count: u64
 }
 
-export type Value = {
-    hash: Sha256State,
-    expressions: Expressions,
-    payload: u64,
+export type Value = Row & {
     kind: ExpressionKind
 }

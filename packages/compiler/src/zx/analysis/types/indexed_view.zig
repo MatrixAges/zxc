@@ -23,6 +23,9 @@ pub fn View(comptime Storage: type) type {
                     .List => .list,
                     .Tuple => .tuple,
                     .Application => .application,
+                    .Selection => .selection,
+                    .Intersection => .intersection,
+                    .Group => unreachable,
                 },
             };
         }
@@ -33,7 +36,27 @@ pub fn View(comptime Storage: type) type {
         pub fn child(self: Self, value: Ref) Ref {
             return .{ .node = @intCast(self.storage.types.nodes[value.node].child) };
         }
+        pub fn right(self: Self, value: Ref) Ref {
+            return .{ .node = @intCast(self.storage.types.nodes[value.node].head) };
+        }
 
+        pub fn keys(self: Self, value: Ref) Keys {
+            return .{ .edges = self.children(value) };
+        }
+        const Keys = struct {
+            edges: Edges(false),
+            pub fn count(self: @This()) usize {
+                return self.edges.count();
+            }
+            pub fn iterator(self: @This()) @This() {
+                return self;
+            }
+            pub fn next(self: *@This()) ?zx.ast.Name {
+                const value = self.edges.next() orelse return null;
+
+                return self.edges.view.name(value);
+            }
+        };
         pub fn fields(self: Self, value: Ref) Edges(true) {
             return .{ .view = self, .head = @intCast(self.storage.type_order.heads[value.node]), .length = @intCast(self.storage.types.nodes[value.node].count) };
         }

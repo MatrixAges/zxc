@@ -1,6 +1,6 @@
-# <img src="images/logo.svg" alt="" height="28" align="absmiddle" /> zxc
+# <img src="images/logo.svg" alt="" height="28" align="absmiddle" /> zray
 
-**A programming language for AI-written business systems.** Write logic in **ZX** (TypeScript-like), wire it together in **RX** (XML), and compile to a native executable.
+**A programming language for AI-written business systems.** The compiler command is `zxc`. Write logic in **ZX** (TypeScript-like), wire it together in **RX** (XML), and compile to a native executable.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Experimental](https://img.shields.io/badge/status-experimental-orange.svg)
@@ -57,7 +57,7 @@ zxc build checkout.rx --out build/checkout
 
 To change the shipping rule, an AI only needs `shipping.zx` — `checkout.rx` already tells it what goes in and what comes out. The compiler infers types across every `Call`, so a mismatched edit fails at build time, not in production.
 
-## Why zxc
+## Why zray
 
 - **Structure you can read** — RX files are the call graph and data flow. No digging through function bodies.
 - **Boundaries the compiler enforces** — typed `Input` / `Output` per unit, ownership checks, and a dependency graph that must be acyclic.

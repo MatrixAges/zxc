@@ -109,6 +109,7 @@ pub fn node(self: *Types, view: anytype, value: @TypeOf(view).Ref) zx.Error!ir.T
 
             return self.reporter.fail(.unsupported, name.span, "generic and database types are not enabled");
         },
+        .selection, .intersection => return @import("object_operations_seed.zig").resolve(self, view, value),
         .object => {
             const fields = view.fields(value);
             const resolved_fields = try Types.Fields.init(self.allocator, fields.count());

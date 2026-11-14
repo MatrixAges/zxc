@@ -56,14 +56,7 @@ export type Trace = {
     request: Request
 }
 
-export type Output = {
-    context: Context,
-    known: Knowledge[],
-    reads: Read[],
-    marks: Mark[],
-    changed: u32[],
-    grew: bool
-}
+export type Output = Working.Omit("seen")
 
 export type Continuation = {
     working: Working,

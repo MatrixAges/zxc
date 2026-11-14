@@ -2,7 +2,7 @@
 
 章の索引には [llms.txt](/llms.txt)、全文には [llms-full.txt](/llms-full.txt) を使ってください。各章には生の Markdown エンドポイントもあります。クライアント側の JavaScript は不要です。
 
-アプリケーションの規約については、リポジトリの[エージェント向けガイド](https://github.com/MatrixAges/zxc/tree/master/packages/skills)も参照してください。これは Markdown の指針であり、公開済みの実行可能パッケージではありません。
+アプリケーションの規約については、リポジトリの[エージェント向けガイド](https://github.com/MatrixAges/zray/tree/master/packages/skills)も参照してください。これは Markdown の指針であり、公開済みの実行可能パッケージではありません。
 
 ### タスクの契約
 

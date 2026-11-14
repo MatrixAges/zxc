@@ -53,6 +53,15 @@ export default function (in: Input): Output {
         })
     }
 
+    if (in.control.token.symbol == Symbol.OpenParen) {
+        return open({
+            state: in,
+            kind: TypeKind.Group,
+            name: in.control.token.span,
+            phase: Phase.Start
+        })
+    }
+
     if (in.control.token.kind != Kind.Identifier) {
         return fail({
             state: in,
@@ -71,7 +80,11 @@ export default function (in: Input): Output {
         frames: in.frames,
         control: {
             ...in.control,
-            name: name
+            name,
+            member: {
+                start: 0,
+                end: 0
+            }
         }
     }
 

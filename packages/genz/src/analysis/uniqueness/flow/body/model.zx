@@ -42,10 +42,7 @@ export type Input = {
     current: Summary
 }
 
-export type Output = {
-    held: bool[],
-    text_held: bool[],
-    written: bool[],
+export type Output = Summary & {
     changed: bool
 }
 

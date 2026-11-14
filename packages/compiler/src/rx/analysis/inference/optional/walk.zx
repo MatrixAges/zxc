@@ -16,13 +16,7 @@ export type Input = {
     route: WalkRoute
 }
 
-export type Output = {
-    parents: u32[],
-    value: u32,
-    root: u32,
-    remaining: u64,
-    route: WalkRoute
-}
+export type Output = Input.Omit("graph")
 
 export default function (in: Input): Output {
     return loop(in, {

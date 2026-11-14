@@ -17,11 +17,7 @@ export type Input = {
     other?: u32
 }
 
-export type Output = {
-    parents: u32[],
-    next: u64,
-    other?: u32
-}
+export type Output = Input.Pick("parents", "next", "other")
 
 export default function (in: Input): Output {
     return loop(in, {

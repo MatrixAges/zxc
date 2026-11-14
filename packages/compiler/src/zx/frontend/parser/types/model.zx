@@ -7,7 +7,10 @@ export enum TypeKind {
     Optional,
     List,
     Tuple,
-    Application
+    Application,
+    Selection,
+    Intersection,
+    Group
 }
 
 export enum Phase {
@@ -20,7 +23,11 @@ export enum Phase {
     FieldOptional,
     FieldColon,
     TupleItem,
-    Done
+    Done,
+    SelectName,
+    SelectOpen,
+    SelectKey,
+    SelectSeparator
 }
 
 export type Node = {
@@ -61,6 +68,7 @@ export type Frame = {
     optional: bool,
     head: u64,
     count: u64
+    operand: u64
 }
 
 export type Control = {
@@ -70,6 +78,8 @@ export type Control = {
     depth: u64
     result: u64
     name: Span
+    member: Span
+    qualifier_end: u64
     token: Token
     diagnostic: Diagnostic
 }

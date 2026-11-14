@@ -14,13 +14,7 @@ export type Input = {
     functions: Mapping
 }
 
-export type Output = {
-    name: string,
-    namespace?: string,
-    id?: u32,
-    input_type?: u32,
-    output_type?: u32
-}
+export type Output = Input.Omit("types", "functions")
 
 export default function (in: Input): Output {
     const name = strings.copy(in.name)

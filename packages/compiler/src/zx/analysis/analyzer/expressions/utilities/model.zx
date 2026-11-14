@@ -16,10 +16,6 @@ export type Bound = {
     bindings: Bindings
 }
 
-export type List = {
-    state: Prepared,
-    operation: Operation,
-    values: u32[],
-    span: Span,
+export type List = Input & {
     element_type: u32
 }

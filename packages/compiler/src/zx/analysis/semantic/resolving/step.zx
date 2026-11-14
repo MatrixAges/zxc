@@ -1,9 +1,11 @@
 import cache from "./cache"
 import current from "./current"
+import intersect from "./intersect"
 import { Operation } from "./model"
 import name from "./name"
 import node from "./node"
 import object from "./object"
+import select from "./select"
 import tuple from "./tuple"
 import wrap from "./wrap"
 
@@ -20,6 +22,8 @@ export default function (in: Input): Output {
         Operation.Node => node(in),
         Operation.Wrap => wrap(in),
         Operation.Tuple => tuple(in),
+        Operation.Select => select(in),
+        Operation.Intersect => intersect(in),
         _ => object(in)
     }
 }

@@ -10,6 +10,8 @@ pub const Type = union(enum) {
     tuple: []const *const Type,
     enumeration: []const Name,
     application: struct { name: Name, argument: *const Type },
+    selection: struct { name: Name, base: *const Type, keys: []const Name },
+    intersection: struct { left: *const Type, right: *const Type, span: Span },
 };
 
 pub const TypeField = struct { name: Name, value: *const Type };

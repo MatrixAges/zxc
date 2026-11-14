@@ -51,12 +51,7 @@ export type FunctionBinding = {
     intrinsic?: u8
 }
 
-export type PortShape = {
-    id?: u32,
-    input_type?: u32,
-    output_type?: u32,
-    intrinsic?: u8
-}
+export type PortShape = FunctionBinding.Omit("namespace", "name")
 
 export type Result = {
     aliases: Bindings,

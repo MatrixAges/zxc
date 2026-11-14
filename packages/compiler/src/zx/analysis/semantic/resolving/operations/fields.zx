@@ -1,0 +1,29 @@
+import integers from "std:integer"
+import { Kind } from "core/type_table/model"
+import row from "core/type_table/row"
+
+import type { Fields, Tables } from "core/type_table/model"
+
+export type Input = {
+    tables: Tables,
+    id: u32
+}
+
+export type Output = Fields?
+
+export default function (in: Input): Output {
+    const selected = row(in)
+
+    if (selected.kind != Kind.Object) {
+        return null
+    }
+
+    const table = selected.delta ? in.tables.delta : in.tables.base
+    const start = integers.widen(selected.first)
+    const count = integers.widen(selected.second)
+
+    return {
+        names: table.field_names.splice(start, count, [])[1],
+        types: table.field_types.splice(start, count, [])[1]
+    }
+}

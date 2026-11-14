@@ -1,3 +1,4 @@
+const std = @import("std");
 const zx = @import("zx");
 const Parser = @import("parser.zig");
 const ast = zx.ast;
@@ -8,7 +9,8 @@ const Object = grammar.sequence(.{ grammar.token("{"), grammar.reference([]const
 const Tuple = grammar.sequence(.{ grammar.token("["), grammar.separated(Type, ",", "]"), grammar.required(grammar.token("]"), "expected ]") });
 const Argument = grammar.sequence(.{ grammar.token("<"), Type, grammar.required(grammar.token(">"), "expected >") });
 const Named = grammar.sequence(.{ grammar.reference(ast.Name, qualifiedName), grammar.optional(Argument) });
-const Primary = grammar.choice(.{ grammar.map(Object, ast.Type, object), grammar.map(Tuple, ast.Type, tuple), grammar.map(Named, ast.Type, named) });
+const Group = grammar.sequence(.{ grammar.token("("), Type, grammar.required(grammar.token(")"), "expected )") });
+const Primary = grammar.choice(.{ grammar.map(Object, ast.Type, object), grammar.map(Tuple, ast.Type, tuple), grammar.map(Named, ast.Type, named), grammar.map(Group, ast.Type, group) });
 
 const Suffix = grammar.choice(.{
     grammar.map(grammar.token("?"), SuffixKind, optional),
@@ -22,17 +24,73 @@ pub fn parse(parser: *Parser) zx.Error!*const ast.Type {
 
     defer parser.depth -= 1;
 
-    var result = try wrap(parser, try grammar.run(Primary, parser, "expected a type"));
-    const suffixes = try grammar.run(grammar.many(Suffix), parser, "expected a type suffix");
+    var result: *const ast.Type = try wrap(parser, try grammar.run(Primary, parser, "expected a type"));
 
-    for (suffixes) |suffix| {
-        result = try wrap(parser, switch (suffix) {
-            .optional => .{ .optional = result },
-            .list => .{ .list = result },
-        });
+    while (true) {
+        if (result.* == .named and parser.at("(")) {
+            const name = result.named;
+
+            if (std.mem.lastIndexOfScalar(u8, name.text, '.')) |dot| {
+                var end = dot;
+
+                while (end != 0 and std.ascii.isWhitespace(name.text[end - 1])) end -= 1;
+
+                var start = dot + 1;
+
+                while (start < name.text.len and std.ascii.isWhitespace(name.text[start])) start += 1;
+
+                const base = try wrap(parser, .{ .named = .{
+                    .text = name.text[0..end],
+                    .span = .{ .start = name.span.start, .end = name.span.start + end },
+                } });
+
+                result = try selection(parser, base, .{
+                    .text = name.text[start..],
+                    .span = .{ .start = name.span.start + start, .end = name.span.end },
+                });
+
+                continue;
+            }
+        }
+
+        const suffix = try grammar.run(grammar.optional(Suffix), parser, "expected a type suffix");
+
+        if (suffix) |kind| {
+            result = try wrap(parser, switch (kind) {
+                .optional => .{ .optional = result },
+                .list => .{ .list = result },
+            });
+        } else if (parser.take(".")) {
+            result = try selection(parser, result, try parser.name());
+        } else break;
     }
 
+    const operator = parser.current();
+
+    if (parser.take("&")) return wrap(parser, .{ .intersection = .{ .left = result, .right = try parse(parser), .span = operator.span } });
+
     return result;
+}
+
+fn selection(parser: *Parser, base: *const ast.Type, name: ast.Name) zx.Error!*const ast.Type {
+    try parser.expect("(");
+
+    var keys: std.ArrayList(ast.Name) = .empty;
+
+    while (!parser.take(")")) {
+        const token = parser.current();
+
+        if (token.kind != .string) return parser.reporter.fail(.syntax, token.span, "expected a type method with static string keys");
+
+        parser.index += 1;
+        const span = zx.Span{ .start = token.span.start + 1, .end = token.span.end - 1 };
+
+        try keys.append(parser.allocator, .{ .text = parser.source[span.start..span.end], .span = span });
+
+        if (!parser.at(")")) try parser.expect(",");
+    }
+
+    return wrap(parser, .{ .selection = .{ .name = name, .base = base, .keys = try keys.toOwnedSlice(parser.allocator) } });
 }
 
 fn qualifiedName(parser: *Parser) zx.Error!ast.Name {
@@ -50,6 +108,10 @@ fn object(_: *Parser, values: Object.Value) zx.Error!ast.Type {
 
 fn tuple(_: *Parser, values: Tuple.Value) zx.Error!ast.Type {
     return .{ .tuple = values[1] };
+}
+
+fn group(_: *Parser, values: Group.Value) zx.Error!ast.Type {
+    return values[1].*;
 }
 
 fn named(_: *Parser, values: Named.Value) zx.Error!ast.Type {

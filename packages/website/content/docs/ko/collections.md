@@ -19,11 +19,11 @@ export default function (in: Input): Output {
 
 ```typescript
 const result = loop(initial, {
-	while: state => state.remaining > 0,
-	next: state => {
-		state.remaining -= 1
-		state.processed += 1
-	}
+    while: state => state.remaining > 0,
+    next: state => {
+        state.remaining -= 1
+        state.processed += 1
+    }
 })
 ```
 
@@ -31,7 +31,7 @@ const result = loop(initial, {
 
 콜백은 외부 변수를 캡처할 수 없습니다. 필요한 데이터는 초기 상태에 포함하세요. 기존 초기 상태 바인딩은 변경되지 않으며 호출 뒤에도 읽을 수 있습니다. 결과는 외부의 새로운 `const`에 바인딩하세요. RX에서는 `Call.fn`으로 loop가 포함된 ZX 모듈을 호출합니다. 속성 값 안에서 함수나 메서드를 호출할 수 없습니다. `forEach`는 제공하지 않습니다.
 
-컴파일러는 일반 Zig 반복문을 생성합니다. 저장 공간 재사용은 소유권과 별칭 분석에 따라 결정되며, 모든 연산이 할당 없이 실행된다는 뜻은 아닙니다. 구문과 검증 범위는 [loop 참조（중국어）](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md)를 확인하세요.
+컴파일러는 일반 Zig 반복문을 생성합니다. 저장 공간 재사용은 소유권과 별칭 분석에 따라 결정되며, 모든 연산이 할당 없이 실행된다는 뜻은 아닙니다. 구문과 검증 범위는 [loop 참조（중국어）](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-06/loop使用参考.md)를 확인하세요.
 
 ### 갱신된 리스트를 이어서 사용하기
 

@@ -25,6 +25,15 @@ export default function (in: Input): Output {
 
     const alias = in.work.aliases[index]
 
+    if (
+        selected.kind == NodeKind.Selection || selected.kind == NodeKind.Intersection
+    ) {
+        return {
+            ...in,
+            valid: false
+        }
+    }
+
     if (selected.kind == NodeKind.Named) {
         const found = find({
             source: in.source,

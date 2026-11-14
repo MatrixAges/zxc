@@ -42,7 +42,7 @@ const result = loop(initial, {
 
 `loop` 只接受初始状态与规则两个参数，回调只声明自身状态参数。当前函数作用域中的输入与 const 可按名字向下只读访问；只有循环状态可以更新，不创建可保存或逃逸的闭包。已有初值绑定仍可读取，状态更新不直接改写它。结果由外层新的 `const` 接收。RX 必须通过 `Call.fn` 调用包含 `loop` 的 ZX 模块，属性值中不允许函数或方法调用；不提供 `forEach`。
 
-生成的程序使用普通 Zig 循环，是否复用对象或列表存储由编译器的所有权与别名分析决定。完整语法及已验证边界见 [loop 使用参考](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md)。
+生成的程序使用普通 Zig 循环，是否复用对象或列表存储由编译器的所有权与别名分析决定。完整语法及已验证边界见 [loop 使用参考](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-06/loop使用参考.md)。
 
 ### 继续传递更新后的列表
 
@@ -79,6 +79,6 @@ export default function (in: Input): Output {
 
 列表索引会检查边界，并可能失败。不要把越界访问当成返回可选值的查找方式。
 
-`with` 可在普通函数中表达单元素替换，直接返回更新后的列表。它沿用 ZX 状态下标更新的求值顺序：先求目标列表和索引，检查边界后再求替换值；越界返回 `IndexOutOfBounds`。原列表的可观察值保持不变，编译器只在证明独占消费时复用存储。它不接受负索引，也不扩展列表。完整契约见[列表替换与根导出参考](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-09/流程状态自举/列表替换与根导出参考.md)。
+`with` 可在普通函数中表达单元素替换，直接返回更新后的列表。它沿用 ZX 状态下标更新的求值顺序：先求目标列表和索引，检查边界后再求替换值；越界返回 `IndexOutOfBounds`。原列表的可观察值保持不变，编译器只在证明独占消费时复用存储。它不接受负索引，也不扩展列表。完整契约见[列表替换与根导出参考](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-09/流程状态自举/列表替换与根导出参考.md)。
 
 分配的生命周期由宿主负责。返回列表不会把它的 arena 移交给垃圾收集器。继续阅读[宿主集成](/docs/host-integration)。

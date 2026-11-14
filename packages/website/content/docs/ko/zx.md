@@ -34,7 +34,7 @@ export default function (in: Input): Output {
 
 깊은 복사가 필요하면 `clone`을 사용하세요. Store 접근은 읽기와 쓰기 권한이 독립적인 선언된 핸들을 통해 제공됩니다. 수명, 영속성, 커밋 동작은 호스트 코드가 관리합니다.
 
-설치된 도구 체인의 포매터와 진단을 사용하세요. 정확한 계약은 [컴파일러 참조](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md)에서 확인하세요.
+설치된 도구 체인의 포매터와 진단을 사용하세요. 정확한 계약은 [컴파일러 참조](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md)에서 확인하세요.
 
 ### 공유 계약은 타입 전용 파일에 두기
 

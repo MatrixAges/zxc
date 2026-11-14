@@ -46,10 +46,7 @@ export type Input = {
     final: bool
 }
 
-export type Output = {
-    parts: u64[],
-    fields: u64[],
-    kinds: Kind[],
+export type Output = Candidates & {
     named: Action,
     ambiguous: Action,
     open: Action,

@@ -34,7 +34,7 @@ Do not assume arbitrary closures, general loops, JavaScript coercion, or runtime
 
 Use `clone` when deep copying is required. Store access is provided through declared handles with independent read and write permissions. Host code owns lifetime, persistence, and commit behavior.
 
-Use the installed toolchain's formatter and diagnostics. Confirm exact contracts in the [compiler reference](https://github.com/MatrixAges/zxc/blob/master/packages/compiler/README.md).
+Use the installed toolchain's formatter and diagnostics. Confirm exact contracts in the [compiler reference](https://github.com/MatrixAges/zray/blob/master/packages/compiler/README.md).
 
 ### Put shared contracts in a type-only file
 

@@ -10,11 +10,7 @@ export enum Mode {
     Reserve
 }
 
-export type Bounds = {
-    bases: Bases,
-    items: u32,
-    index: u32
-}
+export type Bounds = Input.Pick("bases", "items", "index")
 
 export type Input = {
     bases: Bases,

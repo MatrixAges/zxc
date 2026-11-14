@@ -35,7 +35,7 @@ Use `do` instead of `next` to run the step at least once and check the updated s
 
 The rule callbacks of `loop` still use explicit state. Include required data in the initial state. An existing initial-state binding remains readable; the update does not mutate it. Bind the result to a new outer `const`. RX must use `Call.fn` to invoke the ZX module containing `loop`; function and method calls are not allowed inside RX attribute values. There is no `forEach` operation.
 
-The compiler emits ordinary Zig loops. Storage reuse depends on ownership and alias analysis; using `loop` does not guarantee that every application operation avoids allocation. See the [loop reference](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md) for syntax and verified boundaries.
+The compiler emits ordinary Zig loops. Storage reuse depends on ownership and alias analysis; using `loop` does not guarantee that every application operation avoids allocation. See the [loop reference](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-06/loop使用参考.md) for syntax and verified boundaries.
 
 ### Carry the updated list forward
 
@@ -72,6 +72,6 @@ After a consuming operation, do not reuse the old list binding. If you must pres
 
 List indexing is bounds checked and can fail. Do not use an out-of-range access as an optional-value lookup.
 
-`with` expresses a single-element replacement in an ordinary function and returns the updated list directly. It follows ZX state-index update order: evaluate the target and index, check bounds, then evaluate the replacement value. An invalid index returns `IndexOutOfBounds`. The original list's observable value is preserved; storage is reused only when the compiler proves exclusive consumption. Negative indices and list expansion are not supported. See the [replacement and entry-point reference](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-09/流程状态自举/列表替换与根导出参考.md) for the complete contract.
+`with` expresses a single-element replacement in an ordinary function and returns the updated list directly. It follows ZX state-index update order: evaluate the target and index, check bounds, then evaluate the replacement value. An invalid index returns `IndexOutOfBounds`. The original list's observable value is preserved; storage is reused only when the compiler proves exclusive consumption. Negative indices and list expansion are not supported. See the [replacement and entry-point reference](https://github.com/MatrixAges/zray/blob/master/docs/2026-10-09/流程状态自举/列表替换与根导出参考.md) for the complete contract.
 
 The host owns allocation lifetime. Returning a list does not transfer its arena into a garbage collector. Continue with [host integration](/docs/host-integration).

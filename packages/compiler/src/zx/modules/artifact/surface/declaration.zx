@@ -11,11 +11,7 @@ export type Input = {
     types: Mapping
 }
 
-export type Output = {
-    name: string,
-    type_id: u32,
-    text?: string
-}
+export type Output = Input.Omit("types")
 
 export default function (in: Input): Output {
     const text = in.text

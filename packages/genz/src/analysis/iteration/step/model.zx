@@ -21,13 +21,10 @@ export type Evaluation = {
     assignment: Assignment
 }
 
-export type Output = {
-    step: u32,
-    by_value: bool,
+export type Output = Evaluation & {
     first_test: bool,
     after_step: bool,
     classify_renewals: bool,
     inline_lists: bool,
-    restore_projected: bool,
-    assignment: Assignment
+    restore_projected: bool
 }

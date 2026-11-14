@@ -3,8 +3,8 @@
 現在の導入手順はソースからのビルドです。このリビジョンでは Zig **0.17.0** をインストールし、次を実行します。
 
 ```sh
-git clone https://github.com/MatrixAges/zxc.git
-cd zxc
+git clone https://github.com/MatrixAges/zray.git
+cd zray
 zig build
 zig build zx-example
 ```

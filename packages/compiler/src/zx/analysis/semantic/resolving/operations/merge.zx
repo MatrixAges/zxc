@@ -1,0 +1,72 @@
+import less from "../../constructing/fields/less"
+
+import type { Fields } from "core/type_table/model"
+
+export type Input = {
+    left: Fields,
+    right: Fields
+}
+
+export type Output = Fields?
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const types: u32[] = []
+
+    return loop({
+        left: 0,
+        right: 0,
+        names,
+        types,
+        conflict: false
+    }, {
+        while: state => {
+            const pending = state.left < in.left.names.length ||
+                state.right < in.right.names.length
+
+            return pending && !state.conflict
+        },
+        next: state => {
+            const left = state.left
+            const right = state.right
+            const left_end = left == in.left.names.length
+            const right_end = right == in.right.names.length
+
+            const both_present = !left_end && !right_end
+
+            if (both_present && in.left.names[left] == in.right.names[right]) {
+                state.conflict = in.left.types[left] != in.right.types[right]
+                state.names = state.names.push(in.left.names[left])[0]
+                state.types = state.types.push(in.left.types[left])[0]
+                state.left += 1
+                state.right += 1
+            } else {
+                const take_left = match {
+                    right_end => true,
+                    left_end => false,
+                    _ => less({
+                        left: in.left.names[left],
+                        right: in.right.names[right]
+                    })
+                }
+
+                if (take_left) {
+                    state.names = state.names.push(in.left.names[left])[0]
+                    state.types = state.types.push(in.left.types[left])[0]
+                    state.left += 1
+                } else {
+                    state.names = state.names.push(in.right.names[right])[0]
+                    state.types = state.types.push(in.right.types[right])[0]
+                    state.right += 1
+                }
+            }
+        },
+        return: state => match {
+            state.conflict => null,
+            _ => ({
+                names: state.names,
+                types: state.types
+            })
+        }
+    })
+}

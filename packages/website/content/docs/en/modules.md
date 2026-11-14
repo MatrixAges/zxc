@@ -4,7 +4,7 @@ RX expresses how business units compose and how data crosses their boundaries. X
 
 Explicit opening and closing tags make boundaries independent of indentation. People and AI can read, generate, and change subtrees, while tools check allowed tags, attributes, and nesting. The same structural rules at each level provide a consistent language for composition and fractal growth.
 
-XML adds markup. The reason to choose it is explicit structure, not fewer tokens in the syntax itself. Reduced context burden comes from clear boundaries and locating relevant units through dependencies. Nesting expresses containment; calls and imports form the dependency graph. Acyclicity comes from zxc validation rules. Keep computation in ZX rather than accumulating business algorithms inside attributes.
+XML adds markup. The reason to choose it is explicit structure, not fewer tokens in the syntax itself. Reduced context burden comes from clear boundaries and locating relevant units through dependencies. Nesting expresses containment; calls and imports form the dependency graph. Acyclicity comes from zray validation rules. Keep computation in ZX rather than accumulating business algorithms inside attributes.
 
 ### A module is a file
 

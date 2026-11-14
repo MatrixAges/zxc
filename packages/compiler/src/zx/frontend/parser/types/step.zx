@@ -2,6 +2,7 @@ import field from "./field"
 import { Phase } from "./model"
 import namePart from "./name_part"
 import primary from "./primary"
+import selection from "./selection_step"
 import suffix from "./suffix"
 
 import type { Token } from "../../lexer/token_model"
@@ -51,6 +52,10 @@ export default function (in: Input): Output {
         case Phase.Field: return field(state)
         case Phase.FieldOptional: return field(state)
         case Phase.FieldColon: return field(state)
+        case Phase.SelectName: return selection(state)
+        case Phase.SelectOpen: return selection(state)
+        case Phase.SelectKey: return selection(state)
+        case Phase.SelectSeparator: return selection(state)
         default: return state
     }
 }

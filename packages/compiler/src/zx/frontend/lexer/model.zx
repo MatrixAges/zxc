@@ -65,8 +65,4 @@ export type AdvanceInput = {
     state: LexerState
 }
 
-export type Result = {
-    tokens: Token[],
-    comments: Span[],
-    diagnostic: Diagnostic
-}
+export type Result = LexerState.Pick("tokens", "comments", "diagnostic")

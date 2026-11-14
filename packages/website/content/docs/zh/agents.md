@@ -2,7 +2,7 @@
 
 读取 [llms.txt](/llms.txt) 获取章节索引，或读取 [llms-full.txt](/llms-full.txt) 获取完整文档。每个章节都有原始 Markdown 入口，均不需要客户端 JavaScript。
 
-应用开发约定也可参考仓库中的 [Agent 指南](https://github.com/MatrixAges/zxc/tree/master/packages/skills)。这些是 Markdown 指导文档，不是已经发布的可执行软件包。
+应用开发约定也可参考仓库中的 [Agent 指南](https://github.com/MatrixAges/zray/tree/master/packages/skills)。这些是 Markdown 指导文档，不是已经发布的可执行软件包。
 
 ### 任务契约
 
@@ -17,7 +17,7 @@
 失败处理：<要求>
 工具链与宿主运行时：<可用能力>
 
-先阅读当前 zxc 文档。
+先阅读当前 zray 文档。
 分离 RX 编排与 ZX 业务逻辑。
 以文件路径作为模块身份，保持依赖无环。
 只使用当前环境支持的能力。

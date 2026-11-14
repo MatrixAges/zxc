@@ -1,10 +1,10 @@
-zxc uses **RX to express business structure** and **ZX to write atomic logic**. Its core purpose is to make data flow and data architecture visible, keeping a growing business understandable, traceable, and maintainable.
+zray uses **RX to express business structure** and **ZX to write atomic logic**. Its core purpose is to make data flow and data architecture visible, keeping a growing business understandable, traceable, and maintainable.
 
-zxc gives business structure to RX and atomic logic to ZX. Boundaries and connections make it explicit where data comes from, which computations it passes through, and where it goes. Compiler dependency checks keep structural constraints in place as the business grows.
+zray gives business structure to RX and atomic logic to ZX. Boundaries and connections make it explicit where data comes from, which computations it passes through, and where it goes. Compiler dependency checks keep structural constraints in place as the business grows.
 
 ### Fractal growth
 
-A ZX unit handles one computation with a clear boundary. RX composes units into business modules, and modules into larger business boundaries. When more detail is needed, split the internals again. Each level keeps a single responsibility, explicit inputs and outputs, and one-way dependencies: the fractal organization of zxc.
+A ZX unit handles one computation with a clear boundary. RX composes units into business modules, and modules into larger business boundaries. When more detail is needed, split the internals again. Each level keeps a single responsibility, explicit inputs and outputs, and one-way dependencies: the fractal organization of zray.
 
 An “atom” is a unit with a clear responsibility and contract, not an atomic database transaction or the smallest possible fragment. “Fractal” means applying the same decomposition and composition rules at different levels, not cyclic dependencies or recursive calls. Explicit connections show which units data passes through; input and output types describe its shape at boundaries. Acyclicity constrains dependency direction but cannot eliminate all business coupling.
 
@@ -16,11 +16,11 @@ The goal is to minimize token use and cognitive load, helping non-SOTA models me
 
 ### Atomic optimization
 
-A ZX unit with a clear boundary can be analyzed and optimized like a computational operator. Static information in zxc and compile-time capabilities in Zig create paths for inlining, specialization, and eliminating abstraction overhead, bringing clear business expression and high performance closer together.
+A ZX unit with a clear boundary can be analyzed and optimized like a computational operator. Static information in zray and compile-time capabilities in Zig create paths for inlining, specialization, and eliminating abstraction overhead, bringing clear business expression and high performance closer together.
 
 ZX currently compiles to Zig. When using Zig’s LLVM backend, the program can benefit from target-specific optimization and machine-code generation. Zero-cost abstraction is a goal to verify through generated code and measurement, not a claim that every operation has no allocation or runtime cost.
 
-The longer-term direction includes formal specifications and proofs for atomic units, assembly-level analysis and generation, and hardware targets such as FPGA. Formal verification needs dedicated proof tools; FPGA needs synthesis flows and backends. These are future directions, not capabilities automatically supplied by LLVM or already delivered by zxc.
+The longer-term direction includes formal specifications and proofs for atomic units, assembly-level analysis and generation, and hardware targets such as FPGA. Formal verification needs dedicated proof tools; FPGA needs synthesis flows and backends. These are future directions, not capabilities automatically supplied by LLVM or already delivered by zray.
 
 ### Capabilities
 
