@@ -72,8 +72,6 @@ const Unit = struct {
     exports: []const ir.Export = &.{},
     constants: []const ir.Constant = &.{},
     members: []const FunctionImport = &.{},
-    context_digest: [32]u8 = undefined,
-    reused: bool = false,
 };
 
 const NativeUnit = struct { exports: []const ir.Export, members: []const FunctionImport };
@@ -105,7 +103,8 @@ const Project = struct {
     semantic_cache: ?*SemanticCache = null,
     load_frames: std.ArrayList(LoadFrame) = .empty,
     entry_program: ?ir.Program = null,
-    empty_context_digest: ?[32]u8 = null,
+    cache_context: @import("semantic_cache/publication.zig").Context = .{},
+    cache_records: std.ArrayList(usize) = .empty,
     units: []Unit,
     /// Each unit path to the first unit with it.
     unit_indices: source_index.Map = .empty,
@@ -182,9 +181,11 @@ const Project = struct {
         const allocator = self.arena.child_allocator;
 
         self.unit_indices.deinit(allocator);
+
         for (self.load_frames.items) |*frame| frame.imported_names.deinit(allocator);
 
         self.load_frames.deinit(allocator);
+        self.cache_records.deinit(allocator);
         self.binding_scratch.deinit();
     }
 
@@ -457,9 +458,9 @@ const Project = struct {
         var restored: ?@import("semantic_cache/restore.zig").Restored = null;
 
         if (self.semantic_cache) |cache| {
-            unit.context_digest = try self.contextDigest(entry);
+            const digest = try self.cache_context.get(self.allocator, entry, self.options.context);
 
-            if (SemanticCache.entry_store.find(&cache.entries, unit.path, &frame.parsed.digest, &unit.context_digest)) |cached| {
+            if (SemanticCache.entry_store.find(&cache.entries, unit.path, &frame.parsed.digest, digest)) |cached| {
                 if (try @import("semantic_cache/restore.zig").restore(cached, .{
                     .allocator = self.allocator,
                     .backing = self.arena.child_allocator,
@@ -475,7 +476,6 @@ const Project = struct {
                     .dependencies = dependencies.items,
                 })) |program| {
                     restored = program;
-                    unit.reused = true;
                     cache.reused += 1;
                 }
             }
@@ -505,7 +505,14 @@ const Project = struct {
             break :analyze_block try input.analyze(&analyzer, unit.path);
         };
 
-        const publication = try @import("project/publication/host.zig").module(&program, entry, input.header().functionName() != null, self.functions.count(), if (restored) |*value| value else null, !@TypeOf(input).completes_ownership);
+        const publication = try @import("project/publication/host.zig").module(&program, .{
+            .entry = entry,
+            .declared = input.header().functionName() != null,
+            .linked = self.functions.count(),
+            .restored = if (restored) |*value| value else null,
+            .check_ownership = !@TypeOf(input).completes_ownership,
+            .cache = self.semantic_cache != null,
+        });
 
         unit.function = publication.id;
 
@@ -535,6 +542,8 @@ const Project = struct {
             };
         }
 
+        if (publication.publish_artifact) try self.cache_records.append(self.arena.child_allocator, self.modules.items.len);
+
         try self.modules.append(self.allocator, .{
             .path = unit.path,
             .source_digest = source_digest,
@@ -557,17 +566,6 @@ const Project = struct {
         }
 
         unit.state = .Done;
-    }
-
-    fn contextDigest(self: *Project, entry: bool) std.mem.Allocator.Error![32]u8 {
-        if (entry) return SemanticCache.contextDigest(self.allocator, self.options.context);
-        if (self.empty_context_digest) |digest| return digest;
-
-        const digest = try SemanticCache.contextDigest(self.allocator, .{});
-
-        self.empty_context_digest = digest;
-
-        return digest;
     }
     fn loadCompiled(self: *Project, target: compiled.Target, span: zx.Span) zx.Error!Imported {
         const exported = compiled.imports.load(self.allocator, &self.options, target, .{
@@ -859,37 +857,11 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     if (try Validate.validateProjectPrefix(allocator, program, project.verified)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
-    var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
+    const result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 
     if (project.semantic_cache) |semantic| {
-        var scratch = zx.Arena.init(allocator);
-
-        defer scratch.deinit();
-
-        for (result.modules) |module| {
-            const unit = project.units[project.find(module.path).?];
-
-            if (unit.reused) continue;
-
-            defer scratch.reset(std.math.maxInt(usize));
-
-            var extracted = @import("artifact/extract.zig").validated(semantic.allocator, scratch.allocator(), &result, module) catch |err| {
-                if (err == error.OutOfMemory) return error.OutOfMemory;
-
-                if (err == error.MissingNominalOrigin) {
-                    semantic.uncacheable += 1;
-
-                    continue;
-                }
-
-                return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "module artifact extraction requires valid project IR and module metadata" } } };
-            };
-
-            semantic.put(extracted, unit.context_digest) catch |err| {
-                extracted.deinit();
-
-                return err;
-            };
+        if (try @import("semantic_cache/publication.zig").publish(allocator, semantic, &result, project.cache_records.items, &project.cache_context, normalized.entry)) |issue| {
+            return .{ .arena = arena, .value = .{ .diagnostic = issue } };
         }
     }
 

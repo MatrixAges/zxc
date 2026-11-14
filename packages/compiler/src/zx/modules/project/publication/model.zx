@@ -16,6 +16,7 @@ export type Request = {
     restored: bool,
     restored_function?: u32,
     check_ownership: bool,
+    cache: bool,
     linked_count: u64,
     calls: u32[]
 }
@@ -30,7 +31,8 @@ export type Plan = {
     append: bool,
     publication: Publication,
     own_function?: u32,
-    ownership_count?: u64
+    ownership_count?: u64,
+    publish_artifact: bool
 }
 
 export type Entry = {

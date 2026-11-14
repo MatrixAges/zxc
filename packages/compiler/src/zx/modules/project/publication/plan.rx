@@ -37,7 +37,8 @@
             ...$ctx.slot,
             publication: $ctx.classify,
             own_function: $ctx.recursion ? $ctx.slot.id : null,
-            ownership_count: $ctx.ownership_count
+            ownership_count: $ctx.ownership_count,
+            publish_artifact: $in.cache && !$in.restored
         }}
     />
 </Module>

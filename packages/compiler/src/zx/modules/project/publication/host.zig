@@ -16,9 +16,24 @@ pub const Plan = struct {
     body: @FieldType(@import("../../module_record.zig"), "body"),
     own_function: ?ir.FunctionId,
     ownership_count: ?usize,
+    publish_artifact: bool,
 };
 
-pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: usize, restored: ?*const @import("../../semantic_cache/restore.zig").Restored, check_ownership: bool) std.mem.Allocator.Error!Plan {
+const Request = struct {
+    entry: bool,
+    declared: bool,
+    linked: usize,
+    restored: ?*const @import("../../semantic_cache/restore.zig").Restored,
+    check_ownership: bool,
+    cache: bool,
+};
+
+pub fn module(program: *const ir.Program, request: Request) std.mem.Allocator.Error!Plan {
+    const entry = request.entry;
+    const declared = request.declared;
+    const linked = request.linked;
+    const restored = request.restored;
+    const check_ownership = request.check_ownership;
     const recovered = if (restored) |value| value.recursive else null;
 
     if (comptime enabled) {
@@ -31,6 +46,7 @@ pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: u
             .restored = restored != null,
             .restored_function = if (recovered) |id| @backingInt(id) else null,
             .check_ownership = check_ownership,
+            .cache = request.cache,
             .linked_count = linked,
             .calls = program.expressions.call_functions,
         };
@@ -50,6 +66,7 @@ pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: u
             .body = body(result.publication, id),
             .own_function = if (result.own_function) |value| @fromBackingInt(value) else null,
             .ownership_count = if (result.ownership_count) |count| @intCast(count) else null,
+            .publish_artifact = result.publish_artifact,
         };
     }
 
@@ -64,6 +81,7 @@ pub fn module(program: *const ir.Program, entry: bool, declared: bool, linked: u
         .body = body(publication, id),
         .own_function = if (recursive) id else null,
         .ownership_count = if (restored == null and check_ownership) linked + @intFromBool(append) - @intFromBool(!program.type_only and !recursive) else null,
+        .publish_artifact = request.cache and restored == null,
     };
 }
 
