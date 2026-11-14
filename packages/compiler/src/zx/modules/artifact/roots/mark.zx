@@ -1,0 +1,34 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import type { U8Buffer } from "std:memory"
+
+export type Input = {
+    buffer: U8Buffer,
+    count: u64,
+    values: u32[]
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const values = in.values
+
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < values.length,
+        next: state => {
+            const id = integers.widen(values[state.index])
+            state.valid = id < in.count
+
+            if (state.valid) {
+                memory.writeU8(in.buffer, id, 1)
+            }
+
+            state.index += 1
+        },
+        return: state => state.valid
+    })
+}

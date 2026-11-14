@@ -1,3 +1,4 @@
+import type { U8Buffer } from "std:memory"
 import type { Contracts } from "core/contract_table/model"
 import type { Expressions } from "core/expression_table/model"
 import type { Modules } from "core/native_module_table/model"
@@ -44,6 +45,8 @@ export type Record = {
 }
 
 export type Request = {
+    roots: bool[],
+    buffer: U8Buffer,
     file_name: string,
     type_only: bool,
     table: Table,
@@ -56,18 +59,4 @@ export type Request = {
 export type Selection = {
     request: Request,
     body?: Body
-}
-
-export type Cursor = {
-    stage: u64,
-    index: u64,
-    section: u64,
-    offset: u64
-}
-
-export type Step = {
-    cursor: Cursor,
-    valid: bool,
-    found: bool,
-    id: u32
 }

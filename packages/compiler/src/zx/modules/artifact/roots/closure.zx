@@ -1,23 +1,22 @@
 import integers from "std:integer"
+import memory from "std:memory"
 
 import dependency from "./dependency"
 
+import type { U8Buffer } from "std:memory"
 import type { Table } from "core/type_table/model"
 
 export type Input = {
     table: Table,
-    needed: bool[]
+    needed: bool[],
+    buffer: U8Buffer
 }
 
-export type Output = {
-    needed: bool[],
-    valid: bool
-}
+export type Output = bool
 
 export default function (in: Input): Output {
-    const state = loop({
+    return loop({
         table: in.table,
-        needed: in.needed,
         remaining: in.needed.length,
         edge: 0,
         valid: true
@@ -26,7 +25,7 @@ export default function (in: Input): Output {
         next: current => {
             const index = current.remaining - 1
             const child = match {
-                current.needed[index] => dependency({
+                in.needed[index] => dependency({
                     table: current.table,
                     index,
                     edge: current.edge
@@ -40,18 +39,14 @@ export default function (in: Input): Output {
             } else {
                 const child_index = integers.widen(child)
 
-                if (child_index >= current.needed.length) {
+                if (child_index >= in.needed.length) {
                     current.valid = false
                 } else {
-                    current.needed[child_index] = true
+                    memory.writeU8(in.buffer, child_index, 1)
                     current.edge += 1
                 }
             }
-        }
+        },
+        return: state => state.valid
     })
-
-    return {
-        needed: state.needed,
-        valid: state.valid
-    }
 }

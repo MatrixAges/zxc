@@ -1,76 +1,51 @@
 import { TargetKind } from "../dependencies/model"
+import mark from "./mark"
 
-import type { Cursor, Request, Step } from "./model"
+import type { Request } from "./model"
 
 export type Input = {
-    request: Request,
-    cursor: Cursor
+    request: Request
 }
 
-export type Output = Step
+export type Output = bool
 
 export default function (in: Input): Output {
-    const record = in.request.record
-    const modules = in.request.modules
-    const cursor = in.cursor
+    const { modules, record, buffer, roots } = in.request
 
-    if (cursor.index >= record.import_kinds.length) {
-        return {
-            cursor: {
-                stage: cursor.stage + 1,
-                index: 0,
-                section: 0,
-                offset: 0
-            },
-            valid: true,
-            found: false,
-            id: 0
-        }
-    }
+    const count = roots.length
 
-    if (
-        record.import_kinds[cursor.index] != TargetKind.Native ||
-            cursor.section >= modules.specifiers.length
-    ) {
-        return {
-            cursor: {
-                ...cursor,
-                index: cursor.index + 1,
-                section: 0,
-                offset: 0
-            },
-            valid: true,
-            found: false,
-            id: 0
-        }
-    }
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < record.import_kinds.length,
+        next: state => {
+            if (record.import_kinds[state.index] == TargetKind.Native) {
+                const specifier = record.import_specifiers[state.index]
 
-    if (
-        record.import_specifiers[cursor.index] == modules.specifiers[cursor.section]
-    ) {
-        const values = modules.type_ids[cursor.section]
+                const matched = loop({
+                    index: 0,
+                    valid: true
+                }, {
+                    while: row => row.valid && row.index < modules.specifiers.length,
+                    next: row => {
+                        if (specifier == modules.specifiers[row.index]) {
+                            row.valid = mark({
+                                buffer,
+                                count,
+                                values: modules.type_ids[row.index]
+                            })
+                        }
 
-        if (cursor.offset < values.length) {
-            return {
-                cursor: {
-                    ...cursor,
-                    offset: cursor.offset + 1
-                },
-                valid: true,
-                found: true,
-                id: values[cursor.offset]
+                        row.index += 1
+                    }
+                })
+
+                state.valid = matched.valid
             }
-        }
-    }
 
-    return {
-        cursor: {
-            ...cursor,
-            section: cursor.section + 1,
-            offset: 0
+            state.index += 1
         },
-        valid: true,
-        found: false,
-        id: 0
-    }
+        return: state => state.valid
+    })
 }

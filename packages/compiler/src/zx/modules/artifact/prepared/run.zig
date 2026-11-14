@@ -31,8 +31,15 @@ pub fn execute(temporary: std.mem.Allocator, analysis: *const Analysis.Result, r
     const origins = Origins.Table.borrow(std.meta.Child(@FieldType(Input, "origins")), analysis.nominal_types);
     const functions = source_view.functions(std.meta.Child(@FieldType(Source, "functions")), program);
     const entry = source_view.body(std.meta.Child(@FieldType(Source, "entry")), program);
+    const roots = try temporary.alloc(bool, program.types.count());
+
+    @memset(roots, false);
+
+    const root_bytes = std.mem.sliceAsBytes(roots);
 
     const source: Source = .{
+        .roots = roots,
+        .buffer = @ptrCast(&root_bytes),
         .file_name = program.file_name,
         .type_only = program.type_only,
         .table = &table,

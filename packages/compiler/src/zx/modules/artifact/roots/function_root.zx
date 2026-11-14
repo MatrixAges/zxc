@@ -1,101 +1,71 @@
 import integers from "std:integer"
+import memory from "std:memory"
 
-import type { Cursor, Request, Step } from "./model"
+import mark from "./mark"
+
+import type { Request } from "./model"
 
 export type Input = {
-    request: Request,
-    cursor: Cursor
+    request: Request
 }
 
-export type Output = Step
+export type Output = bool
 
 export default function (in: Input): Output {
-    const record = in.request.record
-    const functions = in.request.functions
-    const cursor = in.cursor
+    const { functions, record, modules, roots, buffer } = in.request
 
-    if (cursor.index >= record.function_ids.length) {
-        return {
-            cursor: {
-                stage: cursor.stage + 1,
-                index: 0,
-                section: 0,
-                offset: 0
-            },
-            valid: true,
-            found: false,
-            id: 0
-        }
-    }
+    const count = roots.length
 
-    const index = integers.widen(record.function_ids[cursor.index])
+    return loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < record.function_ids.length,
+        next: state => {
+            const index = integers.widen(record.function_ids[state.index])
 
-    if (index >= functions.count) {
-        return {
-            cursor,
-            valid: false,
-            found: false,
-            id: 0
-        }
-    }
+            if (index >= functions.count) {
+                state.valid = false
+            } else {
+                const input = integers.widen(record.function_inputs[state.index])
+                const output = integers.widen(record.function_outputs[state.index])
+                const source_input = integers.widen(functions.input_types[index])
+                const source_output = integers.widen(functions.output_types[index])
+                const invalid = (
+                    - input >= count
+                    - or output >= count
+                    - or source_input >= count
+                    - or source_output >= count
+                )
 
-    if (cursor.section < 4) {
-        const id = match cursor.section {
-            0 => record.function_inputs[cursor.index],
-            1 => record.function_outputs[cursor.index],
-            2 => functions.input_types[index],
-            _ => functions.output_types[index]
-        }
+                if (invalid) {
+                    state.valid = false
+                } else {
+                    memory.writeU8(buffer, input, 1)
+                    memory.writeU8(buffer, output, 1)
+                    memory.writeU8(buffer, source_input, 1)
+                    memory.writeU8(buffer, source_output, 1)
 
-        return {
-            cursor: {
-                ...cursor,
-                section: cursor.section + 1
-            },
-            valid: true,
-            found: true,
-            id: id
-        }
-    }
+                    const module = functions.native_modules[index]
 
-    const module = functions.native_modules[index]
+                    if (module != null) {
+                        const native = integers.widen(module)
 
-    if (module != null) {
-        const native = integers.widen(module)
-
-        if (native >= in.request.modules.specifiers.length) {
-            return {
-                cursor,
-                valid: false,
-                found: false,
-                id: 0
+                        if (native >= modules.specifiers.length) {
+                            state.valid = false
+                        } else {
+                            state.valid = mark({
+                                buffer,
+                                count,
+                                values: modules.type_ids[native]
+                            })
+                        }
+                    }
+                }
             }
-        }
 
-        const values = in.request.modules.type_ids[native]
-        const offset = cursor.section - 4
-
-        if (offset < values.length) {
-            return {
-                cursor: {
-                    ...cursor,
-                    section: cursor.section + 1
-                },
-                valid: true,
-                found: true,
-                id: values[offset]
-            }
-        }
-    }
-
-    return {
-        cursor: {
-            ...cursor,
-            index: cursor.index + 1,
-            section: 0
+            state.index += 1
         },
-        valid: true,
-        found: false,
-        id: 0
-    }
+        return: state => state.valid
+    })
 }

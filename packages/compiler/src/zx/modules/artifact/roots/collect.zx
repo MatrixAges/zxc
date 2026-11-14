@@ -1,65 +1,35 @@
-import integers from "std:integer"
+import memory from "std:memory"
 
-import rootAt from "./root_at"
+import mark from "./mark"
 
-import type { Selection } from "./model"
+import type { Request } from "./model"
 
-export type Input = Selection
+export type Input = Request
 
-export type Output = {
-    needed: bool[],
-    valid: bool
-}
+export type Output = bool
 
 export default function (in: Input): Output {
-    const needed = in.request.table.kinds.map(item => false)[0]
+    const { record, roots, buffer } = in
 
-    const state = loop({
-        selection: in,
-        needed,
-        range: in.request.record.start,
-        cursor: {
-            stage: 0,
-            index: 0,
-            section: 0,
-            offset: 0
-        },
-        valid: true
+    const initialized = loop({
+        index: record.start
     }, {
-        while: current =>
-            current.valid &&
-            (
-                current.range < current.selection.request.record.end ||
-                    current.cursor.stage < 5
-            ),
-        next: current => {
-            if (current.range < current.selection.request.record.end) {
-                current.needed[current.range] = true
-                current.range += 1
-            } else {
-                const root = rootAt({
-                    selection: current.selection,
-                    cursor: current.cursor
-                })
-
-                current.cursor = root.cursor
-                current.valid = root.valid
-
-                if (root.found) {
-                    const index = integers.widen(root.id)
-
-                    if (index >= current.needed.length) {
-                        current.valid = false
-                    } else {
-                        current.needed[index] = true
-                    }
-                }
-            }
+        while: state => state.index < record.end,
+        next: state => {
+            memory.writeU8(buffer, state.index, 1)
+            state.index += 1
         }
     })
 
-    return {
-        needed: state.needed,
-        valid: state.valid
-    }
+    const declarations = mark({
+        buffer,
+        count: roots.length,
+        values: record.declaration_types
+    })
+
+    return declarations && mark({
+        buffer,
+        count: roots.length,
+        values: record.type_imports
+    })
 }

@@ -1,91 +1,87 @@
-import type { Body, Cursor, Step } from "./model"
+import integers from "std:integer"
+import memory from "std:memory"
+
+import mark from "./mark"
+
+import type { U8Buffer } from "std:memory"
+import type { Body } from "./model"
 
 export type Input = {
-    body: Body,
-    cursor: Cursor
+    body?: Body,
+    buffer: U8Buffer,
+    count: u64
 }
 
-export type Output = Step
+export type Output = bool
 
 export default function (in: Input): Output {
-    const cursor = in.cursor
-    const body = in.body
+    const { body, buffer, count } = in
 
-    if (cursor.index == 0 && cursor.section < 2) {
-        return {
-            cursor: {
-                ...cursor,
-                section: cursor.section + 1
-            },
-            valid: true,
-            found: true,
-            id: cursor.section == 0 ? body.input_type : body.output_type
+    if (body == null) {
+        return true
+    }
+
+    const input = integers.widen(body.input_type)
+    const output = integers.widen(body.output_type)
+
+    if (input >= count || output >= count) {
+        return false
+    }
+
+    memory.writeU8(buffer, input, 1)
+    memory.writeU8(buffer, output, 1)
+
+    const symbols = mark({
+        buffer,
+        count,
+        values: body.symbols.types
+    })
+
+    if (!symbols) {
+        return false
+    }
+
+    const expressions = mark({
+        buffer,
+        count,
+        values: body.expressions.types
+    })
+
+    if (!expressions) {
+        return false
+    }
+
+    const contracts = body.contracts
+
+    const checked = loop({
+        index: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < contracts.kinds.length,
+        next: state => {
+            const symbols = mark({
+                buffer,
+                count,
+                values: contracts.symbols[state.index].types
+            })
+
+            state.valid = symbols && mark({
+                buffer,
+                count,
+                values: contracts.expressions[state.index].types
+            })
+
+            state.index += 1
         }
+    })
+
+    if (!checked.valid) {
+        return false
     }
 
-    if (cursor.index == 3 && cursor.section < body.contracts.kinds.length) {
-        const symbols = body.contracts.symbols[cursor.section].types
-        const expressions = body.contracts.expressions[cursor.section].types
-
-        if (cursor.offset < symbols.length + expressions.length) {
-            const id = match {
-                cursor.offset < symbols.length => symbols[cursor.offset],
-                _ => expressions[cursor.offset - symbols.length]
-            }
-
-            return {
-                cursor: {
-                    ...cursor,
-                    offset: cursor.offset + 1
-                },
-                valid: true,
-                found: true,
-                id: id
-            }
-        }
-
-        return {
-            cursor: {
-                ...cursor,
-                section: cursor.section + 1,
-                offset: 0
-            },
-            valid: true,
-            found: false,
-            id: 0
-        }
-    }
-
-    const values: u32[] = match cursor.index {
-        1 => body.symbols.types,
-        2 => body.expressions.types,
-        4 => body.stores.types,
-        _ => []
-    }
-
-    if (cursor.section < values.length) {
-        return {
-            cursor: {
-                ...cursor,
-                section: cursor.section + 1
-            },
-            valid: true,
-            found: true,
-            id: values[cursor.section]
-        }
-    }
-
-    const next = cursor.index + 1
-
-    return {
-        cursor: {
-            stage: next == 5 ? cursor.stage + 1 : cursor.stage,
-            index: next == 5 ? 0 : next,
-            section: 0,
-            offset: 0
-        },
-        valid: true,
-        found: false,
-        id: 0
-    }
+    return mark({
+        buffer,
+        count,
+        values: body.stores.types
+    })
 }

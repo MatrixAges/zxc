@@ -3,21 +3,55 @@
 
     <Args in={Model.Selection} out={bool[]?} />
 
-    <Call fn="collect" in={$in} />
+    <Call fn="collect" in={$in.request} />
 
-    <If on={$ctx.collect.valid}>
-        <Call
-            fn="closure"
-            in={{
-                table: $in.request.table,
-                needed: $ctx.collect.needed
-            }}
-        />
-
-        <Return value={$ctx.closure.valid ? $ctx.closure.needed : null} />
-
-        <Else>
-            <Return value={null} />
-        </Else>
+    <If on={!$ctx.collect}>
+        <Return value={null} />
     </If>
+
+    <Call
+        fn="function_root"
+        in={{
+            request: $in.request
+        }}
+    />
+
+    <If on={!$ctx.function_root}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="native_root"
+        in={{
+            request: $in.request
+        }}
+    />
+
+    <If on={!$ctx.native_root}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="body_root"
+        in={{
+            body: $in.body,
+            buffer: $in.request.buffer,
+            count: $in.request.roots.length
+        }}
+    />
+
+    <If on={!$ctx.body_root}>
+        <Return value={null} />
+    </If>
+
+    <Call
+        fn="closure"
+        in={{
+            table: $in.request.table,
+            needed: $in.request.roots,
+            buffer: $in.request.buffer
+        }}
+    />
+
+    <Return value={$ctx.closure ? $in.request.roots : null} />
 </Module>
