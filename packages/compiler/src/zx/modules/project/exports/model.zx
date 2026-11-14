@@ -1,7 +1,12 @@
+import type { U64Buffer } from "std:memory"
+
 export type Input = {
-    names: string[],
+    keys: u8[][],
+    buckets: U64Buffer,
+    capacity: u64,
     first_function: u64,
     roots: bool,
+    has_function: bool,
     signature?: Signature
 }
 
@@ -18,6 +23,7 @@ export type Signature = {
 
 export enum Action {
     None,
+    Forward,
     Callable,
     Deferred,
     Intrinsic,

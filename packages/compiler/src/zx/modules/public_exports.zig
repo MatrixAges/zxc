@@ -1,7 +1,9 @@
 const std = @import("std");
 const zx = @import("zx");
+const ir = zx.ir;
 const generated_mode = @import("parser_options").generated_parser;
 const Signature = @import("source_signature.zig");
+const FunctionImport = @import("function_import.zig");
 
 pub fn merge(comptime T: type, allocator: std.mem.Allocator, own: []const T, forwarded: []const T) std.mem.Allocator.Error![]const T {
     if (own.len == 0) return forwarded;
@@ -30,21 +32,52 @@ const Action = if (generated_mode)
     @FieldType(@typeInfo(@TypeOf(@import("generated_project_public_exports").executeValue(undefined, undefined))).error_union.payload, "action")
 
 else
-    enum { None, Callable, Deferred, Intrinsic, Invalid };
+    enum { None, Forward, Callable, Deferred, Intrinsic, Invalid };
 
-pub const Plan = struct {
+const Plan = struct {
     invalid_name: ?usize = null,
     default_member: ?usize = null,
     action: Action = .None,
 };
 
-pub fn plan(allocator: std.mem.Allocator, backing: std.mem.Allocator, types: []const zx.ir.Export, constants: []const zx.ir.Constant, functions: anytype, reporter: *zx.Reporter) zx.Error!Plan {
+pub fn bodyEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, own: ?ir.FunctionId, types: []const ir.Export, constants: []const ir.Constant, functions: []const FunctionImport, reporter: *zx.Reporter) zx.Error!?ir.FunctionId {
+    const selected = try plan(allocator, backing, types, constants, functions, own != null, reporter);
+
+    return switch (selected.action) {
+        .None => own,
+        .Forward => functions[selected.default_member.?].id,
+        else => unreachable,
+    };
+}
+
+pub fn signatureEntry(allocator: std.mem.Allocator, backing: std.mem.Allocator, signature: *Signature.Result, reporter: *zx.Reporter) zx.Error!void {
+    const members = signature.members;
+    const selected = try plan(allocator, backing, signature.exports, signature.constant_exports, members, true, reporter);
+
+    switch (selected.action) {
+        .None, .Intrinsic => {},
+        .Invalid => return reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source"),
+        .Deferred => signature.deferred_source = members[selected.default_member.?].source,
+        .Callable => {
+            const member = members[selected.default_member.?];
+
+            signature.ports = member.ports.?;
+            signature.has_store = member.has_store;
+            signature.type_only = false;
+        },
+        .Forward => unreachable,
+    }
+}
+
+fn plan(allocator: std.mem.Allocator, backing: std.mem.Allocator, types: []const ir.Export, constants: []const ir.Constant, functions: anytype, has_function: bool, reporter: *zx.Reporter) zx.Error!Plan {
     var arena = std.heap.ArenaAllocator.init(backing);
 
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    const names = try temporary.alloc([]const u8, types.len + constants.len + functions.len);
+    const first_function = types.len + constants.len;
+    const count = first_function + functions.len;
+    const names = try temporary.alloc([]const u8, count);
     var index: usize = 0;
     var signature: ?*const Signature.Member = null;
 
@@ -59,8 +92,7 @@ pub fn plan(allocator: std.mem.Allocator, backing: std.mem.Allocator, types: []c
         }
     }
 
-    const first_function = types.len + constants.len;
-    const selected = try select(temporary, names, first_function, false, signature);
+    const selected = try select(temporary, names, first_function, false, has_function, signature);
 
     if (selected.invalid_name) |duplicate| {
         const name = names[duplicate];
@@ -78,10 +110,10 @@ pub fn invalidRootName(allocator: std.mem.Allocator, roots: anytype) std.mem.All
 
     for (roots, names) |root, *name| name.* = root.name;
 
-    return (try select(allocator, names, names.len, true, null)).invalid_name;
+    return (try select(allocator, names, names.len, true, false, null)).invalid_name;
 }
 
-fn select(allocator: std.mem.Allocator, names: []const []const u8, first_function: usize, roots: bool, signature: ?*const Signature.Member) std.mem.Allocator.Error!Plan {
+fn select(allocator: std.mem.Allocator, names: []const []const u8, first_function: usize, roots: bool, has_function: bool, signature: ?*const Signature.Member) std.mem.Allocator.Error!Plan {
     if (comptime generated_mode) {
         const generated = @import("generated_project_public_exports");
         const Input = std.meta.Child(generated.Input);
@@ -93,16 +125,23 @@ fn select(allocator: std.mem.Allocator, names: []const []const u8, first_functio
             .intrinsic = member.intrinsic != null,
         } else null;
 
+        const buckets = try @import("source_index/fixed.zig").bucketsFor(allocator, names.len);
+
+        defer allocator.free(buckets);
+
         const input: Input = .{
-            .names = names,
+            .keys = names,
+            .buckets = @ptrCast(&buckets),
+            .capacity = buckets.len,
             .first_function = first_function,
             .roots = roots,
+            .has_function = has_function,
             .signature = if (facts) |*value| value else null,
         };
 
         const output = zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (err) {
-            error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
-            else => unreachable,
+            error.OutOfMemory => return error.OutOfMemory,
+            error.IndexOutOfBounds => unreachable,
         };
 
         return .{
@@ -131,6 +170,8 @@ fn select(allocator: std.mem.Allocator, names: []const []const u8, first_functio
             .Intrinsic
         else
             .Invalid;
+    } else if (result.default_member != null and !has_function) {
+        result.action = .Forward;
     }
 
     return result;

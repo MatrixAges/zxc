@@ -431,21 +431,7 @@ const Project = struct {
         signature.members = members;
 
         if (frame.export_aliases.items.len + frame.export_constants.items.len + forwarded.len + native.len == 0) return;
-
-        const selected = try public_exports.plan(self.allocator, self.arena.child_allocator, signature.exports, signature.constant_exports, members, self.reporter);
-
-        switch (selected.action) {
-            .None, .Intrinsic => {},
-            .Invalid => return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "a default re-export requires a callable source"),
-            .Deferred => signature.deferred_source = members[selected.default_member.?].source,
-            .Callable => {
-                const member = members[selected.default_member.?];
-
-                signature.ports = member.ports.?;
-                signature.has_store = member.has_store;
-                signature.type_only = false;
-            },
-        }
+        try public_exports.signatureEntry(self.allocator, self.arena.child_allocator, signature, self.reporter);
     }
     fn finishInput(self: *Project, frame: *LoadFrame, input: anytype) zx.Error!void {
         const unit = &self.units[frame.index];
@@ -536,11 +522,7 @@ const Project = struct {
         unit.members = try public_exports.prepend(FunctionImport, self.allocator, own, frame.export_functions.items);
 
         if (frame.export_aliases.items.len + frame.export_constants.items.len + frame.export_functions.items.len != 0) {
-            const selected = try public_exports.plan(self.allocator, self.arena.child_allocator, unit.exports, unit.constants, unit.members, self.reporter);
-
-            if (unit.function == null) if (selected.default_member) |member| {
-                unit.function = unit.members[member].id;
-            };
+            unit.function = try public_exports.bodyEntry(self.allocator, self.arena.child_allocator, unit.function, unit.exports, unit.constants, unit.members, self.reporter);
         }
 
         if (publication.publish_artifact) try self.cache_records.append(self.arena.child_allocator, self.modules.items.len);

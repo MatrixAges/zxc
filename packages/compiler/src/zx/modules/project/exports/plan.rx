@@ -3,14 +3,7 @@
 
     <Args in={Exports.Input} out={Exports.Output} />
 
-    <Call
-        fn="names"
-        in={{
-            names: $in.names,
-            first_function: $in.first_function,
-            roots: $in.roots
-        }}
-    />
+    <Call fn="names" in={$in} />
 
     <If on={$ctx.names.invalid_name != null || $ctx.names.default_member == null}>
         <Return
@@ -28,6 +21,15 @@
             value={{
                 names: $ctx.names,
                 action: $ctx.signature
+            }}
+        />
+    </If>
+
+    <If on={!$in.has_function}>
+        <Return
+            value={{
+                names: $ctx.names,
+                action: Exports.Action.Forward
             }}
         />
     </If>
