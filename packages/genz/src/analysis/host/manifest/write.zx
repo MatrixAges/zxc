@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+import { ascii_line_feed, ascii_space } from "core/ascii/const"
+
+import type { Write as Input } from "./model"
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { out, paths, hashes } = in
+
+    const position = loop({
+        index: 0
+    }, {
+        while: state => state.index < paths.length,
+        next: state => {
+            const index = state.index
+
+            bytes.writeHexU64(out, hashes[index])
+            bytes.writeByte(out, ascii_space)
+            bytes.write(out, bytes.fromText(paths[index]))
+            bytes.writeByte(out, ascii_line_feed)
+            state.index += 1
+        }
+    })
+}

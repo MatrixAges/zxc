@@ -17,6 +17,7 @@ pub const writeMasked = writer.writeMasked;
 pub const writeByte = writer.writeByte;
 pub const writeU32Le = writer.writeU32Le;
 pub const writeU64Le = writer.writeU64Le;
+pub const writeHexU64 = writer.writeHexU64;
 pub const writeU32sLe = writer.writeU32sLe;
 pub const writeU64sLe = writer.writeU64sLe;
 

@@ -703,6 +703,8 @@ pub const ordered = [_]Entry{
 };
 
 const host_bindings = [_]Entry{
+    .{ .path = "genz/analysis/host/manifest/read.rx", .name = "output_manifest_read", .owner = .compiler },
+    .{ .path = "genz/analysis/host/manifest/write.zx", .name = "output_manifest_write", .owner = .compiler },
     .{ .path = "genz/analysis/host/bindings/result.zx", .name = "host_result", .owner = .genz },
     .{ .path = "genz/analysis/host/bindings/c_adapter.zx", .name = "host_c_adapter", .owner = .genz },
     .{ .path = "genz/analysis/host/bindings/reexports/build.rx", .name = "host_reexports", .owner = .genz },

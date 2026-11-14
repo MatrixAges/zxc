@@ -28,6 +28,11 @@ pub fn writeU64Le(out: *const anyopaque, value: u64) Error!void {
     writer(out).writeInt(u64, value, .little) catch return error.OutOfMemory;
 }
 
+/// Writes the full width of a u64 as 16 lowercase hexadecimal digits.
+pub fn writeHexU64(out: *const anyopaque, value: u64) Error!void {
+    writer(out).print("{x:0>16}", .{value}) catch return error.OutOfMemory;
+}
+
 pub fn writeU32sLe(out: *const anyopaque, values: []const u32) Error!void {
     writer(out).writeSliceEndian(u32, values, .little) catch return error.OutOfMemory;
 }

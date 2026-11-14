@@ -28,6 +28,10 @@ pub fn narrowSigned(value: i64) error{IntegerOverflow}!u32 {
     return std.math.cast(u32, value) orelse error.IntegerOverflow;
 }
 
+pub fn parseHex(value: []const u8) std.fmt.ParseIntError!u64 {
+    return std.fmt.parseInt(u64, value, 16);
+}
+
 pub fn bitMask(index: u64) error{IntegerOverflow}!u64 {
     if (index >= @bitSizeOf(u64)) return error.IntegerOverflow;
 

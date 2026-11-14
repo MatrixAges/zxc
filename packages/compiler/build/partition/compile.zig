@@ -2,6 +2,7 @@ const std = @import("std");
 const file_manifest = @import("file_manifest.zig");
 const cache_key = @import("cache_key.zig");
 const state = @import("state.zig");
+const rules = @import("partition_rules");
 
 /// Compiles the partitions of a generated tree into one object each, in a directory kept across builds:
 ///
@@ -30,7 +31,14 @@ pub fn main(init: std.process.Init) !void {
     };
 
     const cwd = std.Io.Dir.cwd();
-    const manifest = try file_manifest.parse(allocator, try cwd.readFileAlloc(init.io, try std.fs.path.join(allocator, &.{ plan.generated, file_manifest.name }), allocator, .unlimited));
+    const manifest_path = try std.fs.path.join(allocator, &.{ plan.generated, file_manifest.name });
+    const text = try cwd.readFileAlloc(init.io, manifest_path, allocator, .unlimited);
+    const listed = try file_manifest.list(rules.output_manifest_read, allocator, text);
+    var manifest: std.StringHashMapUnmanaged(u64) = .empty;
+
+    try manifest.ensureTotalCapacity(allocator, @intCast(listed.paths.len));
+    for (listed.paths, listed.hashes) |path, hash| manifest.putAssumeCapacity(path, hash);
+
     const zig_stat = try cwd.statFile(init.io, plan.zig, .{});
     var shared: cache_key.Shared = .{};
 

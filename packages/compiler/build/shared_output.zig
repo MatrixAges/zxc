@@ -108,8 +108,9 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, workspace: std.mem.Allocator
     const changed = selected.value.changed;
     var cursor: usize = 0;
 
-    for (files, hashing.hashes, 0..) |file, hash, index| {
-        try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
+    try file_manifest.write(compiler.zig.file_ledger.manifest_write, &manifest.writer, paths, hashing.hashes);
+
+    for (files, 0..) |file, index| {
         if (cursor == changed.len or changed[cursor] != index) continue;
 
         cursor += 1;
@@ -174,7 +175,7 @@ fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?f
         else => return err,
     };
 
-    return try file_manifest.list(allocator, text);
+    return try file_manifest.list(compiler.zig.file_ledger.manifest_read, allocator, text);
 }
 
 fn remove(io: std.Io, directory: std.Io.Dir, path: []const u8) !void {

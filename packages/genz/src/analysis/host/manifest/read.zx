@@ -1,0 +1,42 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import integer from "std:integer"
+import memory from "std:memory"
+import { ascii_line_feed } from "core/ascii/const"
+
+import { hash_width, path_offset } from "./const"
+
+import type { Read as Input } from "./model"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { text, paths, hashes } = in
+
+    const raw = bytes.fromText(text)
+
+    return loop({
+        start: 0,
+        length: 0
+    }, {
+        while: state => state.start < raw.length,
+        next: state => {
+            const newline = bytes.indexOfScalar(raw, state.start, ascii_line_feed)
+            const end: u64 = newline == null ? raw.length : newline
+
+            if (end - state.start > path_offset) {
+                const hash_end = state.start + hash_width
+                const prefix = encoding.sliceBytes(text, state.start, hash_end)
+                const hash = integer.parseHex(prefix)
+                const path = encoding.sliceBytes(text, state.start + path_offset, end)
+
+                memory.writeString(paths, state.length, path)
+                memory.writeU64(hashes, state.length, hash)
+                state.length += 1
+            }
+
+            state.start = newline == null ? end : newline + 1
+        },
+        return: state => state.length
+    })
+}

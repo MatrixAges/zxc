@@ -1,0 +1,14 @@
+import type { Writer } from "std:bytes"
+import type { StringBuffer, U64Buffer } from "std:memory"
+
+export type Read = {
+    text: string,
+    paths: StringBuffer,
+    hashes: U64Buffer
+}
+
+export type Write = {
+    out: Writer,
+    paths: string[],
+    hashes: u64[]
+}
