@@ -1,0 +1,47 @@
+import bytes from "std:bytes"
+
+import { domain } from "./const"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    executable: string,
+    size: u64,
+    modified: u64,
+    arguments: string[],
+    types: u64,
+    signatures: u64
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { out, arguments } = in
+
+    const tag = bytes.fromText(domain)
+    const executable = bytes.fromText(in.executable)
+
+    bytes.writeU64Le(out, tag.length)
+    bytes.write(out, tag)
+    bytes.writeU64Le(out, executable.length)
+    bytes.write(out, executable)
+    bytes.writeU64Le(out, in.size)
+    bytes.writeU64Le(out, in.modified)
+
+    const position = loop({
+        index: 0
+    }, {
+        while: state => state.index < arguments.length,
+        next: state => {
+            const argument = bytes.fromText(arguments[state.index])
+
+            bytes.writeU64Le(out, argument.length)
+            bytes.write(out, argument)
+            state.index += 1
+        }
+    })
+
+    bytes.writeU64Le(out, in.types)
+    bytes.writeU64Le(out, in.signatures)
+}

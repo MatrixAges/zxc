@@ -1,0 +1,30 @@
+import bytes from "std:bytes"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    paths: string[],
+    hashes: u64[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { out, paths, hashes } = in
+
+    const position = loop({
+        index: 0
+    }, {
+        while: state => state.index < paths.length,
+        next: state => {
+            const index = state.index
+            const path = bytes.fromText(paths[index])
+
+            bytes.writeU64Le(out, path.length)
+            bytes.write(out, path)
+            bytes.writeU64Le(out, hashes[index])
+            state.index += 1
+        }
+    })
+}

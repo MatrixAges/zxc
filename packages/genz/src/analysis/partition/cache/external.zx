@@ -1,0 +1,24 @@
+import bytes from "std:bytes"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    path: string,
+    size?: u64
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const path = bytes.fromText(in.path)
+
+    bytes.writeU64Le(in.out, path.length)
+    bytes.write(in.out, path)
+
+    const size = in.size
+
+    if (size != null) {
+        bytes.writeU64Le(in.out, size)
+    }
+}

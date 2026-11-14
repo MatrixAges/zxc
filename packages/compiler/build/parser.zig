@@ -389,10 +389,13 @@ fn cachedPartitionObjects(b: *std.Build, target: std.Build.ResolvedTarget, optim
 
 /// One manifest check replaces a Zig cache process per unchanged partition, on either native backend.
 fn cachedObjects(b: *std.Build, optimize: std.builtin.OptimizeMode, source: Sources, partitions: u32, strip: ?bool, llvm: bool) std.Build.LazyPath {
+    const rules = @import("host_metadata.zig").generated(b, source.host, b.graph.host, .small, true, null);
+
     const tool = b.addExecutable(.{ .name = "partition-objects", .root_module = b.createModule(.{
         .root_source_file = b.path("build/partition/compile.zig"),
         .target = b.graph.host,
         .optimize = .small,
+        .imports = &.{.{ .name = "partition_rules", .module = rules }},
     }) });
 
     const run = b.addRunArtifact(tool);

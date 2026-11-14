@@ -1,5 +1,6 @@
 const std = @import("std");
 const file_manifest = @import("file_manifest.zig");
+const cache_key = @import("cache_key.zig");
 
 /// Compiles the partitions of a generated tree into one object each, in a directory kept across builds:
 ///
@@ -29,26 +30,15 @@ pub fn main(init: std.process.Init) !void {
 
     const cwd = std.Io.Dir.cwd();
     const manifest = try file_manifest.parse(allocator, try cwd.readFileAlloc(init.io, try std.fs.path.join(allocator, &.{ plan.generated, file_manifest.name }), allocator, .unlimited));
-    var shared = std.crypto.hash.Blake3.init(.{});
-
-    field(&shared, "zxc.partition.objects.v3");
-    field(&shared, plan.zig);
-
     const zig_stat = try cwd.statFile(init.io, plan.zig, .{});
+    var shared: cache_key.Shared = .{};
 
-    integer(&shared, @intCast(zig_stat.size));
-    integer(&shared, @bitCast(@as(i64, @truncate(zig_stat.mtime.nanoseconds))));
-    for (plan.template) |arg| field(&shared, arg);
-    for ([_][]const u8{ "types.zig", "signatures.zig" }) |path| integer(&shared, manifest.get(path) orelse return error.MissingGeneratedFile);
+    shared.init();
+    shared.prefix(plan.zig, zig_stat, plan.template, manifest.get("types.zig") orelse return error.MissingGeneratedFile, manifest.get("signatures.zig") orelse return error.MissingGeneratedFile);
 
-    for (args[5..separator]) |path| {
-        if ((try cwd.statFile(init.io, path, .{})).kind == .file) {
-            field(&shared, path);
-            field(&shared, try cwd.readFileAlloc(init.io, path, allocator, .unlimited));
-        } else try contents(init.io, allocator, &shared, path);
-    }
+    for (args[5..separator]) |path| try shared.input(init.io, allocator, path);
 
-    const digests = try partitionDigests(allocator, plan.count, shared, &manifest);
+    const digests = try cache_key.partitions(allocator, plan.count, shared.state(), &manifest);
     const state_path = try std.fs.path.join(allocator, &.{ plan.objects, "state" });
 
     const previous = cwd.readFileAlloc(init.io, state_path, allocator, .unlimited) catch |err| switch (err) {
@@ -155,40 +145,6 @@ fn substitute(allocator: std.mem.Allocator, arg: []const u8, plan: Plan, index: 
     return std.mem.replaceOwned(u8, allocator, objects, "%index%", try std.fmt.allocPrint(allocator, "{d}", .{index}));
 }
 
-fn partitionDigests(allocator: std.mem.Allocator, count: u32, shared: std.crypto.hash.Blake3, manifest: *const std.StringHashMapUnmanaged(u64)) ![][32]u8 {
-    const members = try allocator.alloc(std.ArrayList([]const u8), count);
-
-    @memset(members, .empty);
-
-    var paths = manifest.keyIterator();
-
-    while (paths.next()) |path| {
-        if (!std.mem.startsWith(u8, path.*, "part_")) continue;
-
-        const slash = std.mem.indexOfScalar(u8, path.*, '/') orelse continue;
-        const index = std.fmt.parseInt(u32, path.*["part_".len..slash], 10) catch continue;
-
-        if (index < count) try members[index].append(allocator, path.*);
-    }
-
-    const digests = try allocator.alloc([32]u8, count);
-
-    for (members, digests) |*paths_of, *digest| {
-        std.mem.sort([]const u8, paths_of.items, {}, lessThan);
-
-        var hash = shared;
-
-        for (paths_of.items) |path| {
-            field(&hash, path);
-            integer(&hash, manifest.get(path).?);
-        }
-
-        hash.final(digest);
-    }
-
-    return digests;
-}
-
 fn recorded(state: []const u8, index: u32, digest: [32]u8) bool {
     var lines = std.mem.splitScalar(u8, state, '\n');
     var prefix: [16]u8 = undefined;
@@ -203,43 +159,4 @@ fn recorded(state: []const u8, index: u32, digest: [32]u8) bool {
 
 fn objectPath(allocator: std.mem.Allocator, objects: []const u8, index: u32) ![]const u8 {
     return std.fmt.allocPrint(allocator, "{s}/zxc_partition_{d}.o", .{ objects, index });
-}
-
-/// Feeds every file below `path` to `hash`, by sorted relative path.
-fn contents(io: std.Io, allocator: std.mem.Allocator, hash: *std.crypto.hash.Blake3, path: []const u8) !void {
-    var directory = try std.Io.Dir.cwd().openDir(io, path, .{ .iterate = true });
-
-    defer directory.close(io);
-
-    var walker = try directory.walk(allocator);
-
-    defer walker.deinit();
-
-    var files: std.ArrayList([]const u8) = .empty;
-
-    while (try walker.next(io)) |entry| if (entry.kind == .file) try files.append(allocator, try allocator.dupe(u8, entry.path));
-
-    std.mem.sort([]const u8, files.items, {}, lessThan);
-    field(hash, path);
-
-    for (files.items) |file| {
-        field(hash, file);
-        field(hash, try directory.readFileAlloc(io, file, allocator, .unlimited));
-    }
-}
-
-fn field(hash: *std.crypto.hash.Blake3, bytes: []const u8) void {
-    integer(hash, bytes.len);
-    hash.update(bytes);
-}
-
-fn integer(hash: *std.crypto.hash.Blake3, value: u64) void {
-    var bytes: [8]u8 = undefined;
-
-    std.mem.writeInt(u64, &bytes, value, .little);
-    hash.update(&bytes);
-}
-
-fn lessThan(_: void, left: []const u8, right: []const u8) bool {
-    return std.mem.lessThan(u8, left, right);
 }
