@@ -1,0 +1,41 @@
+import strings from "std:string"
+
+import copyNames from "./copy_names"
+import copyParameters from "./copy_parameters"
+
+import type { Errors, Names } from "core/signature_table/model"
+
+export type Input = {
+    members: string[],
+    errors: Errors,
+    export_name?: string,
+    parameters?: Names
+}
+
+export type Output = Input
+
+export default function (in: Input): Output {
+    const members = copyNames(in.members)
+
+    const errors: Errors = match {
+        in.errors != null => copyNames(in.errors),
+        _ => null
+    }
+
+    const export_name: string? = match {
+        in.export_name != null => strings.copy(in.export_name),
+        _ => null
+    }
+
+    const parameters: Names? = match {
+        in.parameters != null => copyParameters(in.parameters),
+        _ => null
+    }
+
+    return {
+        members,
+        errors,
+        export_name,
+        parameters
+    }
+}

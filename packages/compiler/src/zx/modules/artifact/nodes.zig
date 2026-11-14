@@ -229,7 +229,10 @@ pub fn external(self: *Self, value: ir.External) Error!ir.External {
 }
 
 pub fn externalMapped(self: *Self, value: ir.External, module: ir.NativeModuleId) Error!ir.External {
+    if (comptime generated) return @import("materializing/external_host.zig").own(self.allocator, value, module);
+
     var result = value;
+
     result.module = module;
     result.member = try self.strings(value.member);
     result.errors = if (value.errors) |errors| try self.strings(errors) else null;

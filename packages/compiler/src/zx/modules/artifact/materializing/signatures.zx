@@ -1,11 +1,10 @@
 import integers from "std:integer"
 import strings from "std:string"
 
-import copyNames from "./copy_names"
-import copyParameters from "./copy_parameters"
+import copyExternal from "./copy_external"
 import signatureIds from "./signature_ids"
 
-import type { Errors, Names, Table } from "core/signature_table/model"
+import type { Table } from "core/signature_table/model"
 import type { FunctionPlan } from "../planning/functions/model"
 
 export type Input = {
@@ -77,23 +76,12 @@ export default function (in: Input): Output {
                 if (mapped == null) {
                     current.valid = false
                 } else {
-                    const inputs = current.source.native_inputs[selected]
-                    const members = current.source.native_members[selected]
-                    const exported = current.source.native_exports[selected]
-                    const errors = current.source.native_errors[selected]
-
-                    const input_names: Names? = match {
-                        inputs != null => copyParameters(inputs),
-                        _ => null
-                    }
-                    const export_name: string? = match {
-                        exported != null => strings.copy(exported),
-                        _ => null
-                    }
-                    const error_names: Errors = match {
-                        errors != null => copyNames(errors),
-                        _ => null
-                    }
+                    const external = copyExternal({
+                        members: current.source.native_members[selected],
+                        errors: current.source.native_errors[selected],
+                        export_name: current.source.native_exports[selected],
+                        parameters: current.source.native_inputs[selected]
+                    })
 
                     current.files =
                         current.files.push(
@@ -111,17 +99,16 @@ export default function (in: Input): Output {
                         current.ownership.push(
                             current.source.ownership[selected]
                         )[0]
-                    current.native_inputs = current.native_inputs.push(input_names)[0]
+                    current.native_inputs =
+                        current.native_inputs.push(external.parameters)[0]
                     current.native_modules =
                         current.native_modules.push(
                             mapped.native_module
                         )[0]
                     current.native_members =
-                        current.native_members.push(
-                            copyNames(members)
-                        )[0]
+                        current.native_members.push(external.members)[0]
                     current.native_exports =
-                        current.native_exports.push(export_name)[0]
+                        current.native_exports.push(external.export_name)[0]
                     current.native_allocators =
                         current.native_allocators.push(
                             current.source.native_allocators[selected]
@@ -142,7 +129,8 @@ export default function (in: Input): Output {
                         current.native_fallible.push(
                             current.source.native_fallible[selected]
                         )[0]
-                    current.native_errors = current.native_errors.push(error_names)[0]
+                    current.native_errors =
+                        current.native_errors.push(external.errors)[0]
                     current.native_concurrent =
                         current.native_concurrent.push(
                             current.source.native_concurrent[selected]

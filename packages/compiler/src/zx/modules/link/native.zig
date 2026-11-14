@@ -14,7 +14,17 @@ pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, va
         .Conflict => return error.ConflictingInterface,
         .Full => return error.OutOfMemory,
         .Reuse => {},
-        .Insert => try own(allocator, modules, value, nodes, try nodes.strings(value.types.names), plan.ids),
+        .Insert => {
+            const binding = plan.owned orelse return error.InvalidModule;
+
+            try modules.append(allocator, .{
+                .specifier = binding.specifier,
+                .identity = binding.identity,
+                .import_name = binding.import_name,
+                .type_namespace = binding.namespace,
+                .types = .{ .names = binding.names, .type_ids = binding.ids },
+            });
+        },
     }
 
     return @fromBackingInt(@as(u32, @intCast(plan.row)));
@@ -77,12 +87,6 @@ fn appendSeed(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, va
 
     const id: ir.NativeModuleId = @fromBackingInt(@intCast(modules.count()));
 
-    try own(allocator, modules, value, nodes, names, ids);
-
-    return id;
-}
-
-fn own(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir.NativeModule, nodes: *Nodes, names: []const []const u8, ids: []const u32) Error!void {
     try modules.append(allocator, .{
         .specifier = try allocator.dupe(u8, value.specifier),
         .identity = if (value.identity) |key| try allocator.dupe(u8, key) else null,
@@ -90,6 +94,8 @@ fn own(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir
         .type_namespace = try nodes.strings(value.type_namespace),
         .types = .{ .names = names, .type_ids = ids },
     });
+
+    return id;
 }
 
 pub fn sameExternalSeed(left: ir.External, right: ir.External) bool {

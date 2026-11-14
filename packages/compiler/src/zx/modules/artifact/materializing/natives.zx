@@ -1,9 +1,8 @@
 import integers from "std:integer"
-import strings from "std:string"
 
 import ids from "../remapping/ids"
 import planned from "../remapping/planned"
-import copyNames from "./copy_names"
+import copyBinding from "./copy_binding"
 
 import type { Modules } from "core/native_module_table/model"
 import type { NativePlan } from "../planning/model"
@@ -53,29 +52,23 @@ export default function (in: Input): Output {
                     mapping: current.mapping
                 })
 
-                const identity = current.source.identities[selected]
-                const owned_identity: string? = match {
-                    identity != null => strings.copy(identity),
-                    _ => null
-                }
-                const import_name =
-                    strings.copy(current.source.import_names[selected])
-                const specifier = strings.copy(current.source.specifiers[selected])
-                const names = current.source.type_names[selected]
-                const namespaces = current.source.type_namespaces[selected]
+                const binding = copyBinding({
+                    identity: current.source.identities[selected],
+                    specifier: current.source.specifiers[selected],
+                    import_name: current.source.import_names[selected],
+                    namespace: current.source.type_namespaces[selected],
+                    names: current.source.type_names[selected],
+                    ids: mapped
+                })
 
-                current.identities = current.identities.push(owned_identity)[0]
-                current.import_names = current.import_names.push(import_name)[0]
-                current.specifiers = current.specifiers.push(specifier)[0]
-                current.type_ids = current.type_ids.push(mapped)[0]
-                current.type_names =
-                    current.type_names.push(
-                        copyNames(names)
-                    )[0]
+                current.identities = current.identities.push(binding.identity)[0]
+                current.import_names =
+                    current.import_names.push(binding.import_name)[0]
+                current.specifiers = current.specifiers.push(binding.specifier)[0]
+                current.type_ids = current.type_ids.push(binding.ids)[0]
+                current.type_names = current.type_names.push(binding.names)[0]
                 current.type_namespaces =
-                    current.type_namespaces.push(
-                        copyNames(namespaces)
-                    )[0]
+                    current.type_namespaces.push(binding.namespace)[0]
             }
 
             current.index += 1

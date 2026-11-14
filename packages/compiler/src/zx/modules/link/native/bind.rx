@@ -16,7 +16,7 @@
         <Return
             value={{
                 ...$ctx.lookup,
-                ids: []
+                owned: null
             }}
         />
     </If>
@@ -26,7 +26,7 @@
             value={{
                 status: Binding.Status.Full,
                 row: 0,
-                ids: []
+                owned: null
             }}
         />
     </If>
@@ -39,11 +39,19 @@
         }}
     />
 
+    <Call
+        fn="../../artifact/materializing/copy_binding"
+        in={{
+            ...$in.value,
+            ids: $ctx.ids
+        }}
+    />
+
     <Return
         value={{
             status: Binding.Status.Insert,
             row: $in.table.specifiers.length,
-            ids: $ctx.ids
+            owned: $ctx.copy_binding
         }}
     />
 </Module>

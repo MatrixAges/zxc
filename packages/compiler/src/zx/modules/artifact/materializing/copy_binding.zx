@@ -1,0 +1,25 @@
+import strings from "std:string"
+
+import copyNames from "./copy_names"
+
+import type { Binding } from "core/native_module_table/model"
+
+export type Input = Binding
+
+export type Output = Binding
+
+export default function (in: Input): Output {
+    const identity: string? = match {
+        in.identity != null => strings.copy(in.identity),
+        _ => null
+    }
+
+    return {
+        identity,
+        specifier: strings.copy(in.specifier),
+        import_name: strings.copy(in.import_name),
+        namespace: copyNames(in.namespace),
+        names: copyNames(in.names),
+        ids: in.ids
+    }
+}
