@@ -151,6 +151,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
         .parse_cache = cache,
         .scratch_allocator = backing,
         .registered_paths = &paths,
+        .retain_source_dependencies = options.history != null,
     });
 
     if (dependencies.value == .diagnostic) return failed(allocator, dependencies.value.diagnostic);

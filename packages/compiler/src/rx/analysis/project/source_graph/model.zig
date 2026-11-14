@@ -7,7 +7,13 @@ pub const Source = union(enum) { zx: usize, rx: usize, store: usize };
 pub const Target = union(enum) { source: usize, compiled: project.compiled.Target, native: []const u8 };
 pub const Reference = enum(u8) { dependency, call, type_import, store };
 pub const Edge = struct { target: Target, location: rx.ast.Location, reference: Reference = .dependency };
-pub const Module = struct { path: []const u8, source: Source, dependencies: []const Edge = &.{} };
+
+pub const Module = struct {
+    path: []const u8,
+    source: Source,
+    dependencies: []const Edge = &.{},
+    compiled_dependency: bool = false,
+};
 
 pub const References = struct {
     remaining: []const Edge,
@@ -38,12 +44,22 @@ pub const Adjacency = struct {
     targets: []const u64 = &.{},
 };
 
+pub const SourceDependencies = struct {
+    starts: []const u64,
+    ends: []const u64,
+    targets: []const u64,
+    pub fn at(self: SourceDependencies, row: usize) []const u64 {
+        return self.targets[@intCast(self.starts[row])..@intCast(self.ends[row])];
+    }
+};
+
 pub const Graph = struct {
     modules: []const Module,
     order: []const usize,
     batch_ends: []const usize,
     entry: usize,
     additional_roots: []const usize = &.{},
+    source_dependencies: ?SourceDependencies = null,
 };
 
 pub const Value = union(enum) { graph: Graph, diagnostic: Diagnostic };

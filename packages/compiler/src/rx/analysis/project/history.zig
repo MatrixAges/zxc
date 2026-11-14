@@ -52,7 +52,6 @@ pub const Retained = struct {
     sources: []const frontend.project.Source,
     derived: Frame,
     initial: Checkpoint,
-    paths: []const []const u8,
     /// Each module's source digest.
     digests: []const ?[32]u8,
     before: []const Checkpoint,

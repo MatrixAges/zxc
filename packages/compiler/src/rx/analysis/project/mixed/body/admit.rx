@@ -1,0 +1,37 @@
+<Module>
+    <Type from="model" as="Body" />
+
+    <Args in={Body.Admission} out={Body.Action} />
+
+    <If on={$in.preview}>
+        <If on={$in.reusable || $in.compiled_dependency}>
+            <Return value={Body.Action.Skip} />
+        </If>
+
+        <If on={$in.entry && $in.source == Body.Source.RX}>
+            <Return value={Body.Action.Skip} />
+        </If>
+    </If>
+
+    <Switch on={$in.source}>
+        <Case value={Body.Source.ZX}>
+            <If on={!$in.signature}>
+                <Return value={Body.Action.MissingSignature} />
+            </If>
+
+            <If on={$in.setter}>
+                <Return value={Body.Action.Skip} />
+            </If>
+
+            <Return value={Body.Action.AnalyzeZX} />
+        </Case>
+
+        <Case value={Body.Source.RX}>
+            <Return value={Body.Action.LowerRX} />
+        </Case>
+
+        <Default>
+            <Return value={Body.Action.Skip} />
+        </Default>
+    </Switch>
+</Module>

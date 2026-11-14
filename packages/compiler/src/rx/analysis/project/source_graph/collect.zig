@@ -9,6 +9,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidGraph};
 
 allocator: std.mem.Allocator,
 backing: std.mem.Allocator,
+target_allocator: std.mem.Allocator,
 options: project.Options,
 modules: []model.Module,
 paths: *const project.source_index.Map,
@@ -55,7 +56,7 @@ fn source(self: *Self, path: []const u8, location: rx.ast.Location, reference: m
 }
 
 fn sourceEdge(self: *Self, index: usize, location: rx.ast.Location, reference: model.Reference) Error!void {
-    try self.targets.append(self.backing, index);
+    try self.targets.append(self.target_allocator, index);
     try self.edges.append(self.allocator, .{ .target = .{ .source = index }, .location = location, .reference = reference });
 }
 
@@ -97,6 +98,10 @@ pub fn import(self: *Self, reference: []const u8, location: rx.ast.Location, rol
 
     switch (target) {
         .source => |path| try self.source(path, location, role),
-        .compiled => |compiled| try self.edges.append(self.allocator, .{ .target = .{ .compiled = compiled }, .location = location, .reference = role }),
+        .compiled => |compiled| {
+            self.modules[self.owner].compiled_dependency = true;
+
+            try self.edges.append(self.allocator, .{ .target = .{ .compiled = compiled }, .location = location, .reference = role });
+        },
     }
 }

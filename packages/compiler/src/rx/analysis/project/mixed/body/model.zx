@@ -1,0 +1,22 @@
+export enum Source {
+    ZX,
+    RX,
+    Store
+}
+
+export enum Action {
+    Skip,
+    MissingSignature,
+    AnalyzeZX,
+    LowerRX
+}
+
+export type Admission = {
+    source: Source,
+    signature: bool,
+    setter: bool,
+    preview: bool,
+    entry: bool,
+    compiled_dependency: bool,
+    reusable: bool
+}

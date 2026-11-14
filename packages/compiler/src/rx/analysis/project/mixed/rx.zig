@@ -93,9 +93,7 @@ pub fn lower(state: *const State, allocator: std.mem.Allocator, prepared: Prepar
 /// Whether a module lowered earlier can still be linked as it is: the tables it read may only have gained types, and
 /// functions when it adds none of its own.
 pub fn current(state: *const State, prepared: Prepared, contract: Module.Contract) bool {
-    if (state.native_modules.count() != prepared.native_modules or state.initializers.items.len != prepared.initializers) return false;
-
-    return contract.program.functions.count() == prepared.functions or state.functions.count() == prepared.functions;
+    return @import("body.zig").accept(state, prepared.native_modules, prepared.initializers, prepared.functions, contract.program.functions.count());
 }
 
 /// Links a lowered module. The tables may have grown, and moved, since it was lowered, but the rows it read are

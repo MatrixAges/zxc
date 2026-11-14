@@ -13,6 +13,7 @@ const Rx = @import("rx.zig");
 const Module = @import("../../module.zig");
 const Frame = @import("../history.zig").Frame;
 const Inputs = @import("../call_inputs.zig");
+const Body = @import("body.zig");
 const Self = @This();
 
 arenas: []std.heap.ArenaAllocator,
@@ -65,6 +66,8 @@ pub fn analyze(self: *Self, state: *State, cache: *frontend.project.ParseCache, 
     _ = self.bindings.reset(.retain_capacity);
 
     self.items.clearRetainingCapacity();
+
+    if (modules.len < minimum) return modules.len;
 
     var eligible_count: usize = 0;
 
@@ -200,21 +203,8 @@ fn claim(self: *Self, index: usize) ?Item {
 /// A module analyzed at its turn without a Store, an earlier analysis to reuse, or a compiled library to load first;
 /// the RX entry stays at its turn, which keeps what it lowers for the project.
 fn eligible(state: *const State, reuse: *const Reuse, index: usize) bool {
-    const module = state.graph.modules[index];
-
-    if (reuse.reusable(state, index)) return false;
-
-    switch (module.source) {
-        .store => return false,
-        .zx => {
-            const signature = state.signature(index) orelse return false;
-
-            if (signature.signature.has_store) return false;
-        },
-        .rx => if (index == state.graph.entry) return false,
-    }
-
-    for (module.dependencies) |edge| if (edge.target == .compiled) return false;
-
-    return true;
+    return switch (Body.admit(state, index, true, reuse.reusable(state, index))) {
+        .AnalyzeZX, .LowerRX => true,
+        .Skip, .MissingSignature => false,
+    };
 }

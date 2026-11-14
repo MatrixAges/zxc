@@ -122,7 +122,7 @@ pub fn analyze(state: *const State, temporary: std.mem.Allocator, prepared: Prep
 /// Whether a body analyzed earlier can still be linked as it is: the tables it read may only have gained types and
 /// functions, which the type merge and the function prefix account for.
 pub fn current(state: *const State, analyzed: Analyzed) bool {
-    return state.native_modules.count() == analyzed.native_modules and state.initializers.items.len == analyzed.initializers;
+    return @import("body.zig").accept(state, analyzed.native_modules, analyzed.initializers, analyzed.functions, null);
 }
 
 /// Links an analyzed body. The tables may have grown, and moved, since the analysis read them, but the rows it read are

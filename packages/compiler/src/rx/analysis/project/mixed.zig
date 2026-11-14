@@ -6,6 +6,7 @@ const Module = @import("../module.zig");
 const Frame = @import("history.zig").Frame;
 const State = @import("mixed/state.zig");
 const Inputs = @import("call_inputs.zig");
+const Body = @import("mixed/body.zig");
 
 /// Analyzes and links every module in dependency order over the shared tables `derived` starts them from.
 pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived: Frame, selected: []const rx.ModuleSource, sources: []const frontend.project.Source, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache, record: ?*@import("history.zig").History, arguments: *const Inputs) std.mem.Allocator.Error!Module.Value {
@@ -47,17 +48,10 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
 
         if (try reuse.reuse(&state, index)) continue;
 
-        switch (module.source) {
-            .store => reuse.analyzed(&state, index),
-            .zx => {
-                const signature = state.signature(index) orelse return .{ .diagnostic = .{ .path = module.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "source module signature is missing" } };
-
-                if (signature.signature.has_store) {
-                    reuse.analyzed(&state, index);
-
-                    continue;
-                }
-
+        switch (Body.admit(&state, index, false, false)) {
+            .Skip => {},
+            .MissingSignature => return .{ .diagnostic = .{ .path = module.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "source module signature is missing" } },
+            .AnalyzeZX => {
                 const zx_module = @import("mixed/zx.zig");
 
                 const body = if (ahead.take(&state, index)) |analyzed| linked: {
@@ -71,10 +65,9 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
 
                     return .{ .diagnostic = state.issue.? };
                 };
-
-                reuse.analyzed(&state, index);
             },
-            .rx => |source| {
+            .LowerRX => {
+                const source = module.source.rx;
                 const rx_module = @import("mixed/rx.zig");
 
                 const linked = if (ahead.lowered(&state, index)) |lowered| ready: {
@@ -92,13 +85,14 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
                 state.finished[index] = result.loaded;
 
                 if (index == dependencies.entry) entry = result.contract;
-
-                reuse.analyzed(&state, index);
             },
         }
+
+        reuse.analyzed(&state, index);
     }
 
     state.owner = dependencies.entry;
+
     const root = dependencies.modules[dependencies.entry];
     const finished = state.finished[dependencies.entry] orelse return .{ .diagnostic = .{ .path = root.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "entry source module was not compiled" } };
     const id = finished.function;
@@ -154,7 +148,7 @@ pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived
         return .{ .diagnostic = state.issue.? };
     };
 
-    try reuse.finish(&state, derived, selected, sources);
+    reuse.finish(&state, selected, sources);
 
     return .{ .contract = contract };
 }

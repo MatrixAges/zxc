@@ -6,7 +6,8 @@
 //! before, whose dependencies changed nothing either, changes nothing its dependents read, so they stay reusable. Once a
 //! module appends different types, or a different number of rows, every later module is analyzed.
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const State = @import("state.zig");
 const history = @import("../history.zig");
 const columns = @import("../history/columns.zig");
@@ -17,13 +18,14 @@ record: ?*history.History,
 previous: ?*const history.Retained = null,
 derived: history.Frame,
 aligned: bool = false,
-initial: history.Checkpoint,
+initial: history.Checkpoint = undefined,
 /// Modules whose rows or link differ from the earlier ones, or that depend on such a module.
-redone: []bool,
-digests: []?[32]u8,
-before: []history.Checkpoint,
-after: []history.Checkpoint,
+redone: []bool = &.{},
+digests: []?[32]u8 = &.{},
+before: []history.Checkpoint = &.{},
+after: []history.Checkpoint = &.{},
 pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.History, derived: history.Frame) std.mem.Allocator.Error!Self {
+    const owner = record orelse return .{ .record = null, .derived = derived };
     const count = state.graph.modules.len;
     const initial = checkpoint(state);
 
@@ -44,10 +46,9 @@ pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.Hi
     for (state.graph.modules, self.digests) |module, *digest| digest.* = switch (module.source) {
         .zx => cache.sourceDigest(module.path),
         .store => null,
-        .rx => if (record) |owner| owner.rxDigest(module.path) else null,
+        .rx => owner.rxDigest(module.path),
     };
 
-    const owner = record orelse return self;
     const previous = if (owner.previous) |*value| value else return self;
 
     self.previous = previous;
@@ -59,6 +60,8 @@ pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.Hi
 /// Copies `index`'s rows from the earlier analysis when nothing they derive from changed; false when it must be
 /// analyzed.
 pub fn reuse(self: *Self, state: *State, index: usize) std.mem.Allocator.Error!bool {
+    const owner = self.record orelse return false;
+
     self.before[index] = checkpoint(state);
 
     if (!self.reusable(state, index)) return false;
@@ -74,8 +77,7 @@ pub fn reuse(self: *Self, state: *State, index: usize) std.mem.Allocator.Error!b
     state.finished[index] = previous.finished[index];
     state.verified = state.functions.count();
     self.after[index] = checkpoint(state);
-
-    if (self.record) |owner| owner.reused += 1;
+    owner.reused += 1;
 
     return true;
 }
@@ -95,12 +97,12 @@ pub fn reusable(self: *const Self, state: *const State, index: usize) bool {
 
 /// Records that `index` was analyzed, and whether the tables still match the earlier analysis after it.
 pub fn analyzed(self: *Self, state: *const State, index: usize) void {
+    const owner = self.record orelse return;
     const end = checkpoint(state);
 
     self.redone[index] = true;
     self.after[index] = end;
-
-    if (self.record) |owner| owner.analyzed += 1;
+    owner.analyzed += 1;
 
     const previous = self.previous orelse return;
 
@@ -118,11 +120,21 @@ pub fn analyzed(self: *Self, state: *const State, index: usize) void {
 
 /// Whether a dependency of `index` changed.
 fn reaches(self: *const Self, state: *const State, index: usize) bool {
-    for (state.graph.modules[index].dependencies) |edge| switch (edge.target) {
-        .source => |dependency| if (self.redone[dependency]) return true,
-        .compiled => return true,
-        .native => {},
-    };
+    if (state.graph.modules[index].compiled_dependency) return true;
+
+    const dependencies = state.graph.source_dependencies.?.at(index);
+
+    if (dependencies.len == 0) return false;
+
+    if (comptime @import("rx_options").generated_graph) {
+        const rule = @import("generated_rx_mixed_dependency_changed");
+        var empty = std.heap.FixedBufferAllocator.init(&.{});
+        const input: std.meta.Child(rule.Input) = .{ .dependencies = dependencies, .redone = self.redone };
+
+        return zx.columns.invoke(rule.executeValue, empty.allocator(), &input) catch unreachable;
+    }
+
+    for (dependencies) |dependency| if (self.redone[@intCast(dependency)]) return true;
 
     return false;
 }
@@ -155,24 +167,20 @@ fn repeated(state: *const State, previous: *const history.Retained, index: usize
 }
 
 /// Leaves this analysis for the next one.
-pub fn finish(self: *const Self, state: *const State, derived: history.Frame, selected: []const @import("rx").ModuleSource, sources: []const @import("frontend").project.Source) std.mem.Allocator.Error!void {
+pub fn finish(self: *const Self, state: *const State, selected: []const @import("rx").ModuleSource, sources: []const @import("frontend").project.Source) void {
     const owner = self.record orelse return;
-    const paths = try state.allocator.alloc([]const u8, state.graph.modules.len);
-
-    for (state.graph.modules, paths) |module, *path| path.* = try state.allocator.dupe(u8, module.path);
 
     owner.next = .{
         .frame = owner.frame,
         .shape = owner.shape,
         .modules = selected,
         .sources = sources,
-        .derived = derived,
+        .derived = self.derived,
         .initial = self.initial,
-        .paths = paths,
         .digests = self.digests,
         .before = self.before,
         .after = self.after,
-        .finished = try state.allocator.dupe(?@import("frontend").project.artifact.source_link.Loaded, state.finished),
+        .finished = state.finished,
         .types = state.types.items.view(),
         .origins = state.types.origins.items.view(),
         .functions = state.functions.view(),
@@ -210,9 +218,14 @@ fn unchanged(self: *const Self, state: *const State, index: usize) bool {
 
 /// Whether this analysis starts from the tables the earlier one started from, over the same modules in the same order.
 fn matches(state: *const State, previous: *const history.Retained, shape: [32]u8, initial: history.Checkpoint) bool {
-    if (!std.mem.eql(u8, &previous.shape, &shape) or !previous.initial.eql(initial) or previous.paths.len != state.graph.modules.len) return false;
-    if (!std.mem.eql(usize, previous.derived.dependencies.order, state.graph.order)) return false;
-    for (previous.paths, state.graph.modules) |path, module| if (!@import("zx").bytes.equal(path, module.path)) return false;
+    const earlier = previous.derived.dependencies;
+
+    if (!std.mem.eql(u8, &previous.shape, &shape) or !previous.initial.eql(initial) or earlier.modules.len != state.graph.modules.len) return false;
+    if (!std.mem.eql(usize, earlier.order, state.graph.order)) return false;
+
+    if (earlier.modules.ptr != state.graph.modules.ptr) {
+        for (earlier.modules, state.graph.modules) |before, after| if (!zx.bytes.equal(before.path, after.path)) return false;
+    }
 
     const types: @TypeOf(initial.types) = @splat(0);
     const origins: @TypeOf(initial.origins) = @splat(0);

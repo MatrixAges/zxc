@@ -20,6 +20,7 @@ pub const Options = struct {
     scratch_allocator: ?std.mem.Allocator = null,
     /// Optional caller-owned index, using the scratch allocator.
     registered_paths: ?*frontend.project.source_index.Map = null,
+    retain_source_dependencies: bool = false,
 };
 
 pub fn build(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Result {
@@ -84,20 +85,21 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     for (roots[1 + options.additional_roots.len ..], 0..) |*root, index| root.* = options.sources.len + options.modules.len + index;
 
-    const starts = try backing.alloc(u64, modules.len + 1);
+    const target_allocator = if (options.retain_source_dependencies) allocator else backing;
+    const starts = try target_allocator.alloc(u64, modules.len + 1);
 
-    defer backing.free(starts);
+    defer if (!options.retain_source_dependencies) backing.free(starts);
 
-    const ends = try backing.alloc(u64, modules.len);
+    const ends = try target_allocator.alloc(u64, modules.len);
 
-    defer backing.free(ends);
+    defer if (!options.retain_source_dependencies) backing.free(ends);
     @memset(starts, 0);
     @memset(ends, 0);
 
     var adjacency: model.Adjacency = .{ .starts = starts, .ends = ends };
-    var collector = Collector{ .allocator = allocator, .backing = backing, .options = options.project, .modules = modules, .paths = paths };
+    var collector = Collector{ .allocator = allocator, .backing = backing, .target_allocator = target_allocator, .options = options.project, .modules = modules, .paths = paths };
 
-    defer collector.targets.deinit(backing);
+    defer if (!options.retain_source_dependencies) collector.targets.deinit(backing);
 
     if (collector.options.source_index == null) collector.options.source_index = paths;
 
@@ -114,6 +116,11 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
             .batch_ends = schedule.batch_ends,
             .entry = entry,
             .additional_roots = additional_roots,
+            .source_dependencies = if (options.retain_source_dependencies) .{
+                .starts = starts,
+                .ends = ends,
+                .targets = adjacency.targets,
+            } else null,
         } },
         .diagnostic => |issue| .{ .diagnostic = issue },
     };
