@@ -23,7 +23,9 @@ export enum SourceAction {
     DeferSignature,
     SkipSignature,
     RejectRx,
-    Missing
+    Missing,
+    Cycle,
+    Depth
 }
 
 export type Source = {
@@ -31,5 +33,6 @@ export type Source = {
     signature: bool,
     function_import: bool,
     exported: bool,
-    state?: State
+    state?: State,
+    depth: u64
 }

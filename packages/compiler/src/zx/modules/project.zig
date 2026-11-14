@@ -12,6 +12,7 @@ pub const public_exports = @import("public_exports.zig");
 const Analysis = @import("../analysis/analyze.zig");
 const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
+const CachePublication = @import("semantic_cache/publication.zig");
 const Input = @import("module_input.zig");
 const Loading = @import("project/load/host.zig");
 const Interface = @import("project/interface/host.zig");
@@ -103,8 +104,9 @@ const Project = struct {
     semantic_cache: ?*SemanticCache = null,
     load_frames: std.ArrayList(LoadFrame) = .empty,
     entry_program: ?ir.Program = null,
-    cache_context: @import("semantic_cache/publication.zig").Context = .{},
+    cache_context: CachePublication.Context = .{},
     cache_records: std.ArrayList(usize) = .empty,
+    cache_root: ?usize = null,
     units: []Unit,
     /// Each unit path to the first unit with it.
     unit_indices: source_index.Map = .empty,
@@ -128,7 +130,12 @@ const Project = struct {
     fn loadFrames(self: *Project, index: usize, comptime phase: Loading.Phase) zx.Error!void {
         const frames = &self.load_frames;
 
-        try self.pushFrame(index);
+        switch (Loading.admit(self.units[index].state, frames.items.len)) {
+            .Skip => return,
+            .Cycle => return self.dependencyCycle(),
+            .Depth => return self.dependencyDepth(),
+            .Push => try self.pushFrame(index),
+        }
 
         while (frames.items.len != 0) {
             const frame = &frames.items[frames.items.len - 1];
@@ -164,14 +171,6 @@ const Project = struct {
     fn pushFrame(self: *Project, index: usize) zx.Error!void {
         const unit = &self.units[index];
         const frames = &self.load_frames;
-
-        switch (Loading.admit(unit.state, frames.items.len)) {
-            .Skip => return,
-            .Cycle => return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "ZX module imports must be acyclic, including unused imports"),
-            .Depth => return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "module dependency depth exceeds 256"),
-            .Push => {},
-        }
-
         unit.state = .Visiting;
         self.current_source = index;
 
@@ -187,6 +186,12 @@ const Project = struct {
         }
 
         try frames.append(self.arena.child_allocator, .{ .index = index, .parsed = parsed });
+    }
+    fn dependencyCycle(self: *Project) zx.Error {
+        return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "ZX module imports must be acyclic, including unused imports");
+    }
+    fn dependencyDepth(self: *Project) zx.Error {
+        return self.reporter.fail(.module, .{ .start = 0, .end = 0 }, "module dependency depth exceeds 256");
     }
     fn loadInput(self: *Project, frame: *LoadFrame, input: anytype, comptime phase: Loading.Phase) zx.Error!?usize {
         const index = frame.index;
@@ -262,11 +267,30 @@ const Project = struct {
 
             const imported = switch (target) {
                 .source => |path| block: {
-                    const rx = pending == null and std.mem.endsWith(u8, path, ".rx");
-                    const dependency = pending orelse if (!rx) self.find(path) else null;
+                    if (pending) |child| {
+                        const loaded = &self.units[child];
+
+                        std.debug.assert(loaded.state == .Done);
+
+                        source_path = loaded.path;
+
+                        break :block importedSource(loaded, phase);
+                    }
+
+                    const rx = std.mem.endsWith(u8, path, ".rx");
+                    const dependency = if (!rx) self.find(path) else null;
                     const state = if (dependency) |child| self.units[child].state else null;
 
-                    switch (Loading.source(rx, phase, item.kind == .function, item.exported, state)) {
+                    const action = Loading.source(.{
+                        .rx = rx,
+                        .phase = phase,
+                        .function_import = item.kind == .function,
+                        .exported = item.exported,
+                        .state = state,
+                        .depth = self.load_frames.items.len,
+                    });
+
+                    switch (action) {
                         .SkipSignature => continue,
                         .DeferSignature => {
                             const retained = try self.allocator.dupe(u8, path);
@@ -275,21 +299,18 @@ const Project = struct {
                         },
                         .RejectRx => return self.reporter.fail(.module, item.span, "ZX package entry must be a .zx source file"),
                         .Missing => return self.reporter.fail(.module, item.span, "import target is missing from the source set"),
+                        .Cycle => return self.dependencyCycle(),
+                        .Depth => return self.dependencyDepth(),
                         .Descend => {
                             frame.pending = dependency.?;
 
                             return dependency;
                         },
-                        .BindSignature => {
-                            const signature = &self.units[dependency.?].signature.?;
-
-                            break :block Imported{ .exports = signature.exports, .constant_exports = signature.constant_exports, .signatures = signature.members };
-                        },
-                        .BindBody => {
+                        .BindSignature, .BindBody => {
                             const loaded = &self.units[dependency.?];
                             source_path = loaded.path;
 
-                            break :block Imported{ .exports = loaded.exports, .constant_exports = loaded.constants, .members = loaded.members };
+                            break :block importedSource(loaded, phase);
                         },
                     }
                 },
@@ -343,6 +364,15 @@ const Project = struct {
         } else try self.finishInput(frame, input);
 
         return null;
+    }
+    fn importedSource(unit: *const Unit, comptime phase: Loading.Phase) Imported {
+        if (phase == .signature) {
+            const signature = &unit.signature.?;
+
+            return .{ .exports = signature.exports, .constant_exports = signature.constant_exports, .signatures = signature.members };
+        }
+
+        return .{ .exports = unit.exports, .constant_exports = unit.constants, .members = unit.members };
     }
     fn rememberImport(self: *Project, frame: *LoadFrame, item: anytype, target: ModuleRecord.Target, identity: ?[]const u8) zx.Error!void {
         var dependency = try ModuleRecord.copyImport(self.allocator, item, target);
@@ -497,7 +527,13 @@ const Project = struct {
             unit.function = try public_exports.bodyEntry(self.allocator, self.arena.child_allocator, unit.function, unit.exports, unit.constants, unit.members, self.reporter);
         }
 
-        if (publication.publish_artifact) try self.cache_records.append(self.arena.child_allocator, self.modules.items.len);
+        if (publication.publish_artifact) {
+            const index = self.modules.items.len;
+
+            try self.cache_records.append(self.arena.child_allocator, index);
+
+            if (entry) self.cache_root = index;
+        }
 
         try self.modules.append(self.allocator, .{
             .path = unit.path,
@@ -816,7 +852,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     const result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 
     if (project.semantic_cache) |semantic| {
-        if (try @import("semantic_cache/publication.zig").publish(allocator, semantic, &result, project.cache_records.items, &project.cache_context, normalized.entry)) |issue| {
+        if (try CachePublication.publish(allocator, semantic, &result, project.cache_records.items, project.cache_root, &project.cache_context)) |issue| {
             return .{ .arena = arena, .value = .{ .diagnostic = issue } };
         }
     }

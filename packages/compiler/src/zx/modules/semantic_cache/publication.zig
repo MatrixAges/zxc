@@ -20,7 +20,7 @@ pub const Context = struct {
     }
 };
 
-pub fn publish(allocator: std.mem.Allocator, cache: *Cache, result: *const Analysis.Result, records: []const usize, context: *const Context, entry: []const u8) std.mem.Allocator.Error!?zx.Diagnostic {
+pub fn publish(allocator: std.mem.Allocator, cache: *Cache, result: *const Analysis.Result, records: []const usize, root: ?usize, context: *const Context) std.mem.Allocator.Error!?zx.Diagnostic {
     if (records.len == 0) return null;
 
     var scratch = zx.Arena.init(allocator);
@@ -48,7 +48,7 @@ pub fn publish(allocator: std.mem.Allocator, cache: *Cache, result: *const Analy
 
         errdefer artifact.deinit();
 
-        const digest = if (std.mem.eql(u8, record.path, entry)) &context.root else &context.dependency.?;
+        const digest = if (root == index) &context.root else &context.dependency.?;
 
         try cache.put(artifact, digest.*);
     }

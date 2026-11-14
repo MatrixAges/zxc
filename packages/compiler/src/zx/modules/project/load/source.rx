@@ -15,17 +15,37 @@
         <Return value={Load.SourceAction.DeferSignature} />
     </If>
 
-    <If on={$in.state == null}>
-        <Return value={Load.SourceAction.Missing} />
+    <If on={$in.state != null}>
+        <Call
+            fn="admit"
+            in={{
+                state: $in.state,
+                depth: $in.depth
+            }}
+        />
+
+        <Switch on={$ctx.admit}>
+            <Case value={Load.Admission.Push}>
+                <Return value={Load.SourceAction.Descend} />
+            </Case>
+
+            <Case value={Load.Admission.Cycle}>
+                <Return value={Load.SourceAction.Cycle} />
+            </Case>
+
+            <Case value={Load.Admission.Depth}>
+                <Return value={Load.SourceAction.Depth} />
+            </Case>
+
+            <Default>
+                <If on={$in.signature}>
+                    <Return value={Load.SourceAction.BindSignature} />
+                </If>
+
+                <Return value={Load.SourceAction.BindBody} />
+            </Default>
+        </Switch>
     </If>
 
-    <If on={$in.state != Load.State.Done}>
-        <Return value={Load.SourceAction.Descend} />
-    </If>
-
-    <If on={$in.signature}>
-        <Return value={Load.SourceAction.BindSignature} />
-    </If>
-
-    <Return value={Load.SourceAction.BindBody} />
+    <Return value={Load.SourceAction.Missing} />
 </Module>
