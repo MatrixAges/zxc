@@ -2,6 +2,7 @@
     <Type from="../../../../analysis/semantic/merging/model" as="Merge" />
     <Type from="restore_input" as="Restore" />
     <Type from="failed" as="Failed" />
+    <Type from="result" as="Result" />
 
     <Args in={Restore.Input} out={Failed.Output} />
 
@@ -47,17 +48,27 @@
         />
 
         <Call
-            fn="publish"
+            fn="exports"
             in={{
-                export_types: $in.validation.request.export_types,
-                types: $ctx.type_delta,
-                origins: $ctx.types.origins,
-                ports: $ctx.ports,
+                count: $in.validation.request.export_types.length,
+                target: $in.export_ids,
                 mapping: $in.type_ids
             }}
         />
 
-        <Return value={$ctx.publish} />
+        <Return
+            value={{
+                status: Result.Status.Ready,
+                value: {
+                    types: $ctx.type_delta,
+                    origins: $ctx.types.origins,
+                    signatures: {
+                        ...$in.validation.request.signatures,
+                        ...$ctx.ports
+                    }
+                }
+            }}
+        />
 
         <Else>
             <Call fn="merge_status" in={$ctx.types.status} />

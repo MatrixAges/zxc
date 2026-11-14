@@ -1,0 +1,29 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import type { U32Buffer } from "std:memory"
+
+export type Input = {
+    count: u64,
+    target: U32Buffer,
+    mapping: u32[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { count, target, mapping } = in
+
+    const written = loop({
+        index: 0
+    }, {
+        while: state => state.index < count,
+        next: state => {
+            const id = memory.readU32(target, state.index)
+
+            memory.writeU32(target, state.index, mapping[integers.widen(id)])
+
+            state.index += 1
+        }
+    })
+}

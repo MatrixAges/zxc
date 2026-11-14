@@ -21,6 +21,7 @@ base_origins: std.meta.Child(@FieldType(Input, "base_origins")),
 request: Request,
 validation: Validation,
 type_ids: []u32,
+export_ids: []u32,
 input: Input,
 pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) std.mem.Allocator.Error!void {
     self.signatures = borrow.columns(@TypeOf(self.signatures), artifact.functions);
@@ -30,10 +31,12 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
     self.types = ir.TypeTable.borrow(@TypeOf(self.types), artifact.types);
     self.base = ir.TypeTable.borrow(@TypeOf(self.base), current.types.view());
     self.base_origins = Origins.Table.borrow(@TypeOf(self.base_origins), current.origins.items.view());
-    const names = try allocator.alloc([]const u8, artifact.exports.len);
-    const ids = try allocator.alloc(u32, artifact.exports.len);
 
-    for (artifact.exports, names, ids) |exported, *name, *id| {
+    const names = try allocator.alloc([]const u8, artifact.exports.len);
+
+    self.export_ids = try allocator.alloc(u32, artifact.exports.len);
+
+    for (artifact.exports, names, self.export_ids) |exported, *name, *id| {
         name.* = exported.name;
         id.* = @backingInt(exported.type_id);
     }
@@ -59,7 +62,7 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .signatures = &self.signatures,
         .modules = &self.modules,
         .export_names = names,
-        .export_types = ids,
+        .export_types = self.export_ids,
         .origins = &self.origins,
         .imports = imports,
         .declaration = &self.declaration,
@@ -83,5 +86,6 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .base_origins = &self.base_origins,
         .type_ids = self.type_ids,
         .type_mapping = @ptrCast(&self.type_ids),
+        .export_ids = @ptrCast(&self.export_ids),
     };
 }
