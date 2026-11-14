@@ -1,4 +1,3 @@
-import type { U32Buffer } from "std:memory"
 import type { Stores } from "core/store_table/model"
 import type {
     FunctionInput,
@@ -6,17 +5,11 @@ import type {
     Mapping
 } from "../../../artifact/remapping/model"
 
-export type Exports = {
-    mapping: Mapping,
-    count: u64,
-    ids: U32Buffer
-}
-
 export type Input = {
     body?: FunctionInput,
     stores: Stores,
     reuse_store_types: bool,
-    exports: Exports
+    types: Mapping
 }
 
 export type Plan = {

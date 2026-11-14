@@ -42,19 +42,19 @@ pub fn extract(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysi
     else
         .{};
 
-    const surface = try @import("../surface.zig").copy(allocator, .{
+    const surface = try @import("../surface.zig").copy(&nodes, .{
         .exports = record.exports,
         .constant_exports = record.constant_exports,
         .constant_imports = record.constant_imports,
         .type_imports = record.type_imports,
         .function_imports = record.function_imports,
         .members = record.reexports.functions,
-    }, .{ .types = prepared.references.types, .functions = prepared.references.functions });
+    });
 
     return .{
         .path = try allocator.dupe(u8, record.path),
         .source_digest = record.source_digest,
-        .dependencies = try contents.dependencies(&nodes, record.imports),
+        .dependencies = try contents.dependencies(allocator, record.imports),
         .types = types,
         .nominal_types = origins,
         .exports = surface.exports,

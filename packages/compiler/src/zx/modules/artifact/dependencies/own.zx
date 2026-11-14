@@ -1,0 +1,35 @@
+import strings from "std:string"
+
+import copyNames from "../materializing/copy_names"
+
+export type Input = {
+    specifier: string,
+    identity?: string,
+    names: string[],
+    source_names: string[],
+    path?: string
+}
+
+export type Output = Input
+
+export default function (in: Input): Output {
+    const { identity, path } = in
+
+    const owned_identity: string? = match {
+        identity != null => strings.copy(identity),
+        _ => null
+    }
+
+    const owned_path: string? = match {
+        path != null => strings.copy(path),
+        _ => null
+    }
+
+    return {
+        specifier: strings.copy(in.specifier),
+        identity: owned_identity,
+        names: copyNames(in.names),
+        source_names: copyNames(in.source_names),
+        path: owned_path
+    }
+}

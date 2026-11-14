@@ -14,15 +14,13 @@
         module="stores"
         in={{
             source: $in.stores,
-            mapping: $in.exports.mapping,
+            mapping: $in.types,
             body: $ctx.optional_body,
             reuse: $in.reuse_store_types
         }}
     />
 
     <If on={$ctx.stores != null}>
-        <Call fn="exports" in={$in.exports} />
-
         <Return
             value={{
                 body: $ctx.optional_body,

@@ -9,19 +9,7 @@ const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
 const Row = std.meta.Child(@FieldType(Input, "bindings"));
 const Columns = std.meta.Child(@typeInfo(@FieldType(Input, "columns")).optional.child);
 
-pub const References = struct {
-    types: []u32,
-    functions: []u32,
-};
-
-pub fn Projection(comptime Target: type) type {
-    return struct {
-        record: Target,
-        references: References,
-    };
-}
-
-pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Record) Error!Projection(Target) {
+pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Record) Error!Target {
     const Kind = std.meta.Child(@FieldType(Target, "import_kinds"));
     const bindings = [2][]const Binding{ record.function_imports, record.reexports.functions };
     const ordinary_count = try ports(bindings, null);
@@ -62,7 +50,7 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         key.* = value.identity orelse value.specifier;
     }
 
-    const view: Target = .{
+    return .{
         .path = record.path,
         .start = record.type_range.start,
         .end = record.type_range.end,
@@ -76,11 +64,6 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         .dependency_keys = dependency_keys,
         .has_body = record.body != .types,
         .body_function = if (record.own_function) |id| @backingInt(id) else if (record.body == .function) @backingInt(record.body.function) else null,
-    };
-
-    return .{
-        .record = view,
-        .references = .{ .types = types, .functions = function_ids },
     };
 }
 

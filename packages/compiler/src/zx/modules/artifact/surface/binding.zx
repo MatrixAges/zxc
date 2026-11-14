@@ -1,0 +1,64 @@
+import strings from "std:string"
+
+import remap from "../remapping/id"
+
+import type { Mapping } from "../remapping/model"
+
+export type Input = {
+    name: string,
+    namespace?: string,
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32,
+    types: Mapping,
+    functions: Mapping
+}
+
+export type Output = {
+    name: string,
+    namespace?: string,
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32
+}
+
+export default function (in: Input): Output {
+    const name = strings.copy(in.name)
+    const namespace = in.namespace
+
+    const owned_namespace: string? = match {
+        namespace != null => strings.copy(namespace),
+        _ => null
+    }
+
+    const { id, input_type, output_type } = in
+
+    const missing_port = id == null || input_type == null || output_type == null
+
+    if (missing_port) {
+        return {
+            name,
+            namespace: owned_namespace,
+            id: null,
+            input_type: null,
+            output_type: null
+        }
+    }
+
+    return {
+        name,
+        namespace: owned_namespace,
+        id: remap({
+            id,
+            mapping: in.functions
+        }),
+        input_type: remap({
+            id: input_type,
+            mapping: in.types
+        }),
+        output_type: remap({
+            id: output_type,
+            mapping: in.types
+        })
+    }
+}

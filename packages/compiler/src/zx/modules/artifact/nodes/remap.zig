@@ -97,7 +97,7 @@ pub fn typeMapping(comptime Target: type, mapping: Nodes.TypeMap) Target {
     };
 }
 
-fn idMapping(comptime Target: type, mapping: anytype) Target {
+pub fn idMapping(comptime Target: type, mapping: anytype) Target {
     return switch (mapping) {
         .indexed => |ids| .{ .kind = .Sparse, .dense = &.{}, .sparse = @ptrCast(ids), .planned = &.{}, .first = 0, .prefix = 0, .count = 0 },
         .planned => |ids| .{ .kind = .Planned, .dense = &.{}, .sparse = &.{}, .planned = ids, .first = 0, .prefix = 0, .count = 0 },

@@ -110,13 +110,13 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     };
 
     var restored = if (comptime generated)
-        try @import("restoring/publication/host.zig").materialize(temporary, &nodes, module, tables, own, structure)
+        try @import("restoring/publication/host.zig").materialize(&nodes, module, tables, own, structure)
 
     else seed: {
         const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;
 
         break :seed Restored{
-            .program = try result.assemble(allocator, temporary, module, if (function) |*value| &value.body else null, tables, mapping),
+            .program = try result.assemble(allocator, module, if (function) |*value| &value.body else null, tables, mapping),
             .recursive = if (function) |value| value.recursive else null,
         };
     };

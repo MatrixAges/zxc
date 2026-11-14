@@ -11,7 +11,7 @@ pub const Tables = struct {
 };
 
 pub fn materialize(allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, recursive: ?ir.FunctionId, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
-    var assembled = try assemble(allocator, temporary, module, body, tables, mapping);
+    var assembled = try assemble(allocator, module, body, tables, mapping);
 
     if (recursive) |id| try @import("../../function_body.zig").entry(allocator, &assembled, id);
     if (try @import("../../../ir/validate.zig").validate(temporary, assembled) != null) return error.InvalidIr;
@@ -19,14 +19,15 @@ pub fn materialize(allocator: std.mem.Allocator, temporary: std.mem.Allocator, m
     return assembled;
 }
 
-pub fn assemble(allocator: std.mem.Allocator, temporary: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
+pub fn assemble(allocator: std.mem.Allocator, module: *const Model.Module, body: ?*const ir.Function, tables: Tables, mapping: []const ir.TypeId) Model.Error!ir.Program {
     var nodes: Nodes = .{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = &.{} }, .native_modules = .{ .indexed = &.{} } };
     const stores = try nodes.stores(module.stores);
 
     const exports, const constant_exports = if (comptime generated) source: {
-        const surface = try @import("../../artifact/surface.zig").linked(temporary, &nodes, module.exports, module.constant_exports);
+        const surface = @import("../../artifact/surface.zig");
+        const types = @import("../../artifact/nodes/remap.zig").typeMapping(surface.Mapping, nodes.types);
 
-        break :source .{ surface.exports, surface.constant_exports };
+        break :source .{ try surface.copyExports(allocator, module.exports, &types), try surface.copyConstants(allocator, module.constant_exports, &types) };
     } else seed: {
         const aliases = try allocator.alloc(ir.Export, module.exports.len);
 

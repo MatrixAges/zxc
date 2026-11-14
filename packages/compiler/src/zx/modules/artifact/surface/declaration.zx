@@ -1,0 +1,36 @@
+import strings from "std:string"
+
+import remap from "../remapping/id"
+
+import type { Mapping } from "../remapping/model"
+
+export type Input = {
+    name: string,
+    type_id: u32,
+    text?: string,
+    types: Mapping
+}
+
+export type Output = {
+    name: string,
+    type_id: u32,
+    text?: string
+}
+
+export default function (in: Input): Output {
+    const text = in.text
+
+    const owned: string? = match {
+        text != null => strings.copy(text),
+        _ => null
+    }
+
+    return {
+        name: strings.copy(in.name),
+        type_id: remap({
+            id: in.type_id,
+            mapping: in.types
+        }),
+        text: owned
+    }
+}

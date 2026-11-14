@@ -4,7 +4,6 @@
     <Type from="../materializing/body" as="Body" />
     <Type from="core/type_table/nominal" as="Nominal" />
     <Type from="../../../analysis/constants/model" as="Constants" />
-    <Type from="surface/model" as="Surface" />
 
     <Type
         from="../../../analysis/semantic/extracting/planning/model"
@@ -18,7 +17,6 @@
             origins: Nominal.Bindings,
             origin_names: string[],
             constants?: Constants.Interface,
-            surface: Surface.References,
             scalar_count: u64,
             maximum_count: u64
         }}
@@ -115,15 +113,6 @@
     </If>
 
     <Call fn="../materializing/body" in={$in.body} />
-
-    <Call
-        module="surface/remap"
-        in={{
-            references: $in.surface,
-            types: $ctx.plan.state.mapping,
-            functions: $ctx.plan.functions.mapping
-        }}
-    />
 
     <Return
         value={{
