@@ -1,7 +1,6 @@
 import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/signature_table/model"
 import type { Bindings } from "core/type_table/nominal"
-import type { FunctionBinding } from "../../../binding/model"
 import type { Declaration } from "./model"
 
 export type Request = {
@@ -17,6 +16,6 @@ export type Request = {
     export_names: string[]
     export_types: u32[]
     origins: Bindings
-    imports: FunctionBinding[]
+    import_count: u64
     declaration: Declaration
 }

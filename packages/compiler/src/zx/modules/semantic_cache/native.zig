@@ -21,14 +21,15 @@ pub fn deinit(self: *Self) void {
 pub fn load(self: *Self, allocator: std.mem.Allocator, entry: Native, current: Current, reporter: *zx.Reporter, span: zx.Span) zx.Error!Loaded.Result {
     const fingerprint = digest(entry);
 
-    if (entries.get(&self.items, entry.key(), fingerprint, empty_context)) |artifact| {
-        const restored: ?Loaded.Result = restoring.restore(allocator, artifact.*, entry, current) catch |err| retry: {
+    if (entries.find(&self.items, entry.key(), &fingerprint, &empty_context)) |cached| {
+        const restored: ?Loaded.Result = restoring.restore(allocator, &cached.result.value, entry, current, cached.native_admitted) catch |err| retry: {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             break :retry null;
         };
 
         if (restored) |result| {
+            cached.native_admitted = true;
             self.reused += 1;
 
             return result;
@@ -41,14 +42,18 @@ pub fn load(self: *Self, allocator: std.mem.Allocator, entry: Native, current: C
 
     errdefer artifact.deinit();
 
-    const restored = restoring.restore(allocator, artifact.value, entry, current) catch |err| {
+    const publication = try entries.prepare(self.allocator, &self.items, artifact.value.path);
+
+    errdefer publication.cancel(self.allocator);
+
+    const restored = restoring.restore(allocator, &artifact.value, entry, current, false) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
         if (err == error.InvalidIr) return reporter.fail(.module, span, "native declarations produced invalid interface IR");
 
         return reporter.fail(.module, span, "native interface artifact could not be mapped into the project");
     };
 
-    try entries.put(self.allocator, &self.items, artifact, empty_context);
+    publication.commit(&self.items, .{ .result = artifact, .context_digest = empty_context, .native_admitted = true });
 
     return restored;
 }

@@ -8,7 +8,7 @@ const Origins = @import("../../nominal_origins.zig");
 const borrow = @import("../../../ir/canonical/borrow.zig");
 const Input = std.meta.Child(@import("generated_native_restore").Input);
 const Validation = std.meta.Child(@FieldType(Input, "validation"));
-const Request = std.meta.Child(@FieldType(Validation, "request"));
+pub const Request = std.meta.Child(@FieldType(Validation, "request"));
 const Self = @This();
 
 signatures: std.meta.Child(@FieldType(Request, "signatures")),
@@ -23,7 +23,7 @@ validation: Validation,
 type_ids: []u32,
 export_ids: []u32,
 input: Input,
-pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) std.mem.Allocator.Error!void {
+pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: *const Artifact.Module, entry: Native, current: Current, admitted: bool) std.mem.Allocator.Error!void {
     self.signatures = borrow.columns(@TypeOf(self.signatures), artifact.functions);
     self.modules = borrow.columns(@TypeOf(self.modules), artifact.native_modules);
     self.origins = Origins.Table.borrow(@TypeOf(self.origins), artifact.nominal_types);
@@ -41,16 +41,6 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         id.* = @backingInt(exported.type_id);
     }
 
-    const ImportPointer = std.meta.Elem(@FieldType(Request, "imports"));
-    const Import = std.meta.Child(ImportPointer);
-    const rows = try allocator.alloc(Import, artifact.function_imports.len);
-    const imports = try allocator.alloc(ImportPointer, artifact.function_imports.len);
-
-    for (artifact.function_imports, rows, imports) |*source, *row, *target| {
-        row.* = source.borrow(Import);
-        target.* = row;
-    }
-
     self.request = .{
         .path = artifact.path,
         .has_function = artifact.function != null,
@@ -64,7 +54,7 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .export_names = names,
         .export_types = self.export_ids,
         .origins = &self.origins,
-        .imports = imports,
+        .import_count = artifact.function_imports.len,
         .declaration = &self.declaration,
     };
 
@@ -87,5 +77,6 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: Artifact.Module
         .type_ids = self.type_ids,
         .type_mapping = @ptrCast(&self.type_ids),
         .export_ids = @ptrCast(&self.export_ids),
+        .admitted = admitted,
     };
 }

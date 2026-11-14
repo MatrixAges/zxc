@@ -27,16 +27,7 @@
             }}
         />
 
-        <Call
-            fn="bindings"
-            in={$in.pick([
-                "signatures",
-                "imports",
-                "declaration"
-            ])}
-        />
-
-        <Return value={$ctx.descriptor && $ctx.origins && $ctx.bindings} />
+        <Return value={$ctx.descriptor && $ctx.origins} />
 
         <Else>
             <Return value={false} />

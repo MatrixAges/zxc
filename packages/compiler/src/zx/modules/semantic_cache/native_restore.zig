@@ -15,8 +15,8 @@ pub const Current = struct {
 
 pub const Error = Types.Error || Artifact.Error;
 
-pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) Error!Loaded.Result {
-    if (!@import("parser_options").generated_parser) return @import("seed_native_restore.zig").restore(allocator, artifact, entry, current);
+pub fn restore(allocator: std.mem.Allocator, artifact: *const Artifact.Module, entry: Native, current: Current, admitted: bool) Error!Loaded.Result {
+    if (!@import("parser_options").generated_parser) return @import("seed_native_restore.zig").restore(allocator, artifact.*, entry, current);
 
-    return @import("host/native.zig").restore(allocator, artifact, entry, current);
+    return @import("host/native.zig").restore(allocator, artifact, entry, current, admitted);
 }

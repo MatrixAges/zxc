@@ -7,7 +7,7 @@ const restoring = @import("../native_restore.zig");
 const generated = @import("generated_native_restore");
 const Input = @import("native_input.zig");
 
-pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: restoring.Current) restoring.Error!Loaded.Result {
+pub fn restore(allocator: std.mem.Allocator, artifact: *const Artifact.Module, entry: Native, current: restoring.Current, admitted: bool) restoring.Error!Loaded.Result {
     var arena = std.heap.ArenaAllocator.init(current.backing);
     var buffer: [2048]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
@@ -17,7 +17,9 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
     var input: Input = undefined;
     const temporary = scratch.allocator();
 
-    try input.init(temporary, artifact, entry, current);
+    try input.init(temporary, artifact, entry, current, admitted);
+
+    if (!admitted) try @import("native_admission.zig").check(temporary, &input.request, artifact.function_imports);
 
     const request: *const @TypeOf(input.input) = &input.input;
 

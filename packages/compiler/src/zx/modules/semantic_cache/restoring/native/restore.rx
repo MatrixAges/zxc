@@ -5,27 +5,17 @@
 
     <Args in={Restore.Input} out={Failed.Output} />
 
-    <Call module="eligible" in={$in.validation.request} />
-
-    <If on={$ctx.eligible}>
+    <If on={!$in.admitted}>
         <Call module="validate" in={$in.validation} />
 
-        <If on={$ctx.validate}>
-            <Call module="merge" in={$in} />
-
-            <Return value={$ctx.merge} />
-
-            <Else>
-                <Call fn="failed" in={Result.Status.InvalidIr} />
-
-                <Return value={$ctx.failed} />
-            </Else>
-        </If>
-
-        <Else>
-            <Call fn="failed" in={Result.Status.InvalidModule} />
+        <If on={!$ctx.validate}>
+            <Call fn="failed" in={Result.Status.InvalidIr} />
 
             <Return value={$ctx.failed} />
-        </Else>
+        </If>
     </If>
+
+    <Call module="merge" in={$in} />
+
+    <Return value={$ctx.merge} />
 </Module>
