@@ -1,0 +1,49 @@
+import type { Literal } from "core/constant/model"
+import type { FunctionBinding } from "../../../../../zx/modules/binding/model"
+
+export type Port = {
+    function?: u32,
+    input_type: u32,
+    output_type: u32
+}
+
+export type Export = {
+    name: string,
+    type_id: u32
+}
+
+export type Initializer = {
+    function: u32,
+    identity: string,
+    schema_version: u32
+}
+
+export type Constant = {
+    name: string,
+    value: Literal
+}
+
+export type Pair = {
+    left: Port,
+    right: Port
+}
+
+export type ExportPair = {
+    left: Export,
+    right: Export
+}
+
+export type InitializerPair = {
+    left: Initializer,
+    right: Initializer
+}
+
+export type MemberPair = {
+    left: FunctionBinding,
+    right: FunctionBinding
+}
+
+export type ConstantPair = {
+    left: Constant,
+    right: Constant
+}

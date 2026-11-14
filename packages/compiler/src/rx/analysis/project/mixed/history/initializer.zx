@@ -1,0 +1,13 @@
+import type { InitializerPair } from "./link_model"
+
+export type Input = InitializerPair
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { left, right } = in
+
+    const version = left.schema_version == right.schema_version
+
+    return left.function == right.function && version && left.identity == right.identity
+}

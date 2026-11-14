@@ -1,0 +1,86 @@
+import type { Complete } from "core/function_table/complete"
+
+export type Columns = Complete.Pick(
+    "native_inputs",
+    "native_errors",
+    "native_members",
+    "native_exports"
+)
+
+export type Input = {
+    left: Columns,
+    right: Columns
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { left, right } = in
+
+    return loop({
+        index: 0,
+        equal: left.native_members.length == right.native_members.length
+    }, {
+        while: row => row.equal && row.index < left.native_members.length,
+        next: row => {
+            const i = row.index
+            const lhs = left.native_members[i]
+            const rhs = right.native_members[i]
+
+            const members = loop({
+                index: 0,
+                equal: lhs.length == rhs.length && left.native_exports[i] ==
+                    right.native_exports[i]
+            }, {
+                while: item => item.equal && item.index < lhs.length,
+                next: item => {
+                    item.equal = lhs[item.index] == rhs[item.index]
+                    item.index += 1
+                },
+                return: item => item.equal
+            })
+
+            const left_errors = left.native_errors[i]
+            const right_errors = right.native_errors[i]
+            const errors = match {
+                !members => false,
+                left_errors == null || right_errors == null =>
+                    left_errors == null && right_errors == null,
+                _ => loop({
+                    index: 0,
+                    equal: left_errors.length == right_errors.length
+                }, {
+                    while: item => item.equal && item.index < left_errors.length,
+                    next: item => {
+                        item.equal =
+                            left_errors[item.index] == right_errors[item.index]
+                        item.index += 1
+                    },
+                    return: item => item.equal
+                })
+            }
+
+            const left_names = left.native_inputs[i]
+            const right_names = right.native_inputs[i]
+
+            row.equal = match {
+                !errors => false,
+                left_names == null || right_names == null =>
+                    left_names == null && right_names == null,
+                _ => loop({
+                    index: 0,
+                    equal: left_names.length == right_names.length
+                }, {
+                    while: item => item.equal && item.index < left_names.length,
+                    next: item => {
+                        item.equal = left_names[item.index] == right_names[item.index]
+                        item.index += 1
+                    },
+                    return: item => item.equal
+                })
+            }
+            row.index += 1
+        },
+        return: row => row.equal
+    })
+}

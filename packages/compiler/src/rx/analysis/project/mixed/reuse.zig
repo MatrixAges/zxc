@@ -8,6 +8,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
+const comparisons = @import("frontend").compare_ir;
 const State = @import("state.zig");
 const history = @import("../history.zig");
 const columns = @import("../history/columns.zig");
@@ -147,10 +148,16 @@ fn repeated(state: *const State, previous: *const history.Retained, index: usize
     const end = state.functions.count();
 
     if (previous.before[index].functions != start or previous.after[index].functions != end) return false;
-    if (!columns.same(current, earlier)) return false;
 
     const left = previous.functions;
     const right = state.functions.view();
+
+    if (comptime @import("rx_options").generated_graph) {
+        return @import("history/linked.zig").equal(&current, &earlier) and
+            comparisons.headers(&left, &right, start, end) and comparisons.bodies(&left, &right, start, end);
+    }
+
+    if (!columns.same(current, earlier)) return false;
 
     inline for (@typeInfo(ir.FunctionTable).@"struct".field_names) |name| {
         const Element = std.meta.Elem(@FieldType(ir.FunctionTable, name));
@@ -241,6 +248,10 @@ fn matches(state: *const State, previous: *const history.Retained, shape: [32]u8
 
 /// Compares the function rows' signature columns; the tables each row points to belong to one analysis.
 fn signatures(left: ir.FunctionTable, right: ir.FunctionTable, count: usize) bool {
+    if (comptime @import("rx_options").generated_graph) {
+        return comparisons.headers(&left, &right, 0, count);
+    }
+
     inline for (@typeInfo(ir.FunctionTable).@"struct".field_names) |name| {
         const Element = std.meta.Elem(@FieldType(ir.FunctionTable, name));
         const shared = comptime @typeInfo(Element) == .pointer and @typeInfo(Element).pointer.size == .one;

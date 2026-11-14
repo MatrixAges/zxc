@@ -1,0 +1,15 @@
+<Module>
+    <Type from="model" as="Comparison" />
+
+    <Args in={Comparison.Header} out={bool} />
+
+    <Call fn="columns" in={$in.columns} />
+
+    <If on={!$ctx.columns}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="native_columns" in={$in.native} />
+
+    <Return value={$ctx.native_columns} />
+</Module>

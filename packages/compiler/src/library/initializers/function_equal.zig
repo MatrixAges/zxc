@@ -1,6 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const projection = @import("compare/borrow.zig");
+const comparison = @import("frontend").compare_ir;
+const projection = comparison.borrow;
 const generated = @import("parser_options").generated_parser;
 
 pub fn matches(left: *const ir.Function, right: *const ir.Function, left_version: u32, right_version: u32, mapping: ?[]const ir.TypeId) bool {
@@ -44,28 +45,7 @@ pub fn matches(left: *const ir.Function, right: *const ir.Function, left_version
 
     if (!(entry.executeIn(fixed.allocator(), &input) catch unreachable)) return false;
 
-    return contracts(fixed.allocator(), &left.contracts, &right.contracts);
-}
-
-fn contracts(allocator: std.mem.Allocator, left: *const ir.ContractTable, right: *const ir.ContractTable) bool {
-    const entry = @import("generated_ir_compare_columns");
-    const Input = std.meta.Child(entry.Input);
-    const View = std.meta.Child(@FieldType(Input, "left"));
-    var left_columns: projection.Contract = undefined;
-    var right_columns: projection.Contract = undefined;
-
-    for (left.symbols, right.symbols, left.expressions, right.expressions) |left_symbols, right_symbols, left_expr, right_expr| {
-        left_columns.borrow(.{ left_symbols, left_expr });
-        right_columns.borrow(.{ right_symbols, right_expr });
-
-        const a = left_columns.view(View);
-        const b = right_columns.view(View);
-        const input: Input = .{ .left = &a, .right = &b, .masks = &projection.Contract.masks };
-
-        if (!(entry.executeIn(allocator, &input) catch unreachable)) return false;
-    }
-
-    return true;
+    return comparison.contracts(fixed.allocator(), &left.contracts, &right.contracts);
 }
 
 fn header(comptime Target: type, value: *const ir.Function, version: u32, external: @FieldType(Target, "native")) Target {
