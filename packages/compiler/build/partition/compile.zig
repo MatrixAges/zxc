@@ -1,6 +1,7 @@
 const std = @import("std");
 const file_manifest = @import("file_manifest.zig");
 const cache_key = @import("cache_key.zig");
+const state = @import("state.zig");
 
 /// Compiles the partitions of a generated tree into one object each, in a directory kept across builds:
 ///
@@ -39,6 +40,7 @@ pub fn main(init: std.process.Init) !void {
     for (args[5..separator]) |path| try shared.input(init.io, allocator, path);
 
     const digests = try cache_key.partitions(allocator, plan.count, shared.state(), &manifest);
+    const keys = try state.Keys.init(allocator, digests);
     const state_path = try std.fs.path.join(allocator, &.{ plan.objects, "state" });
 
     const previous = cwd.readFileAlloc(init.io, state_path, allocator, .unlimited) catch |err| switch (err) {
@@ -48,18 +50,28 @@ pub fn main(init: std.process.Init) !void {
 
     try cwd.createDirPath(init.io, plan.objects);
 
-    var pending: std.ArrayList(u32) = .empty;
+    const present = try allocator.alloc(bool, digests.len);
 
-    for (digests, 0..) |digest, index| {
+    for (present, 0..) |*exists, index| {
         const object = try objectPath(allocator, plan.objects, @intCast(index));
-        const present = if (cwd.access(init.io, object, .{})) true else |_| false;
 
-        if (!present or !recorded(previous, @intCast(index), digest)) try pending.append(allocator, @intCast(index));
+        exists.* = if (cwd.access(init.io, object, .{})) true else |_| false;
     }
 
-    const results = try allocator.alloc(?[]const u8, pending.items.len);
-    var work = Work{ .io = init.io, .plan = plan, .pending = pending.items, .results = results };
-    const threads = try allocator.alloc(std.Thread, @min(std.Thread.getCpuCount() catch 1, pending.items.len) -| 1);
+    const pending = try keys.pending(allocator, previous, present);
+
+    if (pending.len == 0) return;
+
+    // Drop old records before any worker can replace an object. An interrupted build can leave an object without a
+    // record, which will be rebuilt even when the inputs return to their previous contents.
+    @memset(present, true);
+
+    for (pending) |index| present[index] = false;
+    if (previous.len != 0) try keys.write(init.io, allocator, state_path, present);
+
+    const results = try allocator.alloc(?[]const u8, pending.len);
+    var work = Work{ .io = init.io, .plan = plan, .pending = pending, .results = results };
+    const threads = try allocator.alloc(std.Thread, @min(std.Thread.getCpuCount() catch 1, pending.len) -| 1);
     var started: usize = 0;
 
     for (threads) |*thread| {
@@ -72,24 +84,18 @@ pub fn main(init: std.process.Init) !void {
     for (threads[0..started]) |thread| thread.join();
 
     var failed = false;
-    var state: std.Io.Writer.Allocating = .init(allocator);
 
-    for (results) |result| if (result) |stderr| {
-        failed = true;
+    for (pending, results) |index, result| {
+        if (result) |stderr| {
+            failed = true;
 
-        try std.Io.File.stderr().writeStreamingAll(init.io, stderr);
-    };
-
-    // A failed partition keeps no digest, so the next build compiles it again.
-    for (digests, 0..) |digest, index| {
-        const position = std.mem.indexOfScalar(u32, pending.items, @intCast(index));
-
-        if (position) |at| if (results[at] != null) continue;
-        if (position == null and !recorded(previous, @intCast(index), digest)) continue;
-        try state.writer.print("{d} {s}\n", .{ index, std.fmt.bytesToHex(digest, .lower) });
+            try std.Io.File.stderr().writeStreamingAll(init.io, stderr);
+        } else {
+            present[index] = true;
+        }
     }
 
-    try cwd.writeFile(init.io, .{ .sub_path = state_path, .data = state.written() });
+    try keys.write(init.io, allocator, state_path, present);
 
     if (failed) return error.PartitionCompileFailed;
 }
@@ -143,18 +149,6 @@ fn substitute(allocator: std.mem.Allocator, arg: []const u8, plan: Plan, index: 
     const objects = try std.mem.replaceOwned(u8, allocator, generated, "%objects%", plan.objects);
 
     return std.mem.replaceOwned(u8, allocator, objects, "%index%", try std.fmt.allocPrint(allocator, "{d}", .{index}));
-}
-
-fn recorded(state: []const u8, index: u32, digest: [32]u8) bool {
-    var lines = std.mem.splitScalar(u8, state, '\n');
-    var prefix: [16]u8 = undefined;
-    const head = std.fmt.bufPrint(&prefix, "{d} ", .{index}) catch unreachable;
-
-    while (lines.next()) |line| {
-        if (std.mem.startsWith(u8, line, head)) return std.mem.eql(u8, line[head.len..], &std.fmt.bytesToHex(digest, .lower));
-    }
-
-    return false;
 }
 
 fn objectPath(allocator: std.mem.Allocator, objects: []const u8, index: u32) ![]const u8 {

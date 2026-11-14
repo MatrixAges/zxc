@@ -1,0 +1,56 @@
+import bytes from "std:bytes"
+import { ascii_line_feed, ascii_space } from "core/ascii/const"
+
+import index from "./index"
+
+import type { Lookup as Input } from "./model"
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const { previous, digests } = in
+
+    return loop({
+        start: 0,
+        seen: digests.map(digest => false)[0],
+        matched: digests.map(digest => false)[0]
+    }, {
+        while: state => state.start < previous.length,
+        next: state => {
+            const newline = bytes.indexOfScalar(previous, state.start, ascii_line_feed)
+            const end: u64 = newline == null ? previous.length : newline
+            const delimiter = loop({
+                at: state.start
+            }, {
+                while: cursor => cursor.at < end && previous[cursor.at] != ascii_space,
+                next: cursor => {
+                    cursor.at += 1
+                },
+                return: cursor => cursor.at
+            })
+
+            if (delimiter < end) {
+                const position = index({
+                    text: previous,
+                    start: state.start,
+                    end: delimiter,
+                    count: digests.length
+                })
+
+                if (position != null) {
+                    if (!state.seen[position]) {
+                        const digest = digests[position]
+                        const first = delimiter + 1
+
+                        state.seen[position] = true
+                        state.matched[position] = end - first == digest.length &&
+                            bytes.startsWith(previous, first, digest)
+                    }
+                }
+            }
+
+            state.start = newline == null ? end : newline + 1
+        },
+        return: state => state.matched
+    })
+}

@@ -1,0 +1,44 @@
+import integers from "std:integer"
+import { ascii_digit_first, ascii_digit_last, decimal_radix } from "core/const"
+
+export type Input = {
+    text: u8[],
+    start: u64,
+    end: u64,
+    count: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (in.start == in.end || in.count == 0) {
+        return null
+    }
+
+    if (in.end - in.start > 1 && in.text[in.start] == ascii_digit_first) {
+        return null
+    }
+
+    return loop({
+        at: in.start,
+        value: 0,
+        valid: true
+    }, {
+        while: state => state.valid && state.at < in.end,
+        next: state => {
+            const digit = in.text[state.at]
+
+            if (digit < ascii_digit_first || digit > ascii_digit_last) {
+                state.valid = false
+            } else {
+                const value = integers.widenByte(digit - ascii_digit_first)
+
+                state.value = state.value * decimal_radix + value
+                state.valid = state.value < in.count
+            }
+
+            state.at += 1
+        },
+        return: state => state.valid ? state.value : null
+    })
+}

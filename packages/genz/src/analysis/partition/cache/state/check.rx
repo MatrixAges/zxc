@@ -1,0 +1,23 @@
+<Module>
+    <Type from="model" as="State" />
+
+    <Args in={State.Build} out={u32[]} />
+
+    <Call
+        fn="lookup"
+        in={{
+            previous: $in.previous,
+            digests: $in.digests
+        }}
+    />
+
+    <Call
+        fn="pending"
+        in={{
+            matched: $ctx.lookup,
+            present: $in.present
+        }}
+    />
+
+    <Return value={$ctx.pending} />
+</Module>

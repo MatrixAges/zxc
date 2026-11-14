@@ -1,0 +1,29 @@
+import integers from "std:integer"
+
+export type Input = {
+    matched: bool[],
+    present: bool[]
+}
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const pending: u32[] = []
+
+    return loop({
+        position: 0,
+        pending
+    }, {
+        while: state => state.position < in.present.length,
+        next: state => {
+            const position = state.position
+
+            if (!in.present[position] || !in.matched[position]) {
+                state.pending = state.pending.push(integers.narrow(position))[0]
+            }
+
+            state.position += 1
+        },
+        return: state => state.pending
+    })
+}

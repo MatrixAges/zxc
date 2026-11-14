@@ -1,0 +1,17 @@
+import type { Writer } from "std:bytes"
+
+export type Lookup = {
+    previous: u8[],
+    digests: u8[][]
+}
+
+export type Build = Lookup & {
+    present: bool[]
+}
+
+export type Publish = {
+    out: Writer,
+    prefixes: string[],
+    digests: u8[][],
+    valid: bool[]
+}
