@@ -1,14 +1,22 @@
 import integers from "std:integer"
+import strings from "std:string"
 
 import type { Bindings } from "core/type_table/nominal"
 import type { State } from "../planning/model"
 
 export type Input = {
     origins: Bindings,
-    plan: State
+    plan: State,
+    labels: string[]
 }
 
-export type Output = Bindings
+export type Output = {
+    ids: u32[],
+    kinds: u8[],
+    owners: string[],
+    members: string[],
+    names: string[]
+}
 
 export default function (in: Input): Output {
     const empty: Bindings = {
@@ -18,7 +26,7 @@ export default function (in: Input): Output {
         members: []
     }
 
-    return loop({
+    const origins = loop({
         source: in.origins,
         plan: in.plan,
         origins: empty,
@@ -43,11 +51,15 @@ export default function (in: Input): Output {
                     )[0]
                 current.origins.owners =
                     current.origins.owners.push(
-                        current.source.owners[source_index]
+                        strings.copy(
+                            current.source.owners[source_index]
+                        )
                     )[0]
                 current.origins.members =
                     current.origins.members.push(
-                        current.source.members[source_index]
+                        strings.copy(
+                            current.source.members[source_index]
+                        )
                     )[0]
             }
 
@@ -55,4 +67,11 @@ export default function (in: Input): Output {
         },
         return: state => state.origins
     })
+
+    const labels = in.labels
+
+    return {
+        ...origins,
+        names: origins.ids.map(id => labels[integers.widen(id)])[0]
+    }
 }

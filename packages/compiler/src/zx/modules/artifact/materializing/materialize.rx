@@ -7,6 +7,11 @@
     <Type from="../remapping/model" as="Remap" />
     <Type from="content_model" as="Content" />
 
+    <Type
+        from="../../../analysis/semantic/extracting/materializing/nominal"
+        as="OwnedNominal"
+    />
+
     <Args
         in={{
             table: Types.Table,
@@ -18,7 +23,7 @@
         }}
         out={{
             table: Types.Table,
-            origins: Nominal.Bindings,
+            origins: OwnedNominal.Output,
             natives?: Native.Modules,
             signatures?: Declarations.Table,
             function?: Remap.FunctionOutput,

@@ -1,0 +1,20 @@
+import strings from "std:string"
+
+import type { Names } from "core/signature_table/model"
+
+export type Input = Names
+
+export type Output = Names
+
+export default function (in: Input): Output {
+    return in.map(
+        name => {
+            const owned: string? = match {
+                name != null => strings.copy(name),
+                _ => null
+            }
+
+            return owned
+        }
+    )[0]
+}

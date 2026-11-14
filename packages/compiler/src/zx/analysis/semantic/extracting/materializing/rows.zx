@@ -1,4 +1,5 @@
 import integers from "std:integer"
+import strings from "std:string"
 import { Kind } from "core/type_table/model"
 
 import kind from "../../types/kind"
@@ -84,7 +85,9 @@ export default function (in: Input): Output {
                 current.table.second = current.table.second.push(mapped_second)[0]
                 current.table.labels =
                     current.table.labels.push(
-                        current.source.labels[id]
+                        strings.copy(
+                            current.source.labels[id]
+                        )
                     )[0]
             }
 
@@ -117,12 +120,16 @@ export default function (in: Input): Output {
                         )[0]
                     current.table.field_names =
                         current.table.field_names.push(
-                            current.source.field_names[source_index]
+                            strings.copy(
+                                current.source.field_names[source_index]
+                            )
                         )[0]
                 } else {
                     current.table.names =
                         current.table.names.push(
-                            current.source.names[source_index]
+                            strings.copy(
+                                current.source.names[source_index]
+                            )
                         )[0]
                 }
 

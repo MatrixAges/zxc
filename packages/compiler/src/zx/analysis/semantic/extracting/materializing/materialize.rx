@@ -1,11 +1,12 @@
 <Module>
+    <Type from="core/type_table/nominal" as="Origins" />
     <Type from="nominal" as="Nominal" />
     <Type from="../planning/model" as="Model" />
     <Type from="rows" as="Rows" />
 
     <Args
         in={{
-            origins: Nominal.Output,
+            origins: Origins.Bindings,
             plan: Model.State,
             table: Rows.Output
         }}
@@ -27,7 +28,8 @@
         fn="nominal"
         in={{
             origins: $in.origins,
-            plan: $in.plan
+            plan: $in.plan,
+            labels: $ctx.rows.labels
         }}
     />
 
