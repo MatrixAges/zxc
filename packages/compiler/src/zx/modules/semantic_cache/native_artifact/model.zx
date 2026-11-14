@@ -1,0 +1,33 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Table as Signatures } from "core/signature_table/model"
+import type { Table as Types } from "core/type_table/model"
+import type { Bindings as Origins } from "core/type_table/nominal"
+import type { Diagnostic } from "../../../frontend/lexer/model"
+import type { Declaration } from "../restoring/native/model"
+
+export type Request = {
+    declaration: Declaration
+    source: u8[]
+    namespace_bytes: u8[][]
+    base: Types
+    origins: Origins
+}
+
+export type Surface = {
+    names: string[]
+    ids: u32[]
+}
+
+export type Artifact = {
+    types: Types
+    origins: Origins
+    exports: Surface
+    signatures: Signatures
+    function_ids: u32[]
+    modules: Modules
+}
+
+export type Outcome = {
+    diagnostic: Diagnostic
+    artifact?: Artifact
+}

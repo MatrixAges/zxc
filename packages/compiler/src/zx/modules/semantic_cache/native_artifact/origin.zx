@@ -1,0 +1,16 @@
+import { nominal_kind_native } from "core/type_table/const"
+
+import type { Origin } from "core/type_table/nominal"
+import type { Declaration } from "../restoring/native/model"
+
+export type Input = Declaration
+
+export type Output = Origin
+
+export default function (in: Input): Output {
+    return {
+        kind: nominal_kind_native,
+        owner: in.identity ?? in.specifier,
+        member: ""
+    }
+}

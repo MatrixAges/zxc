@@ -206,6 +206,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/compiled/execute.rx", .name = "compiled_library" },
     .{ .path = "zx/modules/compiled/validation/publication.zx", .name = "compiled_header" },
     .{ .path = "zx/modules/compiled/validation/stores.zx", .name = "compiled_stores", .owner = .compiler },
+    .{ .path = "zx/modules/semantic_cache/native_artifact/create.rx", .name = "native_artifact" },
     .{ .path = "zx/modules/semantic_cache/restoring/native/restore.rx", .name = "native_restore" },
     .{ .path = "zx/modules/semantic_cache/restoring/rebind/check.rx", .name = "semantic_restore_rebind" },
     .{ .path = "zx/modules/semantic_cache/restoring/preflight/check.rx", .name = "semantic_restore_preflight" },

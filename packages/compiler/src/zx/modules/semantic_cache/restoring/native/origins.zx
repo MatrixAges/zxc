@@ -1,3 +1,5 @@
+import { nominal_kind_native } from "core/type_table/const"
+
 import type { Bindings } from "core/type_table/nominal"
 import type { Declaration } from "./model"
 
@@ -38,7 +40,7 @@ export default function (in: Input): Output {
             const index = current.index
 
             current.valid =
-                current.origins.kinds[index] == 1 &&
+                current.origins.kinds[index] == nominal_kind_native &&
                 current.origins.members[index] == "" &&
                 current.origins.owners[index] == current.key
             current.index += 1

@@ -1,0 +1,23 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Declaration } from "../restoring/native/model"
+import type { Surface } from "./model"
+
+export type Input = {
+    declaration: Declaration
+    exports: Surface
+}
+
+export type Output = Modules
+
+export default function (in: Input): Output {
+    const { declaration, exports } = in
+
+    return {
+        identities: [declaration.identity],
+        import_names: [declaration.import_name],
+        specifiers: [declaration.specifier],
+        type_ids: [exports.ids],
+        type_names: [exports.names],
+        type_namespaces: [declaration.namespace]
+    }
+}

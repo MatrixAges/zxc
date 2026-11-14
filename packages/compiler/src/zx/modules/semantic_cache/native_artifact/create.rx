@@ -1,0 +1,72 @@
+<Module>
+    <Type from="model" as="Artifact" />
+
+    <Args in={Artifact.Request} out={Artifact.Outcome} />
+
+    <Call fn="origin" in={$in.declaration} />
+
+    <Call
+        module="../../native/load"
+        in={{
+            base: $in.base,
+            namespace: $in.namespace_bytes,
+            origin: $ctx.origin,
+            origins: $in.origins,
+            shared: false,
+            source: $in.source
+        }}
+    />
+
+    <If on={$ctx.load.diagnostic.message != ""}>
+        <Return
+            value={{
+                diagnostic: $ctx.load.diagnostic,
+                artifact: null
+            }}
+        />
+    </If>
+
+    <Call
+        module="../../../analysis/semantic/produce"
+        in={{
+            kinds: $ctx.load.delta.kinds,
+            first: 0,
+            origin: $ctx.origin,
+            bindings: $in.origins
+        }}
+    />
+
+    <Call fn="surface" in={$ctx.load.exports} />
+
+    <Call
+        fn="signatures"
+        in={{
+            members: $ctx.load.members,
+            declaration: $in.declaration
+        }}
+    />
+
+    <Call fn="function_ids" in={$ctx.load.members} />
+
+    <Call
+        fn="modules"
+        in={{
+            declaration: $in.declaration,
+            exports: $ctx.surface
+        }}
+    />
+
+    <Return
+        value={{
+            diagnostic: $ctx.load.diagnostic,
+            artifact: {
+                types: $ctx.load.delta,
+                origins: $ctx.produce,
+                exports: $ctx.surface,
+                signatures: $ctx.signatures,
+                function_ids: $ctx.function_ids,
+                modules: $ctx.modules
+            }
+        }}
+    />
+</Module>

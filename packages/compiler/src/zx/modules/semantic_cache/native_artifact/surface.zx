@@ -1,0 +1,13 @@
+import type { Export } from "../../native/interface/exports"
+import type { Surface } from "./model"
+
+export type Input = Export[]
+
+export type Output = Surface
+
+export default function (in: Input): Output {
+    return {
+        names: in.map(item => item.name)[0],
+        ids: in.map(item => item.type_id)[0]
+    }
+}

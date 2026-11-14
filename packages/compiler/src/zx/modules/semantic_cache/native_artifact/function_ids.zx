@@ -1,0 +1,11 @@
+import integers from "std:integer"
+
+import type { Member } from "../../native/interface/members"
+
+export type Input = Member[]
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return in.map((member, index) => integers.narrow(index))[0]
+}

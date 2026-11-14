@@ -1,0 +1,37 @@
+import { Ownership } from "core/symbol_table/model"
+
+import { local_module } from "./const"
+
+import type { Table } from "core/signature_table/model"
+import type { Member } from "../../native/interface/members"
+import type { Declaration } from "../restoring/native/model"
+
+export type Input = {
+    members: Member[]
+    declaration: Declaration
+}
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    const { members, declaration } = in
+
+    return {
+        files: members.map(member => declaration.path)[0],
+        input_types: members.map(member => member.signature.input)[0],
+        output_types: members.map(member => member.signature.output)[0],
+        ownership: members.map(member => Ownership.Borrowed)[0],
+        native_inputs: members.map(member => member.signature.names)[0],
+        native_modules: members.map(member => local_module)[0],
+        native_members:
+            members.map(member => declaration.namespace.push(member.name)[0])[0],
+        native_exports: members.map(member => member.name)[0],
+        native_allocators: members.map(member => member.allocator_argument)[0],
+        native_io: members.map(member => member.io_argument)[0],
+        native_process: members.map(member => member.process_argument)[0],
+        native_tuples: members.map(member => member.expand_tuple)[0],
+        native_fallible: members.map(member => member.fallible)[0],
+        native_errors: members.map(member => member.errors)[0],
+        native_concurrent: members.map(member => member.concurrent)[0]
+    }
+}

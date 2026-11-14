@@ -8,6 +8,8 @@ const FunctionImport = @import("../function_import.zig");
 const generated = @import("parser_options").generated_parser;
 
 pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, error_allocator: std.mem.Allocator, reporter: *zx.Reporter, span: zx.Span) zx.Error!Artifact.Result {
+    if (comptime generated) return @import("native_artifact/host.zig").create(allocator, entry, fingerprint, error_allocator, reporter, span);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
@@ -31,29 +33,18 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
     for (entry.namespace, namespace) |part, *name| name.* = try owned.dupe(u8, part);
 
     const native_modules = try ir.NativeModuleTable.fromValues(owned, &.{.{ .specifier = try owned.dupe(u8, entry.specifier), .identity = if (entry.identity) |key| try owned.dupe(u8, key) else null, .import_name = try owned.dupe(u8, entry.module), .type_namespace = namespace, .types = try ir.NativeBindings.fromValues(owned, loaded.exports) }});
-    var signatures: ir.SignatureStorage = .{};
-    var seed_functions: if (generated) void else ir.FunctionStorage = if (generated) {} else .{};
+    var seed_functions: ir.FunctionStorage = .{};
     const bindings = try owned.alloc(FunctionImport, loaded.members.len);
 
     for (loaded.members, bindings, 0..) |member, *binding, index| {
         const function = member.function;
 
-        if (comptime generated) {
-            try signatures.append(owned, .{
-                .file_name = function.file_name,
-                .input_type = function.input_type,
-                .output_type = function.output_type,
-                .output_ownership = function.output_ownership,
-                .external = function.external,
-            });
-        } else {
-            try seed_functions.append(owned, function);
-        }
+        try seed_functions.append(owned, function);
 
         binding.* = .{ .name = member.name, .id = @fromBackingInt(@intCast(index)), .input_type = function.input_type, .output_type = function.output_type };
     }
 
-    const functions = if (comptime generated) signatures.view() else seed: {
+    const functions = seed: {
         const unit: ir.TypeId = @fromBackingInt(@backingInt(ir.Scalar.void));
 
         const program = ir.Program{
