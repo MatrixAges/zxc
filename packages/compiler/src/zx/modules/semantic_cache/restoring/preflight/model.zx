@@ -1,5 +1,6 @@
 import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/signature_table/model"
+import type { Input as Control } from "../../../../ir/canonical/body/tree"
 import type { Batch } from "../dependencies/model"
 
 export type Input = {
@@ -19,5 +20,7 @@ export type Input = {
     first: bool,
     dependency_count: u64,
     current_dependency_count: u64,
-    dependencies: Batch
+    dependencies: Batch,
+    finish: bool,
+    control?: Control
 }

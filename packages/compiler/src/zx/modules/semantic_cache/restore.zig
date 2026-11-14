@@ -13,6 +13,7 @@ const Validate = @import("../../ir/validate.zig");
 pub const Current = struct {
     allocator: std.mem.Allocator,
     backing: std.mem.Allocator,
+    payloads: *zx.Arena,
     types: *ir.TypeStorage,
     origins: *Origins,
     functions: *ir.FunctionStorage,
@@ -42,10 +43,6 @@ pub fn restore(entry: *const @import("entries.zig").Entry, current: Current) std
 }
 
 fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) Error!Restored {
-    if (comptime generated) {
-        if (!@import("restoring/preflight/host.zig").check(module, &current, decoded)) return error.InvalidModule;
-    } else if (!Seed.preflight(module, &current)) return error.InvalidModule;
-
     var arena = std.heap.ArenaAllocator.init(current.backing);
     var buffer: [2048]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, arena.allocator());
@@ -53,7 +50,14 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     defer arena.deinit();
 
     const temporary = scratch.allocator();
+
+    if (comptime generated) {
+        if (!try @import("restoring/preflight/host.zig").check(temporary, module, &current, decoded)) return error.InvalidModule;
+    } else if (!Seed.preflight(module, &current)) return error.InvalidModule;
+
     const allocator = current.allocator;
+    const payload = if (generated) current.payloads.allocator() else allocator;
+    const checkpoint = if (generated) current.payloads.checkpoint() else {};
     const before_types = current.types.view();
     const first_origin = current.origins.items.view().count();
 
@@ -63,6 +67,8 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         }
 
         current.origins.items.retainPrefix(first_origin);
+
+        if (generated) current.payloads.rewind(checkpoint);
     }
 
     const function_mapping = try temporary.alloc(?ir.FunctionId, module.functions.count() + @intFromBool(module.function != null));
@@ -89,7 +95,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
             .natives = native_mapping,
         });
 
-        try types.commit(&current, plan);
+        try types.commit(&current, payload, plan);
 
         break :prepared .{ @as([]const ir.TypeId, @ptrCast(ids)), entry };
     } else seed: {
@@ -100,7 +106,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         break :seed .{ ids, entry };
     };
 
-    var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
+    var nodes = Nodes{ .allocator = payload, .types = .{ .mapped = mapping }, .functions = .{ .indexed = function_mapping }, .native_modules = .{ .indexed = native_mapping } };
     const structure: Nodes.Structure = if (decoded) .validated else .unchecked;
     const result = @import("../link/result/host.zig");
 
@@ -111,7 +117,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     };
 
     var restored: Restored, const descriptors: ?ir.FunctionStorage.Descriptors = if (comptime generated) source: {
-        const publication = try @import("restoring/publication/host.zig").materialize(&nodes, temporary, module, current.path, tables, own, structure);
+        const publication = try @import("restoring/publication/host.zig").materialize(&nodes, module, current.path, tables, own, structure);
 
         break :source .{ publication.restored, publication.descriptors };
     } else seed: {
@@ -139,7 +145,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     }
 
     errdefer if (recursive != null) {
-        _ = current.functions.pop(allocator);
+        _ = current.functions.pop(payload);
     };
 
     if (comptime generated) {

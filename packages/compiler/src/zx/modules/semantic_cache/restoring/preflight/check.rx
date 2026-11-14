@@ -43,5 +43,17 @@
 
     <Call fn="../dependencies/check" in={$in.dependencies} />
 
-    <Return value={$ctx.check} />
+    <If on={!$ctx.check}>
+        <Return value={false} />
+    </If>
+
+    <If on={$in.finish}>
+        <If on={$in.control != null}>
+            <Call module="../../../../ir/canonical/control/structure" in={$in.control} />
+
+            <Return value={$ctx.structure} />
+        </If>
+    </If>
+
+    <Return value={true} />
 </Module>

@@ -17,6 +17,7 @@ const Chunk = struct { next: ?*Chunk, size: usize };
 const header = std.mem.alignForward(usize, @sizeOf(Chunk), 16);
 /// The first chunk, with its header, fills one page.
 const smallest = 4 << 10;
+pub const Checkpoint = struct { chunk: ?*Chunk, end: usize };
 
 pub fn init(child: std.mem.Allocator) Self {
     return .{ .child = child };
@@ -35,6 +36,21 @@ pub fn deinit(self: *Self) void {
     self.release(self.first);
 
     self.* = undefined;
+}
+
+/// Saves an append position. A rewind releases every later chunk and invalidates later checkpoints.
+pub fn checkpoint(self: *const Self) Checkpoint {
+    return .{ .chunk = self.current, .end = self.end };
+}
+
+pub fn rewind(self: *Self, position: Checkpoint) void {
+    const link = if (position.chunk) |chunk| &chunk.next else &self.first;
+
+    self.release(link.*);
+
+    link.* = null;
+    self.current = position.chunk;
+    self.end = position.end;
 }
 
 /// Releases everything allocated so far but keeps the chunks, up to `limit` bytes of them, so a run that needs as much

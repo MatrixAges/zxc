@@ -3,6 +3,12 @@
 
     <Args in={Publication.Input} out={Publication.Plan?} />
 
+    <Call fn="../../../../ir/canonical/stores/validate" in={$in.stores} />
+
+    <If on={!$ctx.validate}>
+        <Return value={null} />
+    </If>
+
     <Call
         module="../../../artifact/remapping/optional_body"
         in={{
@@ -20,17 +26,13 @@
         }}
     />
 
-    <If on={$ctx.stores != null}>
-        <Call module="../../../artifact/materializing/optional_control" in={$in.control} />
+    <Call module="../../../artifact/materializing/optional_control" in={$in.control} />
 
-        <Return
-            value={{
-                body: $ctx.optional_body,
-                stores: $ctx.stores,
-                control: $ctx.optional_control
-            }}
-        />
-    </If>
-
-    <Return value={null} />
+    <Return
+        value={{
+            body: $ctx.optional_body,
+            stores: $ctx.stores,
+            control: $ctx.optional_control
+        }}
+    />
 </Module>

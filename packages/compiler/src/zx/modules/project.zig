@@ -102,6 +102,7 @@ const Project = struct {
     sources: []const Source,
     parse_cache: *ParseCache,
     semantic_cache: ?*SemanticCache = null,
+    restored_payloads: ?*zx.Arena = null,
     load_frames: std.ArrayList(LoadFrame) = .empty,
     entry_program: ?ir.Program = null,
     cache_context: CachePublication.Context = .{},
@@ -452,6 +453,7 @@ const Project = struct {
                 if (try @import("semantic_cache/restore.zig").restore(cached, .{
                     .allocator = self.allocator,
                     .backing = self.arena.child_allocator,
+                    .payloads = self.restored_payloads.?,
                     .types = &self.types,
                     .origins = &self.nominal_origins,
                     .functions = &self.functions,
@@ -793,6 +795,10 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     errdefer arena.deinit();
 
+    var restored_payloads: ?zx.Arena = if (semantic_cache != null and options.compiled_libraries.len == 0) zx.Arena.init(allocator) else null;
+
+    defer if (restored_payloads) |*payloads| payloads.deinit();
+
     const temporary = arena.allocator();
     var reporter: zx.Reporter = .{};
 
@@ -812,7 +818,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
-    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (restored_payloads != null) semantic_cache else null, .restored_payloads = if (restored_payloads) |*payloads| payloads else null, .units = units, .options = normalized, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
 
     defer project.deinitScratch();
 
@@ -849,13 +855,16 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     if (try Validate.validateProjectPrefix(allocator, program, project.verified)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
-    const result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
+    var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 
     if (project.semantic_cache) |semantic| {
         if (try CachePublication.publish(allocator, semantic, &result, project.cache_records.items, project.cache_root, &project.cache_context)) |issue| {
             return .{ .arena = arena, .value = .{ .diagnostic = issue } };
         }
     }
+
+    result.restored_payloads = restored_payloads;
+    restored_payloads = null;
 
     return result;
 }

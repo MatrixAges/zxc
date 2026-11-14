@@ -18,16 +18,13 @@ pub const Publication = struct {
     descriptors: ?ir.FunctionStorage.Descriptors,
 };
 
-pub fn materialize(nodes: *Nodes, temporary: std.mem.Allocator, module: *const Artifact.Module, path: []const u8, tables: result.Tables, candidate: ?ir.FunctionId, structure: Nodes.Structure) Artifact.Error!Publication {
+pub fn materialize(nodes: *Nodes, module: *const Artifact.Module, path: []const u8, tables: result.Tables, candidate: ?ir.FunctionId, structure: Nodes.Structure) Artifact.Error!Publication {
     const source = if (module.function) |*value| value else null;
     var view: remap.FunctionView(Body) = undefined;
     var control_source: ?Control = null;
 
     if (source) |value| {
-        if (structure == .unchecked) {
-            if (!remap.validFunctionColumns(value)) return error.InvalidModule;
-            if (!try @import("../../../artifact/nodes/control.zig").valid(temporary, value.body)) return error.InvalidModule;
-        }
+        if (structure == .unchecked and !remap.validFunctionColumns(value)) return error.InvalidModule;
 
         view.init(nodes, value, candidate);
 

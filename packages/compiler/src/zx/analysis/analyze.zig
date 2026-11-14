@@ -9,6 +9,7 @@ pub const Resolved = @import("../modules/resolved.zig");
 
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
+    restored_payloads: ?zx.Arena = null,
     value: union(enum) { ir: zx.ir.Program, diagnostic: zx.Diagnostic },
     nominal_types: @import("../modules/nominal_origins.zig").Table = .{},
     store_initializers: []const @import("../modules/compiled.zig").StoreInitializer = &.{},
@@ -16,6 +17,8 @@ pub const Result = struct {
     entry_function: ?zx.ir.FunctionId = null,
     public_functions: []const @import("../modules/function_import.zig") = &.{},
     pub fn deinit(self: *Result) void {
+        if (self.restored_payloads) |*payloads| payloads.deinit();
+
         self.arena.deinit();
 
         self.* = undefined;

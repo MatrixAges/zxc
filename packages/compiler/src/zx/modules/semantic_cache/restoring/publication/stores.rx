@@ -9,14 +9,8 @@
             body?: Remap.FunctionOutput,
             reuse: bool
         }}
-        out={Store.Stores?}
+        out={Store.Stores}
     />
-
-    <Call fn="../../../../ir/canonical/stores/validate" in={$in.source} />
-
-    <If on={!$ctx.validate}>
-        <Return value={null} />
-    </If>
 
     <If on={$in.reuse}>
         <If on={$in.body != null}>

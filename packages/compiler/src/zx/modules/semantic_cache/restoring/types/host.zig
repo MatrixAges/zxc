@@ -68,7 +68,15 @@ pub fn prepare(scratch: std.mem.Allocator, module: *const Artifact.Module, curre
     return result orelse error.InvalidModule;
 }
 
-pub fn commit(current: *const Current, plan: Plan) std.mem.Allocator.Error!void {
+pub fn commit(current: *const Current, payload: std.mem.Allocator, plan: Plan) std.mem.Allocator.Error!void {
     if (current.types.count() == 0) try current.types.appendDelta(current.allocator, scalar_rows);
-    try @import("../../../../analysis/semantic/merging/commit.zig").append(current.allocator, current.types, &current.origins.items, plan.delta.*, plan.origins);
+
+    try @import("../../../../analysis/semantic/merging/commit.zig").appendWithPayload(
+        current.allocator,
+        payload,
+        current.types,
+        &current.origins.items,
+        plan.delta.*,
+        plan.origins,
+    );
 }

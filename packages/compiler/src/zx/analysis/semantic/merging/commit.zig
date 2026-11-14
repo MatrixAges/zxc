@@ -8,6 +8,10 @@ pub fn appendTypes(allocator: std.mem.Allocator, target: *ir.TypeStorage, delta:
 }
 
 pub fn append(allocator: std.mem.Allocator, target: *ir.TypeStorage, origins: ?*Origins.Storage, delta: anytype, bindings: anytype) std.mem.Allocator.Error!void {
+    try appendWithPayload(allocator, allocator, target, origins, delta, bindings);
+}
+
+pub fn appendWithPayload(allocator: std.mem.Allocator, payload: std.mem.Allocator, target: *ir.TypeStorage, origins: ?*Origins.Storage, delta: anytype, bindings: anytype) std.mem.Allocator.Error!void {
     var table: ir.TypeTable = undefined;
 
     inline for (@typeInfo(ir.TypeTable).@"struct".field_names) |name| {
@@ -26,7 +30,7 @@ pub fn append(allocator: std.mem.Allocator, target: *ir.TypeStorage, origins: ?*
     const tails = .{ labels, fields, names, owners, members };
 
     if (first.len != 0 or bindings.ids.len != 0) {
-        try materialize(allocator, sources, tails, .{
+        try materialize(payload, sources, tails, .{
             .kinds = table.kinds,
             .first = table.first,
             .target = &first,
