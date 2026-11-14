@@ -5,7 +5,13 @@ const Native = @import("interface.zig").Native;
 const Members = @import("native/members.zig");
 const Types = @import("../analysis/types.zig");
 pub const Member = Members.Member;
-pub const Result = struct { types: ir.TypeTable, exports: []const ir.Export, members: []const Member };
+
+pub const Result = struct {
+    types: ir.TypeTable,
+    exports: []const ir.Export,
+    members: []const Member,
+    namespace: ?[]const []const u8 = null,
+};
 
 pub fn load(arena: *std.heap.ArenaAllocator, entry: Native, module: ir.NativeModuleId, existing: *ir.TypeStorage, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter, span: zx.Span) zx.Error!Result {
     const allocator = arena.allocator();
@@ -35,5 +41,5 @@ fn analyze(arena: *std.heap.ArenaAllocator, entry: Native, module: ir.NativeModu
     else
         try @import("native/seed.zig").analyze(arena, &types, entry, module);
 
-    return .{ .types = types.items.view(), .exports = analyzed.exports, .members = analyzed.members };
+    return .{ .types = types.items.view(), .exports = analyzed.exports, .members = analyzed.members, .namespace = analyzed.namespace };
 }

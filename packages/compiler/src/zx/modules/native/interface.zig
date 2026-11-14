@@ -5,7 +5,11 @@ const Members = @import("members.zig");
 const Native = @import("../interface.zig").Native;
 const generated = @import("generated_native_interface");
 
-pub const Result = struct { exports: []const zx.ir.Export, members: []const Members.Member };
+pub const Result = struct {
+    exports: []const zx.ir.Export,
+    members: []const Members.Member,
+    namespace: ?[]const []const u8 = null,
+};
 
 pub fn analyze(types: *Types, entry: Native, module: zx.ir.NativeModuleId) zx.Error!Result {
     var arena = std.heap.ArenaAllocator.init(types.allocator);
@@ -51,17 +55,13 @@ pub fn analyze(types: *Types, entry: Native, module: zx.ir.NativeModuleId) zx.Er
 
     const members = try types.allocator.alloc(Members.Member, result.members.len);
 
-    if (members.len != 0) {
+    const namespace = if (members.len != 0) owned: {
         const owner = try Members.init(types.allocator, entry, module);
 
-        for (result.members, members) |value, *member| {
-            const names = try types.allocator.alloc(?[]const u8, value.signature.names.len);
+        for (result.members, members) |value, *member| member.* = try owner.create(value, .{ .names = value.signature.names });
 
-            for (value.signature.names, names) |name, *owned| owned.* = if (name) |text| try types.allocator.dupe(u8, text) else null;
+        break :owned owner.namespace;
+    } else null;
 
-            member.* = try owner.create(value, .{ .names = names });
-        }
-    }
-
-    return .{ .exports = exports, .members = members };
+    return .{ .exports = exports, .members = members, .namespace = namespace };
 }

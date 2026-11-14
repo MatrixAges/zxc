@@ -34,9 +34,7 @@ pub fn at(self: *const Self, index: usize) ir.Function {
 }
 
 pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std.mem.Allocator.Error!void {
-    if (self.count() == std.math.maxInt(u32)) return error.OutOfMemory;
-
-    inline for (@typeInfo(Self).@"struct".field_names) |name| try @field(self, name).ensureUnusedCapacity(allocator, 1);
+    try self.reserve(allocator, 1);
 
     const symbols = try descriptor(allocator, value.symbols);
 
@@ -53,6 +51,49 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
     const contracts = try descriptor(allocator, value.contracts);
 
     errdefer allocator.destroy(contracts);
+
+    self.appendPorts(.{
+        .file_name = value.file_name,
+        .input_type = value.input_type,
+        .output_type = value.output_type,
+        .output_ownership = value.output_ownership,
+        .external = value.external,
+    });
+
+    self.store_modes.appendAssumeCapacity(value.store_mode);
+    self.contracts.appendAssumeCapacity(contracts);
+    self.symbols.appendAssumeCapacity(symbols);
+    self.expressions.appendAssumeCapacity(expressions);
+    self.control.appendAssumeCapacity(value.body.control);
+    self.roots.appendAssumeCapacity(if (value.body.root) |id| @backingInt(id) else null);
+    self.stores.appendAssumeCapacity(stores);
+}
+
+pub fn reserve(self: *Self, allocator: std.mem.Allocator, additional: usize) std.mem.Allocator.Error!void {
+    if (additional > std.math.maxInt(u32) - self.count()) return error.OutOfMemory;
+
+    inline for (@typeInfo(Self).@"struct".field_names) |name| try @field(self, name).ensureUnusedCapacity(allocator, additional);
+}
+
+const empty_symbols: ir.SymbolTable = .{};
+const empty_expressions: ir.ExpressionTable = .{};
+const empty_body: ir.ControlBody = .{};
+const empty_stores: ir.StoreTable = .{};
+const empty_contracts: ir.ContractTable = .{};
+
+pub fn appendSignatureAssumeCapacity(self: *Self, signature: ir.Signature) void {
+    std.debug.assert(signature.external != null);
+    self.appendPorts(signature);
+    self.store_modes.appendAssumeCapacity(.transaction);
+    self.contracts.appendAssumeCapacity(&empty_contracts);
+    self.symbols.appendAssumeCapacity(&empty_symbols);
+    self.expressions.appendAssumeCapacity(&empty_expressions);
+    self.control.appendAssumeCapacity(empty_body.control);
+    self.roots.appendAssumeCapacity(null);
+    self.stores.appendAssumeCapacity(&empty_stores);
+}
+
+inline fn appendPorts(self: *Self, value: ir.Signature) void {
     self.files.appendAssumeCapacity(value.file_name);
     self.input_types.appendAssumeCapacity(@backingInt(value.input_type));
     self.output_types.appendAssumeCapacity(@backingInt(value.output_type));
@@ -63,8 +104,6 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
         .owned => .Owned,
     });
 
-    self.store_modes.appendAssumeCapacity(value.store_mode);
-    self.contracts.appendAssumeCapacity(contracts);
     self.native_inputs.appendAssumeCapacity(if (value.external) |external| if (external.input) |input| input.names else null else null);
     self.native_modules.appendAssumeCapacity(if (value.external) |external| @backingInt(external.module) else null);
     self.native_members.appendAssumeCapacity(if (value.external) |external| external.member else &.{});
@@ -76,11 +115,6 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
     self.native_fallible.appendAssumeCapacity(if (value.external) |external| external.fallible else false);
     self.native_errors.appendAssumeCapacity(if (value.external) |external| external.errors else null);
     self.native_concurrent.appendAssumeCapacity(if (value.external) |external| external.concurrent else false);
-    self.symbols.appendAssumeCapacity(symbols);
-    self.expressions.appendAssumeCapacity(expressions);
-    self.control.appendAssumeCapacity(value.body.control);
-    self.roots.appendAssumeCapacity(if (value.body.root) |id| @backingInt(id) else null);
-    self.stores.appendAssumeCapacity(stores);
 }
 
 pub fn view(self: *const Self) Table {
@@ -103,10 +137,10 @@ pub fn finish(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error
     };
 
     if (!complete) {
-        for (result.symbols) |value| allocator.destroy(value);
-        for (result.expressions) |value| allocator.destroy(value);
-        for (result.stores) |value| allocator.destroy(value);
-        for (result.contracts) |value| allocator.destroy(value);
+        for (result.symbols) |value| if (value != &empty_symbols) allocator.destroy(value);
+        for (result.expressions) |value| if (value != &empty_expressions) allocator.destroy(value);
+        for (result.stores) |value| if (value != &empty_stores) allocator.destroy(value);
+        for (result.contracts) |value| if (value != &empty_contracts) allocator.destroy(value);
 
         inline for (@typeInfo(Table).@"struct".field_names) |name| allocator.free(@field(result, name));
         self.deinit(allocator);
@@ -118,10 +152,10 @@ pub fn finish(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
-    for (self.symbols.items) |value| allocator.destroy(value);
-    for (self.expressions.items) |value| allocator.destroy(value);
-    for (self.stores.items) |value| allocator.destroy(value);
-    for (self.contracts.items) |value| allocator.destroy(value);
+    for (self.symbols.items) |value| if (value != &empty_symbols) allocator.destroy(value);
+    for (self.expressions.items) |value| if (value != &empty_expressions) allocator.destroy(value);
+    for (self.stores.items) |value| if (value != &empty_stores) allocator.destroy(value);
+    for (self.contracts.items) |value| if (value != &empty_contracts) allocator.destroy(value);
 
     inline for (@typeInfo(Self).@"struct".field_names) |name| @field(self, name).deinit(allocator);
 
@@ -134,10 +168,11 @@ pub fn pop(self: *Self, allocator: std.mem.Allocator) ?ir.Function {
     const index = self.count() - 1;
     const value = self.at(index);
 
-    allocator.destroy(self.symbols.items[index]);
-    allocator.destroy(self.expressions.items[index]);
-    allocator.destroy(self.stores.items[index]);
-    allocator.destroy(self.contracts.items[index]);
+    if (self.symbols.items[index] != &empty_symbols) allocator.destroy(self.symbols.items[index]);
+    if (self.expressions.items[index] != &empty_expressions) allocator.destroy(self.expressions.items[index]);
+    if (self.stores.items[index] != &empty_stores) allocator.destroy(self.stores.items[index]);
+    if (self.contracts.items[index] != &empty_contracts) allocator.destroy(self.contracts.items[index]);
+
     inline for (@typeInfo(Self).@"struct".field_names) |name| _ = @field(self, name).pop();
 
     return value;

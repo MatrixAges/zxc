@@ -3,7 +3,8 @@ const zx = @import("zx");
 const interface = @import("../../interface.zig");
 const Native = interface.Native;
 const NativeSelection = union(enum) { missing, duplicate, found: *const Native };
-pub const Registration = struct { valid: bool, existing: ?usize = null };
+pub const Registration = struct { valid: bool, existing: bool = false, id: ?zx.ir.NativeModuleId = null };
+
 const enabled = @import("parser_options").generated_parser;
 const batch_size = @import("../../package_scope.zig").lookup_batch_size;
 
@@ -140,7 +141,7 @@ pub fn registration(modules: zx.ir.NativeModuleTable, identity: []const u8, name
         var scratch = std.heap.FixedBufferAllocator.init(&.{});
         const result = zx.columns.invoke(generated.executeValue, scratch.allocator(), &input) catch unreachable;
 
-        return .{ .valid = result.valid, .existing = if (result.existing) |index| @intCast(index) else null };
+        return .{ .valid = result.valid, .existing = result.existing, .id = if (result.id) |id| @fromBackingInt(id) else null };
     }
 
     if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return .{ .valid = false };
@@ -148,8 +149,8 @@ pub fn registration(modules: zx.ir.NativeModuleTable, identity: []const u8, name
     for (0..modules.count()) |index| {
         const row = modules.at(index);
 
-        if (zx.bytes.equal(row.key(), identity) and zx.bytes.equal(row.import_name, name)) return .{ .valid = true, .existing = index };
+        if (zx.bytes.equal(row.key(), identity) and zx.bytes.equal(row.import_name, name)) return .{ .valid = true, .existing = true, .id = @fromBackingInt(@as(u32, @intCast(index))) };
     }
 
-    return .{ .valid = true };
+    return .{ .valid = true, .id = if (modules.count() < std.math.maxInt(u32)) @fromBackingInt(@as(u32, @intCast(modules.count()))) else null };
 }

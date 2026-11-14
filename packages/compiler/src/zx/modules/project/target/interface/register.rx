@@ -1,12 +1,10 @@
 <Module>
     <Type from="registered" as="Registry" />
+    <Type from="registry_slot" as="Slot" />
 
     <Args
         in={Registry.Input}
-        out={{
-            valid: bool,
-            existing?: u64
-        }}
+        out={Slot.Output}
     />
 
     <Call fn="../../../../ir/canonical/native/text" in={$in.name} />
@@ -15,17 +13,21 @@
         <Return
             value={{
                 valid: false,
-                existing: null
+                existing: false,
+                id: null
             }}
         />
     </If>
 
     <Call fn="registered" in={$in} />
 
-    <Return
-        value={{
-            valid: true,
-            existing: $ctx.registered
+    <Call
+        fn="registry_slot"
+        in={{
+            index: $ctx.registered,
+            count: $in.modules.specifiers.length
         }}
     />
+
+    <Return value={$ctx.registry_slot} />
 </Module>

@@ -618,10 +618,10 @@ const Project = struct {
         const selected = target_registry.registration(self.native_modules.view(), identity orelse source, name);
 
         if (!selected.valid) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
-        if (selected.existing) |index| return @fromBackingInt(@as(u32, @intCast(index)));
 
-        const id: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.count()));
+        const id = selected.id orelse return error.OutOfMemory;
 
+        if (selected.existing) return id;
         try self.native_modules.append(self.allocator, .{ .specifier = try self.allocator.dupe(u8, source), .identity = if (identity) |key| try self.allocator.dupe(u8, key) else null, .import_name = try self.allocator.dupe(u8, name) });
 
         self.verified.functions = 0;
@@ -638,10 +638,7 @@ const Project = struct {
             else
                 try @import("native.zig").load(self.arena, entry, module_id, &self.types, &self.nominal_origins, self.reporter, item.span);
 
-            const namespace = try self.allocator.alloc([]const u8, entry.namespace.len);
-
-            for (entry.namespace, namespace) |part, *owned| owned.* = try self.allocator.dupe(u8, part);
-
+            const namespace = loaded.namespace orelse try @import("compiled/host/native.zig").strings(self.allocator, entry.namespace);
             const bindings = try ir.NativeBindings.fromValues(self.allocator, loaded.exports);
             const native_index = @backingInt(module_id);
             self.verified.functions = 0;
@@ -653,10 +650,12 @@ const Project = struct {
             const members = try self.allocator.alloc(FunctionImport, loaded.members.len);
             const first = self.functions.count();
 
-            for (loaded.members, members, first..) |*member, *binding, index| {
-                try self.functions.append(self.allocator, member.function);
+            try self.functions.reserve(self.allocator, members.len);
 
-                binding.* = .{ .name = member.name, .id = @fromBackingInt(@as(u32, @intCast(index))), .input_type = member.function.input_type, .output_type = member.function.output_type };
+            for (loaded.members, members, first..) |*member, *binding, index| {
+                self.functions.appendSignatureAssumeCapacity(member.signature);
+
+                binding.* = .{ .name = member.name, .id = @fromBackingInt(@as(u32, @intCast(index))), .input_type = member.signature.input_type, .output_type = member.signature.output_type };
             }
 
             const result = NativeUnit{ .exports = loaded.exports, .members = members };

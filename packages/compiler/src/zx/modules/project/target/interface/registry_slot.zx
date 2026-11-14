@@ -1,0 +1,30 @@
+import integers from "std:integer"
+import { max_u32 } from "core/const"
+
+export type Input = {
+    index?: u64,
+    count: u64
+}
+
+export type Output = {
+    valid: bool,
+    existing: bool,
+    id?: u32
+}
+
+export default function (in: Input): Output {
+    const { index, count } = in
+
+    const selected = index ?? count
+
+    const id: u32? = match {
+        selected < integers.widen(max_u32) => integers.narrow(selected),
+        _ => null
+    }
+
+    return {
+        valid: true,
+        existing: index != null,
+        id
+    }
+}

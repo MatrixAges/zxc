@@ -90,7 +90,15 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
 
     for (members, 0..) |*member, index| {
         const function = functions.at(index);
-        member.* = .{ .name = try allocator.dupe(u8, function.external.?.exportName()), .function = try nodes.function(function) };
+        const mapped = try nodes.function(function);
+
+        member.* = .{ .name = try allocator.dupe(u8, function.external.?.exportName()), .signature = .{
+            .file_name = mapped.file_name,
+            .input_type = mapped.input_type,
+            .output_type = mapped.output_type,
+            .output_ownership = mapped.output_ownership,
+            .external = mapped.external,
+        } };
     }
 
     return .{ .types = types.items.view(), .exports = exports, .members = members };

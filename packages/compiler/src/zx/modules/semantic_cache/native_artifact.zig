@@ -37,7 +37,7 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
     const bindings = try owned.alloc(FunctionImport, loaded.members.len);
 
     for (loaded.members, bindings, 0..) |member, *binding, index| {
-        const function = member.function;
+        const function = member.function();
 
         try seed_functions.append(owned, function);
 
