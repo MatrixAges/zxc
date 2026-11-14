@@ -97,14 +97,10 @@ pub fn save(self: *Self, cache: *SemanticCache) !void {
 }
 
 fn saveEntries(self: *Self, entries: *SemanticCache.entry_store.Map, kind: Kind) !void {
-    var iterator = entries.iterator();
-
-    while (iterator.next()) |item| {
-        const entry = item.value_ptr.*;
-
+    for (entries.keys.items, entries.values.items) |key, entry| {
         if (!entry.dirty) continue;
 
-        const location = try self.filePath(item.key_ptr.*, kind);
+        const location = try self.filePath(key, kind);
 
         defer self.allocator.free(location);
 

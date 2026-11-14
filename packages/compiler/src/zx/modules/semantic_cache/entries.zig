@@ -11,15 +11,13 @@ pub const Entry = struct {
     result: Artifact.Result,
 };
 
-pub const Map = std.StringHashMapUnmanaged(*Entry);
+pub const Map = @import("entries/index.zig");
 
 pub fn deinit(allocator: std.mem.Allocator, entries: *Map) void {
-    var iterator = entries.iterator();
-
-    while (iterator.next()) |entry| {
-        entry.value_ptr.*.result.deinit();
-        allocator.destroy(entry.value_ptr.*);
-        allocator.free(entry.key_ptr.*);
+    for (entries.keys.items, entries.values.items) |key, entry| {
+        entry.result.deinit();
+        allocator.destroy(entry);
+        allocator.free(key);
     }
 
     entries.deinit(allocator);
@@ -59,6 +57,7 @@ pub fn load(allocator: std.mem.Allocator, entries: *Map, bytes: []const u8, comp
 pub const Publication = struct {
     entry: *Entry,
     key: ?[]const u8,
+    slot: usize = 0,
     pub fn cancel(self: Publication, allocator: std.mem.Allocator) void {
         if (self.key) |key| {
             allocator.free(key);
@@ -68,7 +67,7 @@ pub const Publication = struct {
 
     pub fn commit(self: Publication, entries: *Map, value: Entry) void {
         if (self.key) |key| {
-            entries.putAssumeCapacityNoClobber(key, self.entry);
+            entries.append(self.slot, key, self.entry);
         } else {
             self.entry.result.deinit();
         }
@@ -78,14 +77,16 @@ pub const Publication = struct {
 };
 
 pub fn prepare(allocator: std.mem.Allocator, entries: *Map, path: []const u8) std.mem.Allocator.Error!Publication {
-    if (entries.get(path)) |entry| return .{ .entry = entry, .key = null };
-    try entries.ensureUnusedCapacity(allocator, 1);
+    var selected = entries.probe(path);
+
+    if (selected.existing) |entry| return .{ .entry = entry, .key = null };
+    if (try entries.reserve(allocator)) selected = entries.probe(path);
 
     const key = try allocator.dupe(u8, path);
 
     errdefer allocator.free(key);
 
-    return .{ .entry = try allocator.create(Entry), .key = key };
+    return .{ .entry = try allocator.create(Entry), .key = key, .slot = selected.position };
 }
 
 fn install(allocator: std.mem.Allocator, entries: *Map, value: Entry) std.mem.Allocator.Error!void {
