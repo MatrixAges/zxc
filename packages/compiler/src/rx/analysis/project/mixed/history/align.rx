@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="History" />
+
+    <Args in={History.Alignment} out={bool} />
+
+    <Call
+        fn="extent"
+        in={{
+            left: $in.extent_left,
+            right: $in.extent_right
+        }}
+    />
+
+    <If on={!$ctx.extent}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="../../../../../zx/ir/compare/columns" in={$in.columns} />
+
+    <Return value={$ctx.columns} />
+</Module>

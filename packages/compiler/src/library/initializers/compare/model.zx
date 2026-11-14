@@ -1,17 +1,5 @@
 import type { Ownership } from "core/symbol_table/model"
-
-export type Columns = {
-    words: u8[][],
-    tags: u8[][],
-    options: u32?[][],
-    text: string[][]
-}
-
-export type ColumnPair = {
-    left: Columns,
-    right: Columns,
-    masks: u8[]
-}
+import type { ColumnPair } from "../../../zx/ir/compare/model"
 
 export type Native = {
     module_id: u32,

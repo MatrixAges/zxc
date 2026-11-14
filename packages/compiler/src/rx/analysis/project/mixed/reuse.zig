@@ -111,9 +111,7 @@ pub fn analyzed(self: *Self, state: *const State, index: usize) void {
     const start = self.before[index];
     const earlier = previous.after[index];
 
-    self.aligned = end.functions == earlier.functions and end.native_modules == earlier.native_modules and end.initializers == earlier.initializers and end.libraries == earlier.libraries and
-        columns.equal(previous.types, start.types, earlier.types, state.types.items.view(), start.types, end.types) and
-        columns.equal(previous.origins, start.origins, earlier.origins, state.types.origins.items.view(), start.origins, end.origins);
+    self.aligned = @import("history/alignment.zig").matches(state, previous, start, earlier, end);
 
     if (self.aligned and !self.reaches(state, index) and repeated(state, previous, index, start.functions)) self.redone[index] = false;
 }
@@ -227,11 +225,16 @@ fn matches(state: *const State, previous: *const history.Retained, shape: [32]u8
         for (earlier.modules, state.graph.modules) |before, after| if (!zx.bytes.equal(before.path, after.path)) return false;
     }
 
-    const types: @TypeOf(initial.types) = @splat(0);
-    const origins: @TypeOf(initial.origins) = @splat(0);
+    const start: history.Checkpoint = .{
+        .types = @splat(0),
+        .origins = @splat(0),
+        .functions = 0,
+        .native_modules = 0,
+        .initializers = 0,
+        .libraries = 0,
+    };
 
-    if (!columns.equal(previous.types, types, initial.types, state.types.items.view(), types, initial.types)) return false;
-    if (!columns.equal(previous.origins, origins, initial.origins, state.types.origins.items.view(), origins, initial.origins)) return false;
+    if (!@import("history/alignment.zig").matches(state, previous, start, initial, initial)) return false;
 
     return signatures(previous.functions, state.functions.view(), initial.functions);
 }

@@ -1,0 +1,29 @@
+export type Extent = {
+    functions: u64,
+    native_modules: u64,
+    initializers: u64,
+    libraries: u64
+}
+
+export type Input = {
+    left: Extent,
+    right: Extent
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { left, right } = in
+
+    const functions = left.functions == right.functions
+    const native_modules = left.native_modules == right.native_modules
+    const initializers = left.initializers == right.initializers
+    const libraries = left.libraries == right.libraries
+
+    return (
+        - functions
+        - and native_modules
+        - and initializers
+        - and libraries
+    )
+}

@@ -1,7 +1,9 @@
 import bytes from "std:bytes"
 import integers from "std:integer"
 
-import type { ColumnPair as Input, Output } from "./model"
+import type { ColumnPair as Input } from "./model"
+
+export type Output = bool
 
 export default function (in: Input): Output {
     const words = loop({

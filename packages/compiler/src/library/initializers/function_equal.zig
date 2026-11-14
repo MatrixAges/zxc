@@ -48,7 +48,7 @@ pub fn matches(left: *const ir.Function, right: *const ir.Function, left_version
 }
 
 fn contracts(allocator: std.mem.Allocator, left: *const ir.ContractTable, right: *const ir.ContractTable) bool {
-    const entry = @import("generated_library_initializer_columns");
+    const entry = @import("generated_ir_compare_columns");
     const Input = std.meta.Child(entry.Input);
     const View = std.meta.Child(@FieldType(Input, "left"));
     var left_columns: projection.Contract = undefined;
