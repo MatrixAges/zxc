@@ -6,6 +6,7 @@ pub const ir = zx.ir;
 pub const bytes = zx.bytes;
 pub const parallel = zx.parallel;
 pub const input_snapshot = @import("inputs/snapshot.zig");
+pub const input_fingerprint = @import("inputs/fingerprint.zig");
 pub const Sha256 = zx.Sha256;
 pub const parse = frontend.parse;
 pub const ParseResult = frontend.ParseResult;

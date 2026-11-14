@@ -52,16 +52,9 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, paths: std.mem.Allocato
         }
     }.less);
 
-    var hash = compiler.Sha256.init(.{});
     const here = try std.process.currentPathAlloc(io, allocator);
-
-    hash.update(&digest);
-    hash.update(std.mem.asBytes(&partitions));
-    hash.update(std.mem.asBytes(&here.len));
-    hash.update(here);
-    hash.update(text);
-
-    const context = try allocator.dupe(u8, &std.fmt.bytesToHex(hash.finalResult(), .lower));
+    const identity = compiler.input_fingerprint.snapshot(&digest, partitions, here, text);
+    const context = try allocator.dupe(u8, &std.fmt.bytesToHex(identity, .lower));
     const path = try std.fs.path.join(allocator, &.{ cache, name, context });
     var stored_checksum: []const u8 = "";
     var actual_checksum: []const u8 = "";
@@ -72,15 +65,19 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, paths: std.mem.Allocato
         if (recorded.len < checksum_length) break :previous null;
 
         const payload = recorded[checksum_length..];
-        const value = std.json.parseFromSliceLeaky(source.Snapshot, allocator, payload, .{}) catch break :previous null;
-        const owned = try allocator.create(source.Snapshot);
         var checksum: [std.crypto.hash.Blake3.digest_length]u8 = undefined;
 
         std.crypto.hash.Blake3.hash(payload, &checksum, .{});
 
+        const encoded = std.fmt.bytesToHex(checksum, .lower);
+
+        if (!compiler.bytes.equal(recorded[0..checksum_length], &encoded)) break :previous null;
+
+        const value = std.json.parseFromSliceLeaky(source.Snapshot, allocator, payload, .{}) catch break :previous null;
+        const owned = try allocator.create(source.Snapshot);
         owned.* = value;
         stored_checksum = recorded[0..checksum_length];
-        actual_checksum = try allocator.dupe(u8, &std.fmt.bytesToHex(checksum, .lower));
+        actual_checksum = stored_checksum;
 
         break :previous owned;
     };
@@ -120,14 +117,13 @@ pub fn save(self: Self, io: std.Io, allocator: std.mem.Allocator, files: *const 
 
     std.crypto.hash.Blake3.hash(bytes, &checksum, .{});
 
-    try std.Io.Dir.cwd().createDirPath(io, std.fs.path.dirname(self.path).?);
+    var file = try std.Io.Dir.cwd().createFileAtomic(io, self.path, .{ .make_path = true, .replace = true });
 
-    const file = try std.Io.Dir.cwd().createFile(io, self.path, .{});
+    defer file.deinit(io);
 
-    defer file.close(io);
-
-    try file.writeStreamingAll(io, &std.fmt.bytesToHex(checksum, .lower));
-    try file.writeStreamingAll(io, bytes);
+    try file.file.writeStreamingAll(io, &std.fmt.bytesToHex(checksum, .lower));
+    try file.file.writeStreamingAll(io, bytes);
+    try file.replace(io);
 }
 
 fn columns(allocator: std.mem.Allocator, facts: []const Fact, files: ?*const Files) !source.Files {

@@ -7,6 +7,7 @@ const manifest = @import("generation_manifest.zig");
 const Resident = @import("resident/state.zig");
 const Files = @import("resident/files.zig");
 const InputSnapshot = @import("input_snapshot.zig");
+const fingerprint = compiler.input_fingerprint;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -80,13 +81,9 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     for (sources.items) |*source| source.templates = templates.items;
 
     const packages = try owned.alloc(compiler.project.Package, project.packages.len);
-    var package_hash = compiler.Sha256.init(.{});
 
     for (project.packages, packages) |package, *target| {
         target.* = .{ .specifier = try resident.retainText(owned, package.specifier), .entry = try resident.retainText(owned, package.entry) };
-
-        field(&package_hash, package.specifier);
-        field(&package_hash, package.entry);
     }
 
     for (modules.items) |*module| module.packages = packages;
@@ -115,8 +112,8 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     for (modules.items, rx_digests) |module, *item| item.* = .{ .path = module.path, .digest = resident.files.digest(module.path, module.source) };
 
-    const frame = frameDigest(resident.digest, manifest_source, rx_digests, interfaces, true);
-    const inputs_digest = fingerprint(frame, partitions, sources.items, templates.items, &resident.files);
+    const frame = frameDigest(&resident.digest, manifest_source, rx_digests, interfaces, true);
+    const inputs_digest = outputDigest(&frame, partitions, sources.items, templates.items, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
     if (request.write and interface_error == null and try current(io, allocator, output, inputs_digest)) {
@@ -144,7 +141,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         },
     };
 
-    const parsed = try resident.modules.parse(modules.items, package_hash.finalResult());
+    const parsed = try resident.modules.parse(modules.items, packageDigest(packages));
 
     if (parsed.value == .diagnostic) {
         std.debug.print("{s}: {s}\n", .{ modules.items[parsed.value.diagnostic.source_index].path, parsed.value.diagnostic.issue.message });
@@ -168,7 +165,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         .interfaces = interfaces,
         .packages = packages,
         .frame = frame,
-        .shape = frameDigest(resident.digest, manifest_source, rx_digests, interfaces, false),
+        .shape = frameDigest(&resident.digest, manifest_source, rx_digests, interfaces, false),
         .rx_digests = rx_digests,
     }, if (request.write) output else null, request.cache, partitions);
 
@@ -188,59 +185,76 @@ const shared_output = @import("shared_output.zig");
 
 /// Everything a generation reads besides the ZX sources; RX sources enter by their digests, or by their paths alone for
 /// the shape an analysis reuses RX modules within.
-fn frameDigest(generator: [32]u8, manifest_source: []const u8, modules: []const analysis.project.ModuleDigest, interfaces: []const compiler.project.NativeInterface, comptime texts: bool) [32]u8 {
-    var hash = compiler.Sha256.init(.{});
+fn frameDigest(generator: *const fingerprint.Digest, manifest_source: []const u8, modules: []const analysis.project.ModuleDigest, interfaces: []const compiler.project.NativeInterface, texts: bool) fingerprint.Digest {
+    var buffer: [1024]u8 = undefined;
+    var hash = fingerprint.Hash.init(&buffer);
 
-    hash.update(&generator);
-    field(&hash, if (texts) "frame" else "shape");
-    field(&hash, manifest_source);
+    fingerprint.frame(&hash, generator, manifest_source, texts, modules, interfaces);
 
-    for (modules) |module| {
-        field(&hash, module.path);
-
-        if (texts) hash.update(&module.digest);
-    }
-
-    for (interfaces) |interface| field(&hash, interface.source);
-
-    return hash.finalResult();
+    return hash.finish();
 }
 
 /// The frame and raw ZX/template inputs; a matching output needs no template expansion or RX parsing.
-fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source, templates: []const compiler.project.Resource, files: *Files) [32]u8 {
-    var hash = compiler.Sha256.init(.{});
+fn outputDigest(frame: *const fingerprint.Digest, partitions: u32, sources: []const compiler.project.Source, templates: []const compiler.project.Resource, files: *Files) fingerprint.Digest {
+    var buffer: [1024]u8 = undefined;
+    var hash = fingerprint.Hash.init(&buffer);
 
-    field(&hash, "zxc.bootstrap.inputs.v2");
-    hash.update(&frame);
-    hash.update(std.mem.asBytes(&partitions));
+    fingerprint.output(&hash, frame, partitions);
+    writeDigests(&hash, files, sources);
+    writeDigests(&hash, files, templates);
 
-    for (sources) |source| {
-        field(&hash, source.path);
-        hash.update(&files.digest(source.path, source.source));
-    }
-
-    for (templates) |template| {
-        field(&hash, template.path);
-        hash.update(&files.digest(template.path, template.source));
-    }
-
-    var digest: [32]u8 = undefined;
-
-    hash.final(&digest);
-
-    return digest;
+    return hash.finish();
 }
 
-fn field(hash: *compiler.Sha256, bytes: []const u8) void {
-    hash.update(std.mem.asBytes(&bytes.len));
-    hash.update(bytes);
+fn writeDigests(hash: *fingerprint.Hash, files: *Files, inputs: anytype) void {
+    const batch_size = fingerprint.batch_size;
+    var paths: [batch_size][]const u8 = undefined;
+    var digests: [batch_size]fingerprint.Digest = undefined;
+    var views: [batch_size][]const u8 = undefined;
+    var remaining = inputs;
+
+    while (remaining.len != 0) {
+        const count = @min(batch_size, remaining.len);
+
+        for (remaining[0..count], paths[0..count], digests[0..count], views[0..count]) |*input, *path, *digest, *view| {
+            path.* = input.path;
+            digest.* = files.digest(input.path, input.source);
+            view.* = digest;
+        }
+
+        fingerprint.files(hash, paths[0..count], views[0..count]);
+
+        remaining = remaining[count..];
+    }
+}
+
+fn packageDigest(packages: []const compiler.project.Package) fingerprint.Digest {
+    var buffer: [1024]u8 = undefined;
+    var hash = fingerprint.Hash.init(&buffer);
+    var fields: [fingerprint.batch_size][]const u8 = undefined;
+    var remaining = packages;
+
+    while (remaining.len != 0) {
+        const count = @min(fields.len / 2, remaining.len);
+
+        for (remaining[0..count], 0..) |package, index| {
+            fields[2 * index] = package.specifier;
+            fields[2 * index + 1] = package.entry;
+        }
+
+        fingerprint.files(&hash, fields[0 .. 2 * count], &.{});
+
+        remaining = remaining[count..];
+    }
+
+    return hash.finish();
 }
 
 fn current(io: std.Io, allocator: std.mem.Allocator, output: []const u8, digest: [32]u8) !bool {
     const path = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
 
     const recorded = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(65)) catch |err| switch (err) {
-        error.FileNotFound => return false,
+        error.FileNotFound, error.StreamTooLong => return false,
         else => return err,
     };
 

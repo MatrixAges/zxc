@@ -1,0 +1,36 @@
+import bytes from "std:bytes"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    paths: string[],
+    digests: u8[][]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { out, paths, digests } = in
+
+    const include_digest = digests.length != 0
+
+    const written = loop({
+        position: 0
+    }, {
+        while: state => state.position < paths.length,
+        next: state => {
+            const position = state.position
+            const path = bytes.fromText(paths[position])
+
+            bytes.writeU64Le(out, path.length)
+            bytes.write(out, path)
+
+            if (include_digest) {
+                bytes.write(out, digests[position])
+            }
+
+            state.position += 1
+        }
+    })
+}

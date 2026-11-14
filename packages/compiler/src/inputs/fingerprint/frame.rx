@@ -1,0 +1,24 @@
+<Module>
+    <Type from="model" as="Fingerprint" />
+
+    <Args in={Fingerprint.Frame} out={void} />
+
+    <Call
+        fn="frame_header"
+        in={{
+            out: $in.out,
+            generator: $in.generator,
+            manifest: $in.manifest,
+            texts: $in.texts
+        }}
+    />
+
+    <Call
+        fn="files"
+        in={{
+            out: $in.out,
+            paths: $in.paths,
+            digests: $in.digests
+        }}
+    />
+</Module>

@@ -1,0 +1,10 @@
+import type { Writer } from "std:bytes"
+
+export type Frame = {
+    out: Writer,
+    generator: u8[],
+    manifest: string,
+    texts: bool,
+    paths: string[],
+    digests: u8[][]
+}

@@ -1,0 +1,22 @@
+import bytes from "std:bytes"
+
+import { output_domain } from "./const"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    frame: u8[],
+    partitions: u32
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const domain = bytes.fromText(output_domain)
+
+    bytes.writeU64Le(in.out, domain.length)
+    bytes.write(in.out, domain)
+    bytes.write(in.out, in.frame)
+    bytes.writeU32Le(in.out, in.partitions)
+}

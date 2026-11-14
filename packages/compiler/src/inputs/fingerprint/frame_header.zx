@@ -1,0 +1,25 @@
+import bytes from "std:bytes"
+
+import { frame_domain, shape_domain } from "./const"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    generator: u8[],
+    manifest: string,
+    texts: bool
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const domain = bytes.fromText(in.texts ? frame_domain : shape_domain)
+    const manifest = bytes.fromText(in.manifest)
+
+    bytes.write(in.out, in.generator)
+    bytes.writeU64Le(in.out, domain.length)
+    bytes.write(in.out, domain)
+    bytes.writeU64Le(in.out, manifest.length)
+    bytes.write(in.out, manifest)
+}

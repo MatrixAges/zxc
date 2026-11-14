@@ -1,0 +1,23 @@
+import bytes from "std:bytes"
+
+import type { Writer } from "std:bytes"
+
+export type Input = {
+    out: Writer,
+    generator: u8[],
+    partitions: u32,
+    directory: string,
+    manifest: u8[]
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const directory = bytes.fromText(in.directory)
+
+    bytes.write(in.out, in.generator)
+    bytes.writeU32Le(in.out, in.partitions)
+    bytes.writeU64Le(in.out, directory.length)
+    bytes.write(in.out, directory)
+    bytes.write(in.out, in.manifest)
+}
