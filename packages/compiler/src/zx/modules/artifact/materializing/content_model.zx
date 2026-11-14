@@ -1,8 +1,10 @@
+import type { Control } from "core/control_table/model"
 import type { Stores } from "core/store_table/model"
 import type { FunctionInput, FunctionOutput, Mapping } from "../remapping/model"
 
 export type Input = {
     source?: FunctionInput,
+    control?: Control,
     body_stores?: Stores,
     entry_stores: Stores,
     type_mapping: Mapping,
@@ -12,6 +14,7 @@ export type Input = {
 export type Output = {
     valid: bool,
     function?: FunctionOutput,
+    control?: Control,
     body_stores?: Stores,
     stores?: Stores
 }

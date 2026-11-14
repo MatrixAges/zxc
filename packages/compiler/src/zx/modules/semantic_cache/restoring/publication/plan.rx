@@ -21,10 +21,13 @@
     />
 
     <If on={$ctx.stores != null}>
+        <Call module="../../../artifact/materializing/optional_control" in={$in.control} />
+
         <Return
             value={{
                 body: $ctx.optional_body,
-                stores: $ctx.stores
+                stores: $ctx.stores,
+                control: $ctx.optional_control
             }}
         />
     </If>

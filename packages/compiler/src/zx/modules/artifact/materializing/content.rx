@@ -19,6 +19,8 @@
             }}
         />
 
+        <Call module="optional_control" in={$in.control} />
+
         <If on={$in.copy_entry_stores}>
             <Call
                 module="stores/remap"
@@ -32,6 +34,7 @@
                 value={{
                     valid: $ctx.remap != null,
                     function: $ctx.optional_body,
+                    control: $ctx.optional_control,
                     body_stores: $ctx.own,
                     stores: $ctx.remap
                 }}
@@ -42,6 +45,7 @@
             value={{
                 valid: true,
                 function: $ctx.optional_body,
+                control: $ctx.optional_control,
                 body_stores: $ctx.own,
                 stores: $ctx.own
             }}
@@ -52,6 +56,7 @@
         value={{
             valid: !$in.copy_entry_stores,
             function: null,
+            control: null,
             body_stores: null,
             stores: null
         }}

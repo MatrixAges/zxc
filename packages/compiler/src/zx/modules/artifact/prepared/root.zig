@@ -34,7 +34,7 @@ pub fn extract(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysi
     const functions = zx.columns.view(zx.ir.SignatureTable, materialized.signatures orelse return error.InvalidModule);
 
     const function = if (materialized.function) |mapped|
-        try nodes.ownFunction(&source.?, mapped, zx.columns.view(zx.ir.StoreTable, materialized.body_stores.?), .validated)
+        try nodes.ownFunction(&source.?, mapped, zx.columns.view(zx.ir.StoreTable, materialized.body_stores.?), Nodes.controlBody(source.?.body.root, materialized.control))
 
     else
         null;

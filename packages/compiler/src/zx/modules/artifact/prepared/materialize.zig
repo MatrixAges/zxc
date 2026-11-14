@@ -10,6 +10,7 @@ const remap = @import("../nodes/remap.zig");
 const Input = std.meta.Child(generated.Input);
 const Content = std.meta.Child(@FieldType(Input, "content"));
 const Source = std.meta.Child(@typeInfo(@FieldType(Content, "source")).optional.child);
+const Control = @typeInfo(@FieldType(Content, "control")).optional.child;
 const Output = @typeInfo(@TypeOf(generated.executeValue(undefined, undefined))).error_union.payload;
 
 pub fn materialize(nodes: *const Nodes, program: *const ir.Program, nominal_types: Origins.Table, prepared: @import("run.zig").Prepared, source: ?*const ir.Function) Error!Output {
@@ -20,11 +21,17 @@ pub fn materialize(nodes: *const Nodes, program: *const ir.Program, nominal_type
     const BodyStores = @typeInfo(@FieldType(Content, "body_stores")).optional.child;
     const mapping = remap.typeMapping(std.meta.Child(@FieldType(Content, "type_mapping")), nodes.types);
     var view: remap.FunctionView(Source) = undefined;
+    var control: ?Control = null;
 
-    if (source) |value| view.init(nodes, value, null);
+    if (source) |value| {
+        view.init(nodes, value, null);
+
+        if (value.body.root != null) control = borrow.pointer(Control, value.body.control);
+    }
 
     const content: Content = .{
         .source = if (source != null) &view.input else null,
+        .control = control,
         .body_stores = if (source) |value| borrow.pointer(BodyStores, &value.stores) else null,
         .entry_stores = stores,
         .type_mapping = &mapping,

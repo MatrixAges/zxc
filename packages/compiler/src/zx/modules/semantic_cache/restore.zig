@@ -23,6 +23,7 @@ pub const Current = struct {
     members: []const FunctionImport = &.{},
     constant_imports: []const ir.Constant = &.{},
     dependencies: []const Record.Import,
+    path: []const u8,
 };
 
 const Error = @import("../link/types.zig").Error || model.Error;
@@ -110,7 +111,7 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
     };
 
     var restored = if (comptime generated)
-        try @import("restoring/publication/host.zig").materialize(&nodes, module, tables, own, structure)
+        try @import("restoring/publication/host.zig").materialize(&nodes, temporary, module, current.path, tables, own, structure)
 
     else seed: {
         const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;

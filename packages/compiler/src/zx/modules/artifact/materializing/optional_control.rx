@@ -1,0 +1,13 @@
+<Module>
+    <Type from="core/control_table/model" as="Control" />
+
+    <Args in={Control.Control?} out={Control.Control?} />
+
+    <If on={$in != null}>
+        <Call fn="control" in={$in} />
+
+        <Return value={$ctx.control} />
+    </If>
+
+    <Return value={null} />
+</Module>

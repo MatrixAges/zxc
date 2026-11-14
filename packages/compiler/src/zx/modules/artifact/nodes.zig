@@ -78,12 +78,13 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId,
 fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId, structure: Structure) Error!FunctionEntry {
     const mapped = try @import("nodes/remap.zig").function(self, &value, candidate, structure);
     const store_table = try @import("materializing/stores/host.zig").own(self.allocator, &value.stores, mapped.stores);
+    const control = try self.body(value.body, structure);
 
-    return .{ .body = try self.ownFunction(&value, mapped, store_table, structure), .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
+    return .{ .body = try self.ownFunction(&value, mapped, store_table, control), .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
 }
 
-pub fn ownFunction(self: *Self, value: *const ir.Function, mapped: anytype, store_table: ir.StoreTable, structure: Structure) Error!ir.Function {
-    var result = try self.materializeBody(value, mapped, structure);
+pub fn ownFunction(self: *Self, value: *const ir.Function, mapped: anytype, store_table: ir.StoreTable, control: ir.ControlBody) Error!ir.Function {
+    var result = materializeBody(value, mapped, control);
     result.file_name = try self.allocator.dupe(u8, value.file_name);
     result.stores = store_table;
     result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
@@ -91,7 +92,15 @@ pub fn ownFunction(self: *Self, value: *const ir.Function, mapped: anytype, stor
     return result;
 }
 
-pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, structure: Structure) Error!ir.Function {
+pub fn controlBody(root: ?ir.BlockId, table: anytype) ir.ControlBody {
+    return if (table) |owned|
+        .{ .control = zx.columns.pointer(*const ir.ControlTable, owned), .root = root }
+
+    else
+        .{};
+}
+
+pub fn materializeBody(value: *const ir.Function, mapped: anytype, control: ir.ControlBody) ir.Function {
     return .{
         .file_name = value.file_name,
         .input_type = @fromBackingInt(mapped.ports.input),
@@ -100,7 +109,7 @@ pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, 
         .store_mode = value.store_mode,
         .symbols = zx.columns.view(ir.SymbolTable, mapped.symbols),
         .expressions = zx.columns.view(ir.ExpressionTable, mapped.expressions),
-        .body = try self.body(value.body, structure),
+        .body = control,
         .contracts = zx.columns.view(ir.ContractTable, mapped.contracts),
     };
 }

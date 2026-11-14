@@ -1,3 +1,4 @@
+import type { Control } from "core/control_table/model"
 import type { Stores } from "core/store_table/model"
 import type {
     FunctionInput,
@@ -7,6 +8,7 @@ import type {
 
 export type Input = {
     body?: FunctionInput,
+    control?: Control,
     stores: Stores,
     reuse_store_types: bool,
     types: Mapping
@@ -14,5 +16,6 @@ export type Input = {
 
 export type Plan = {
     body?: FunctionOutput,
+    control?: Control,
     stores: Stores
 }

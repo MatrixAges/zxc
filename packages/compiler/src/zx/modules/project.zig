@@ -474,6 +474,7 @@ const Project = struct {
                     .members = frame.export_functions.items,
                     .constant_imports = frame.constant_imports.items,
                     .dependencies = dependencies.items,
+                    .path = unit.path,
                 })) |program| {
                     restored = program;
                     cache.reused += 1;
