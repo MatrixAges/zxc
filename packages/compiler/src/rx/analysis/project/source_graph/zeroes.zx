@@ -1,0 +1,17 @@
+export type Input = u64
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const values: u64[] = []
+
+    return loop({
+        values
+    }, {
+        while: state => state.values.length < in,
+        next: state => {
+            state.values = state.values.push(0)[0]
+        },
+        return: state => state.values
+    })
+}

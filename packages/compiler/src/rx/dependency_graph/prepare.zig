@@ -41,7 +41,7 @@ pub fn build(allocator: std.mem.Allocator, registered: *const modules.Registry, 
 
     offsets[sources.len] = targets.items.len;
 
-    return .{ .input = .{ .offsets = offsets, .targets = targets.items, .issues = issues.items, .root = null, .roots = null, .ranked = false }, .links = links.items };
+    return .{ .input = .{ .offsets = offsets, .ends = null, .targets = targets.items, .issues = issues.items, .root = null, .roots = null, .ranked = false }, .links = links.items };
 }
 
 fn resolve(allocator: std.mem.Allocator, registered: *const modules.Registry, owner: []const u8, reference: []const u8) std.mem.Allocator.Error!struct { index: u64 = 0, issue: Issue = .None } {

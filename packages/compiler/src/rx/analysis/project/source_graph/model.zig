@@ -32,6 +32,12 @@ pub const Schedule = struct {
 
 pub const Scheduled = union(enum) { schedule: Schedule, diagnostic: Diagnostic };
 
+pub const Adjacency = struct {
+    starts: []u64,
+    ends: []u64,
+    targets: []const u64 = &.{},
+};
+
 pub const Graph = struct {
     modules: []const Module,
     order: []const usize,

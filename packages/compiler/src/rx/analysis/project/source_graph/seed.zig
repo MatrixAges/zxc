@@ -6,7 +6,7 @@ const Frame = struct { index: usize, dependency: usize = 0 };
 /// Dependencies before their dependents. The first root's modules come first and close with it; the modules the other
 /// roots add follow. Each part comes in order of depth, so the modules of one depth form runs that depend on no module
 /// of their run.
-pub fn build(allocator: std.mem.Allocator, scratch: std.mem.Allocator, modules: []const model.Module, roots: []const usize) std.mem.Allocator.Error!model.Scheduled {
+pub fn build(allocator: std.mem.Allocator, scratch: std.mem.Allocator, modules: []const model.Module, roots: []const u64) std.mem.Allocator.Error!model.Scheduled {
     const states = try scratch.alloc(State, modules.len);
 
     defer scratch.free(states);
@@ -20,7 +20,9 @@ pub fn build(allocator: std.mem.Allocator, scratch: std.mem.Allocator, modules: 
     defer pending.deinit(scratch);
     errdefer result.deinit(allocator);
 
-    for (roots) |entry| {
+    for (roots) |root| {
+        const entry: usize = @intCast(root);
+
         if (states[entry] == .done) continue;
         if (result.items.len != 0 and closed == null) closed = result.items.len;
         try pending.append(scratch, .{ .index = entry });

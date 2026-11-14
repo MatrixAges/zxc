@@ -44,6 +44,7 @@ pub const main = [_]Entry{
     .{ .path = "core/bytes/index/unique.zx", .name = "byte_index_unique" },
     .{ .path = "rx/dependency_graph/reference/rule.zx", .name = "rx_reference_rule", .owner = .rx },
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/source_graph/enqueue.zx", .name = "source_graph_enqueue", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/references/call_signature.zx", .name = "rx_call_signature", .owner = .rx_analysis },
     .{ .path = "rx/analysis/result_name/range.zx", .name = "rx_result_name_range", .owner = .rx_analysis },
     .{ .path = "rx/analysis/call/compiled_admission.zx", .name = "rx_compiled_admission", .owner = .rx_analysis },

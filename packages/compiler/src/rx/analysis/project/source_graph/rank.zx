@@ -1,3 +1,5 @@
+import sort from "./sort"
+
 export type Input = {
     order: u64[],
     depths: u64[],
@@ -8,36 +10,23 @@ export type Input = {
 export type Output = u64[]
 
 export default function (in: Input): Output {
-    const has_rest = in.first_end < in.count
+    const { order, depths, first_end, count } = in
 
-    const rest: u64[] = match {
-        has_rest => in.order.map(owner => 0)[0],
-        _ => []
-    }
-
-    const counts = loop({
-        first: in.order.map(owner => 0)[0],
-        rest,
+    const scan = loop({
         position: 0,
         max_depth: 0,
         previous: 0,
         sorted: true
     }, {
-        while: state => state.position < in.count,
+        while: state => state.position < count,
         next: state => {
-            const depth = in.depths[in.order[state.position]]
-
-            if (state.position < in.first_end) {
-                state.first[depth] += 1
-            } else {
-                state.rest[depth] += 1
-            }
+            const depth = depths[order[state.position]]
 
             if (depth > state.max_depth) {
                 state.max_depth = depth
             }
 
-            if (state.position != in.first_end && depth < state.previous) {
+            if (state.position != first_end && depth < state.previous) {
                 state.sorted = false
             }
 
@@ -46,56 +35,15 @@ export default function (in: Input): Output {
         }
     })
 
-    if (counts.sorted) {
-        return in.order
+    if (scan.sorted) {
+        return order
     }
 
-    const positions = loop({
-        first: counts.first,
-        rest: counts.rest,
-        depth: 0,
-        first_position: 0,
-        rest_position: in.first_end
-    }, {
-        while: state => state.depth <= counts.max_depth,
-        next: state => {
-            const first_count = state.first[state.depth]
-
-            state.first[state.depth] = state.first_position
-            state.first_position += first_count
-
-            if (has_rest) {
-                const rest_count = state.rest[state.depth]
-
-                state.rest[state.depth] = state.rest_position
-                state.rest_position += rest_count
-            }
-
-            state.depth += 1
-        }
-    })
-
-    return loop({
-        first: positions.first,
-        rest: positions.rest,
-        order: in.order.map(owner => 0)[0],
-        position: 0
-    }, {
-        while: state => state.position < in.count,
-        next: state => {
-            const owner = in.order[state.position]
-            const depth = in.depths[owner]
-
-            if (state.position < in.first_end) {
-                state.order[state.first[depth]] = owner
-                state.first[depth] += 1
-            } else {
-                state.order[state.rest[depth]] = owner
-                state.rest[depth] += 1
-            }
-
-            state.position += 1
-        },
-        return: state => state.order
+    return sort({
+        order,
+        depths,
+        first_end,
+        count,
+        size: scan.max_depth + 1
     })
 }

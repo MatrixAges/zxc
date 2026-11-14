@@ -3,8 +3,11 @@ const rx = @import("rx");
 const zx = @import("zx");
 const project = @import("frontend").project;
 const Collector = @import("collect.zig");
+const Frontier = @import("frontier.zig");
+const model = @import("model.zig");
 
-pub fn run(collector: *Collector, backing: std.mem.Allocator, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
+pub fn run(collector: *Collector, adjacency: *model.Adjacency, roots: []const u64, sources: []const project.Source, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
+    const backing = collector.backing;
     var local = project.ParseCache{ .allocator = collector.allocator };
 
     defer local.deinit();
@@ -14,30 +17,20 @@ pub fn run(collector: *Collector, backing: std.mem.Allocator, roots: []const usi
 
     defer backing.free(parsed_modules);
 
-    const queued = try collector.allocator.alloc(bool, collector.modules.len);
+    var pending = try Frontier.init(backing, collector.modules.len);
 
-    defer collector.allocator.free(queued);
-    @memset(queued, false);
+    defer pending.deinit(backing);
 
-    var pending: std.ArrayList(usize) = .empty;
-
-    defer pending.deinit(collector.allocator);
-
-    for (roots) |entry| {
-        if (queued[entry]) continue;
-        try pending.append(collector.allocator, entry);
-
-        queued[entry] = true;
-    }
-
-    var cursor: usize = 0;
     var reused: usize = 0;
+
     defer cache.reused += reused;
 
-    while (cursor < pending.items.len) : (cursor += 1) {
-        const index = pending.items[cursor];
+    pending.enqueue(roots);
 
+    while (pending.next()) |index| {
         collector.owner = index;
+
+        const start = collector.targets.items.len;
 
         switch (collector.modules[index].source) {
             .rx => |source_index| try @import("rx_edges.zig").collect(collector, modules[source_index]),
@@ -67,22 +60,18 @@ pub fn run(collector: *Collector, backing: std.mem.Allocator, roots: []const usi
             },
         }
 
-        const dependencies = try collector.edges.toOwnedSlice(collector.allocator);
+        collector.modules[index].dependencies = try collector.edges.toOwnedSlice(collector.allocator);
+        adjacency.starts[index] = start;
+        adjacency.ends[index] = collector.targets.items.len;
 
-        collector.modules[index].dependencies = dependencies;
-
-        for (dependencies) |edge| {
-            if (edge.target != .source or queued[edge.target.source]) continue;
-
-            queued[edge.target.source] = true;
-
-            try pending.append(collector.allocator, edge.target.source);
-        }
+        pending.enqueue(collector.targets.items[start..]);
     }
+
+    adjacency.targets = collector.targets.items;
 }
 
 /// Parses every ZX module of the graph on all cores before the walk reads them in import order.
-fn prefetch(allocator: std.mem.Allocator, sources: []const project.Source, modules: []const @import("model.zig").Module, cache: *project.ParseCache) Collector.Error![]*const project.ParseCache.ModuleResult {
+fn prefetch(allocator: std.mem.Allocator, sources: []const project.Source, modules: []const model.Module, cache: *project.ParseCache) Collector.Error![]*const project.ParseCache.ModuleResult {
     const requests = try allocator.alloc(project.ParseCache.Request, sources.len);
 
     defer allocator.free(requests);

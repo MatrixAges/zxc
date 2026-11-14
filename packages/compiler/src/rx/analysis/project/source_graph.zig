@@ -67,29 +67,47 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     const path = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.entry });
     const entry = paths.get(path) orelse return failure(allocator, path, .{ .offset = 0, .line = 1, .column = 1 }, "entry module is missing from the registered source set");
-    const roots = try allocator.alloc(usize, options.additional_roots.len + options.stores.len + 1);
-    roots[0] = entry;
-    const additional_roots = roots[1..][0..options.additional_roots.len];
+    const roots = try backing.alloc(u64, options.additional_roots.len + options.stores.len + 1);
 
-    for (options.additional_roots, additional_roots) |source_path, *root| {
+    defer backing.free(roots);
+
+    roots[0] = entry;
+
+    const additional_roots = try allocator.alloc(usize, options.additional_roots.len);
+
+    for (options.additional_roots, additional_roots, roots[1..][0..additional_roots.len]) |source_path, *root, *row| {
         const resolved = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source_path });
 
         root.* = paths.get(resolved) orelse return failure(allocator, resolved, .{ .offset = 0, .line = 1, .column = 1 }, "source graph root is missing from the registered input set");
+        row.* = root.*;
     }
 
     for (roots[1 + options.additional_roots.len ..], 0..) |*root, index| root.* = options.sources.len + options.modules.len + index;
 
-    var collector = Collector{ .allocator = allocator, .options = options.project, .modules = modules, .paths = paths };
+    const starts = try backing.alloc(u64, modules.len + 1);
+
+    defer backing.free(starts);
+
+    const ends = try backing.alloc(u64, modules.len);
+
+    defer backing.free(ends);
+    @memset(starts, 0);
+    @memset(ends, 0);
+
+    var adjacency: model.Adjacency = .{ .starts = starts, .ends = ends };
+    var collector = Collector{ .allocator = allocator, .backing = backing, .options = options.project, .modules = modules, .paths = paths };
+
+    defer collector.targets.deinit(backing);
 
     if (collector.options.source_index == null) collector.options.source_index = paths;
 
-    @import("source_graph/scan.zig").run(&collector, backing, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
+    @import("source_graph/scan.zig").run(&collector, &adjacency, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = collector.issue.? };
     };
 
-    return switch (try @import("source_graph/order.zig").build(allocator, backing, modules, roots)) {
+    return switch (try @import("source_graph/order.zig").build(allocator, backing, modules, adjacency, roots)) {
         .schedule => |schedule| .{ .graph = .{
             .modules = modules,
             .order = schedule.order,

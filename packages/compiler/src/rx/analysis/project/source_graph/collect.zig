@@ -8,10 +8,12 @@ const Self = @This();
 pub const Error = std.mem.Allocator.Error || error{InvalidGraph};
 
 allocator: std.mem.Allocator,
+backing: std.mem.Allocator,
 options: project.Options,
 modules: []model.Module,
 paths: *const project.source_index.Map,
 edges: std.ArrayList(model.Edge) = .empty,
+targets: std.ArrayList(u64) = .empty,
 owner: usize = 0,
 issue: ?Diagnostic = null,
 pub fn ownerPath(self: *const Self) []const u8 {
@@ -32,7 +34,7 @@ pub fn store(self: *Self, path: []const u8, location: rx.ast.Location, owner: []
     }
 
     try self.checkBoundary(absolute, location);
-    try self.edges.append(self.allocator, .{ .target = .{ .source = index.? }, .location = location, .reference = .store });
+    try self.sourceEdge(index.?, location, .store);
 }
 
 pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
@@ -49,6 +51,11 @@ pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
 fn source(self: *Self, path: []const u8, location: rx.ast.Location, reference: model.Reference) Error!void {
     const index = self.paths.get(path) orelse return self.fail(location, "source module dependency is missing from the registered input set");
 
+    try self.sourceEdge(index, location, reference);
+}
+
+fn sourceEdge(self: *Self, index: usize, location: rx.ast.Location, reference: model.Reference) Error!void {
+    try self.targets.append(self.backing, index);
     try self.edges.append(self.allocator, .{ .target = .{ .source = index }, .location = location, .reference = reference });
 }
 

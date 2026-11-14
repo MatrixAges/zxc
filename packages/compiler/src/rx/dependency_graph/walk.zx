@@ -17,6 +17,7 @@ export type Output = {
 
 export default function (in: Input): Output {
     const roots = in.roots
+    const ends = in.ends
     const ranked = in.ranked
 
     const state = loop(initial(in), {
@@ -43,8 +44,9 @@ export default function (in: Input): Output {
             } else {
                 const owner = value.frames[value.depth - 1]
                 const cursor = value.cursors[owner]
+                const end = ends == null ? value.graph.offsets[owner + 1] : ends[owner]
 
-                if (cursor == value.graph.offsets[owner + 1]) {
+                if (cursor == end) {
                     value.marks[owner] = Mark.Done
                     value.order[value.count] = owner
                     value.count += 1

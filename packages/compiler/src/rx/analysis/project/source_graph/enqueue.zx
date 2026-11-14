@@ -1,0 +1,35 @@
+import memory from "std:memory"
+
+import type { U32Buffer, U64Buffer } from "std:memory"
+
+export type Input = {
+    seen: U32Buffer,
+    queue: U64Buffer,
+    end: u64,
+    targets: u64[]
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const { seen, queue, targets } = in
+
+    return loop({
+        cursor: 0,
+        end: in.end
+    }, {
+        while: state => state.cursor < targets.length,
+        next: state => {
+            const target = targets[state.cursor]
+
+            if (memory.readU32(seen, target) == 0) {
+                memory.writeU32(seen, target, 1)
+                memory.writeU64(queue, state.end, target)
+                state.end += 1
+            }
+
+            state.cursor += 1
+        },
+        return: state => state.end
+    })
+}

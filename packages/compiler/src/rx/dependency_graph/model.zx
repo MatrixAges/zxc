@@ -13,6 +13,7 @@ export enum Mark {
 
 export type Graph = {
     offsets: u64[],
+    ends?: u64[],
     targets: u64[],
     issues: Issue[],
     root?: u64,
