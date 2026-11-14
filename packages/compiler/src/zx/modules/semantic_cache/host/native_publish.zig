@@ -1,5 +1,6 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const Loaded = @import("../../native.zig");
 const Current = @import("../native_restore.zig").Current;
 const Artifact = @import("../../artifact/model.zig");
@@ -47,7 +48,9 @@ pub fn apply(allocator: std.mem.Allocator, output: anytype, artifact: *const Art
         }
     }
 
-    try @import("../../../analysis/semantic/merging/commit.zig").append(allocator, current.types, &current.origins.items, output.types.*, output.origins.*);
+    const types = zx.columns.view(ir.TypeTable, output.types);
+
+    try @import("../../../analysis/semantic/merging/commit.zig").append(allocator, current.types, &current.origins.items, types, output.origins);
 
     return .{ .types = current.types.view(), .exports = exports, .members = members };
 }

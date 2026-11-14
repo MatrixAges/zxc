@@ -43,6 +43,7 @@ pub fn load(self: *Self, allocator: std.mem.Allocator, entry: Native, current: C
 
     const restored = restoring.restore(allocator, artifact.value, entry, current) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
+        if (err == error.InvalidIr) return reporter.fail(.module, span, "native declarations produced invalid interface IR");
 
         return reporter.fail(.module, span, "native interface artifact could not be mapped into the project");
     };

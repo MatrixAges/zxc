@@ -5,6 +5,7 @@ const Native = @import("../interface.zig").Native;
 const Artifact = @import("../artifact/model.zig");
 const Origins = @import("../nominal_origins.zig");
 const FunctionImport = @import("../function_import.zig");
+const generated = @import("parser_options").generated_parser;
 
 pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, error_allocator: std.mem.Allocator, reporter: *zx.Reporter, span: zx.Span) zx.Error!Artifact.Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
@@ -30,20 +31,49 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
     for (entry.namespace, namespace) |part, *name| name.* = try owned.dupe(u8, part);
 
     const native_modules = try ir.NativeModuleTable.fromValues(owned, &.{.{ .specifier = try owned.dupe(u8, entry.specifier), .identity = if (entry.identity) |key| try owned.dupe(u8, key) else null, .import_name = try owned.dupe(u8, entry.module), .type_namespace = namespace, .types = try ir.NativeBindings.fromValues(owned, loaded.exports) }});
-    var functions: ir.FunctionStorage = .{};
+    var signatures: ir.SignatureStorage = .{};
+    var seed_functions: if (generated) void else ir.FunctionStorage = if (generated) {} else .{};
     const bindings = try owned.alloc(FunctionImport, loaded.members.len);
 
     for (loaded.members, bindings, 0..) |member, *binding, index| {
         const function = member.function;
 
-        try functions.append(owned, function);
+        if (comptime generated) {
+            try signatures.append(owned, .{
+                .file_name = function.file_name,
+                .input_type = function.input_type,
+                .output_type = function.output_type,
+                .output_ownership = function.output_ownership,
+                .external = function.external,
+            });
+        } else {
+            try seed_functions.append(owned, function);
+        }
 
         binding.* = .{ .name = member.name, .id = @fromBackingInt(@intCast(index)), .input_type = function.input_type, .output_type = function.output_type };
     }
 
-    const program = ir.Program{ .file_name = entry.path, .types = loaded.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = .{}, .exports = loaded.exports, .native_modules = native_modules, .functions = functions.view(), .type_only = true };
+    const functions = if (comptime generated) signatures.view() else seed: {
+        const unit: ir.TypeId = @fromBackingInt(@backingInt(ir.Scalar.void));
 
-    if (try @import("../../ir/validate.zig").validate(owned, program) != null) return reporter.fail(.module, span, "native declarations produced invalid interface IR");
+        const program = ir.Program{
+            .file_name = entry.path,
+            .types = loaded.types,
+            .input_type = unit,
+            .output_type = unit,
+            .symbols = .{},
+            .expressions = .{},
+            .body = .{},
+            .exports = loaded.exports,
+            .native_modules = native_modules,
+            .functions = seed_functions.view(),
+            .type_only = true,
+        };
+
+        if (try @import("../../ir/validate.zig").validate(owned, program) != null) return reporter.fail(.module, span, "native declarations produced invalid interface IR");
+
+        break :seed ir.SignatureTable.fromFunctions(program.functions);
+    };
 
     var origins = Origins{ .allocator = owned };
 
@@ -60,7 +90,7 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
         .constant_exports = &.{},
         .constant_imports = &.{},
         .function_imports = bindings,
-        .functions = ir.SignatureTable.fromFunctions(functions.view()),
+        .functions = functions,
         .native_modules = native_modules,
         .dependencies = &.{},
         .type_imports = &.{},

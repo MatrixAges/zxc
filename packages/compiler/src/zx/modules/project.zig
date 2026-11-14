@@ -634,7 +634,7 @@ const Project = struct {
             const module_id = try self.nativeModule(entry.specifier, entry.identity, entry.module, item.span);
 
             const loaded = if (self.semantic_cache) |cache|
-                try cache.native.load(self.allocator, entry, .{ .module = module_id, .types = &self.types, .origins = &self.nominal_origins }, self.reporter, item.span)
+                try cache.native.load(self.allocator, entry, .{ .module = module_id, .types = &self.types, .origins = &self.nominal_origins, .backing = self.arena.child_allocator }, self.reporter, item.span)
             else
                 try @import("native.zig").load(self.arena, entry, module_id, &self.types, &self.nominal_origins, self.reporter, item.span);
 

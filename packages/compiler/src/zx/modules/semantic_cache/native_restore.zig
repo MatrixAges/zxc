@@ -5,7 +5,14 @@ const Loaded = @import("../native.zig");
 const Artifact = @import("../artifact/model.zig");
 const Types = @import("../link/types.zig");
 const Origins = @import("../nominal_origins.zig");
-pub const Current = struct { module: ir.NativeModuleId, types: *ir.TypeStorage, origins: *Origins };
+
+pub const Current = struct {
+    module: ir.NativeModuleId,
+    types: *ir.TypeStorage,
+    origins: *Origins,
+    backing: std.mem.Allocator,
+};
+
 pub const Error = Types.Error || Artifact.Error;
 
 pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) Error!Loaded.Result {
