@@ -4,14 +4,15 @@ const zx = @import("zx");
 const project = @import("frontend").project;
 const Collector = @import("collect.zig");
 
-pub fn run(collector: *Collector, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
+pub fn run(collector: *Collector, backing: std.mem.Allocator, roots: []const usize, sources: []const project.Source, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, shared: ?*project.ParseCache) Collector.Error!void {
     var local = project.ParseCache{ .allocator = collector.allocator };
 
     defer local.deinit();
 
     const cache = shared orelse &local;
+    const parsed_modules = try prefetch(backing, sources, collector.modules[0..sources.len], cache);
 
-    try prefetch(collector, sources, cache);
+    defer backing.free(parsed_modules);
 
     const queued = try collector.allocator.alloc(bool, collector.modules.len);
 
@@ -30,6 +31,8 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
     }
 
     var cursor: usize = 0;
+    var reused: usize = 0;
+    defer cache.reused += reused;
 
     while (cursor < pending.items.len) : (cursor += 1) {
         const index = pending.items[cursor];
@@ -41,7 +44,8 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
             .store => |source_index| try @import("rx_edges.zig").collect(collector, stores[source_index]),
             .zx => |source_index| {
                 const source = sources[source_index];
-                const parsed = try cache.getModule(source.source, collector.modules[index].path);
+                const parsed = parsed_modules[source_index];
+                reused += 1;
 
                 if (parsed.diagnostic()) |issue| {
                     const location = zx.source.locate(source.source, issue.span.start);
@@ -78,15 +82,20 @@ pub fn run(collector: *Collector, roots: []const usize, sources: []const project
 }
 
 /// Parses every ZX module of the graph on all cores before the walk reads them in import order.
-fn prefetch(collector: *Collector, sources: []const project.Source, cache: *project.ParseCache) Collector.Error!void {
-    var requests: std.ArrayList(project.ParseCache.Request) = .empty;
+fn prefetch(allocator: std.mem.Allocator, sources: []const project.Source, modules: []const @import("model.zig").Module, cache: *project.ParseCache) Collector.Error![]*const project.ParseCache.ModuleResult {
+    const requests = try allocator.alloc(project.ParseCache.Request, sources.len);
 
-    defer requests.deinit(collector.allocator);
+    defer allocator.free(requests);
 
-    for (collector.modules) |module| switch (module.source) {
-        .zx => |source_index| try requests.append(collector.allocator, .{ .source = sources[source_index].source, .path = module.path }),
-        .rx, .store => {},
-    };
+    for (requests, sources, modules) |*request, source, module| {
+        request.* = .{ .source = source.source, .path = module.path };
+    }
 
-    try cache.prefetch(requests.items);
+    const parsed = try allocator.alloc(*const project.ParseCache.ModuleResult, sources.len);
+
+    errdefer allocator.free(parsed);
+
+    try cache.prefetchModules(requests, parsed);
+
+    return parsed;
 }

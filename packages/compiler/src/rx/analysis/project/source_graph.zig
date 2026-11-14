@@ -83,7 +83,7 @@ fn buildIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     if (collector.options.source_index == null) collector.options.source_index = paths;
 
-    @import("source_graph/scan.zig").run(&collector, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
+    @import("source_graph/scan.zig").run(&collector, backing, roots, options.sources, options.modules, options.stores, options.parse_cache) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = collector.issue.? };

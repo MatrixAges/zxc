@@ -65,14 +65,31 @@ pub fn getModuleVersion(self: *Self, source: []const u8, path: []const u8) std.m
 }
 
 pub const Request = struct { source: []const u8, path: []const u8 };
+const max_parse_batch = 16;
 
 /// Parses on all cores the modules `getModule` has no current result for, so a later walk over them only reads. Each
 /// result keeps its own arena over the thread-safe page-level allocator, whichever thread parsed it.
 pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!void {
+    return self.prefetchInto(requests, null);
+}
+
+/// Fills the result for each request in the same order. Paths must be distinct. The views remain valid under
+/// the same conditions as `getModule` results.
+pub fn prefetchModules(self: *Self, requests: []const Request, modules: []*const ModuleResult) std.mem.Allocator.Error!void {
+    std.debug.assert(requests.len == modules.len);
+
+    return self.prefetchInto(requests, modules);
+}
+
+fn prefetchInto(self: *Self, requests: []const Request, modules: ?[]*const ModuleResult) std.mem.Allocator.Error!void {
+    const parallel = @import("zx").parallel;
+
     const Prefetch = struct {
         cache: *const Self,
         requests: []const Request,
         results: []?Entry,
+        modules: ?[]*const ModuleResult,
+        batch_size: usize,
         next: std.atomic.Value(usize) = .init(0),
         failed: std.atomic.Value(bool) = .init(false),
         fn run(work: *@This(), _: usize) void {
@@ -81,22 +98,30 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
             defer scratch.deinit();
 
             while (!work.failed.load(.monotonic)) {
-                const index = work.next.fetchAdd(1, .monotonic);
+                const first = work.next.fetchAdd(work.batch_size, .monotonic);
 
-                if (index >= work.requests.len) return;
+                if (first >= work.requests.len) return;
 
-                const request = work.requests[index];
-                var digest: [32]u8 = undefined;
+                const batch = work.requests[first..][0..@min(work.batch_size, work.requests.len - first)];
 
-                if (lookup(work.cache.entries.get(request.path), request.source, false, &digest) == .Reuse) continue;
+                for (batch, first..) |request, index| {
+                    var digest: [32]u8 = undefined;
+                    const found = work.cache.entries.get(request.path);
 
-                const result = parser.parseModuleIn(std.heap.smp_allocator, &scratch, request.source, request.path) catch {
-                    work.failed.store(true, .monotonic);
+                    if (lookup(found, request.source, false, &digest) == .Reuse) {
+                        if (work.modules) |views| views[index] = &found.?.result;
 
-                    return;
-                };
+                        continue;
+                    }
 
-                work.results[index] = .{ .digest = digest, .result = result };
+                    const result = parser.parseModuleIn(std.heap.smp_allocator, &scratch, request.source, request.path) catch {
+                        work.failed.store(true, .monotonic);
+
+                        return;
+                    };
+
+                    work.results[index] = .{ .digest = digest, .result = result };
+                }
             }
         }
     };
@@ -107,16 +132,21 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
 
     @memset(results, null);
 
-    var work = Prefetch{ .cache = self, .requests = requests, .results = results };
+    const batch_size = @min(max_parse_batch, @max(1, requests.len / parallel.width()));
+    var work = Prefetch{ .cache = self, .requests = requests, .results = results, .modules = modules, .batch_size = batch_size };
 
-    @import("zx").parallel.spread(Prefetch, &work, Prefetch.run, requests.len);
+    parallel.spread(Prefetch, &work, Prefetch.run, requests.len);
 
     var kept: usize = 0;
 
     errdefer for (results[kept..]) |*result| if (result.*) |*value| value.result.deinit();
 
-    for (requests, results) |request, *result| {
-        if (result.*) |*value| _ = try self.adopt(request.path, self.entries.probe(request.path), value);
+    for (requests, results, 0..) |request, *result, index| {
+        if (result.*) |*value| {
+            const entry = try self.adopt(request.path, self.entries.probe(request.path), value);
+
+            if (modules) |views| views[index] = &entry.result;
+        }
 
         kept += 1;
     }
