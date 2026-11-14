@@ -3,6 +3,17 @@
 
     <Args in={Publication.Entry} out={Publication.Final} />
 
+    <If on={$in.native}>
+        <Return
+            value={{
+                body: $in.own,
+                forward: $in.own,
+                native: true,
+                visible_count: $in.linked_count
+            }}
+        />
+    </If>
+
     <Call
         fn="../../artifact/remapping/recursive"
         in={{
@@ -14,7 +25,9 @@
     <If on={$in.type_only || $ctx.recursive != null}>
         <Return
             value={{
+                body: $in.type_only ? $in.own : null,
                 forward: $ctx.recursive,
+                native: false,
                 visible_count: $in.linked_count
             }}
         />
@@ -22,7 +35,9 @@
 
     <Return
         value={{
+            body: null,
             forward: null,
+            native: false,
             visible_count: $in.linked_count - 1
         }}
     />

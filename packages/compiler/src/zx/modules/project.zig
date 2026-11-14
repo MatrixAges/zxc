@@ -125,34 +125,6 @@ const Project = struct {
 
         return self.binding_scratch.allocator();
     }
-    fn load(self: *Project, index: usize) zx.Error!ir.Program {
-        try self.loadFrames(index, .body);
-
-        var program = self.entry_program.?;
-        const unit = &self.units[index];
-        program.types = self.types.view();
-        program.exports = unit.exports;
-        program.constant_exports = unit.constants;
-
-        if (program.type_only) if (unit.function) |id| {
-            const function = self.functions.at(@backingInt(id));
-
-            program.type_only = false;
-            program.input_type = function.input_type;
-            program.output_type = function.output_type;
-            program.output_ownership = function.output_ownership;
-            program.symbols = function.symbols;
-            program.expressions = function.expressions;
-            program.body = function.body;
-            program.contracts = function.contracts;
-            program.stores = function.stores;
-            program.store_mode = function.store_mode;
-
-            if (function.external != null) try @import("function_body.zig").externalEntry(self.allocator, &program, id);
-        };
-
-        return program;
-    }
     fn loadFrames(self: *Project, index: usize, comptime phase: Loading.Phase) zx.Error!void {
         const frames = &self.load_frames;
 
@@ -813,30 +785,31 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
     project.options.source_index = &project.unit_indices;
     const root = project.find(normalized.entry) orelse return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "entry module is missing" } } };
 
-    var program = project.load(root) catch |err| {
+    project.loadFrames(root, .body) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         var issue = try resources.diagnostic(temporary, sources[project.current_source], reporter.diagnostic.?);
+
         issue.source_index = project.current_source;
 
         return .{ .arena = arena, .value = .{ .diagnostic = issue } };
     };
 
+    const unit = &project.units[root];
+    var program = project.entry_program.?;
     program.types = project.types.view();
+    program.exports = unit.exports;
+    program.constant_exports = unit.constants;
     program.native_modules = project.native_modules.view();
 
-    const publication = @import("project/publication/host.zig").finalize(
+    const visible_count = try @import("project/publication/host.zig").publishEntry(
+        temporary,
         &program,
-        project.units[root].function,
-        project.functions.count(),
-        project.entry_program.?.type_only,
+        unit.function,
+        project.functions.view(),
     );
 
-    program.functions = project.functions.view().prefix(publication.visible_count);
-
-    if (publication.forward) |id| try @import("function_body.zig").entry(temporary, &program, id);
-
-    project.verified.functions = @min(publication.visible_count, project.verified.functions);
+    project.verified.functions = @min(visible_count, project.verified.functions);
 
     if (try Validate.validateProjectPrefix(allocator, program, project.verified)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 

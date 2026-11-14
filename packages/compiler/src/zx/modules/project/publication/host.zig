@@ -93,33 +93,73 @@ fn body(publication: Publication, id: ?ir.FunctionId) @FieldType(@import("../../
     };
 }
 
-pub const Entry = struct {
+const Entry = struct {
+    body: ?ir.FunctionId,
     forward: ?ir.FunctionId,
+    native: bool,
     visible_count: usize,
 };
 
-pub fn finalize(program: *const ir.Program, own: ?ir.FunctionId, linked: usize, entry_type_only: bool) Entry {
+pub fn publishEntry(allocator: std.mem.Allocator, program: *ir.Program, own: ?ir.FunctionId, table: ir.FunctionTable) std.mem.Allocator.Error!usize {
+    const publication = finalize(program, own, table);
+
+    if (publication.body) |id| {
+        const function = table.at(@backingInt(id));
+
+        program.type_only = false;
+        program.input_type = function.input_type;
+        program.output_type = function.output_type;
+        program.output_ownership = function.output_ownership;
+        program.symbols = function.symbols;
+        program.expressions = function.expressions;
+        program.body = function.body;
+        program.contracts = function.contracts;
+        program.stores = function.stores;
+        program.store_mode = function.store_mode;
+    }
+
+    program.functions = table.prefix(publication.visible_count);
+
+    if (publication.forward) |id| {
+        if (publication.native) {
+            try functions.externalEntry(allocator, program, id);
+        } else try functions.entry(allocator, program, id);
+    }
+
+    return publication.visible_count;
+}
+
+fn finalize(program: *const ir.Program, own: ?ir.FunctionId, table: ir.FunctionTable) Entry {
+    const member = if (program.type_only) own else null;
+    const row = if (member) |id| @backingInt(id) else null;
+    const native = if (row) |index| table.native_modules[index] != null else false;
+    const expressions = if (row) |index| table.expressions[index] else &program.expressions;
+    const linked = table.count();
+
     if (comptime enabled) {
         const generated = @import("generated_project_entry_publish");
 
         const input: std.meta.Child(generated.Input) = .{
-            .type_only = entry_type_only,
+            .type_only = program.type_only,
             .own = if (own) |id| @backingInt(id) else null,
+            .native = native,
             .linked_count = linked,
-            .calls = program.expressions.call_functions,
+            .calls = expressions.call_functions,
         };
 
         var empty = std.heap.FixedBufferAllocator.init(&.{});
         const result = zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
 
         return .{
+            .body = if (result.body) |id| @fromBackingInt(id) else null,
             .forward = if (result.forward) |id| @fromBackingInt(id) else null,
+            .native = result.native,
             .visible_count = @intCast(result.visible_count),
         };
     }
 
-    const recursive = if (own) |id| functions.calls(program.expressions, id) else false;
-    const count = linked - @intFromBool(!entry_type_only and !recursive);
+    const recursive = if (own) |id| native or functions.calls(expressions.*, id) else false;
+    const count = linked - @intFromBool(!program.type_only and !recursive);
 
-    return .{ .forward = if (recursive) own else null, .visible_count = count };
+    return .{ .body = member, .forward = if (recursive) own else null, .native = native, .visible_count = count };
 }

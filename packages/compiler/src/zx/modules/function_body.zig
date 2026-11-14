@@ -46,8 +46,10 @@ pub fn externalEntry(allocator: std.mem.Allocator, program: *ir.Program, id: ir.
     try forward(allocator, program, .{
         .id = id,
         .parameter = parameter,
-        .unit = @backingInt(program.input_type) == @backingInt(ir.Scalar.void),
+        .unit = false,
     });
+
+    program.contracts = .{};
 }
 
 pub fn complete(allocator: std.mem.Allocator, program: *ir.Program, functions: ir.FunctionTable) std.mem.Allocator.Error!void {
