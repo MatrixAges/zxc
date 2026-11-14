@@ -110,23 +110,30 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         .native_modules = current.native_modules,
     };
 
-    var restored = if (comptime generated)
-        try @import("restoring/publication/host.zig").materialize(&nodes, temporary, module, current.path, tables, own, structure)
+    var restored: Restored, const descriptors: ?ir.FunctionStorage.Descriptors = if (comptime generated) source: {
+        const publication = try @import("restoring/publication/host.zig").materialize(&nodes, temporary, module, current.path, tables, own, structure);
 
-    else seed: {
+        break :source .{ publication.restored, publication.descriptors };
+    } else seed: {
         const function = if (module.function) |value| try nodes.functionEntry(value, own, structure) else null;
 
-        break :seed Restored{
+        break :seed .{ Restored{
             .program = try result.assemble(allocator, module, if (function) |*value| &value.body else null, tables, mapping),
             .recursive = if (function) |value| value.recursive else null,
-        };
+        }, null };
     };
 
     const program = &restored.program;
     const recursive = restored.recursive;
 
     if (recursive != null) {
-        try current.functions.append(allocator, @import("../function_body.zig").value(program.*));
+        const entry_function = @import("../function_body.zig").value(program.*);
+
+        if (comptime generated) {
+            try current.functions.reserve(allocator, 1);
+
+            current.functions.appendOwnedAssumeCapacity(entry_function, descriptors.?);
+        } else try current.functions.append(allocator, entry_function);
 
         program.functions = current.functions.view();
     }
@@ -135,13 +142,11 @@ fn restoreChecked(module: *const model.Module, current: Current, decoded: bool) 
         _ = current.functions.pop(allocator);
     };
 
-    if (try Validate.validateProjectPrefix(temporary, program.*, current.verified.*) != null) return error.InvalidIr;
+    if (comptime generated) {
+        const verified = try @import("../../ir/canonical/validation/host.zig").verify(temporary, program, current.verified.*);
 
-    if (comptime generated) current.verified.* = .{
-        .functions = program.functions.count(),
-        .types = Validate.TypePrefix.fromTable(program.types),
-        .native = true,
-    };
+        current.verified.* = verified orelse return error.InvalidIr;
+    } else if (try Validate.validateProjectPrefix(temporary, program.*, current.verified.*) != null) return error.InvalidIr;
 
     return restored;
 }

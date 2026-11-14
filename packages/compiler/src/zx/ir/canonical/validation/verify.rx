@@ -1,0 +1,16 @@
+<Module>
+    <Type from="model" as="IR" />
+    <Type from="prefix" as="Prefix" />
+
+    <Args in={IR.Program} out={Prefix.Output?} />
+
+    <Call module="validate" in={$in} />
+
+    <If on={$ctx.validate}>
+        <Call fn="prefix" in={$in.context} />
+
+        <Return value={$ctx.prefix} />
+    </If>
+
+    <Return value={null} />
+</Module>

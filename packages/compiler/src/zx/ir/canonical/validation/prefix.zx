@@ -1,0 +1,23 @@
+import type { Prefix } from "../../../analysis/semantic/types/validation/shape"
+import type { Context } from "./model"
+
+export type Input = Context
+
+export type Output = {
+    functions: u64,
+    types: Prefix,
+    native: bool
+}
+
+export default function (in: Input): Output {
+    return {
+        functions: in.functions.files.length,
+        types: {
+            rows: in.table.kinds.length,
+            children: in.table.children.length,
+            fields: in.table.field_types.length,
+            names: in.table.names.length
+        },
+        native: true
+    }
+}

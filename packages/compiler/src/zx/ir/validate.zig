@@ -23,7 +23,7 @@ pub fn validateExtending(allocator: std.mem.Allocator, program: zx.ir.Program, v
 /// Verified rows and bindings must still refer to the unchanged parts of this program.
 pub fn validateProjectPrefix(allocator: std.mem.Allocator, program: zx.ir.Program, verified: Verified) std.mem.Allocator.Error!?zx.Diagnostic {
     if (comptime !@import("parser_options").generated_parser) return @import("seed_validate.zig").validate(allocator, program, verified.functions);
-    if (try @import("canonical/validation/host.zig").validate(allocator, program, verified)) return null;
+    if (try @import("canonical/validation/host.zig").verify(allocator, &program, verified) != null) return null;
 
     return .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid ZX IR version, structure, types or bindings" };
 }

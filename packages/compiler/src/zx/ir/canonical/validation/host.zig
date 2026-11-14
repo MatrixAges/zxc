@@ -1,19 +1,31 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const generated = @import("generated_ir_validation");
 const Storage = @import("input.zig").Storage(std.meta.Child(generated.Input));
+const Verified = @import("../../validate.zig").Verified;
 
-pub fn validate(allocator: std.mem.Allocator, program: ir.Program, verified: @import("../../validate.zig").Verified) std.mem.Allocator.Error!bool {
+pub fn verify(allocator: std.mem.Allocator, program: *const ir.Program, verified: Verified) std.mem.Allocator.Error!?Verified {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
     var storage: Storage = undefined;
 
-    try storage.init(arena.allocator(), &program, verified);
+    try storage.init(arena.allocator(), program, verified);
 
-    return generated.execute(&arena, &storage.input) catch |err| switch (err) {
+    const input: *const @TypeOf(storage.input) = &storage.input;
+
+    const output = zx.columns.invoke(generated.executeValue, arena.allocator(), input) catch |err| switch (@as(anyerror, err)) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
-        else => return false,
+        else => return null,
+    };
+
+    const result = output orelse return null;
+
+    return .{
+        .functions = @intCast(result.functions),
+        .types = zx.columns.view(@import("type_prefix.zig"), result.types),
+        .native = result.native,
     };
 }

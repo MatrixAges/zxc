@@ -214,7 +214,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/analysis/expression_program/bindings/path/overlaps.zx", .name = "binding_path_overlaps" },
     .{ .path = "zx/analysis/binding_path/match.zx", .name = "binding_path_match" },
     .{ .path = "zx/analysis/binding_path/layout.zx", .name = "binding_path_layout" },
-    .{ .path = "zx/ir/canonical/validation/validate.rx", .name = "ir_validation" },
+    .{ .path = "zx/ir/canonical/validation/verify.rx", .name = "ir_validation" },
     .{ .path = "zx/modules/compiled/execute.rx", .name = "compiled_library" },
     .{ .path = "zx/modules/compiled/loading/functions/remap.rx", .name = "compiled_owned_function" },
     .{ .path = "zx/modules/compiled/loading/interface/materialize.rx", .name = "compiled_interface" },

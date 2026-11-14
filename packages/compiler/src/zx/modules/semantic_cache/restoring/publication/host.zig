@@ -13,7 +13,12 @@ const Mapping = std.meta.Child(@FieldType(Input, "types"));
 const Stores = std.meta.Child(@FieldType(Input, "stores"));
 const Restored = @import("../../restore.zig").Restored;
 
-pub fn materialize(nodes: *Nodes, temporary: std.mem.Allocator, module: *const Artifact.Module, path: []const u8, tables: result.Tables, candidate: ?ir.FunctionId, structure: Nodes.Structure) Artifact.Error!Restored {
+pub const Publication = struct {
+    restored: Restored,
+    descriptors: ?ir.FunctionStorage.Descriptors,
+};
+
+pub fn materialize(nodes: *Nodes, temporary: std.mem.Allocator, module: *const Artifact.Module, path: []const u8, tables: result.Tables, candidate: ?ir.FunctionId, structure: Nodes.Structure) Artifact.Error!Publication {
     const source = if (module.function) |*value| value else null;
     var view: remap.FunctionView(Body) = undefined;
     var control_source: ?Control = null;
@@ -59,10 +64,21 @@ pub fn materialize(nodes: *Nodes, temporary: std.mem.Allocator, module: *const A
     const types = remap.typeMapping(surface.Mapping, nodes.types);
     const exported = try surface.copyExports(owned, module.exports, &types);
     const constants = try surface.copyConstants(owned, module.constant_exports, &types);
+    const recursive = if (plan.body) |mapped| mapped.recursive else null;
+
+    const descriptors: ?ir.FunctionStorage.Descriptors = if (recursive != null) .{
+        .symbols = zx.columns.pointer(*const ir.SymbolTable, plan.body.?.symbols),
+        .expressions = zx.columns.pointer(*const ir.ExpressionTable, plan.body.?.expressions),
+        .stores = zx.columns.pointer(*const ir.StoreTable, plan.stores),
+        .contracts = zx.columns.pointer(*const ir.ContractTable, plan.body.?.contracts),
+    } else null;
 
     return .{
-        .program = result.program(path, if (body) |*value| value else null, tables, store_table, exported, constants),
-        .recursive = if (plan.body) |mapped| if (mapped.recursive) |id| @fromBackingInt(id) else null else null,
+        .restored = .{
+            .program = result.program(path, if (body) |*value| value else null, tables, store_table, exported, constants),
+            .recursive = if (recursive) |id| @fromBackingInt(id) else null,
+        },
+        .descriptors = descriptors,
     };
 }
 
