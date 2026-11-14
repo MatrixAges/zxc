@@ -7,6 +7,13 @@
 
     <Call module="memory" in={$ctx.initialize} />
 
+    <If on={$in.slice}>
+        <Call fn="owned" in={$ctx.memory} />
+        <Call fn="publish" in={$ctx.owned} />
+
+        <Return value={$ctx.publish} />
+    </If>
+
     <Call fn="mutate" in={$ctx.memory} />
     <Call fn="owned" in={$ctx.mutate} />
     <Call fn="publish" in={$ctx.owned} />

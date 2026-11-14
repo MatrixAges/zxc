@@ -9,4 +9,3 @@ pub fn call(allocator: ((std).mem).Allocator, in: f64) error{ }!f32 {
 
     return native_result;
 }
-

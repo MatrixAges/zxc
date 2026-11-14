@@ -9,4 +9,3 @@ pub fn call(allocator: ((std).mem).Allocator, in: u32) error{ }!u64 {
 
     return native_result;
 }
-

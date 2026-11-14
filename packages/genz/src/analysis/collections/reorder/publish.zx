@@ -3,6 +3,20 @@ import tuple from "../../../ast/context/tuple"
 import type { State as Input, Output } from "./model"
 
 export default function (in: Input): Output {
+    if (in.source.slice) {
+        return {
+            state: {
+                context: in.context,
+                body: in.body
+            },
+            fields: in.fields,
+            root: in.root,
+            serial: in.context.serial,
+            uses_allocator: true,
+            valid: in.context.valid
+        }
+    }
+
     const value = tuple({
         state: in.context,
         values: [

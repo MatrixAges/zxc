@@ -41,7 +41,7 @@ pub const Symbol = struct { name: []const u8, type_id: TypeId, span: Span, owner
 pub const Export = struct { name: []const u8, type_id: TypeId };
 pub const Constant = @import("constant.zig").Constant;
 pub const ConstantValue = @import("constant.zig").Value;
-pub const ListOperation = enum { push, pop, sort, reverse, splice, concat };
+pub const ListOperation = enum { push, pop, sort, reverse, splice, concat, slice };
 pub const Transform = struct { kind: enum { map, filter, reduce, every, some, sort }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
 pub const Projection = struct { target: ExprId, index: u32 };
 pub const Match = struct { subject: ?ExprId, arms: []const MatchArm, fallback: ExprId };

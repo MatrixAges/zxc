@@ -1,8 +1,12 @@
 import copyNames from "../materializing/copy_names"
+import ownExpressions from "../materializing/expressions"
+import ownSymbols from "../materializing/symbols"
 import ids from "./ids"
 
 import type { Contracts } from "core/contract_table/model"
-import type { ContractColumns, Mapping } from "./model"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Mapping } from "./model"
 
 export type Input = {
     source: Contracts,
@@ -10,23 +14,17 @@ export type Input = {
     functions: Mapping
 }
 
-export type Output = ContractColumns
+export type Output = Contracts
 
 export default function (in: Input): Output {
     const { source, types, functions } = in
 
-    const symbols: u32[][] = []
-    const expressions: u32[][] = []
-    const calls: u32[][] = []
-    const names: string[][] = []
-    const strings: string[][] = []
+    const symbols: Symbols[] = []
+    const expressions: Expressions[] = []
 
     return loop({
         symbols,
         expressions,
-        calls,
-        names,
-        strings,
         index: 0
     }, {
         while: current => current.index < source.kinds.length,
@@ -35,30 +33,43 @@ export default function (in: Input): Output {
             const expression = source.expressions[index]
             const symbol = source.symbols[index]
 
-            current.symbols = current.symbols.push(ids({
+            const symbol_types = ids({
                 values: symbol.types,
                 mapping: types
-            }))[0]
-            current.expressions = current.expressions.push(ids({
+            })
+
+            const expression_types = ids({
                 values: expression.types,
                 mapping: types
-            }))[0]
-            current.calls = current.calls.push(ids({
+            })
+
+            const call_functions = ids({
                 values: expression.call_functions,
                 mapping: functions
+            })
+
+            current.symbols = current.symbols.push(ownSymbols({
+                source: symbol,
+                types: symbol_types,
+                names: copyNames(symbol.names)
             }))[0]
 
-            current.names = current.names.push(copyNames(symbol.names))[0]
-            current.strings = current.strings.push(copyNames(expression.strings))[0]
+            current.expressions = current.expressions.push(ownExpressions({
+                source: expression,
+                types: expression_types,
+                call_functions,
+                strings: copyNames(expression.strings)
+            }))[0]
 
             current.index += 1
         },
         return: state => ({
+            kinds: source.kinds.slice(),
+            predicates: source.predicates.slice(),
+            span_start: source.span_start.slice(),
+            span_end: source.span_end.slice(),
             symbols: state.symbols,
-            types: state.expressions,
-            calls: state.calls,
-            names: state.names,
-            strings: state.strings
+            expressions: state.expressions
         })
     })
 }

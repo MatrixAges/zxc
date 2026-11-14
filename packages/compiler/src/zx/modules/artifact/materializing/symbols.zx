@@ -1,0 +1,21 @@
+import type { Symbols } from "core/symbol_table/model"
+
+export type Input = {
+    source: Symbols,
+    types: u32[],
+    names: string[]
+}
+
+export type Output = Symbols
+
+export default function (in: Input): Output {
+    const { source, types, names } = in
+
+    return {
+        names,
+        types,
+        span_start: source.span_start.slice(),
+        span_end: source.span_end.slice(),
+        ownership: source.ownership.slice()
+    }
+}

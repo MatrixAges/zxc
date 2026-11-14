@@ -50,6 +50,31 @@ export default function (in: Input): Output {
         }
     }
 
+    if (in.kind == CollectionKind.Slice) {
+        const result = append({
+            table: in.state.local.expressions,
+            metadata: {
+                type_id: list,
+                span_start: in.span.start,
+                span_end: in.span.end
+            },
+            kind: in.kind,
+            target: in.target,
+            arguments: in.values
+        })
+
+        return {
+            state: {
+                ...in.state,
+                local: {
+                    ...in.state.local,
+                    expressions: result.table
+                }
+            },
+            value: result.id
+        }
+    }
+
     const element = row({
         tables: {
             base: in.state.types.context.base,

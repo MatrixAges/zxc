@@ -32,10 +32,10 @@ const zx_shape_26 = .{ .kind = .optional, .child = zx_shape_25, };
 const zx_shape_27 = .{ .kind = .object, .fields = .{ .diagnostic = zx_shape_24, .value = zx_shape_26, }, };
 pub const input_shape = zx_shape_23;
 pub const output_shape = zx_shape_27;
-pub const Input = *const (zx_abi).zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c;
+pub const Input = *const (zx_abi).zx_type_bb5ac0a090cbfc56770e29e52ee3affea81f2679589f8ac90263c86cdaa71ddd;
 pub const Output = *const (zx_abi).zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8;
 
-pub fn executeIn(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8 {
+pub fn executeIn(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_bb5ac0a090cbfc56770e29e52ee3affea81f2679589f8ac90263c86cdaa71ddd) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8 {
     @setRuntimeSafety(true);
 
     return block_7: {
@@ -58,13 +58,13 @@ pub fn executeIn(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_a
     };
 }
 
-pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8 {
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_bb5ac0a090cbfc56770e29e52ee3affea81f2679589f8ac90263c86cdaa71ddd) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_2731b098b3f87d364f2c1490adb4af73651edf53c240b37e0c984c0a5d80def8 {
     return executeIn((arena).allocator(), in);
 }
 
 pub const executeState = (@import("zxc_module_edfd93588dbf88845f7b9e74df31429eb8e250b8a95090b2bdb51b6621a45210.zig")).callValue;
 
-pub fn executeValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_a2f55696926fa6cae227a00b4b0c8ef9b9fe8830a5393ec29139ceff8a5bc53c) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!(zx_abi).value_9f547a5bcbd2d2a08dcff17874a209d6ef606146a771bf27bd95cae4331964c4 {
+pub fn executeValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_bb5ac0a090cbfc56770e29e52ee3affea81f2679589f8ac90263c86cdaa71ddd) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!(zx_abi).value_30831d8909e192c879155414d2db1232cef8e82430da37917fdb3c9bffcfbe74 {
     @setRuntimeSafety(true);
 
     const operand_10 = block_9: {
@@ -75,4 +75,3 @@ pub fn executeValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_typ
 
     return operand_10;
 }
-

@@ -401,6 +401,7 @@ fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
                         value.grow = !target.unique and target.headered;
                     },
                     .splice => value.retract = self.prefix(operation) and target.headered and target.unique,
+                    .slice => {},
                 }
             },
             .transform => |transform| if (transform.kind == .sort) {
@@ -552,7 +553,7 @@ fn node(self: *Self, id: ir.ExprId, slot: u32) Level {
             },
             .pop => self.level(operation.target, 0),
             .sort, .reverse => Level.written(self.level(operation.target, 0)),
-            .splice => .fresh,
+            .splice, .slice => .fresh,
         },
         .list_update => |update| Level.written(self.level(update.target, 0)),
         .transform => |transform| switch (transform.kind) {
@@ -616,7 +617,7 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize), marked: *std.ArrayLis
                     .repeat = false,
                     .wanted = .fresh,
                 }),
-                .pop, .splice => {},
+                .pop, .splice, .slice => {},
             },
             .list_update => |update| try self.trace(.{
                 .id = update.target,

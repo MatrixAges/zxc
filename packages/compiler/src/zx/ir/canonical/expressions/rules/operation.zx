@@ -19,11 +19,28 @@ export default function (in: Input): Output {
     const expressions = context.expressions
     const table = context.table
     const source_index = integers.widen(expressions.collection_targets[in.payload])
+
+    if (source_index >= context.index) {
+        return false
+    }
+
+    const operation = expressions.collection_kinds[in.payload]
+    const source_id = expressions.types[source_index]
+    const source_type = integers.widen(source_id)
+    const count = integers.widen(expressions.collection_count[in.payload])
+
+    if (kind(table.kinds[source_type]) != Kind.List) {
+        return false
+    }
+
+    if (operation == CollectionKind.Slice) {
+        return count == 0 && in.type_id == source_id
+    }
+
     const type_index = integers.widen(in.type_id)
 
     const condition = (
-        - source_index >= context.index
-        - or in.target != Kind.Tuple
+        - in.target != Kind.Tuple
         - or table.second[type_index] != 2
     )
 
@@ -31,19 +48,11 @@ export default function (in: Input): Output {
         return false
     }
 
-    const source_id = expressions.types[source_index]
-    const source_type = integers.widen(source_id)
     const first = integers.widen(table.first[type_index])
 
-    if (
-        kind(table.kinds[source_type]) != Kind.List ||
-            table.children[first] != source_id
-    ) {
+    if (table.children[first] != source_id) {
         return false
     }
-
-    const operation = expressions.collection_kinds[in.payload]
-    const count = integers.widen(expressions.collection_count[in.payload])
 
     const expected = match operation {
         CollectionKind.Push => 1,

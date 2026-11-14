@@ -35,9 +35,39 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
     const source_type = self.program.expression(operation.target).type_id;
     const provenance = @import("state_value/list.zig");
     const evaluated_source = try self.expr(operation.target);
-    const qualified_source = if (provenance.selected(self, source_type)) try @import("state_value/ownership.zig").clip(self, &body, operation.target, evaluated_source) else evaluated_source;
+    const qualified_source = if (operation.kind != .slice and provenance.selected(self, source_type)) try @import("state_value/ownership.zig").clip(self, &body, operation.target, evaluated_source) else evaluated_source;
     const source_value = try aggregate.bind(self, &body, qualified_source);
     const source = try provenance.items(self, source_type, source_value);
+
+    if (operation.kind == .slice) {
+        const element = try @import("state_value/elements.zig").typeExpr(self, source_type);
+        const length = try self.field(source, "len");
+
+        const owned = if (@import("genz_options").generated_analysis) owned: {
+            const no_header = try self.builder.expression(.{ .boolean = false });
+
+            break :owned try @import("collections/reorder.zig").lower(self, &body, .{
+                .type_id = source_type,
+                .source = source,
+                .header = no_header,
+                .element = element,
+                .length = length,
+                .unit = try self.builder.expression(.unit),
+                .in_place = false,
+                .grow = false,
+                .operation = .slice,
+            });
+        } else owned: {
+            const buffer = try allocate(self, &body, element, length);
+
+            try copy(self, &body, buffer, source);
+
+            break :owned try provenance.owned(self, source_type, buffer, try self.builder.expression(.{ .boolean = false }));
+        };
+
+        return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, owned) else owned);
+    }
+
     const source_headered = if (provenance.selected(self, source_type)) try provenance.headered(self, source_value) else try self.builder.expression(.{ .boolean = flags.frontier });
     const arguments = try self.allocator.alloc(node.ExpressionId, operation.arguments.len);
 
@@ -60,6 +90,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
     var result: node.ExpressionId = undefined;
 
     switch (operation.kind) {
+        .slice => unreachable,
         .pop => {
             if (@import("genz_options").generated_analysis) {
                 result = try @import("collections/pop.zig").lower(self, &body, .{
@@ -108,7 +139,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_on
                     .unit = unit,
                     .in_place = flags.in_place,
                     .grow = flags.grow,
-                    .sort = operation.kind == .sort,
+                    .operation = if (operation.kind == .sort) .sort else .reverse,
                 });
             } else {
                 const mutable = if (flags.in_place)

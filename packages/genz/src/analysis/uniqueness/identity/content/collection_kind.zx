@@ -6,7 +6,8 @@ import {
     collection_sort,
     collection_reverse,
     collection_splice,
-    collection_concat
+    collection_concat,
+    collection_slice
 } from "./const"
 
 export type Input = CollectionKind
@@ -20,6 +21,7 @@ export default function (in: Input): Output {
         CollectionKind.Sort => collection_sort,
         CollectionKind.Reverse => collection_reverse,
         CollectionKind.Splice => collection_splice,
+        CollectionKind.Slice => collection_slice,
         _ => collection_concat
     }
 }

@@ -25,7 +25,7 @@ export default function (in: Input): Output {
         const operation = expressions.collection_kinds[payload]
         const target = expressions.collection_targets[payload]
 
-        const aliased = in.point.slot ==
+        const aliased = operation != CollectionKind.Slice && in.point.slot ==
             (
                 match {
                     operation == CollectionKind.Splice => splice_retained_slot,

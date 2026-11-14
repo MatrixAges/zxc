@@ -1,5 +1,9 @@
 import integers from "std:integer"
-import { ExpressionKind, BinaryOperator } from "core/expression_table/kinds"
+import {
+    ExpressionKind,
+    BinaryOperator,
+    CollectionKind
+} from "core/expression_table/kinds"
 
 import represented from "../types/layout_represented"
 import escape from "./escape"
@@ -44,6 +48,10 @@ export default function (in: Input): Output {
     }
 
     if (kind == ExpressionKind.ListOperation) {
+        if (in.input.expressions.collection_kinds[payload] == CollectionKind.Slice) {
+            return false
+        }
+
         const type_id = in.input.expressions
             .types[integers.widen(
                 in.input.expressions.collection_targets[payload]

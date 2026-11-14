@@ -1,0 +1,37 @@
+import type { Control } from "core/control_table/model"
+
+export type Input = Control
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    return {
+        statement_kinds: in.statement_kinds.slice(),
+        statement_payloads: in.statement_payloads.slice(),
+        evaluations: in.evaluations.slice(),
+        constant_symbols: in.constant_symbols.slice(),
+        constant_values: in.constant_values.slice(),
+        parallel_first: in.parallel_first.slice(),
+        parallel_count: in.parallel_count.slice(),
+        parallel_symbols: in.parallel_symbols.slice(),
+        parallel_values: in.parallel_values.slice(),
+        destructure_values: in.destructure_values.slice(),
+        destructure_first: in.destructure_first.slice(),
+        destructure_count: in.destructure_count.slice(),
+        destructure_symbols: in.destructure_symbols.slice(),
+        branch_conditions: in.branch_conditions.slice(),
+        branch_yes: in.branch_yes.slice(),
+        branch_no: in.branch_no.slice(),
+        selection_subjects: in.selection_subjects.slice(),
+        selection_first: in.selection_first.slice(),
+        selection_count: in.selection_count.slice(),
+        selection_exhaustive: in.selection_exhaustive.slice(),
+        case_values: in.case_values.slice(),
+        case_bodies: in.case_bodies.slice(),
+        setter_slots: in.setter_slots.slice(),
+        setter_values: in.setter_values.slice(),
+        results: in.results.slice(),
+        block_first: in.block_first.slice(),
+        block_count: in.block_count.slice()
+    }
+}

@@ -44,6 +44,7 @@ pub const CollectionKind = enum {
     Reverse,
     Splice,
     Concat,
+    Slice,
 };
 
 pub const TransformKind = enum {

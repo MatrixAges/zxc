@@ -14,7 +14,7 @@ pub const Request = struct {
     unit: node.ExpressionId,
     in_place: bool,
     grow: bool,
-    sort: bool,
+    operation: enum { reverse, sort, slice },
 };
 
 pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), args: Request) Lower.Error!node.ExpressionId {
@@ -23,7 +23,7 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), args: Request) 
     const Bases = std.meta.Child(@FieldType(Input, "bases"));
     const serial = self.serial;
     const declarations = self.task_declarations.count();
-    const compare = if (args.sort) try comparison(self, self.program.typeOf(args.type_id).list) else &.{};
+    const compare = if (args.operation == .sort) try comparison(self, self.program.typeOf(args.type_id).list) else &.{};
     const selected = @import("../state_value/list.zig").selected(self, args.type_id);
     const layout = if (selected) try @import("../types.zig").get(self, self.state_types, args.type_id) else null;
     const ast = zx.columns.view(std.meta.Child(@FieldType(Input, "ast")), @import("../state_value/list_emission.zig").borrow(self));
@@ -46,7 +46,8 @@ pub fn lower(self: *Lower, body: *std.ArrayList(node.Statement), args: Request) 
         .unit = @backingInt(args.unit),
         .in_place = args.in_place,
         .grow = args.grow,
-        .sort = args.sort,
+        .sort = args.operation == .sort,
+        .slice = args.operation == .slice,
         .compare = compare,
         .selected = selected,
         .layout = if (layout) |value| @backingInt(value) else 0,

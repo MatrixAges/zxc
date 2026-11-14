@@ -32,7 +32,7 @@ export default function (in: Input): Output {
 
     const operation = expressions.collection_kinds[payload]
 
-    if (operation == CollectionKind.Splice) {
+    if (operation == CollectionKind.Splice || operation == CollectionKind.Slice) {
         return {
             ...in.base,
             value: Knowledge.Unique

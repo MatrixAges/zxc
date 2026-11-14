@@ -8,6 +8,7 @@ import {
     method_sort,
     method_reverse,
     method_splice,
+    method_slice,
     method_concat,
     method_concat_text,
     method_push,
@@ -44,6 +45,7 @@ export default function (in: Input): Output {
         method_sort => CollectionKind.Sort,
         method_reverse => CollectionKind.Reverse,
         method_splice => CollectionKind.Splice,
+        method_slice => CollectionKind.Slice,
         method_concat => CollectionKind.Concat,
         method_concat_text => CollectionKind.Concat,
         _ => CollectionKind.Push,
@@ -58,6 +60,7 @@ export default function (in: Input): Output {
             - or in.name == method_sort
             - or in.name == method_reverse
             - or in.name == method_splice
+            - or in.name == method_slice
             - or in.name == method_concat
         )
 

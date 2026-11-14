@@ -1,5 +1,6 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 const Types = @import("types.zig");
 const Error = @import("model.zig").Error;
 const Self = @This();
@@ -97,10 +98,10 @@ pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, 
         .output_type = @fromBackingInt(mapped.ports.output),
         .output_ownership = value.output_ownership,
         .store_mode = value.store_mode,
-        .symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols, .names = mapped.names }),
-        .expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls, .strings = mapped.strings }),
+        .symbols = zx.columns.view(ir.SymbolTable, mapped.symbols),
+        .expressions = zx.columns.view(ir.ExpressionTable, mapped.expressions),
         .body = try self.body(value.body, structure),
-        .contracts = try self.contracts(value.contracts, mapped.contracts),
+        .contracts = zx.columns.view(ir.ContractTable, mapped.contracts),
     };
 }
 
@@ -171,33 +172,16 @@ fn expressionsSeed(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionT
 
 fn contractsSeed(self: *Self, values: ir.ContractTable) Error!ir.ContractTable {
     if (!values.validStructure()) return error.InvalidModule;
-
-    return self.contracts(values, {});
-}
-
-fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.ContractTable {
     if (values.count() == 0) return .{};
 
     const owned_symbols = try self.allocator.alloc(*const ir.SymbolTable, values.count());
     const owned_expressions = try self.allocator.alloc(*const ir.ExpressionTable, values.count());
 
-    for (values.symbols, values.expressions, owned_symbols, owned_expressions, 0..) |source_symbols, source_expressions, *symbols_slot, *expressions_slot, index| {
+    for (values.symbols, values.expressions, owned_symbols, owned_expressions) |source_symbols, source_expressions, *symbols_slot, *expressions_slot| {
         const symbol_table = try self.allocator.create(ir.SymbolTable);
         const expression_table = try self.allocator.create(ir.ExpressionTable);
-
-        if (comptime @TypeOf(mapped) == void) {
-            symbol_table.* = try self.symbolsSeed(source_symbols.*);
-            expression_table.* = try self.expressionsSeed(source_expressions.*);
-        } else {
-            symbol_table.* = try own(self.allocator, source_symbols.*, .{ .types = mapped.symbols[index], .names = mapped.names[index] });
-
-            expression_table.* = try own(self.allocator, source_expressions.*, .{
-                .types = mapped.types[index],
-                .call_functions = mapped.calls[index],
-                .strings = mapped.strings[index],
-            });
-        }
-
+        symbol_table.* = try self.symbolsSeed(source_symbols.*);
+        expression_table.* = try self.expressionsSeed(source_expressions.*);
         symbols_slot.* = symbol_table;
         expressions_slot.* = expression_table;
     }
@@ -216,6 +200,18 @@ fn body(self: *Self, value: ir.ControlBody, structure: Structure) Error!ir.Contr
     }
 
     if (value.root == null) return .{};
+
+    if (comptime generated) {
+        const entry = @import("generated_artifact_owned_control");
+        const input = zx.columns.pointer(entry.Input, value.control);
+
+        const table = entry.executeIn(self.allocator, input) catch |err| switch (@as(anyerror, err)) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => return error.InvalidModule,
+        };
+
+        return .{ .control = zx.columns.pointer(*const ir.ControlTable, table), .root = value.root };
+    }
 
     const table = try self.allocator.create(ir.ControlTable);
 

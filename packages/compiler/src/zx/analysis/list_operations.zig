@@ -22,7 +22,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, target: ir.ExprId) zx.Error
 
     const count: usize = switch (kind) {
         .push, .concat => 1,
-        .pop, .sort, .reverse => 0,
+        .pop, .sort, .reverse, .slice => 0,
         .splice => 3,
     };
 
@@ -44,11 +44,11 @@ pub fn analyze(self: *Analyzer, expression: anytype, target: ir.ExprId) zx.Error
         arguments[index] = try self.expression(argument, hint);
     }
 
-    const result_type = switch (kind) {
+    const result_type = if (kind == .slice) list_type else try self.types.tuple(&.{ list_type, switch (kind) {
         .pop => try self.types.wrap(.optional, element_type),
         .splice => list_type,
         else => Types.scalarId(.void),
-    };
+    } });
 
-    return self.append(.{ .span = expression.span, .type_id = try self.types.tuple(&.{ list_type, result_type }), .value = .{ .list_operation = .{ .kind = kind, .target = target, .arguments = arguments } } });
+    return self.append(.{ .span = expression.span, .type_id = result_type, .value = .{ .list_operation = .{ .kind = kind, .target = target, .arguments = arguments } } });
 }

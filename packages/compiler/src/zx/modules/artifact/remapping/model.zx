@@ -25,14 +25,6 @@ export type Ports = {
     native_module?: u32
 }
 
-export type ContractColumns = {
-    symbols: u32[][],
-    types: u32[][],
-    calls: u32[][],
-    names: string[][],
-    strings: string[][]
-}
-
 export type FunctionInput = {
     ports: Ports,
     symbols: Symbols,
@@ -47,12 +39,9 @@ export type FunctionInput = {
 
 export type FunctionOutput = {
     ports: Ports,
-    symbols: u32[],
-    expressions: u32[],
-    calls: u32[],
-    names: string[],
-    strings: string[],
+    symbols: Symbols,
+    expressions: Expressions,
     stores: u32[],
-    contracts: ContractColumns,
+    contracts: Contracts,
     recursive?: u32
 }

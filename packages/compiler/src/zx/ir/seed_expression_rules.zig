@@ -229,7 +229,7 @@ pub fn validate(program: ir.Program, expression: ir.ExpressionRow, index: usize)
 
             break :blk check.typed(scope.result, type_id);
         },
-        .list_operation => |operation| check.operation(operation, target),
+        .list_operation => |operation| check.operation(operation, type_id),
     };
 }
 
@@ -311,13 +311,18 @@ const Check = struct {
         };
     }
 
-    fn operation(self: Check, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), result: ir.Type) bool {
-        if (!self.earlier(value.target) or result != .tuple or result.tuple.len != 2) return false;
+    fn operation(self: Check, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), result_id: ir.TypeId) bool {
+        if (!self.earlier(value.target)) return false;
 
         const source_id = self.program.expression(value.target).type_id;
         const source = self.program.typeOf(source_id);
 
-        if (source != .list or result.tuple.at(0) != source_id) return false;
+        if (source != .list) return false;
+        if (value.kind == .slice) return value.arguments.len == 0 and result_id == source_id;
+
+        const result = self.program.typeOf(result_id);
+
+        if (result != .tuple or result.tuple.len != 2 or result.tuple.at(0) != source_id) return false;
 
         const count: usize = switch (value.kind) {
             .push, .concat => 1,

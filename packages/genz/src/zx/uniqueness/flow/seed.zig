@@ -111,7 +111,7 @@ pub const Walk = struct {
                 .list_operation => |operation| switch (operation.kind) {
                     .sort, .reverse, .pop => try self.push(operation.target, 0),
                     .splice => if (@import("../basis.zig").prefix(expressions, operation)) try self.push(operation.target, 0),
-                    .push, .concat => {},
+                    .push, .concat, .slice => {},
                 },
                 .call => |invocation| for (self.flow.written[@backingInt(invocation.function)], 0..) |value, slot| {
                     if (value) try self.push(invocation.argument, @intCast(slot));
@@ -204,7 +204,7 @@ pub const Walk = struct {
             },
             .list => |items| if (self.contents) for (items) |item| try self.whole(item),
             .list_operation => |operation| {
-                const aliased = slot == @intFromBool(operation.kind == .splice);
+                const aliased = operation.kind != .slice and slot == @intFromBool(operation.kind == .splice);
 
                 if (aliased or (self.contents and self.nested(operation.target))) try self.push(operation.target, 0);
                 if (!self.contents) return false;
@@ -213,7 +213,7 @@ pub const Walk = struct {
                     .push => for (operation.arguments) |argument| try self.whole(argument),
                     .concat => for (operation.arguments) |argument| if (self.nested(argument)) try self.whole(argument),
                     .splice => if (self.nested(operation.arguments[2])) try self.whole(operation.arguments[2]),
-                    .pop, .sort, .reverse => {},
+                    .pop, .sort, .reverse, .slice => {},
                 }
             },
             .list_update => |update| {

@@ -42,6 +42,7 @@ export default function (in: Input): Output {
     }
 
     return match in.operation {
+        CollectionKind.Slice => no_flags,
         CollectionKind.Pop => match {
             in.target.headered && in.target.unique => retract_flag,
             _ => no_flags
