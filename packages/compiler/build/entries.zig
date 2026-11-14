@@ -217,7 +217,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/analysis/binding_path/layout.zx", .name = "binding_path_layout" },
     .{ .path = "zx/ir/canonical/validation/validate.rx", .name = "ir_validation" },
     .{ .path = "zx/modules/compiled/execute.rx", .name = "compiled_library" },
-    .{ .path = "zx/modules/compiled/publication/function.rx", .name = "compiled_owned_function" },
+    .{ .path = "zx/modules/compiled/loading/functions/remap.rx", .name = "compiled_owned_function" },
     .{ .path = "zx/modules/compiled/validation/publication.zx", .name = "compiled_header" },
     .{ .path = "zx/modules/compiled/validation/stores.zx", .name = "compiled_stores", .owner = .compiler },
     .{ .path = "zx/modules/semantic_cache/native_artifact/create.rx", .name = "native_artifact" },

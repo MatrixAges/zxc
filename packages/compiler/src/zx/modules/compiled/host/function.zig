@@ -6,10 +6,15 @@ const Error = std.mem.Allocator.Error || error{InvalidModule};
 const generated = @import("generated_compiled_owned_function");
 const Input = std.meta.Child(generated.Input);
 const External = std.meta.Child(@typeInfo(@FieldType(Input, "external")).optional.child);
+pub const Mapping = std.meta.Child(@FieldType(Input, "mapping"));
 
-pub fn append(allocator: std.mem.Allocator, functions: *ir.FunctionStorage, source: ir.Function) Error!void {
-    try functions.reserve(allocator, 1);
+pub const Context = struct {
+    mapping: *const Mapping,
+    first: usize,
+    instance: []const u8,
+};
 
+pub fn appendAssumeCapacity(allocator: std.mem.Allocator, functions: *ir.FunctionStorage, source: ir.Function, context: Context) Error!void {
     const external: ?External = if (source.external) |value| .{
         .members = value.member,
         .errors = value.errors,
@@ -17,8 +22,18 @@ pub fn append(allocator: std.mem.Allocator, functions: *ir.FunctionStorage, sour
         .parameters = if (value.input) |native| native.names else null,
     } else null;
 
-    const input: Input = .{
+    const header: std.meta.Child(@FieldType(Input, "header")) = .{
         .file = source.file_name,
+        .input_type = @backingInt(source.input_type),
+        .output_type = @backingInt(source.output_type),
+        .native_module = if (source.external) |value| @backingInt(value.module) else null,
+    };
+
+    const input: Input = .{
+        .header = &header,
+        .mapping = context.mapping,
+        .first = context.first,
+        .instance = context.instance,
         .symbols = zx.columns.pointer(@FieldType(Input, "symbols"), &source.symbols),
         .expressions = zx.columns.pointer(@FieldType(Input, "expressions"), &source.expressions),
         .control = zx.columns.pointer(@FieldType(Input, "control"), source.body.control),
@@ -33,12 +48,15 @@ pub fn append(allocator: std.mem.Allocator, functions: *ir.FunctionStorage, sour
     };
 
     var result = source;
-    result.file_name = owned.file;
+    result.file_name = owned.header.file;
+    result.input_type = @fromBackingInt(owned.header.input_type);
+    result.output_type = @fromBackingInt(owned.header.output_type);
     result.body.control = zx.columns.pointer(*const ir.ControlTable, owned.control);
 
     if (owned.external) |details| {
         const target = &result.external.?;
 
+        target.module = @fromBackingInt(owned.header.native_module.?);
         target.member = details.members;
         target.errors = details.errors;
         target.export_name = details.export_name;

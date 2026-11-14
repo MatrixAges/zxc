@@ -1,11 +1,11 @@
 import type { U32Buffer } from "std:memory"
 import type { Values } from "core/constant/model"
-import type { Complete } from "core/function_table/complete"
 import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
 import type { Program } from "../../ir/canonical/validation/model"
 import type { Imports } from "../function_import"
+import type { Mapping as FunctionMapping } from "./loading/functions/model"
 
 export type Exports = {
     names: string[],
@@ -68,7 +68,7 @@ export type Result = {
     types: Table,
     origins: Bindings,
     natives: Modules,
-    functions: Complete,
+    functions: FunctionMapping,
     exports: Exports,
     initializers: Initializers,
     aliases: Aliases

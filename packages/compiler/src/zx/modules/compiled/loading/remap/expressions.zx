@@ -1,5 +1,7 @@
 import integers from "std:integer"
 
+import copyNames from "../../../artifact/materializing/copy_names"
+import own from "../../../artifact/materializing/expressions"
 import ids from "./ids"
 
 import type { Expressions } from "core/expression_table/model"
@@ -13,8 +15,9 @@ export type Input = {
 export type Output = Expressions
 
 export default function (in: Input): Output {
-    return {
-        ...in.source,
+    return own({
+        source: in.source,
+        strings: copyNames(in.source.strings),
         types: ids({
             values: in.source.types,
             mapping: in.mapping
@@ -27,5 +30,5 @@ export default function (in: Input): Output {
                     )
                 )
             )[0]
-    }
+    })
 }

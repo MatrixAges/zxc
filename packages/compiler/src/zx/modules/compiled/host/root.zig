@@ -66,5 +66,5 @@ fn loadPrepared(allocator: std.mem.Allocator, library: model.Library, destinatio
         else => unreachable,
     }
 
-    return @import("publish.zig").apply(allocator, if (call_scratch) |scratch| scratch.functions else allocator, result, destination);
+    return @import("publish.zig").apply(allocator, if (call_scratch) |scratch| scratch.functions else allocator, &library, result, destination);
 }

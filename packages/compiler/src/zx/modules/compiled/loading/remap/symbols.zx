@@ -1,3 +1,5 @@
+import copyNames from "../../../artifact/materializing/copy_names"
+import own from "../../../artifact/materializing/symbols"
 import ids from "./ids"
 
 import type { Symbols } from "core/symbol_table/model"
@@ -10,11 +12,12 @@ export type Input = {
 export type Output = Symbols
 
 export default function (in: Input): Output {
-    return {
-        ...in.source,
+    return own({
+        source: in.source,
+        names: copyNames(in.source.names),
         types: ids({
             values: in.source.types,
             mapping: in.mapping
         })
-    }
+    })
 }

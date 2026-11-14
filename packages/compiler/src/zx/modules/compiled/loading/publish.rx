@@ -15,17 +15,6 @@
     />
 
     <Call
-        fn="functions/walk"
-        in={{
-            source: $in.input.graph.program.context.functions,
-            types: $in.input.type_ids,
-            natives: $in.native.mapping,
-            first: $in.input.destination.function_count,
-            instance: $in.input.instance
-        }}
-    />
-
-    <Call
         fn="type_delta"
         in={{
             base: $in.base,
@@ -43,7 +32,10 @@
                 types: $ctx.type_delta,
                 origins: $in.merged.origins,
                 natives: $in.native.delta,
-                functions: $ctx.walk
+                functions: {
+                    types: $in.input.type_ids,
+                    natives: $in.native.mapping
+                }
             }}
         />
     </If>
@@ -88,7 +80,10 @@
             types: $ctx.type_delta,
             origins: $in.merged.origins,
             natives: $in.native.delta,
-            functions: $ctx.walk,
+            functions: {
+                types: $in.input.type_ids,
+                natives: $in.native.mapping
+            },
             exports: $ctx.exports,
             initializers: $ctx.initializers,
             aliases: $ctx.plan.aliases

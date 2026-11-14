@@ -1,24 +1,41 @@
 import type { Contracts } from "core/contract_table/model"
+import type { Control } from "core/control_table/model"
 import type { Expressions } from "core/expression_table/model"
-import type { Complete } from "core/function_table/complete"
 import type { Stores } from "core/store_table/model"
 import type { Symbols } from "core/symbol_table/model"
+import type { Output as External } from "../../../artifact/materializing/copy_external"
 
-export type Request = {
-    source: Complete,
+export type Mapping = {
     types: u32[],
-    natives: u32[],
-    first: u64,
-    instance: string
+    natives: u32[]
 }
 
-export type Mapped = {
+export type Header = {
     file: string,
     input_type: u32,
     output_type: u32,
-    native_module?: u32,
+    native_module?: u32
+}
+
+export type Request = {
+    header: Header,
+    mapping: Mapping,
+    first: u64,
+    instance: string,
     symbols: Symbols,
     expressions: Expressions,
     stores: Stores,
-    contracts: Contracts
+    contracts: Contracts,
+    control: Control,
+    external?: External
+}
+
+export type Mapped = {
+    header: Header,
+    symbols: Symbols,
+    expressions: Expressions,
+    stores: Stores,
+    contracts: Contracts,
+    control: Control,
+    external?: External
 }

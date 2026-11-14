@@ -1,3 +1,4 @@
+import copyNames from "../../../artifact/materializing/copy_names"
 import store from "../../identity/store"
 import ids from "./ids"
 
@@ -13,7 +14,9 @@ export type Output = Stores
 
 export default function (in: Input): Output {
     return {
-        ...in.source,
+        handles: copyNames(in.source.handles),
+        readable: in.source.readable.slice(),
+        writable: in.source.writable.slice(),
         types: ids({
             values: in.source.types,
             mapping: in.mapping

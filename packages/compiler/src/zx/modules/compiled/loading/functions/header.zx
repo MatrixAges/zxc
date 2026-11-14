@@ -2,43 +2,29 @@ import integers from "std:integer"
 
 import scope from "../../identity/scope"
 
-import type { Request } from "./model"
+import type { Header, Request } from "./model"
 
-export type Input = {
-    request: Request,
-    index: u64
-}
+export type Input = Request
 
-export type Output = {
-    file: string,
-    input_type: u32,
-    output_type: u32,
-    native_module?: u32
-}
+export type Output = Header
 
 export default function (in: Input): Output {
-    const source = in.request.source
-    const native_id = source.native_modules[in.index]
+    const { header, mapping, instance } = in
+
+    const native_id = header.native_module
 
     const module_id: u32? = match {
         native_id == null => null,
-        _ => in.request.natives[integers.widen(
-            native_id
-        )]
+        _ => mapping.natives[integers.widen(native_id)]
     }
 
     return {
         file: scope({
-            instance: in.request.instance,
-            value: source.files[in.index]
+            instance,
+            value: header.file
         }),
-        input_type: in.request.types[integers.widen(
-            source.input_types[in.index]
-        )],
-        output_type: in.request
-            .types[integers.widen(
-                source.output_types[in.index]
-            )],
+        input_type: mapping.types[integers.widen(header.input_type)],
+        output_type: mapping.types[integers.widen(header.output_type)],
         native_module: module_id
     }
 }

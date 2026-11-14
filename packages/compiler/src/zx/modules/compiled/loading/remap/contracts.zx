@@ -38,7 +38,10 @@ export default function (in: Input): Output {
     })
 
     return {
-        ...in.source,
+        kinds: in.source.kinds.slice(),
+        predicates: in.source.predicates.slice(),
+        span_start: in.source.span_start.slice(),
+        span_end: in.source.span_end.slice(),
         symbols: result.symbols,
         expressions: result.expressions
     }

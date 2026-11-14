@@ -1,53 +1,72 @@
 <Module>
-    <Type from="header" as="Header" />
     <Type from="model" as="Model" />
 
-    <Args in={Header.Input} out={Model.Mapped} />
+    <Args in={Model.Request} out={Model.Mapped} />
 
     <Call fn="header" in={$in} />
 
     <Call
         fn="../remap/symbols"
         in={{
-            source: $in.request.source.symbols[$in.index],
-            mapping: $in.request.types
+            source: $in.symbols,
+            mapping: $in.mapping.types
         }}
     />
 
     <Call
         fn="../remap/expressions"
         in={{
-            source: $in.request.source.expressions[$in.index],
-            mapping: $in.request.types,
-            first: $in.request.first
+            source: $in.expressions,
+            mapping: $in.mapping.types,
+            first: $in.first
         }}
     />
 
     <Call
         fn="../remap/contracts"
         in={{
-            source: $in.request.source.contracts[$in.index],
-            mapping: $in.request.types,
-            first: $in.request.first
+            source: $in.contracts,
+            mapping: $in.mapping.types,
+            first: $in.first
         }}
     />
 
     <Call
         fn="../remap/stores"
         in={{
-            source: $in.request.source.stores[$in.index],
-            mapping: $in.request.types,
-            instance: $in.request.instance
+            source: $in.stores,
+            mapping: $in.mapping.types,
+            instance: $in.instance
         }}
     />
 
+    <Call fn="../../../artifact/materializing/control" in={$in.control} />
+
+    <If on={$in.external != null}>
+        <Call fn="../../../artifact/materializing/copy_external" in={$in.external} />
+
+        <Return
+            value={{
+                header: $ctx.header,
+                symbols: $ctx.symbols,
+                expressions: $ctx.expressions,
+                contracts: $ctx.contracts,
+                stores: $ctx.stores,
+                control: $ctx.control,
+                external: $ctx.copy_external
+            }}
+        />
+    </If>
+
     <Return
         value={{
-            ...$ctx.header,
+            header: $ctx.header,
             symbols: $ctx.symbols,
             expressions: $ctx.expressions,
             contracts: $ctx.contracts,
-            stores: $ctx.stores
+            stores: $ctx.stores,
+            control: $ctx.control,
+            external: null
         }}
     />
 </Module>
