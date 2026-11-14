@@ -158,11 +158,22 @@ pub fn reserveDelta(self: *Self, allocator: std.mem.Allocator, delta: Table) Err
 
 /// Publishes a reserved delta after its first-column tail is initialized.
 pub fn publishDelta(self: *Self, delta: Table) void {
-    _ = self.first.addManyAsSliceAssumeCapacity(delta.first.len);
+    self.publish(delta, false);
+}
 
+/// Publishes a reserved delta whose text columns are already initialized in their tails.
+pub fn publishOwnedDelta(self: *Self, delta: Table) void {
+    self.publish(delta, true);
+}
+
+fn publish(self: *Self, delta: Table, comptime text_in_tail: bool) void {
     inline for (@typeInfo(Self).@"struct".field_names) |name| {
-        if (comptime !std.mem.eql(u8, name, "first")) {
-            @field(self, name).appendSliceAssumeCapacity(@field(delta, name));
+        const source = @field(delta, name);
+
+        if (comptime std.mem.eql(u8, name, "first") or (text_in_tail and std.meta.Elem(@TypeOf(source)) == []const u8)) {
+            _ = @field(self, name).addManyAsSliceAssumeCapacity(source.len);
+        } else {
+            @field(self, name).appendSliceAssumeCapacity(source);
         }
     }
 }

@@ -5,6 +5,7 @@ const Output = std.meta.Child(@import("generated_expression_analysis").Output);
 const borrow = @import("../../../ir/canonical/borrow.zig");
 const own = @import("../../../modules/artifact/nodes/columns.zig").own;
 const type_table = @import("../../type_table.zig");
+const publication = @import("../../semantic/merging/commit.zig");
 
 pub fn apply(allocator: std.mem.Allocator, output: *const Output, options: Options, file_name: []const u8) std.mem.Allocator.Error!ir.Program {
     const control = try allocator.create(ir.ControlTable);
@@ -47,7 +48,7 @@ fn extended(allocator: std.mem.Allocator, output: *const Output, options: Option
 
     const backing = options.type_allocator orelse allocator;
 
-    try types.appendDelta(backing, try type_table.copy(backing, borrow.columns(ir.TypeTable, output.type_delta.*)));
+    try publication.appendTypes(backing, &types, output.type_delta.*);
 
     return types.view();
 }
