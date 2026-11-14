@@ -9,6 +9,7 @@ const borrow = @import("../../../ir/canonical/borrow.zig");
 const Input = std.meta.Child(@import("generated_native_restore").Input);
 const Validation = std.meta.Child(@FieldType(Input, "validation"));
 pub const Request = std.meta.Child(@FieldType(Validation, "request"));
+const Published = std.meta.Child(@FieldType(Input, "published"));
 const Self = @This();
 
 signatures: std.meta.Child(@FieldType(Request, "signatures")),
@@ -22,6 +23,9 @@ request: Request,
 validation: Validation,
 type_ids: []u32,
 export_ids: []u32,
+input_ids: []u32,
+output_ids: []u32,
+published: Published,
 input: Input,
 pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: *const Artifact.Module, entry: Native, current: Current, admitted: bool) std.mem.Allocator.Error!void {
     self.signatures = borrow.columns(@TypeOf(self.signatures), artifact.functions);
@@ -31,15 +35,35 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: *const Artifact
     self.types = ir.TypeTable.borrow(@TypeOf(self.types), artifact.types);
     self.base = ir.TypeTable.borrow(@TypeOf(self.base), current.types.view());
     self.base_origins = Origins.Table.borrow(@TypeOf(self.base_origins), current.origins.items.view());
+    const type_count = artifact.types.count();
+    const export_count = artifact.exports.len;
+    const member_count = artifact.functions.count();
+    const ports = std.math.mul(usize, member_count, 2) catch return error.OutOfMemory;
+    const original = if (admitted) 0 else export_count;
+    const exports = std.math.add(usize, export_count, original) catch return error.OutOfMemory;
+    const mapped = std.math.add(usize, type_count, ports) catch return error.OutOfMemory;
+    const count = std.math.add(usize, mapped, exports) catch return error.OutOfMemory;
+    const ids = try allocator.alloc(u32, count);
 
-    const names = try allocator.alloc([]const u8, artifact.exports.len);
+    self.type_ids = ids[0..type_count];
+    self.input_ids = ids[type_count..][0..member_count];
+    self.output_ids = ids[type_count + member_count ..][0..member_count];
+    self.export_ids = ids[mapped..][0..export_count];
 
-    self.export_ids = try allocator.alloc(u32, artifact.exports.len);
+    const names, const source_ids = if (admitted) .{
+        artifact.native_modules.type_names[0],
+        artifact.native_modules.type_ids[0],
+    } else columns: {
+        const names = try allocator.alloc([]const u8, export_count);
+        const source = ids[mapped + export_count ..];
 
-    for (artifact.exports, names, self.export_ids) |exported, *name, *id| {
-        name.* = exported.name;
-        id.* = @backingInt(exported.type_id);
-    }
+        for (artifact.exports, names, source) |exported, *name, *id| {
+            name.* = exported.name;
+            id.* = @backingInt(exported.type_id);
+        }
+
+        break :columns .{ @as([]const []const u8, names), @as([]const u32, source) };
+    };
 
     self.request = .{
         .path = artifact.path,
@@ -52,7 +76,7 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: *const Artifact
         .signatures = &self.signatures,
         .modules = &self.modules,
         .export_names = names,
-        .export_types = self.export_ids,
+        .export_types = source_ids,
         .origins = &self.origins,
         .import_count = artifact.function_imports.len,
         .declaration = &self.declaration,
@@ -65,9 +89,11 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: *const Artifact
         .maximum_count = std.math.maxInt(u32),
     };
 
-    self.type_ids = try allocator.alloc(u32, artifact.types.count());
-
-    @memset(self.type_ids, 0);
+    self.published = .{
+        .inputs = @ptrCast(&self.input_ids),
+        .outputs = @ptrCast(&self.output_ids),
+        .exports = @ptrCast(&self.export_ids),
+    };
 
     self.input = .{
         .validation = &self.validation,
@@ -76,7 +102,7 @@ pub fn init(self: *Self, allocator: std.mem.Allocator, artifact: *const Artifact
         .base_origins = &self.base_origins,
         .type_ids = self.type_ids,
         .type_mapping = @ptrCast(&self.type_ids),
-        .export_ids = @ptrCast(&self.export_ids),
+        .published = &self.published,
         .admitted = admitted,
     };
 }

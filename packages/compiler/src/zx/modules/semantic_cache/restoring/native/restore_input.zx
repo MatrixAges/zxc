@@ -3,13 +3,19 @@ import type { Table } from "core/type_table/model"
 import type { Bindings } from "core/type_table/nominal"
 import type { Input as Validation } from "./validation"
 
+export type Published = {
+    inputs: U32Buffer,
+    outputs: U32Buffer,
+    exports: U32Buffer
+}
+
 export type Input = {
     base: Table,
     base_origins: Bindings,
     origin_names: string[],
     type_ids: u32[],
     type_mapping: U32Buffer,
-    export_ids: U32Buffer,
+    published: Published,
     validation: Validation
     admitted: bool
 }

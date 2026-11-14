@@ -49,7 +49,7 @@ pub fn optionalSymbols(mapping: *const Mapping, source: []const ?u32, target: []
 fn invoke(comptime rule: type, input: std.meta.Child(rule.Input)) Builder.Error!void {
     var empty = std.heap.FixedBufferAllocator.init(&.{});
 
-    const valid = rule.executeValue(empty.allocator(), &input) catch |err| switch (@as(anyerror, err)) {
+    const valid = @import("zx").columns.invoke(rule.executeValue, empty.allocator(), &input) catch |err| switch (@as(anyerror, err)) {
         error.IndexOutOfBounds, error.IntegerOverflow => return error.InvalidModule,
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,

@@ -30,11 +30,13 @@
         <Call
             fn="ports"
             in={{
-                source: $in.validation.request.signatures.pick([
+                ...$in.validation.request.signatures.pick([
                     "input_types",
                     "output_types"
                 ]),
-                mapping: $in.type_ids
+                mapping: $in.type_ids,
+                inputs: $in.published.inputs,
+                outputs: $in.published.outputs
             }}
         />
 
@@ -50,8 +52,8 @@
         <Call
             fn="exports"
             in={{
-                count: $in.validation.request.export_types.length,
-                target: $in.export_ids,
+                source: $in.validation.request.export_types,
+                target: $in.published.exports,
                 mapping: $in.type_ids
             }}
         />
@@ -61,11 +63,7 @@
                 status: Result.Status.Ready,
                 value: {
                     types: $ctx.type_delta,
-                    origins: $ctx.types.origins,
-                    signatures: {
-                        ...$in.validation.request.signatures,
-                        ...$ctx.ports
-                    }
+                    origins: $ctx.types.origins
                 }
             }}
         />
