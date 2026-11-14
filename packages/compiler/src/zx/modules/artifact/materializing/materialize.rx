@@ -3,6 +3,7 @@
     <Type from="core/type_table/nominal" as="Nominal" />
     <Type from="core/type_table/model" as="Types" />
     <Type from="core/native_module_table/model" as="Native" />
+    <Type from="core/store_table/model" as="Stores" />
     <Type from="../planning/functions/model" as="Functions" />
     <Type from="../remapping/model" as="Remap" />
     <Type from="content_model" as="Content" />
@@ -27,7 +28,8 @@
             natives?: Native.Modules,
             signatures?: Declarations.Table,
             function?: Remap.FunctionOutput,
-            entry_store_types?: u32[]
+            body_stores?: Stores.Stores,
+            stores?: Stores.Stores
         }}
     />
 
@@ -57,7 +59,8 @@
                 natives: null,
                 signatures: null,
                 function: null,
-                entry_store_types: null
+                body_stores: null,
+                stores: null
             }}
         />
     </If>
@@ -80,7 +83,8 @@
                 natives: null,
                 signatures: null,
                 function: null,
-                entry_store_types: null
+                body_stores: null,
+                stores: null
             }}
         />
     </If>
@@ -94,7 +98,8 @@
             natives: $ctx.content.valid ? $ctx.natives : null,
             signatures: $ctx.content.valid ? $ctx.signatures : null,
             function: $ctx.content.function,
-            entry_store_types: $ctx.content.entry_store_types
+            body_stores: $ctx.content.body_stores,
+            stores: $ctx.content.stores
         }}
     />
 </Module>

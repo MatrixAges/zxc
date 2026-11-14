@@ -9,7 +9,7 @@
             body?: Remap.FunctionOutput,
             reuse: bool
         }}
-        out={u32[]?}
+        out={Store.Stores?}
     />
 
     <Call fn="../../../../ir/canonical/stores/validate" in={$in.source} />
@@ -20,7 +20,15 @@
 
     <If on={$in.reuse}>
         <If on={$in.body != null}>
-            <Return value={$in.body.stores} />
+            <Call
+                fn="../../../artifact/materializing/stores/own"
+                in={{
+                    source: $in.source,
+                    types: $in.body.stores
+                }}
+            />
+
+            <Return value={$ctx.own} />
         </If>
     </If>
 
@@ -32,5 +40,13 @@
         }}
     />
 
-    <Return value={$ctx.ids} />
+    <Call
+        fn="../../../artifact/materializing/stores/own"
+        in={{
+            source: $in.source,
+            types: $ctx.ids
+        }}
+    />
+
+    <Return value={$ctx.own} />
 </Module>

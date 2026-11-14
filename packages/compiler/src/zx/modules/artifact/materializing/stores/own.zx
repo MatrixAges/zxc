@@ -1,0 +1,22 @@
+import copyNames from "../copy_names"
+
+import type { Stores } from "core/store_table/model"
+
+export type Input = {
+    source: Stores,
+    types: u32[]
+}
+
+export type Output = Stores
+
+export default function (in: Input): Output {
+    const { source, types } = in
+
+    return {
+        paths: copyNames(source.paths),
+        types,
+        handles: copyNames(source.handles),
+        readable: source.readable.map(value => value)[0],
+        writable: source.writable.map(value => value)[0]
+    }
+}

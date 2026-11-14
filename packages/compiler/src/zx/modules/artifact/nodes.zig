@@ -76,14 +76,15 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId,
 
 fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId, structure: Structure) Error!FunctionEntry {
     const mapped = try @import("nodes/remap.zig").function(self, &value, candidate, structure);
+    const store_table = try @import("materializing/stores/host.zig").own(self.allocator, &value.stores, mapped.stores);
 
-    return .{ .body = try self.ownFunction(&value, mapped, structure), .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
+    return .{ .body = try self.ownFunction(&value, mapped, store_table, structure), .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
 }
 
-pub fn ownFunction(self: *Self, value: *const ir.Function, mapped: anytype, structure: Structure) Error!ir.Function {
+pub fn ownFunction(self: *Self, value: *const ir.Function, mapped: anytype, store_table: ir.StoreTable, structure: Structure) Error!ir.Function {
     var result = try self.materializeBody(value, mapped, structure);
     result.file_name = try self.allocator.dupe(u8, value.file_name);
-    result.stores = try own(self.allocator, value.stores, .{ .types = mapped.stores });
+    result.stores = store_table;
     result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
 
     return result;
@@ -104,13 +105,8 @@ pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, 
 }
 
 pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
+    if (comptime generated) return @import("materializing/stores/host.zig").remap(self, &values);
     if (!values.validStructure()) return error.InvalidModule;
-
-    if (comptime generated) {
-        const mapped = try @import("nodes/remap.zig").columns(self.allocator, self, values.types, &.{});
-
-        return own(self.allocator, values, .{ .types = mapped.types });
-    }
 
     var storage: ir.StoreStorage = .{};
 

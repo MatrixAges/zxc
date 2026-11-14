@@ -32,15 +32,14 @@ pub fn extract(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysi
     const origins = zx.columns.view(Origins.Table, materialized.origins);
     const native_modules = zx.columns.view(zx.ir.NativeModuleTable, materialized.natives orelse return error.InvalidModule);
     const functions = zx.columns.view(zx.ir.SignatureTable, materialized.signatures orelse return error.InvalidModule);
-    const function = if (materialized.function) |mapped| try nodes.ownFunction(&source.?, mapped, .validated) else null;
 
-    const stores: @import("zx").ir.StoreTable = if (materialized.entry_store_types) |mapped|
-        try @import("zx").columns.own(allocator, program.stores, .{ .types = mapped })
+    const function = if (materialized.function) |mapped|
+        try nodes.ownFunction(&source.?, mapped, zx.columns.view(zx.ir.StoreTable, materialized.body_stores.?), .validated)
 
-    else if (function) |value|
-        value.stores
     else
-        .{};
+        null;
+
+    const stores: zx.ir.StoreTable = if (materialized.stores) |value| zx.columns.view(zx.ir.StoreTable, value) else .{};
 
     const surface = try @import("../surface.zig").copy(&nodes, .{
         .exports = record.exports,

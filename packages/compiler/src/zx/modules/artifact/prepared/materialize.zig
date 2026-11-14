@@ -17,6 +17,7 @@ pub fn materialize(nodes: *const Nodes, program: *const ir.Program, nominal_type
     const origins = Origins.Table.borrow(std.meta.Child(@FieldType(Input, "origins")), nominal_types);
     const declarations = borrow.columns(std.meta.Child(@FieldType(Input, "declarations")), ir.SignatureTable.fromFunctions(program.functions));
     const stores = borrow.pointer(@FieldType(Content, "entry_stores"), &program.stores);
+    const BodyStores = @typeInfo(@FieldType(Content, "body_stores")).optional.child;
     const mapping = remap.typeMapping(std.meta.Child(@FieldType(Content, "type_mapping")), nodes.types);
     var view: remap.FunctionView(Source) = undefined;
 
@@ -24,6 +25,7 @@ pub fn materialize(nodes: *const Nodes, program: *const ir.Program, nominal_type
 
     const content: Content = .{
         .source = if (source != null) &view.input else null,
+        .body_stores = if (source) |value| borrow.pointer(BodyStores, &value.stores) else null,
         .entry_stores = stores,
         .type_mapping = &mapping,
         .copy_entry_stores = prepared.body.copy_entry_stores,

@@ -40,7 +40,7 @@ pub fn materialize(nodes: *Nodes, module: *const Artifact.Module, tables: result
     const plan = prepared orelse return error.InvalidModule;
     const body = if (plan.body) |mapped| try nodes.materializeBody(source.?, mapped, structure) else null;
     const owned = nodes.allocator;
-    const store_table = try zx.columns.own(owned, module.stores, .{ .types = plan.store_types });
+    const store_table = zx.columns.view(ir.StoreTable, plan.stores);
     const surface = @import("../../../artifact/surface.zig");
     const types = remap.typeMapping(surface.Mapping, nodes.types);
     const exported = try surface.copyExports(owned, module.exports, &types);

@@ -186,6 +186,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/artifact/planning/prepare.rx", .name = "artifact_prepare" },
     .{ .path = "zx/modules/artifact/roots/bindings.zx", .name = "artifact_root_bindings" },
     .{ .path = "zx/modules/artifact/materializing/materialize.rx", .name = "artifact_materialize" },
+    .{ .path = "zx/modules/artifact/materializing/stores/own.zx", .name = "artifact_owned_stores" },
+    .{ .path = "zx/modules/artifact/materializing/stores/remap.rx", .name = "artifact_remap_stores" },
     .{ .path = "zx/modules/artifact/dependencies/own.zx", .name = "artifact_dependency_record" },
     .{ .path = "zx/modules/artifact/surface/declaration.zx", .name = "artifact_surface_declaration" },
     .{ .path = "zx/modules/artifact/surface/binding.zx", .name = "artifact_surface_binding" },
