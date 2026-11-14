@@ -37,7 +37,7 @@
     />
 
     <Call
-        fn="../../../analysis/semantic/extracting/planning/roots"
+        fn="../../../analysis/semantic/extracting/planning/closed_roots"
         in={{
             request: $in.request,
             state: $ctx.initialize
@@ -48,7 +48,7 @@
         module="expand_native"
         in={{
             request: $in.request,
-            state: $ctx.roots,
+            state: $ctx.closed_roots,
             modules: $in.modules,
             natives: $ctx.native_initialize
         }}

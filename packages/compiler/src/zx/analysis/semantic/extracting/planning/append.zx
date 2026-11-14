@@ -1,0 +1,56 @@
+import integers from "std:integer"
+import { Kind } from "core/type_table/model"
+
+import kind from "../../types/kind"
+import origin from "../origin"
+import { Status } from "./model"
+
+import type { Request, State } from "./model"
+
+export type Input = {
+    request: Request,
+    state: State,
+    index: u64
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const { request, index } = in
+
+    const state = in.state
+    const mapped = state.count
+    const type_kind = kind(request.table.kinds[index])
+
+    const nominal = type_kind == Kind.Enumeration || type_kind == Kind.NativeReference
+
+    const selected: u64? = match {
+        nominal => origin({
+            origins: request.origins,
+            names: request.names,
+            index,
+            name: request.table.labels[index]
+        }),
+        _ => null
+    }
+
+    const status = match {
+        selected == 0 => Status.MissingOrigin,
+        selected == 1 => Status.Invalid,
+        _ => Status.Ready
+    }
+
+    const origins = match {
+        status == Status.Ready && selected != null =>
+            state.origins.with(mapped, selected - 1),
+        _ => state.origins
+    }
+
+    return {
+        mapping: state.mapping.with(index, mapped + 1),
+        order: state.order.with(mapped, integers.narrow(index)),
+        origins,
+        count: mapped + 1,
+        status
+    }
+}

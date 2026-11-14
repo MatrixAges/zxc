@@ -1,0 +1,36 @@
+import append from "./append"
+import { Status } from "./model"
+
+import type { Request, State } from "./model"
+
+export type Input = {
+    request: Request,
+    state: State
+}
+
+export type Output = State
+
+// Only used after validating the type table and marking the full root closure.
+export default function (in: Input): Output {
+    const request = in.request
+
+    return loop({
+        plan: in.state,
+        index: request.scalar_count
+    }, {
+        while: state => state.plan.status == Status.Ready &&
+            state.index < request.roots.length,
+        next: state => {
+            if (request.roots[state.index]) {
+                state.plan = append({
+                    request,
+                    state: state.plan,
+                    index: state.index
+                })
+            }
+
+            state.index += 1
+        },
+        return: state => state.plan
+    })
+}

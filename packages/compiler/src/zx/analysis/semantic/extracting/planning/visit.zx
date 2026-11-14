@@ -1,9 +1,5 @@
-import integers from "std:integer"
-import { Kind } from "core/type_table/model"
-
-import kind from "../../types/kind"
 import dependencies from "../dependencies"
-import origin from "../origin"
+import append from "./append"
 import { Status } from "./model"
 
 import type { State, Request } from "./model"
@@ -52,33 +48,11 @@ export default function (in: Input): Output {
                         pending: current.pending
                     })
                 } else {
-                    const mapped = current.plan.count
-
-                    current.plan.mapping[index] = mapped + 1
-                    current.plan.order[mapped] = integers.narrow(index)
-                    current.plan.count += 1
-
-                    const type_kind = kind(current.request.table.kinds[index])
-
-                    if (
-                        type_kind == Kind.Enumeration ||
-                            type_kind == Kind.NativeReference
-                    ) {
-                        const selected = origin({
-                            origins: current.request.origins,
-                            names: current.request.names,
-                            index,
-                            name: current.request.table.labels[index]
-                        })
-
-                        if (selected == 0) {
-                            current.plan.status = Status.MissingOrigin
-                        } else if (selected == 1) {
-                            current.plan.status = Status.Invalid
-                        } else {
-                            current.plan.origins[mapped] = selected - 1
-                        }
-                    }
+                    current.plan = append({
+                        request: current.request,
+                        state: current.plan,
+                        index
+                    })
                 }
             }
         },
