@@ -1,6 +1,13 @@
 const std = @import("std");
 const Record = @import("../../module_record.zig");
+const Binding = @import("../../function_import.zig");
 const Error = @import("../model.zig").Error;
+const generated = @import("generated_artifact_root_bindings");
+const Parameter = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
+const indirect = @typeInfo(Parameter) == .pointer;
+const Input = if (indirect) std.meta.Child(Parameter) else Parameter;
+const Row = std.meta.Child(@FieldType(Input, "bindings"));
+const Columns = std.meta.Child(@typeInfo(@FieldType(Input, "columns")).optional.child);
 
 pub const References = struct {
     types: []u32,
@@ -16,13 +23,8 @@ pub fn Projection(comptime Target: type) type {
 
 pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Record) Error!Projection(Target) {
     const Kind = std.meta.Child(@FieldType(Target, "import_kinds"));
-    var ordinary_count: usize = 0;
-
-    for ([_][]const @import("../../function_import.zig"){ record.function_imports, record.reexports.functions }) |bindings| for (bindings) |binding| {
-        if (!binding.valid()) return error.InvalidModule;
-        if (binding.intrinsic == null) ordinary_count += 1;
-    };
-
+    const bindings = [2][]const Binding{ record.function_imports, record.reexports.functions };
+    const ordinary_count = try ports(bindings, null);
     const declaration_count = record.exports.len + record.constant_exports.len + record.constant_imports.len;
     const alias_count = declaration_count + record.type_imports.len;
     const port_count = 2 * ordinary_count;
@@ -41,16 +43,11 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
     for (record.constant_imports, declarations[record.exports.len + record.constant_exports.len ..]) |value, *id| id.* = @backingInt(value.type_id);
     for (record.type_imports, type_imports) |value, *id| id.* = @backingInt(value.type_id);
 
-    var function_index: usize = 0;
-
-    for ([_][]const @import("../../function_import.zig"){ record.function_imports, record.reexports.functions }) |bindings| for (bindings) |value| {
-        if (value.intrinsic != null) continue;
-
-        function_ids[function_index] = @backingInt(value.id.?);
-        function_inputs[function_index] = @backingInt(value.input_type.?);
-        function_outputs[function_index] = @backingInt(value.output_type.?);
-        function_index += 1;
-    };
+    _ = try ports(bindings, &.{
+        .ids = @ptrCast(&function_ids),
+        .inputs = @ptrCast(&function_inputs),
+        .outputs = @ptrCast(&function_outputs),
+    });
 
     for (record.imports, import_kinds, import_specifiers, dependency_keys) |*value, *kind, *specifier, *key| {
         kind.* = switch (value.target) {
@@ -85,4 +82,39 @@ pub fn project(comptime Target: type, allocator: std.mem.Allocator, record: Reco
         .record = view,
         .references = .{ .types = types, .functions = function_ids },
     };
+}
+
+fn ports(groups: [2][]const Binding, columns: ?*const Columns) Error!usize {
+    const batch_size = @import("../../package_scope.zig").lookup_batch_size;
+    var buffer: [batch_size]Row = undefined;
+    var empty = std.heap.FixedBufferAllocator.init(&.{});
+    var count: u64 = 0;
+
+    for (groups) |group| {
+        var remaining = group;
+
+        while (remaining.len != 0) {
+            const size = @min(remaining.len, batch_size);
+
+            for (remaining[0..size], buffer[0..size]) |*binding, *row| {
+                row.* = .{
+                    .id = if (binding.id) |id| @backingInt(id) else null,
+                    .input_type = if (binding.input_type) |id| @backingInt(id) else null,
+                    .output_type = if (binding.output_type) |id| @backingInt(id) else null,
+                    .intrinsic = if (binding.intrinsic) |value| @intFromEnum(value) else null,
+                };
+            }
+
+            const input: Input = .{ .bindings = buffer[0..size], .columns = columns, .first = count };
+
+            count = (generated.executeValue(empty.allocator(), if (indirect) &input else input) catch |err| switch (err) {
+                error.OutOfMemory => return error.OutOfMemory,
+                else => return error.InvalidModule,
+            }) orelse return error.InvalidModule;
+
+            remaining = remaining[size..];
+        }
+    }
+
+    return @intCast(count);
 }

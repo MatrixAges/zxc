@@ -51,6 +51,13 @@ export type FunctionBinding = {
     intrinsic?: u8
 }
 
+export type PortShape = {
+    id?: u32,
+    input_type?: u32,
+    output_type?: u32,
+    intrinsic?: u8
+}
+
 export type Result = {
     aliases: Bindings,
     constants: Bindings,

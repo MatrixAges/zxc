@@ -1,0 +1,57 @@
+import memory from "std:memory"
+
+import shape from "../../binding/shape"
+
+import type { U32Buffer } from "std:memory"
+import type { PortShape } from "../../binding/model"
+
+export type Columns = {
+    ids: U32Buffer,
+    inputs: U32Buffer,
+    outputs: U32Buffer
+}
+
+export type Input = {
+    bindings: PortShape[],
+    columns?: Columns,
+    first: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const { bindings, columns } = in
+
+    return loop({
+        index: 0,
+        count: in.first,
+        valid: true
+    }, {
+        while: state => state.valid && state.index < bindings.length,
+        next: state => {
+            const binding = bindings[state.index]
+            state.valid = shape(binding)
+
+            if (state.valid && binding.intrinsic == null) {
+                if (columns != null) {
+                    memory.writeU32(columns.ids, state.count, binding.id ?? 0)
+                    memory.writeU32(
+                        columns.inputs,
+                        state.count,
+                        binding.input_type ?? 0
+                    )
+                    memory.writeU32(
+                        columns.outputs,
+                        state.count,
+                        binding.output_type ?? 0
+                    )
+                }
+
+                state.count += 1
+            }
+
+            state.index += 1
+        },
+        return: state => state.valid ? state.count : null
+    })
+}
