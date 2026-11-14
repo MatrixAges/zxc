@@ -30,31 +30,15 @@ body: union(enum) { types, entry, function: zx.ir.FunctionId },
 own_function: ?zx.ir.FunctionId = null,
 /// Source targets borrow the normalized unit path held by the project arena.
 pub fn copyImport(allocator: std.mem.Allocator, item: anytype, target: Target) std.mem.Allocator.Error!Import {
-    const names = try allocator.alloc([]const u8, item.nameCount());
-
-    for (names, 0..) |*owned, index| owned.* = try allocator.dupe(u8, item.nameAt(index).text);
-
-    var source_names: ?[][]const u8 = null;
-
-    for (names, 0..) |name, index| {
-        const original = item.sourceAt(index).text;
-
-        if (source_names == null and !std.mem.eql(u8, name, original)) {
-            source_names = try allocator.alloc([]const u8, names.len);
-
-            @memcpy(source_names.?[0..index], names[0..index]);
-        }
-
-        if (source_names) |sources| sources[index] = try allocator.dupe(u8, original);
-    }
+    const names = try @import("module_record/names/host.zig").own(allocator, item);
 
     return .{
         .kind = item.kind,
         .exported = item.exported,
         .wildcard = item.wildcard,
-        .source_names = source_names orelse &.{},
+        .source_names = names.originals,
         .specifier = try allocator.dupe(u8, item.path),
-        .names = names,
+        .names = names.locals,
         .span = item.span,
         .target = switch (target) {
             .compiled => |value| .{ .compiled = try @import("compiled.zig").copyTarget(allocator, value) },

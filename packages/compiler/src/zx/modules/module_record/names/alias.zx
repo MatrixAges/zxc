@@ -1,0 +1,33 @@
+import encoding from "std:encoding"
+
+import type { Names } from "./model"
+
+export type Input = Names
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { source, locals, originals } = in
+
+    return loop({
+        index: 0,
+        found: false
+    }, {
+        while: state => !state.found && state.index < locals.length,
+        next: state => {
+            const local = locals[state.index]
+            const original = originals[state.index]
+            const same_span = local.start == original.start && local.end == original.end
+
+            if (!same_span) {
+                const left = encoding.sliceBytes(source, local.start, local.end)
+                const right = encoding.sliceBytes(source, original.start, original.end)
+
+                state.found = left != right
+            }
+
+            state.index += 1
+        },
+        return: state => state.found
+    })
+}

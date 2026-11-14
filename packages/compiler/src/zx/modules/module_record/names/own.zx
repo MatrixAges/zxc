@@ -1,0 +1,53 @@
+import encoding from "std:encoding"
+import memory from "std:memory"
+import strings from "std:string"
+
+import type { StringBuffer } from "std:memory"
+import type { Names } from "./model"
+
+export type Input = {
+    names: Names,
+    locals: StringBuffer,
+    originals?: StringBuffer
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { source, locals, originals } = in.names
+
+    const output = in.originals
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < locals.length,
+        next: state => {
+            const index = state.index
+            const span = locals[index]
+            const local = encoding.sliceBytes(source, span.start, span.end)
+            const owned = strings.copy(local)
+
+            memory.writeString(in.locals, index, owned)
+
+            if (output != null) {
+                const original = originals[index]
+                const same_span = original.start == span.start && original.end == span.end
+                if (same_span) {
+                    memory.writeString(output, index, owned)
+                } else {
+                    const text =
+                        encoding.sliceBytes(source, original.start, original.end)
+                    const value = match {
+                        text == local => owned,
+                        _ => strings.copy(text)
+                    }
+
+                    memory.writeString(output, index, value)
+                }
+            }
+
+            state.index += 1
+        }
+    })
+}
