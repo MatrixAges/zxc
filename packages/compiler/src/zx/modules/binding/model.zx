@@ -1,4 +1,5 @@
 import type { Cache, Diagnostic } from "../../analysis/semantic/resolving/model"
+import type { Span } from "../../frontend/lexer/token_model"
 import type { ImportKind } from "../../frontend/parser/imports/model"
 
 export enum Target {
@@ -7,18 +8,19 @@ export enum Target {
     Native
 }
 
-export enum Section {
-    Types,
-    Constants,
-    Functions,
-    Done
+export type Names = {
+    source?: string,
+    locals: Span[],
+    originals: Span[],
+    values: string[],
+    aliases: string[]
 }
 
-export type Names = {
-    values: string[],
-    aliases: string[],
-    starts: u64[],
-    ends: u64[]
+export type Name = {
+    original: string,
+    local: string,
+    start: u64,
+    end: u64
 }
 
 export type Request = {

@@ -1,3 +1,5 @@
+import encoding from "std:encoding"
+
 import { ImportKind } from "../../frontend/parser/imports/model"
 import { executable_required, namespace_required, module_code } from "./const"
 import { Target } from "./model"
@@ -22,9 +24,19 @@ export default function (in: Input): Output {
     }
 
     const invalid = callable && (
-        in.names.values.length != 1 ||
+        in.names.originals.length != 1 ||
             (native ? in.members.length == 0 : member == null)
     )
+
+    const namespace: string? = match {
+        !callable || !native || invalid => null,
+        in.names.source == null => in.names.aliases[0],
+        _ => encoding.sliceBytes(
+            in.names.source,
+            in.names.locals[0].start,
+            in.names.locals[0].end
+        )
+    }
 
     const failure = native ? namespace_required : executable_required
 
@@ -41,7 +53,7 @@ export default function (in: Input): Output {
             names: [],
             indices: []
         },
-        namespace: callable && native && !invalid ? in.names.aliases[0] : null,
+        namespace,
         diagnostic: {
             code: invalid ? module_code : "",
             message: invalid ? failure : "",

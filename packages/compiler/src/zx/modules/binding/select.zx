@@ -12,6 +12,7 @@ import {
     native_enum_required
 } from "./const"
 import { Target } from "./model"
+import readName from "./name"
 import position from "./position"
 
 import type { Request, Result } from "./model"
@@ -24,93 +25,124 @@ export type Input = {
 export type Output = Result
 
 export default function (in: Input): Output {
+    const { request, result } = in
+
+    const namespace = result.namespace != null
+    const wildcard = !namespace && request.wildcard
+
+    const count = match {
+        namespace => request.members.length,
+        !request.wildcard => request.names.originals.length,
+        request.kind == ImportKind.TypeOnly => request.exports.names.length,
+        _ => request.exports.names.length + request.constants.length +
+            request.members.length
+    }
+
     return loop({
-        request: in.request,
-        result: in.result,
+        result,
         index: 0
     }, {
         while: current =>
-            current.result.diagnostic.message == "" && current.index < (
-                match {
-                    current.result.namespace != null => current.request.members.length,
-                    _ => current.request.names.values.length
-                }
-            ),
+            current.result.diagnostic.message == "" && current.index < count,
         next: current => {
-            const request = current.request
-            const namespace = current.result.namespace != null
-            const local = match {
-                namespace => request.members[current.index],
-                _ => request.names.aliases[current.index]
-            }
-            const original = namespace ? local : request.names.values[current.index]
-            const name =
-                match {
-                    request.kind == ImportKind.Function || original == default_export =>
-                        "",
-                    _ => original
-                }
+            const index = current.index
+            current.index += 1
 
-            const callable: u64? =
-                match {
-                    namespace => current.index,
-                    request.kind == ImportKind.TypeOnly => null,
-                    _ => position({
-                        names: request.members,
-                        name: name
-                    })
-                }
-            const constant: u64? =
-                match {
-                    callable == null && request.kind == ImportKind.Enumeration =>
-                        position({
-                            names: request.constants,
-                            name: original
-                        }),
+            const { original, local, start, end } = readName({
+                request,
+                index,
+                namespace
+            })
+
+            if (!wildcard || original != "") {
+                const name =
+                    match {
+                        request.kind == ImportKind.Function ||
+                            original == default_export =>
+                            "",
+                        _ => original
+                    }
+
+                const callable: u64? =
+                    match {
+                        namespace => index,
+                        request.kind == ImportKind.TypeOnly => null,
+                        _ => position({
+                            names: request.members,
+                            name: name
+                        })
+                    }
+                const constant: u64? =
+                    match {
+                        callable == null && request.kind == ImportKind.Enumeration =>
+                            position({
+                                names: request.constants,
+                                name: original
+                            }),
+                        _ => null
+                    }
+                const alias_index: u64? = match {
+                    callable == null && constant == null => position({
+                        names: request.exports.names,
+                        name: original
+                    }),
                     _ => null
                 }
-            const alias_index: u64? = match {
-                callable == null && constant == null => position({
-                    names: request.exports.names,
-                    name: original
-                }),
-                _ => null
-            }
 
-            const public_name = request.reexport && local == default_export ? "" : local
+                const forwarding_default = request.reexport && local == default_export
+                const public_name = forwarding_default ? "" : local
 
-            if (callable != null && request.kind != ImportKind.TypeOnly) {
-                current.result = {
-                    ...current.result,
-                    functions: {
-                        names: current.result.functions.names.push(public_name)[0],
-                        indices: current.result.functions.indices.push(callable)[0]
-                    }
-                }
-            } else if (constant != null && request.kind == ImportKind.Enumeration) {
-                current.result = {
-                    ...current.result,
-                    constants: {
-                        names: current.result.constants.names.push(local)[0],
-                        indices: current.result.constants.indices.push(constant)[0]
-                    }
-                }
-            } else if (alias_index != null) {
-                const allowed = request.reexport || request.kind == ImportKind.TypeOnly ||
-                    kind(
-                        request
-                            .type_kinds[integers.widen(
-                                request.exports.ids[alias_index]
-                            )]
-                    ) == Kind.Enumeration
-
-                if (allowed) {
+                if (callable != null && request.kind != ImportKind.TypeOnly) {
                     current.result = {
                         ...current.result,
-                        aliases: {
-                            names: current.result.aliases.names.push(local)[0],
+                        functions: {
+                            names:
+                                current.result.functions.names.push(public_name)[0],
                             indices:
-                                current.result.aliases.indices.push(alias_index)[0]
+                                current.result.functions.indices.push(callable)[0]
+                        }
+                    }
+                } else if (constant != null && request.kind == ImportKind.Enumeration) {
+                    current.result = {
+                        ...current.result,
+                        constants: {
+                            names: current.result.constants.names.push(local)[0],
+                            indices:
+                                current.result.constants.indices.push(constant)[0]
+                        }
+                    }
+                } else if (alias_index != null) {
+                    const allowed =
+                        request.reexport || request.kind == ImportKind.TypeOnly ||
+                        kind(
+                            request
+                                .type_kinds[integers.widen(
+                                    request.exports.ids[alias_index]
+                                )]
+                        ) == Kind.Enumeration
+
+                    if (allowed) {
+                        current.result = {
+                            ...current.result,
+                            aliases: {
+                                names: current.result.aliases.names.push(local)[0],
+                                indices:
+                                    current.result.aliases.indices.push(alias_index)[0]
+                            }
+                        }
+                    } else {
+                        current.result = {
+                            ...current.result,
+                            diagnostic: {
+                                code: module_code,
+                                message: match {
+                                    request.target == Target.Native =>
+                                        native_enum_required,
+                                    _ => enum_required
+                                },
+                                start,
+                                end
+                            }
                         }
                     }
                 } else {
@@ -119,30 +151,15 @@ export default function (in: Input): Output {
                         diagnostic: {
                             code: module_code,
                             message: match {
-                                request.target == Target.Native => native_enum_required,
-                                _ => enum_required
+                                request.target == Target.Native => missing_native,
+                                _ => missing_export
                             },
-                            start: request.names.starts[current.index],
-                            end: request.names.ends[current.index]
+                            start,
+                            end
                         }
                     }
                 }
-            } else {
-                current.result = {
-                    ...current.result,
-                    diagnostic: {
-                        code: module_code,
-                        message: match {
-                            request.target == Target.Native => missing_native,
-                            _ => missing_export
-                        },
-                        start: request.names.starts[current.index],
-                        end: request.names.ends[current.index]
-                    }
-                }
             }
-
-            current.index += 1
         },
         return: state => state.result
     })

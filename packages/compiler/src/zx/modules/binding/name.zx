@@ -1,0 +1,61 @@
+import encoding from "std:encoding"
+
+import type { Name, Request } from "./model"
+
+export type Input = {
+    request: Request,
+    index: u64,
+    namespace: bool
+}
+
+export type Output = Name
+
+export default function (in: Input): Output {
+    const { request, index } = in
+
+    if (in.namespace || request.wildcard) {
+        const types = request.exports.names.length
+        const constants_end = types + request.constants.length
+
+        const name = match {
+            in.namespace => request.members[index],
+            index < types => request.exports.names[index],
+            index < constants_end => request.constants[index - types],
+            _ => request.members[index - constants_end]
+        }
+
+        return {
+            original: name,
+            local: name,
+            start: request.start,
+            end: request.end
+        }
+    }
+
+    const span = request.names.originals[index]
+    const source = request.names.source
+
+    if (source == null) {
+        return {
+            original: request.names.values[index],
+            local: request.names.aliases[index],
+            start: span.start,
+            end: span.end
+        }
+    }
+
+    const original = encoding.sliceBytes(source, span.start, span.end)
+    const local_span = request.names.locals[index]
+
+    const local = match {
+        local_span.start == span.start && local_span.end == span.end => original,
+        _ => encoding.sliceBytes(source, local_span.start, local_span.end)
+    }
+
+    return {
+        original,
+        local,
+        start: span.start,
+        end: span.end
+    }
+}

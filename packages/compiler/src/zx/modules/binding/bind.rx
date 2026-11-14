@@ -9,15 +9,10 @@
         <Return value={$ctx.initial} />
     </If>
 
-    <Call fn="names" in={$in} />
-
     <Call
         fn="select"
         in={{
-            request: {
-                ...$in,
-                names: $ctx.names
-            },
+            request: $in,
             result: $ctx.initial
         }}
     />
