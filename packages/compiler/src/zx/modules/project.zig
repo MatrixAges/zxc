@@ -86,8 +86,7 @@ const LoadFrame = struct {
     next_import: usize = 0,
     pending: ?usize = null,
     aliases: std.ArrayList(ir.Export) = .empty,
-    imported_names: source_index.Map = .empty,
-    imported_count: usize = 0,
+    imported_names: @import("project/load/imports/host.zig") = .{},
     imports: std.ArrayList(FunctionImport) = .empty,
     constant_imports: std.ArrayList(ir.Constant) = .empty,
     dependencies: std.ArrayList(ModuleRecord.Import) = .empty,
@@ -238,16 +237,8 @@ const Project = struct {
             var path_memory = std.heap.BufferFirstAllocator.init(&path_buffer, paths.allocator());
 
             const target: ImportTarget = if (pending) |resumed| .{ .source = self.units[resumed].path } else target_block: {
-                if (!item.exported and item.nameCount() != 0) {
-                    if (frame.imported_count == 0) frame.imported_names = try source_index.Map.init(self.arena.child_allocator, header.importBindingCount());
-
-                    for (0..item.nameCount()) |name_index| {
-                        const name = item.nameAt(name_index);
-
-                        if (!frame.imported_names.claim(frame.imported_count, name.text)) return self.reporter.fail(.name, name.span, "duplicate import binding");
-
-                        frame.imported_count += 1;
-                    }
+                if (try frame.imported_names.claim(self.arena.child_allocator, item)) |name| {
+                    return self.reporter.fail(.name, name.span, "duplicate import binding");
                 }
 
                 const route = Target.classify(item.path);

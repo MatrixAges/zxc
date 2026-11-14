@@ -1,0 +1,79 @@
+import bytes from "std:bytes"
+import encoding from "std:encoding"
+import integers from "std:integer"
+import memory from "std:memory"
+
+import type { U64Buffer } from "std:memory"
+import type { Span } from "../../../../frontend/lexer/token_model"
+
+export type Input = {
+    source: string,
+    names: Span[],
+    first: u64,
+    count: u64,
+    buckets: U64Buffer,
+    capacity: u64
+}
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    const { source, names, first, count, buckets, capacity } = in
+
+    const mask = capacity - 1
+
+    const duplicate: u64? = null
+
+    return loop({
+        offset: 0,
+        duplicate
+    }, {
+        while: state => state.offset < count && state.duplicate == null,
+        next: state => {
+            const index = first + state.offset
+            const span = names[index]
+            const key = encoding.sliceBytes(source, span.start, span.end)
+            const hash = bytes.hash(bytes.fromText(key))
+
+            const found = loop({
+                slot: integers.andBits(hash, mask),
+                vacant: false,
+                equal: false
+            }, {
+                while: probe => !probe.vacant && !probe.equal,
+                next: probe => {
+                    const row = memory.readU64(buckets, probe.slot)
+
+                    if (row == 0) {
+                        probe.vacant = true
+                    } else {
+                        const previous = names[row - 1]
+                        const text = encoding.sliceBytes(
+                            source,
+                            previous.start,
+                            previous.end
+                        )
+
+                        if (text == key) {
+                            probe.equal = true
+                        } else {
+                            probe.slot = integers.andBits(
+                                probe.slot + 1,
+                                mask
+                            )
+                        }
+                    }
+                }
+            })
+
+            if (found.equal) {
+                state.duplicate = state.offset
+            } else {
+                memory.writeU64(buckets, found.slot, index + 1)
+            }
+
+            state.offset += 1
+        },
+        return: state => state.duplicate
+    })
+}

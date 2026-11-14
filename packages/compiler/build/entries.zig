@@ -148,6 +148,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/project/target/scope/owner.zx", .name = "project_package_owner" },
     .{ .path = "zx/modules/project/load/admit.zx", .name = "project_load_admission" },
     .{ .path = "zx/modules/project/load/source.rx", .name = "project_load_source" },
+    .{ .path = "zx/modules/project/load/imports/claim.zx", .name = "project_import_claim" },
     .{ .path = "zx/modules/compiled/resolution/resolve.rx", .name = "compiled_import_resolution" },
     .{ .path = "zx/modules/project/state/open.rx", .name = "project_state_open" },
     .{ .path = "zx/modules/project/publication/plan.rx", .name = "project_body_publish" },

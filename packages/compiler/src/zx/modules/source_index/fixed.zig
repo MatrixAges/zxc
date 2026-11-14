@@ -11,17 +11,23 @@ buckets: []u64,
 pub fn init(allocator: std.mem.Allocator, count: usize) std.mem.Allocator.Error!Self {
     if (count == 0) return empty;
 
-    const desired = std.math.mul(usize, count, capacity_ratio) catch return error.OutOfMemory;
-    const capacity = std.math.ceilPowerOfTwo(usize, desired) catch return error.OutOfMemory;
     const keys = try allocator.alloc([]const u8, count);
 
     errdefer allocator.free(keys);
 
+    return .{ .keys = keys, .buckets = try bucketsFor(allocator, count) };
+}
+
+pub fn bucketsFor(allocator: std.mem.Allocator, count: usize) std.mem.Allocator.Error![]u64 {
+    if (count == 0) return &.{};
+
+    const desired = std.math.mul(usize, count, capacity_ratio) catch return error.OutOfMemory;
+    const capacity = std.math.ceilPowerOfTwo(usize, desired) catch return error.OutOfMemory;
     const buckets = try allocator.alloc(u64, capacity);
 
     @memset(buckets, 0);
 
-    return .{ .keys = keys, .buckets = buckets };
+    return buckets;
 }
 
 pub fn deinit(self: Self, allocator: std.mem.Allocator) void {
