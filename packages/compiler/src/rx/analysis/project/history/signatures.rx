@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="History" />
+
+    <Args in={History.Signatures} out={bool} />
+
+    <Call fn="inputs" in={$in.inputs} />
+
+    <If on={!$ctx.inputs}>
+        <Return value={false} />
+    </If>
+
+    <Call
+        fn="entries"
+        in={{
+            earlier: $in.earlier_entries,
+            current: $in.current_entries
+        }}
+    />
+
+    <Return value={$ctx.entries} />
+</Module>

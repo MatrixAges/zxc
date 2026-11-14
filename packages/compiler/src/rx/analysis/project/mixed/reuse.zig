@@ -12,7 +12,7 @@ const comparisons = @import("frontend").compare_ir;
 const State = @import("state.zig");
 const history = @import("../history.zig");
 const columns = @import("../history/columns.zig");
-const ParseCache = @import("frontend").project.ParseCache;
+const project = @import("frontend").project;
 const Self = @This();
 
 record: ?*history.History,
@@ -25,7 +25,7 @@ redone: []bool = &.{},
 digests: []?[32]u8 = &.{},
 before: []history.Checkpoint = &.{},
 after: []history.Checkpoint = &.{},
-pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.History, derived: history.Frame) std.mem.Allocator.Error!Self {
+pub fn begin(state: *const State, cache: *const project.ParseCache, record: ?*history.History, derived: history.Frame, sources: []const project.Source) std.mem.Allocator.Error!Self {
     const owner = record orelse return .{ .record = null, .derived = derived };
     const count = state.graph.modules.len;
     const initial = checkpoint(state);
@@ -44,8 +44,17 @@ pub fn begin(state: *const State, cache: *const ParseCache, record: ?*history.Hi
     @memset(self.before, initial);
     @memset(self.after, initial);
 
-    for (state.graph.modules, self.digests) |module, *digest| digest.* = switch (module.source) {
-        .zx => cache.sourceDigest(module.path),
+    const retained = if (owner.bodies_only) &owner.previous.? else null;
+
+    for (state.graph.modules, self.digests, 0..) |module, *digest, index| digest.* = switch (module.source) {
+        .zx => |source| current: {
+            // A failed request may have replaced a parse even though the last successful analysis is unchanged.
+            if (retained) |earlier| {
+                if (zx.bytes.equal(earlier.sources[source].source, sources[source].source)) break :current earlier.digests[index];
+            }
+
+            break :current cache.sourceDigest(module.path);
+        },
         .store => null,
         .rx => owner.rxDigest(module.path),
     };

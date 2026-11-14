@@ -1,0 +1,23 @@
+import bytes from "std:bytes"
+
+import { SourceChange } from "./model"
+
+export type Input = {
+    earlier_path: u8[],
+    current_path: u8[],
+    earlier_source: u8[],
+    current_source: u8[]
+}
+
+export type Output = SourceChange
+
+export default function (in: Input): Output {
+    if (!bytes.equals(in.earlier_path, in.current_path)) {
+        return SourceChange.DifferentPath
+    }
+
+    return match {
+        bytes.equals(in.earlier_source, in.current_source) => SourceChange.Unchanged,
+        _ => SourceChange.Edited
+    }
+}

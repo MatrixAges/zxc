@@ -263,6 +263,7 @@ fn derive(allocator: std.mem.Allocator, backing: std.mem.Allocator, raw_options:
         .definitions = registry.data.definitions,
         .loaded = try prepare.completeShortcuts(allocator, prepared.loaded, inferred.signatures),
         .signatures = signatures,
+        .signature_entries = signature_entries.items,
         .signature_indices = indexed.indices,
         .resolved = inferred.signatures,
         .types = inferred.types,

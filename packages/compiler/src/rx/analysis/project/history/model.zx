@@ -1,0 +1,18 @@
+export enum SourceChange {
+    DifferentPath,
+    Unchanged,
+    Edited
+}
+
+export type Inputs = {
+    earlier: u8[],
+    current: u8[],
+    earlier_count: u64,
+    current_count: u64
+}
+
+export type Signatures = {
+    inputs: Inputs,
+    earlier_entries: string[],
+    current_entries: string[]
+}

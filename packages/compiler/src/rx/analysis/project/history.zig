@@ -9,8 +9,8 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const frontend = @import("frontend");
-const bytes = @import("zx").bytes;
 const columns = @import("history/columns.zig");
+const admission = @import("history/admission.zig");
 const Types = frontend.project.artifact.type_link.Table;
 const Source = frontend.project.artifact.source_link;
 pub const OriginStorage = @FieldType(@FieldType(Types, "origins"), "items");
@@ -25,6 +25,7 @@ pub const Frame = struct {
     definitions: []@import("../store.zig").Definition,
     loaded: @import("prepare.zig").Loaded,
     signatures: frontend.project.signature_project.Data,
+    signature_entries: []const []const u8,
     signature_indices: []const ?usize,
     resolved: []const @import("signatures.zig").Signature,
     types: ir.TypeTable,
@@ -89,19 +90,20 @@ pub const History = struct {
     pub fn bodiesOnly(self: *const History, sources: []const frontend.project.Source, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!bool {
         const earlier = if (self.previous) |*value| value else return false;
 
-        if (!std.mem.eql(u8, &earlier.frame, &self.frame) or earlier.sources.len != sources.len) return false;
+        if (!admission.sameInputs(&earlier.frame, &self.frame, earlier.sources.len, sources.len)) return false;
 
-        for (earlier.sources, sources) |before, after| {
-            if (!bytes.equal(before.path, after.path)) return false;
-            if (before.source.ptr == after.source.ptr and before.source.len == after.source.len) continue;
-            if (bytes.equal(before.source, after.source)) continue;
+        const modules = earlier.derived.dependencies.modules[0..sources.len];
 
-            const parsed = try cache.getModule(after.source, after.path);
-            const body = parsed.bodyStart() orelse return false;
-            const shared = std.mem.indexOfDiff(u8, before.source, after.source) orelse return false;
+        for (earlier.sources, sources, modules) |*before, *after, *module| switch (admission.source(before, after)) {
+            .DifferentPath => return false,
+            .Unchanged => {},
+            .Edited => {
+                const parsed = try cache.getModule(after.source, module.path);
+                const body = parsed.bodyStart() orelse return false;
 
-            if (shared <= body) return false;
-        }
+                if (!admission.sameHeader(before.source, after.source, body)) return false;
+            },
+        };
 
         return true;
     }
@@ -111,25 +113,11 @@ pub const History = struct {
     pub fn signatures(self: *const History, sources: []const frontend.project.Source, entries: []const []const u8) ?frontend.project.signature_project.Data {
         const earlier = if (self.previous) |*value| value else return null;
 
-        if (!std.mem.eql(u8, &earlier.shape, &self.shape) or earlier.sources.len != sources.len) return null;
+        if (!admission.signed(&earlier.shape, &self.shape, earlier.sources.len, sources.len, earlier.derived.signature_entries, entries)) return null;
 
-        for (earlier.sources, sources) |before, after| {
-            if (!bytes.equal(before.path, after.path)) return null;
-            if (before.source.ptr != after.source.ptr or before.source.len != after.source.len) if (!bytes.equal(before.source, after.source)) return null;
-        }
+        for (earlier.sources, sources) |*before, *after| if (admission.source(before, after) != .Unchanged) return null;
 
-        var position: usize = 0;
-
-        for (earlier.derived.dependencies.order) |index| switch (earlier.derived.dependencies.modules[index].source) {
-            .zx => |source| {
-                if (position == entries.len or !bytes.equal(earlier.sources[source].path, entries[position])) return null;
-
-                position += 1;
-            },
-            else => {},
-        };
-
-        return if (position == entries.len) earlier.derived.signatures else null;
+        return earlier.derived.signatures;
     }
     /// The digest of the RX source at `path`.
     pub fn rxDigest(self: *const History, path: []const u8) ?[32]u8 {

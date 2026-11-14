@@ -50,7 +50,11 @@ pub const Result = union(enum) {
     pub fn bodyStart(self: *const Self) ?usize {
         return switch (self.*) {
             .native => |result| if (result.value == .diagnostic) null else if (result.value.parsed.ast.body) |body| body.span.start else null,
-            .indexed => null,
+            .indexed => |*result| if (indexed_enabled) block: {
+                const body = result.output.body orelse break :block null;
+
+                break :block @intCast(result.output.blocks.blocks[@intCast(body)].span.start);
+            } else unreachable,
         };
     }
 

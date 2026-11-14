@@ -1,0 +1,21 @@
+import bytes from "std:bytes"
+
+export type Input = {
+    earlier: u8[],
+    current: u8[],
+    body: u64
+}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.body >= in.earlier.length || in.body >= in.current.length) {
+        return false
+    }
+
+    const length = in.body + 1
+    const earlier = in.earlier.splice(0, length, [])[1]
+    const current = in.current.splice(0, length, [])[1]
+
+    return bytes.equals(earlier, current)
+}
