@@ -1,3 +1,5 @@
+import type { U64Buffer } from "std:memory"
+
 export enum State {
     Fresh,
     Visiting,
@@ -18,8 +20,7 @@ export type Frame = {
 
 export enum SourceAction {
     Descend,
-    BindBody,
-    BindSignature,
+    Bind,
     DeferSignature,
     SkipSignature,
     RejectRx,
@@ -29,10 +30,18 @@ export enum SourceAction {
 }
 
 export type Source = {
-    rx: bool,
+    path: string,
     signature: bool,
     function_import: bool,
     exported: bool,
-    state?: State,
-    depth: u64
+    depth: u64,
+    keys: u8[][],
+    buckets: U64Buffer,
+    capacity: u64,
+    states: State[]
+}
+
+export type SourcePlan = {
+    action: SourceAction,
+    index?: u64
 }

@@ -1,51 +1,85 @@
 <Module>
     <Type from="model" as="Load" />
 
-    <Args in={Load.Source} out={Load.SourceAction} />
+    <Args in={Load.Source} out={Load.SourcePlan} />
 
-    <If on={$in.rx}>
+    <Call fn="is_rx" in={$in.path} />
+
+    <If on={$ctx.is_rx}>
         <If on={!$in.signature}>
-            <Return value={Load.SourceAction.RejectRx} />
+            <Return
+                value={{
+                    action: Load.SourceAction.RejectRx
+                }}
+            />
         </If>
 
         <If on={$in.function_import && !$in.exported}>
-            <Return value={Load.SourceAction.SkipSignature} />
+            <Return
+                value={{
+                    action: Load.SourceAction.SkipSignature
+                }}
+            />
         </If>
 
-        <Return value={Load.SourceAction.DeferSignature} />
+        <Return
+            value={{
+                action: Load.SourceAction.DeferSignature
+            }}
+        />
     </If>
 
-    <If on={$in.state != null}>
+    <Call fn="lookup" in={$in} />
+
+    <If on={$ctx.lookup != null}>
         <Call
             fn="admit"
             in={{
-                state: $in.state,
+                state: $in.states[$ctx.lookup],
                 depth: $in.depth
             }}
         />
 
         <Switch on={$ctx.admit}>
             <Case value={Load.Admission.Push}>
-                <Return value={Load.SourceAction.Descend} />
+                <Return
+                    value={{
+                        action: Load.SourceAction.Descend,
+                        index: $ctx.lookup
+                    }}
+                />
             </Case>
 
             <Case value={Load.Admission.Cycle}>
-                <Return value={Load.SourceAction.Cycle} />
+                <Return
+                    value={{
+                        action: Load.SourceAction.Cycle
+                    }}
+                />
             </Case>
 
             <Case value={Load.Admission.Depth}>
-                <Return value={Load.SourceAction.Depth} />
+                <Return
+                    value={{
+                        action: Load.SourceAction.Depth
+                    }}
+                />
             </Case>
 
             <Default>
-                <If on={$in.signature}>
-                    <Return value={Load.SourceAction.BindSignature} />
-                </If>
-
-                <Return value={Load.SourceAction.BindBody} />
+                <Return
+                    value={{
+                        action: Load.SourceAction.Bind,
+                        index: $ctx.lookup
+                    }}
+                />
             </Default>
         </Switch>
     </If>
 
-    <Return value={Load.SourceAction.Missing} />
+    <Return
+        value={{
+            action: Load.SourceAction.Missing
+        }}
+    />
 </Module>

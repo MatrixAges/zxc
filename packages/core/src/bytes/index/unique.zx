@@ -1,0 +1,36 @@
+import memory from "std:memory"
+
+import probe from "./slot"
+
+import type { Input } from "./rebuild"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const { keys, buckets, capacity } = in
+
+    return loop({
+        row: 0,
+        unique: true
+    }, {
+        while: state => state.unique && state.row < keys.length,
+        next: state => {
+            const row = state.row
+            const found = probe({
+                keys,
+                buckets,
+                capacity,
+                key: keys[row]
+            })
+
+            if (found.entry == 0) {
+                memory.writeU64(buckets, found.slot, row + 1)
+            } else {
+                state.unique = false
+            }
+
+            state.row += 1
+        },
+        return: state => state.unique
+    })
+}

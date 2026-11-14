@@ -1,0 +1,22 @@
+import bytes from "std:bytes"
+import fixed from "core/bytes/index/fixed"
+
+import type { Source } from "./model"
+
+export type Input = Source
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+    if (in.capacity == 0) {
+        return null
+    }
+
+    return fixed({
+        keys: in.keys,
+        buckets: in.buckets,
+        capacity: in.capacity,
+        key: bytes.fromText(in.path),
+        insert: null
+    })
+}

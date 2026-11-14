@@ -43,6 +43,20 @@ pub fn claim(self: *Self, row: usize, key: []const u8) bool {
     return true;
 }
 
+/// Builds an empty index from its prefilled key column, stopping at the first duplicate.
+pub fn buildUnique(self: *Self) bool {
+    const generated = @import("generated_byte_index_unique");
+    var scratch = std.heap.FixedBufferAllocator.init(&.{});
+
+    const input: std.meta.Child(generated.Input) = .{
+        .keys = self.keys,
+        .buckets = @ptrCast(&self.buckets),
+        .capacity = self.buckets.len,
+    };
+
+    return @import("zx").columns.invoke(generated.executeValue, scratch.allocator(), &input) catch unreachable;
+}
+
 pub fn get(self: *const Self, key: []const u8) ?usize {
     return @intCast(self.find(key, null) orelse return null);
 }

@@ -41,6 +41,7 @@ pub const main = [_]Entry{
     .{ .path = "core/bytes/index/fixed.zx", .name = "fixed_byte_index" },
     .{ .path = "core/bytes/index/slot.zx", .name = "byte_index_slot" },
     .{ .path = "core/bytes/index/rebuild.zx", .name = "byte_index_rebuild" },
+    .{ .path = "core/bytes/index/unique.zx", .name = "byte_index_unique" },
     .{ .path = "rx/dependency_graph/reference/rule.zx", .name = "rx_reference_rule", .owner = .rx },
     .{ .path = "rx/analysis/project/source_graph/schedule.rx", .name = "source_schedule", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/references/call_signature.zx", .name = "rx_call_signature", .owner = .rx_analysis },

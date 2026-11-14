@@ -63,7 +63,6 @@ pub const Options = struct {
 
 const Unit = struct {
     path: []const u8,
-    state: Loading.State = .Fresh,
     signature: ?@import("source_signature.zig").Result = null,
     signature_aliases: []const ir.Export = &.{},
     signature_imports: []const FunctionImport = &.{},
@@ -109,6 +108,7 @@ const Project = struct {
     cache_records: std.ArrayList(usize) = .empty,
     cache_root: ?usize = null,
     units: []Unit,
+    load_states: []Loading.State,
     /// Each unit path to the first unit with it.
     unit_indices: source_index.Map = .empty,
     options: Options,
@@ -131,7 +131,7 @@ const Project = struct {
     fn loadFrames(self: *Project, index: usize, comptime phase: Loading.Phase) zx.Error!void {
         const frames = &self.load_frames;
 
-        switch (Loading.admit(self.units[index].state, frames.items.len)) {
+        switch (Loading.admit(self.load_states[index], frames.items.len)) {
             .Skip => return,
             .Cycle => return self.dependencyCycle(),
             .Depth => return self.dependencyDepth(),
@@ -172,7 +172,8 @@ const Project = struct {
     fn pushFrame(self: *Project, index: usize) zx.Error!void {
         const unit = &self.units[index];
         const frames = &self.load_frames;
-        unit.state = .Visiting;
+
+        self.load_states[index] = .Visiting;
         self.current_source = index;
 
         const parsed = try self.parse_cache.getModuleVersion(self.sources[index].source, unit.path);
@@ -271,27 +272,22 @@ const Project = struct {
                     if (pending) |child| {
                         const loaded = &self.units[child];
 
-                        std.debug.assert(loaded.state == .Done);
+                        std.debug.assert(self.load_states[child] == .Done);
 
                         source_path = loaded.path;
 
                         break :block importedSource(loaded, phase);
                     }
 
-                    const rx = std.mem.endsWith(u8, path, ".rx");
-                    const dependency = if (!rx) self.find(path) else null;
-                    const state = if (dependency) |child| self.units[child].state else null;
-
-                    const action = Loading.source(.{
-                        .rx = rx,
+                    const plan = Loading.source(&self.unit_indices, self.load_states, .{
+                        .path = path,
                         .phase = phase,
                         .function_import = item.kind == .function,
                         .exported = item.exported,
-                        .state = state,
                         .depth = self.load_frames.items.len,
                     });
 
-                    switch (action) {
+                    switch (plan.action) {
                         .SkipSignature => continue,
                         .DeferSignature => {
                             const retained = try self.allocator.dupe(u8, path);
@@ -303,12 +299,12 @@ const Project = struct {
                         .Cycle => return self.dependencyCycle(),
                         .Depth => return self.dependencyDepth(),
                         .Descend => {
-                            frame.pending = dependency.?;
+                            frame.pending = plan.index.?;
 
-                            return dependency;
+                            return plan.index;
                         },
-                        .BindSignature, .BindBody => {
-                            const loaded = &self.units[dependency.?];
+                        .Bind => {
+                            const loaded = &self.units[plan.index.?];
                             source_path = loaded.path;
 
                             break :block importedSource(loaded, phase);
@@ -361,7 +357,7 @@ const Project = struct {
             unit.signature_imports = imports.items;
             unit.signature_reexports = frame.export_functions.items;
             unit.signature_constant_imports = constants.items;
-            unit.state = .Done;
+            self.load_states[index] = .Done;
         } else try self.finishInput(frame, input);
 
         return null;
@@ -558,7 +554,7 @@ const Project = struct {
             self.entry_program = program;
         }
 
-        unit.state = .Done;
+        self.load_states[frame.index] = .Done;
     }
     fn loadCompiled(self: *Project, target: compiled.Target, span: zx.Span) zx.Error!Imported {
         const exported = compiled.imports.load(self.allocator, &self.options, target, .{
@@ -586,15 +582,19 @@ const Project = struct {
 
     /// Indexes the unit paths for `find`; reports whether they are unique.
     fn indexUnits(self: *Project) std.mem.Allocator.Error!bool {
-        var unique = true;
-
         self.unit_indices = try source_index.Map.init(self.arena.child_allocator, self.units.len);
 
-        for (self.units, 0..) |unit, index| {
-            if (!self.unit_indices.claim(index, unit.path)) unique = false;
+        if (comptime @import("parser_options").generated_parser) {
+            for (self.units, self.unit_indices.keys) |*unit, *key| key.* = unit.path;
+
+            return self.unit_indices.buildUnique();
         }
 
-        return unique;
+        for (self.units, 0..) |unit, index| {
+            if (!self.unit_indices.claim(index, unit.path)) return false;
+        }
+
+        return true;
     }
     fn nativeModule(self: *Project, source: []const u8, identity: ?[]const u8, name: []const u8, span: zx.Span) zx.Error!ir.NativeModuleId {
         const selected = target_registry.registration(self.native_modules.view(), identity orelse source, name);
@@ -737,7 +737,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(owned, &.{ options.root_dir, source.path }) };
 
-    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .units = units, .options = options, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = cache, .units = units, .load_states = try Loading.states(owned, units.len), .options = options, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
 
     defer project.deinitScratch();
 
@@ -818,7 +818,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, raw_sources: []const Source, 
 
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
-    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (restored_payloads != null) semantic_cache else null, .restored_payloads = if (restored_payloads) |*payloads| payloads else null, .units = units, .options = normalized, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
+    var project = Project{ .binding_scratch = std.heap.ArenaAllocator.init(allocator), .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (restored_payloads != null) semantic_cache else null, .restored_payloads = if (restored_payloads) |*payloads| payloads else null, .units = units, .load_states = try Loading.states(temporary, units.len), .options = normalized, .reporter = &reporter, .types = state.types, .native_modules = state.native_modules, .nominal_origins = state.origins };
 
     defer project.deinitScratch();
 
