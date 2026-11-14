@@ -1,0 +1,50 @@
+<Module>
+    <Type from="content_model" as="Content" />
+
+    <Args in={Content.Input} out={Content.Output} />
+
+    <Call
+        module="../remapping/optional_body"
+        in={{
+            source: $in.source
+        }}
+    />
+
+    <If on={$in.copy_entry_stores}>
+        <Call fn="../../../ir/canonical/stores/validate" in={$in.entry_stores} />
+
+        <If on={!$ctx.validate}>
+            <Return
+                value={{
+                    valid: false,
+                    function: null,
+                    entry_store_types: null
+                }}
+            />
+        </If>
+
+        <Call
+            fn="../remapping/ids"
+            in={{
+                values: $in.entry_stores.types,
+                mapping: $in.type_mapping
+            }}
+        />
+
+        <Return
+            value={{
+                valid: true,
+                function: $ctx.optional_body,
+                entry_store_types: $ctx.ids
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            valid: true,
+            function: $ctx.optional_body,
+            entry_store_types: null
+        }}
+    />
+</Module>

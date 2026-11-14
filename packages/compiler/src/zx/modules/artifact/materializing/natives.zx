@@ -1,11 +1,10 @@
 import integers from "std:integer"
 
 import ids from "../remapping/ids"
-import { Kind } from "../remapping/model"
+import planned from "../remapping/planned"
 
 import type { Modules } from "core/native_module_table/model"
 import type { NativePlan } from "../planning/model"
-import type { Mapping } from "../remapping/model"
 
 export type Input = {
     modules: Modules,
@@ -25,15 +24,7 @@ export default function (in: Input): Output {
         type_namespaces: []
     }
 
-    const mapping: Mapping = {
-        kind: Kind.Planned,
-        dense: [],
-        sparse: [],
-        planned: in.mapping,
-        first: 0,
-        prefix: 0,
-        count: 0
-    }
+    const mapping = planned(in.mapping)
 
     const result = loop({
         source: in.modules,

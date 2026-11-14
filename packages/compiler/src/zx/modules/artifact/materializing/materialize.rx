@@ -4,6 +4,8 @@
     <Type from="core/type_table/model" as="Types" />
     <Type from="core/native_module_table/model" as="Native" />
     <Type from="../planning/functions/model" as="Functions" />
+    <Type from="../remapping/model" as="Remap" />
+    <Type from="content_model" as="Content" />
 
     <Args
         in={{
@@ -11,13 +13,16 @@
             origins: Nominal.Bindings,
             declarations: Declarations.Table,
             modules: Native.Modules,
-            plan: Functions.Plan
+            plan: Functions.Plan,
+            content: Content.Input
         }}
         out={{
             table: Types.Table,
             origins: Nominal.Bindings,
             natives?: Native.Modules,
-            signatures?: Declarations.Table
+            signatures?: Declarations.Table,
+            function?: Remap.FunctionOutput,
+            entry_store_types?: u32[]
         }}
     />
 
@@ -45,7 +50,9 @@
                 table: $ctx.materialize.table,
                 origins: $ctx.materialize.origins,
                 natives: null,
-                signatures: null
+                signatures: null,
+                function: null,
+                entry_store_types: null
             }}
         />
     </If>
@@ -60,12 +67,29 @@
         }}
     />
 
+    <If on={$ctx.signatures == null}>
+        <Return
+            value={{
+                table: $ctx.materialize.table,
+                origins: $ctx.materialize.origins,
+                natives: null,
+                signatures: null,
+                function: null,
+                entry_store_types: null
+            }}
+        />
+    </If>
+
+    <Call module="content" in={$in.content} />
+
     <Return
         value={{
             table: $ctx.materialize.table,
             origins: $ctx.materialize.origins,
-            natives: $ctx.natives,
-            signatures: $ctx.signatures
+            natives: $ctx.content.valid ? $ctx.natives : null,
+            signatures: $ctx.content.valid ? $ctx.signatures : null,
+            function: $ctx.content.function,
+            entry_store_types: $ctx.content.entry_store_types
         }}
     />
 </Module>

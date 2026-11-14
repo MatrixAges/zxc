@@ -1,0 +1,19 @@
+import { Kind } from "./model"
+
+import type { Mapping } from "./model"
+
+export type Input = u64[]
+
+export type Output = Mapping
+
+export default function (in: Input): Output {
+    return {
+        kind: Kind.Planned,
+        dense: [],
+        sparse: [],
+        planned: in,
+        first: 0,
+        prefix: 0,
+        count: 0
+    }
+}

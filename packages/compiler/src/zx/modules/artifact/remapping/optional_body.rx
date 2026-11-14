@@ -1,5 +1,5 @@
 <Module>
-    <Type from="../../../artifact/remapping/model" as="Remap" />
+    <Type from="model" as="Remap" />
 
     <Args
         in={{
@@ -9,7 +9,7 @@
     />
 
     <If on={$in.source != null}>
-        <Call module="../../../artifact/remapping/body_columns" in={$in.source} />
+        <Call module="body_columns" in={$in.source} />
 
         <Return value={$ctx.body_columns} />
     </If>

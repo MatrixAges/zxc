@@ -1,0 +1,15 @@
+import type { Stores } from "core/store_table/model"
+import type { FunctionInput, FunctionOutput, Mapping } from "../remapping/model"
+
+export type Input = {
+    source?: FunctionInput,
+    entry_stores: Stores,
+    type_mapping: Mapping,
+    copy_entry_stores: bool
+}
+
+export type Output = {
+    valid: bool,
+    function?: FunctionOutput,
+    entry_store_types?: u32[]
+}

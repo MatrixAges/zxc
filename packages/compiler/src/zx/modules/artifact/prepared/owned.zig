@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const Origins = @import("../../nominal_origins.zig");
 
 pub fn types(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.Error!ir.TypeTable {
-    const table = @import("../../../ir/canonical/borrow.zig").columns(ir.TypeTable, value.*);
+    const table = @import("zx").columns.view(ir.TypeTable, value);
 
     try strings(allocator, table.labels);
     try strings(allocator, table.field_names);
@@ -24,7 +24,7 @@ pub fn origins(allocator: std.mem.Allocator, table: ir.TypeTable, value: anytype
 }
 
 pub fn natives(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.Error!ir.NativeModuleTable {
-    const table = @import("../../../ir/canonical/borrow.zig").columns(ir.NativeModuleTable, value.*);
+    const table = @import("zx").columns.view(ir.NativeModuleTable, value);
 
     try strings(allocator, table.specifiers);
     try strings(allocator, table.import_names);
@@ -36,7 +36,7 @@ pub fn natives(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.E
 }
 
 pub fn signatures(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.Error!ir.SignatureTable {
-    const table = @import("../../../ir/canonical/borrow.zig").columns(ir.SignatureTable, value.*);
+    const table = @import("zx").columns.view(ir.SignatureTable, value);
 
     try strings(allocator, table.files);
     try stringLists(allocator, table.native_members);

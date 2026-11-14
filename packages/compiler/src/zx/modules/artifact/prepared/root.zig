@@ -9,25 +9,32 @@ const contents = @import("contents.zig");
 pub fn extract(allocator: std.mem.Allocator, scratch: std.mem.Allocator, analysis: *const Analysis.Result, record: Record) model.Error!model.Module {
     const program = &analysis.value.ir;
     const prepared = try @import("run.zig").execute(scratch, analysis, record);
-    const plan = prepared.plan;
-    const materialized = try @import("tables.zig").materialize(allocator, program, analysis.nominal_types, plan);
-    const types = try owned.types(allocator, materialized.table);
-    const origins = try owned.origins(allocator, types, materialized.origins);
+    const body = prepared.body;
+
+    const source = if (body.function_id) |row|
+        program.functions.at(row)
+
+    else if (body.use_entry)
+        @import("../../function_body.zig").value(program.*)
+    else
+        null;
 
     var nodes = Nodes{
         .allocator = allocator,
-        .types = .{ .planned = plan.state.mapping },
-        .functions = .{ .planned = plan.functions.mapping },
-        .native_modules = .{ .planned = plan.natives.mapping },
+        .types = .{ .planned = prepared.plan.state.mapping },
+        .functions = .{ .planned = prepared.plan.functions.mapping },
+        .native_modules = .{ .planned = prepared.plan.natives.mapping },
     };
 
+    const materialized = try @import("materialize.zig").materialize(&nodes, program, analysis.nominal_types, prepared, if (source) |*value| value else null);
+    const types = try owned.types(allocator, materialized.table);
+    const origins = try owned.origins(allocator, types, materialized.origins);
     const native_modules = try owned.natives(allocator, materialized.natives orelse return error.InvalidModule);
     const functions = try owned.signatures(allocator, materialized.signatures orelse return error.InvalidModule);
-    const body = prepared.body;
-    const function = try contents.function(&nodes, program, body);
+    const function = if (materialized.function) |mapped| try nodes.ownFunction(&source.?, mapped, .validated) else null;
 
-    const stores: @import("zx").ir.StoreTable = if (body.copy_entry_stores)
-        try nodes.stores(program.stores)
+    const stores: @import("zx").ir.StoreTable = if (materialized.entry_store_types) |mapped|
+        try @import("zx").columns.own(allocator, program.stores, .{ .types = mapped })
 
     else if (function) |value|
         value.stores

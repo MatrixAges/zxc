@@ -76,12 +76,17 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId,
 
 fn linkedFunction(self: *Self, value: ir.Function, candidate: ?ir.FunctionId, structure: Structure) Error!FunctionEntry {
     const mapped = try @import("nodes/remap.zig").function(self, &value, candidate, structure);
-    var result = try self.materializeBody(&value, mapped, structure);
+
+    return .{ .body = try self.ownFunction(&value, mapped, structure), .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
+}
+
+pub fn ownFunction(self: *Self, value: *const ir.Function, mapped: anytype, structure: Structure) Error!ir.Function {
+    var result = try self.materializeBody(value, mapped, structure);
     result.file_name = try self.allocator.dupe(u8, value.file_name);
     result.stores = try own(self.allocator, value.stores, .{ .types = mapped.stores });
     result.external = if (value.external) |entry| try self.externalMapped(entry, @fromBackingInt(mapped.ports.native_module.?)) else null;
 
-    return .{ .body = result, .recursive = if (mapped.recursive) |id| @fromBackingInt(id) else null };
+    return result;
 }
 
 pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, structure: Structure) Error!ir.Function {

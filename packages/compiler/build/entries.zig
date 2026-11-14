@@ -181,7 +181,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/native/parse.rx", .name = "native_syntax" },
     .{ .path = "zx/modules/link/native/bind.rx", .name = "native_link_binding" },
     .{ .path = "zx/modules/artifact/planning/prepare.rx", .name = "artifact_prepare" },
-    .{ .path = "zx/modules/artifact/materializing/tables.rx", .name = "artifact_tables" },
+    .{ .path = "zx/modules/artifact/materializing/materialize.rx", .name = "artifact_materialize" },
     .{ .path = "zx/modules/artifact/remapping/columns.rx", .name = "artifact_remap" },
     .{ .path = "zx/modules/artifact/remapping/body_columns.rx", .name = "artifact_function_remap" },
     .{ .path = "zx/modules/link/graph/order.rx", .name = "artifact_graph" },

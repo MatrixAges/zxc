@@ -21,21 +21,3 @@ pub fn dependencies(nodes: *Nodes, source: []const Record.Import) Error![]const 
 
     return result;
 }
-
-pub fn function(nodes: *Nodes, program: *const ir.Program, plan: anytype) Error!?ir.Function {
-    if (plan.function_id) |id| return (try nodes.functionEntry(program.functions.at(id), null, .validated)).body;
-    if (!plan.use_entry) return null;
-
-    return (try nodes.functionEntry(.{
-        .stores = program.stores,
-        .store_mode = program.store_mode,
-        .file_name = program.file_name,
-        .input_type = program.input_type,
-        .output_type = program.output_type,
-        .output_ownership = program.output_ownership,
-        .symbols = program.symbols,
-        .expressions = program.expressions,
-        .body = program.body,
-        .contracts = program.contracts,
-    }, null, .validated)).body;
-}

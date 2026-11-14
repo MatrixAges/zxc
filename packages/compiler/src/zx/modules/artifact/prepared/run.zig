@@ -17,7 +17,7 @@ const Output = std.meta.Child(generated.Output);
 const Plan = @typeInfo(@FieldType(Output, "plan")).optional.child;
 const Body = @typeInfo(@FieldType(Output, "body")).optional.child;
 
-const Prepared = struct {
+pub const Prepared = struct {
     plan: Plan,
     body: Body,
     references: projection.References,
