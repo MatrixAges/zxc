@@ -19,12 +19,12 @@ previous: ?*const source.Snapshot,
 stored_checksum: []const u8 = "",
 actual_checksum: []const u8 = "",
 /// Platform observations only: RX/ZX decides whether the previous snapshot vouches for these files.
-pub fn prepare(io: std.Io, allocator: std.mem.Allocator, files: *Files, digest: [32]u8, project: manifest.Project, text: []const u8, partitions: u32, cache: []const u8) !?Self {
+pub fn prepare(io: std.Io, allocator: std.mem.Allocator, paths: std.mem.Allocator, files: *Files, digest: [32]u8, project: manifest.Project, text: []const u8, partitions: u32, cache: []const u8) !?Self {
     const roots = try allocator.alloc(Root, project.roots.len);
     var facts: std.ArrayList(Fact) = .empty;
 
     for (project.roots, roots) |root, *target| {
-        const entries = try collection.scan(io, allocator, files, root.path, root.prefix, true);
+        const entries = try collection.scan(io, allocator, paths, files, root.path, root.prefix, true);
 
         target.* = .{ .path = root.path, .entries = entries };
 

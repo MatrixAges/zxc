@@ -84,6 +84,32 @@ pub const History = struct {
     bodies_only: bool = false,
     /// Set when the analysis takes the earlier signatures, which then outlive it.
     signatures_reused: bool = false,
+    pub fn exceedsBudget(capacity: usize) bool {
+        if (comptime @import("rx_options").generated_graph) {
+            var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+            return @import("generated_rx_history_budget").executeValue(empty.allocator(), capacity) catch unreachable;
+        }
+
+        const seed_retained_limit = 3 << 30;
+
+        return capacity > seed_retained_limit;
+    }
+
+    pub fn borrowsPrevious(self: *const History) bool {
+        if (comptime @import("rx_options").generated_graph) {
+            var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+            return @import("generated_rx_history_borrows").executeValue(empty.allocator(), &.{
+                .modules = self.reused,
+                .frame = self.bodies_only,
+                .signatures = self.signatures_reused,
+            }) catch unreachable;
+        }
+
+        return self.reused != 0 or self.bodies_only or self.signatures_reused;
+    }
+
     /// Whether `sources` differ from the earlier analysis's only inside ZX function bodies: the same files, and each
     /// changed one identical up to and including its body's opening brace. Nothing may follow a body, so the rest of
     /// such a file is that body.

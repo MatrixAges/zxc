@@ -49,8 +49,7 @@ pub fn main(init: std.process.Init) !void {
 /// partition count. Without `write` it only analyzes, leaving the output as it is.
 pub const Request = struct { manifest: []const u8, output: []const u8, cache: []const u8, partitions: u32, write: bool = true };
 
-/// Runs `request` and returns its summary line, or nothing when the output is already current. `allocator` is an arena
-/// owning everything read for the request; the analysis `resident` keeps may point into it.
+/// Runs `request` and returns its summary line, or nothing when the output is already current.
 pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, request: Request) ![]const u8 {
     const manifest_source = try std.Io.Dir.cwd().readFileAlloc(io, request.manifest, allocator, .unlimited);
     const project = try std.json.parseFromSliceLeaky(manifest.Project, allocator, manifest_source, .{});
@@ -59,7 +58,8 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     if (project.entries.len == 0) return error.EmptyEntrySet;
 
-    const snapshot = if (request.write) try InputSnapshot.prepare(io, allocator, &resident.files, resident.digest, project, manifest_source, partitions, request.cache) else null;
+    const owned = resident.inputAllocator(allocator);
+    const snapshot = if (request.write) try InputSnapshot.prepare(io, allocator, owned, &resident.files, resident.digest, project, manifest_source, partitions, request.cache) else null;
 
     if (snapshot) |prepared| if (try prepared.current(io, allocator)) |digest| {
         if (try current(io, allocator, output, digest)) return "";
@@ -70,8 +70,8 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     var templates: std.ArrayList(compiler.project.Resource) = .empty;
 
     if (snapshot) |prepared| {
-        try prepared.load(io, allocator, &resident.files, &sources, &modules, &templates);
-    } else for (project.roots) |root| try collection.collect(io, allocator, &resident.files, root.path, root.prefix, &sources, &modules, &templates);
+        try prepared.load(io, owned, &resident.files, &sources, &modules, &templates);
+    } else for (project.roots) |root| try collection.collect(io, allocator, owned, &resident.files, root.path, root.prefix, &sources, &modules, &templates);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
@@ -79,11 +79,11 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     for (sources.items) |*source| source.templates = templates.items;
 
-    const packages = try allocator.alloc(compiler.project.Package, project.packages.len);
+    const packages = try owned.alloc(compiler.project.Package, project.packages.len);
     var package_hash = compiler.Sha256.init(.{});
 
     for (project.packages, packages) |package, *target| {
-        target.* = .{ .specifier = package.specifier, .entry = package.entry };
+        target.* = .{ .specifier = try resident.retainText(owned, package.specifier), .entry = try resident.retainText(owned, package.entry) };
 
         field(&package_hash, package.specifier);
         field(&package_hash, package.entry);
@@ -91,7 +91,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     for (modules.items) |*module| module.packages = packages;
 
-    const interfaces = try allocator.alloc(compiler.project.NativeInterface, project.interfaces.len);
+    const interfaces = try owned.alloc(compiler.project.NativeInterface, project.interfaces.len);
     var interface_error: ?anyerror = null;
 
     for (project.interfaces, interfaces) |interface, *target| {
@@ -103,7 +103,12 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
             break :unread "";
         };
 
-        target.* = .{ .specifier = interface.specifier, .path = interface.path, .source = source, .module = interface.module };
+        target.* = .{
+            .specifier = try resident.retainText(owned, interface.specifier),
+            .path = try resident.retainText(owned, interface.path),
+            .source = source,
+            .module = try resident.retainText(owned, interface.module),
+        };
     }
 
     const rx_digests = try allocator.alloc(analysis.project.ModuleDigest, modules.items.len);
@@ -130,7 +135,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         else => return err,
     };
 
-    const prepared_sources = switch (try compiler.project.prepareSources(allocator, sources.items, .{ .entry = "" })) {
+    const prepared_sources = switch (try compiler.project.prepareSources(owned, sources.items, .{ .entry = "" })) {
         .sources => |items| items,
         .diagnostic => |issue| {
             std.debug.print("{s}: {s}\n", .{ sources.items[issue.source_index.?].path, issue.message });
@@ -149,13 +154,15 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
 
     if (interface_error) |err| return err;
 
-    const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
+    const inputs = try owned.alloc(rx.ModuleSource, modules.items.len);
 
     for (inputs, modules.items, parsed.inputs) |*item, source, *module| {
-        item.* = .{ .path = source.path, .node = module.node, .packages = source.packages, .references = module.references };
+        item.* = module.*;
+        item.path = source.path;
+        item.packages = source.packages;
     }
 
-    const summary = try @import("shared_generation.zig").run(io, allocator, resident, project.entries, .{
+    const summary = try @import("shared_generation.zig").run(io, allocator, owned, resident, project.entries, .{
         .modules = inputs,
         .sources = prepared_sources,
         .interfaces = interfaces,

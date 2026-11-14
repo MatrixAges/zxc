@@ -28,17 +28,29 @@ pub fn parse(self: *Self, sources: []const rx.TextSource, packages: [32]u8) !*co
 
     errdefer parsed.deinit();
 
-    try self.replaced.ensureUnusedCapacity(self.gpa, 1);
+    if (self.current != null) try self.replaced.ensureUnusedCapacity(self.gpa, 1);
 
-    self.forget();
+    var texts: std.ArrayList([]u8) = .empty;
+
+    errdefer {
+        for (texts.items) |text| self.gpa.free(text);
+
+        texts.deinit(self.gpa);
+    }
+
+    try texts.ensureTotalCapacity(self.gpa, 2 * sources.len);
 
     for (sources) |source| {
-        try self.texts.append(self.gpa, try self.gpa.dupe(u8, source.path));
-        try self.texts.append(self.gpa, try self.gpa.dupe(u8, source.source));
+        texts.appendAssumeCapacity(try self.gpa.dupe(u8, source.path));
+        texts.appendAssumeCapacity(try self.gpa.dupe(u8, source.source));
     }
 
     if (self.current) |old| self.replaced.appendAssumeCapacity(old);
 
+    self.forget();
+    self.texts.deinit(self.gpa);
+
+    self.texts = texts;
     self.current = parsed;
     self.packages = packages;
 

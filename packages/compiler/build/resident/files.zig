@@ -4,12 +4,13 @@
 //! file's last change is older than the read by more than the clock's resolution could hide; a file changed close
 //! to its read is read again. Replaced texts stay alive until `release`, since analyses may point into them.
 const std = @import("std");
+const bytes = @import("compiler").bytes;
 const Self = @This();
 /// How much older than the read a file's last change must be for its metadata to vouch for its contents.
 const settled = std.time.ns_per_s;
 
 gpa: std.mem.Allocator,
-entries: @import("compiler").bytes.Map(Entry) = .empty,
+entries: bytes.Map(Entry) = .empty,
 replaced: std.ArrayList([]u8) = .empty,
 /// What vouches for a file's text: it is the same file, of the same size, unchanged since.
 pub const Metadata = struct { inode: std.Io.File.INode, size: u64, mtime: i96, ctime: i96 };
@@ -46,9 +47,24 @@ pub fn read(self: *Self, io: std.Io, directory: std.Io.Dir, path: []const u8, ke
     if (try file.readPositionalAll(io, text, 0) != text.len) return error.FileChanged;
 
     const found = try self.entries.getOrPut(self.gpa, key);
+    const observed: Entry = .{ .inode = stat.inode, .size = stat.size, .mtime = stat.mtime.nanoseconds, .ctime = stat.ctime.nanoseconds, .read = started, .text = text };
 
     if (found.found_existing) {
-        try self.replaced.append(self.gpa, found.value_ptr.text);
+        const previous = found.value_ptr;
+
+        if (bytes.equal(previous.text, text)) {
+            self.gpa.free(text);
+
+            const reused = previous.text;
+            const digest_value = previous.digest;
+            previous.* = observed;
+            previous.text = reused;
+            previous.digest = digest_value;
+
+            return reused;
+        }
+
+        try self.replaced.append(self.gpa, previous.text);
     } else {
         found.key_ptr.* = self.gpa.dupe(u8, key) catch |err| {
             self.entries.removeByPtr(found.key_ptr);
@@ -57,7 +73,7 @@ pub fn read(self: *Self, io: std.Io, directory: std.Io.Dir, path: []const u8, ke
         };
     }
 
-    found.value_ptr.* = .{ .inode = stat.inode, .size = stat.size, .mtime = stat.mtime.nanoseconds, .ctime = stat.ctime.nanoseconds, .read = started, .text = text };
+    found.value_ptr.* = observed;
 
     return text;
 }

@@ -73,6 +73,8 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/project/history/source.zx", .name = "rx_history_source", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/history/header.zx", .name = "rx_history_header", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/history/signatures.rx", .name = "rx_history_signatures", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/history/budget.zx", .name = "rx_history_budget", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/history/borrows.zx", .name = "rx_history_borrows", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/mixed/body/admit.rx", .name = "rx_mixed_body_admit", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/mixed/body/accept.zx", .name = "rx_mixed_body_accept", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/mixed/history/changed.zx", .name = "rx_mixed_dependency_changed", .owner = .rx_analysis },

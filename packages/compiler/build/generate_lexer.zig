@@ -18,7 +18,7 @@ pub fn generate(init: std.process.Init, source_root: []const u8, core_root: []co
     var modules: std.ArrayList(rx.TextSource) = .empty;
     var templates: std.ArrayList(compiler.project.Resource) = .empty;
 
-    try collection.collect(init.io, allocator, null, source_root, "", &sources, &modules, &templates);
+    try collection.collect(init.io, allocator, allocator, null, source_root, "", &sources, &modules, &templates);
 
     const packages = [_]compiler.project.Package{
         .{ .specifier = "core/const", .entry = "core/const.zx" },

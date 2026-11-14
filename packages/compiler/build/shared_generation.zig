@@ -18,7 +18,7 @@ const Inputs = struct {
 
 /// Generates the tree for `entries` into `output`, unless it is null, and returns its summary line. Parsed modules,
 /// cached sources and the previous analysis come from `resident`, which keeps them for later requests.
-pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entries: []const Entry, inputs: Inputs, output: ?[]const u8, cache_path: []const u8, partitions: u32) ![]const u8 {
+pub fn run(io: std.Io, allocator: std.mem.Allocator, owned: std.mem.Allocator, resident: *Resident, entries: []const Entry, inputs: Inputs, output: ?[]const u8, cache_path: []const u8, partitions: u32) ![]const u8 {
     const started = std.Io.Timestamp.now(io, .awake);
     const roots = try allocator.alloc([]const u8, entries.len);
     const exports = try allocator.alloc(analysis.project.Export, entries.len);
@@ -35,7 +35,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
     // When only function bodies changed, the earlier analysis already found the reachable modules.
     history.bodies_only = try history.bodiesOnly(inputs.sources, parse_cache);
 
-    const selected = if (history.bodies_only) history.previous.?.modules else try @import("source_inputs.zig").reachable(allocator, inputs.modules, inputs.sources, roots, project, parse_cache);
+    const selected = if (history.bodies_only) history.previous.?.modules else try @import("source_inputs.zig").reachable(owned, resident.gpa, inputs.modules, inputs.sources, roots, project, parse_cache);
 
     var analyzed = try analysis.project.infer(resident.gpa, .{
         .entry = roots[0],

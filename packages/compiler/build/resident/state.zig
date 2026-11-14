@@ -7,10 +7,6 @@ const History = @import("rx_analysis").project.History;
 const Files = @import("files.zig");
 const Modules = @import("modules.zig");
 const Self = @This();
-/// Past this much retained memory the next analysis starts over, so the memory it no longer needs is freed. Each
-/// analysis that reuses modules keeps the ones before it, a little over 100 MB for the compiler itself, so this allows
-/// about two dozen such edits between full analyses while staying well inside the memory budget.
-const retained_limit = 3 << 30;
 
 gpa: std.mem.Allocator,
 /// The generator's executable digest, which names its outputs and cache records.
@@ -24,10 +20,11 @@ history: History = .{ .frame = @splat(0) },
 /// The analyses and request inputs the last analysis may point into: every one since the last analysis that reused
 /// nothing.
 epochs: std.ArrayList(std.heap.ArenaAllocator) = .empty,
-/// The current request's inputs, when the caller reads them through `requestAllocator`.
+retained_capacity: usize = 0,
+/// Scratch for a request, including snapshot and output file bookkeeping.
 request: ?std.heap.ArenaAllocator = null,
-/// Whether the current request's inputs join `epochs` when it ends.
-keeps_request: bool = false,
+/// Source descriptors, paths and interfaces the current analysis can retain.
+inputs: ?std.heap.ArenaAllocator = null,
 /// Memory the current request no longer needs, freed once it ends so that freeing it does not hold up the answer.
 discarded: ?std.heap.ArenaAllocator = null,
 /// What each request's output is built in, reset rather than freed between requests so that its pages stay mapped:
@@ -88,13 +85,28 @@ pub fn persist(self: *Self) void {
     }
 }
 
-/// An arena for one request's inputs; it is kept when the analysis of that request is.
+/// Starts a resident request with fresh scratch and retires over-budget history before reading any new inputs.
 pub fn requestAllocator(self: *Self) std.mem.Allocator {
     self.endRequest();
+
+    if (History.exceedsBudget(self.retained_capacity)) self.release();
 
     self.request = .init(self.gpa);
 
     return self.request.?.allocator();
+}
+
+pub fn inputAllocator(self: *Self, one_shot: std.mem.Allocator) std.mem.Allocator {
+    if (self.request == null) return one_shot;
+
+    self.inputs = .init(self.gpa);
+
+    return self.inputs.?.allocator();
+}
+
+/// Manifest strings come from request scratch and must follow their descriptors into resident history.
+pub fn retainText(self: *Self, allocator: std.mem.Allocator, text: []const u8) std.mem.Allocator.Error![]const u8 {
+    return if (self.request == null) text else try allocator.dupe(u8, text);
 }
 
 /// The allocator the current request's output is built in; what the previous request built there must be discarded.
@@ -119,12 +131,13 @@ pub fn endRequest(self: *Self) void {
 
     self.discarded = null;
 
-    if (self.request) |*request| {
-        if (self.keeps_request) self.epochs.appendAssumeCapacity(request.*) else request.deinit();
-    }
+    if (self.inputs) |*inputs| inputs.deinit();
+    if (self.request) |*request| request.deinit();
 
+    self.inputs = null;
     self.request = null;
-    self.keeps_request = false;
+    self.history.rx_digests = &.{};
+    self.history.next = null;
 }
 
 /// The history for an analysis of inputs identified by `frame`, whose RX sources have `rx_digests` within `shape`.
@@ -138,8 +151,6 @@ pub fn startAnalysis(self: *Self, frame: [32]u8, shape: [32]u8, rx_digests: []co
     self.history.bodies_only = false;
     self.history.signatures_reused = false;
 
-    if (self.retained() > retained_limit) self.history.previous = null;
-
     return &self.history;
 }
 
@@ -149,16 +160,22 @@ pub fn keepAnalysis(self: *Self, analysis: std.heap.ArenaAllocator) std.mem.Allo
 
     errdefer owned.deinit();
 
-    // An analysis that reused neither modules nor the earlier frame points into nothing older.
-    if (self.history.reused == 0 and !self.history.bodies_only and !self.history.signatures_reused) self.release();
-    try self.epochs.ensureUnusedCapacity(self.gpa, 2);
+    // Reserve before discarding old history so allocation failure cannot leave a half-published analysis.
+    const borrowed = self.history.borrowsPrevious();
+    const count: usize = if (self.inputs == null) 1 else 2;
+
+    try self.epochs.ensureTotalCapacity(self.gpa, if (borrowed) self.epochs.items.len + count else count);
+
+    if (!borrowed) self.release();
 
     self.history.previous = self.history.next;
     self.history.next = null;
 
-    self.epochs.appendAssumeCapacity(owned);
+    self.retain(owned);
 
-    self.keeps_request = self.request != null;
+    if (self.inputs) |inputs| self.retain(inputs);
+
+    self.inputs = null;
 }
 
 fn release(self: *Self) void {
@@ -166,6 +183,7 @@ fn release(self: *Self) void {
 
     self.epochs.clearRetainingCapacity();
 
+    self.retained_capacity = 0;
     self.history.previous = null;
 
     self.parse_cache.release();
@@ -173,10 +191,8 @@ fn release(self: *Self) void {
     self.modules.release();
 }
 
-fn retained(self: *const Self) usize {
-    var total: usize = 0;
+fn retain(self: *Self, arena: std.heap.ArenaAllocator) void {
+    self.retained_capacity +|= arena.queryCapacity();
 
-    for (self.epochs.items) |*epoch| total += epoch.queryCapacity();
-
-    return total;
+    self.epochs.appendAssumeCapacity(arena);
 }

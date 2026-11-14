@@ -20,14 +20,14 @@ pub fn lessResource(_: void, left: compiler.project.Resource, right: compiler.pr
 /// Appends the ZX and RX sources under `root`, named with `prefix`; `files`, when given, owns their texts. The tree is
 /// listed one depth at a time, every directory of a depth on its own core, and a listed file whose metadata vouches for
 /// the text `files` kept takes that text there; the calling thread reads the others afterwards.
-pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource), templates: *std.ArrayList(compiler.project.Resource)) !void {
-    try load(io, allocator, files, root, try scan(io, allocator, files, root, prefix, false), sources, modules, templates);
+pub fn collect(io: std.Io, scratch: std.mem.Allocator, allocator: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource), templates: *std.ArrayList(compiler.project.Resource)) !void {
+    try load(io, allocator, files, root, try scan(io, scratch, allocator, files, root, prefix, false), sources, modules, templates);
 }
 
 pub const Entry = struct { relative: []const u8, path: []const u8, metadata: ?Files.Metadata, text: ?[]const u8, zx: bool, tpl: bool };
 
 /// Lists the input files without reading their contents; `stat` also fills metadata on platforms without bulk stat.
-pub fn scan(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, stat: bool) ![]const Entry {
+pub fn scan(io: std.Io, allocator: std.mem.Allocator, paths: std.mem.Allocator, files: ?*Files, root: []const u8, prefix: []const u8, stat: bool) ![]const Entry {
     var directory = try std.Io.Dir.cwd().openDir(io, root, .{});
 
     defer directory.close(io);
@@ -58,7 +58,7 @@ pub fn scan(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: []co
 
             for (found.files) |file| {
                 const relative = try join(allocator, parent, file.name);
-                const path = try std.mem.concat(allocator, u8, &.{ prefix, relative });
+                const path = try std.mem.concat(paths, u8, &.{ prefix, relative });
 
                 try entries.append(allocator, .{ .relative = relative, .path = path, .text = file.text, .metadata = file.metadata, .zx = file.zx, .tpl = file.tpl });
             }
