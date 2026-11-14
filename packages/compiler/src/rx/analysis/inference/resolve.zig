@@ -72,51 +72,36 @@ fn run(graph: *Graph, rows: Nodes.Storage.Slice, root: u32) zx.Error!zx.ir.TypeI
 
         std.debug.assert(state.parents.items.ptr == graph.forest.state.items.ptr);
 
-        switch (state.route) {
-            .Complete => return @fromBackingInt(state.completed.?),
-            .List, .Optional, .Tuple, .Object => state.completed = @backingInt(try materialize(graph, rows, state)),
-            .Depth, .Sequence, .Unconstrained, .NumericMismatch => return failure(graph, rows.items(.span)[state.node], state.route),
-            .Search => unreachable,
-        }
+        if (state.route == .Complete) return @fromBackingInt(state.completed.?);
+
+        state.completed = @backingInt(try continueType(graph, rows, state));
     }
 }
 
-fn failure(graph: *Graph, span: zx.Span, route: anytype) zx.Error {
-    const generated = @import("generated_rx_resolution_diagnostic");
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-    const result = generated.executeValue(empty.allocator(), @fromBackingInt(@backingInt(route))) catch unreachable;
-
-    return graph.reporter.fail(switch (result.issue) {
-        .Unsupported => .unsupported,
-        .Contract => .contract,
-        .TypeMismatch => .type_mismatch,
-    }, span, result.message);
-}
-
-fn materialize(graph: *Graph, rows: Nodes.Storage.Slice, state: anytype) zx.Error!zx.ir.TypeId {
-    const generated = @import("generated_rx_materialize_type");
+fn continueType(graph: *Graph, rows: Nodes.Storage.Slice, state: anytype) zx.Error!zx.ir.TypeId {
+    const generated = @import("generated_rx_continue_type");
     const Input = std.meta.Child(generated.Input);
     const Tables = std.meta.Child(@FieldType(Input, "tables"));
     const Table = std.meta.Child(@FieldType(Tables, "base"));
-    const Aggregate = std.meta.Child(@FieldType(Input, "aggregate"));
-    const children = state.values.items[@intCast(state.used)..][0..@intCast(state.count)];
+    const Pending = std.meta.Child(@FieldType(Input, "pending"));
 
-    const names = if (state.route == .Object)
-        Graph.Fields.fromValues(@ptrCast(rows.items(.members)[state.node])).names()
-
-    else
-        &.{};
+    const names = switch (rows.items(.kind)[state.node]) {
+        .Object => Graph.Fields.fromValues(@ptrCast(rows.items(.members)[state.node])).names(),
+        else => &.{},
+    };
 
     const base = zx.ir.TypeTable.borrow(Table, graph.types.items.view());
     const empty = zx.ir.TypeTable.borrow(Table, .{});
 
     const input: Input = .{
         .tables = &.{ .base = &base, .delta = &empty },
-        .aggregate = &@as(Aggregate, .{
+        .pending = &@as(Pending, .{
             .route = @fromBackingInt(@backingInt(state.route)),
             .child = state.completed orelse 0,
-            .children = if (state.route == .Tuple) children else &.{},
-            .fields = &.{ .names = names, .types = if (state.route == .Object) children else &.{} },
+            .values = state.values.items,
+            .start = state.used,
+            .count = state.count,
+            .names = names,
         }),
     };
 
@@ -127,5 +112,16 @@ fn materialize(graph: *Graph, rows: Nodes.Storage.Slice, state: anytype) zx.Erro
     var buffer: [512]u8 = undefined;
     var scratch = std.heap.BufferFirstAllocator.init(&buffer, overflow.allocator());
 
-    return @import("frontend").constructTypeWith(generated.executeValue, &graph.types, scratch.allocator(), &input, false);
+    const result = zx.columns.invoke(generated.executeValue, scratch.allocator(), &input) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow, error.IntegerOverflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    if (result.graph_issue) {
+        const code = std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), result.diagnostic.code) orelse unreachable;
+
+        return graph.reporter.fail(code, rows.items(.span)[state.node], result.diagnostic.message);
+    }
+
+    return @import("frontend").commitTypeConstruction(&graph.types, scratch.allocator(), result, .{ .start = 0, .end = 0 }, false);
 }

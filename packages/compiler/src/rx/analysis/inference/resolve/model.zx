@@ -1,5 +1,8 @@
 import type { U8Buffer, U32Buffer, U64Buffer } from "std:memory"
-import type { Fields, Tables } from "core/type_table/model"
+import type { Tables } from "core/type_table/model"
+import type {
+    Publication as TypePublication
+} from "../../../../zx/analysis/semantic/constructing/model"
 import type { Kind } from "../unification/model"
 
 export enum Route {
@@ -13,17 +16,6 @@ export enum Route {
     Sequence,
     Unconstrained,
     NumericMismatch
-}
-
-export enum Issue {
-    Unsupported,
-    Contract,
-    TypeMismatch
-}
-
-export type Diagnostic = {
-    issue: Issue,
-    message: string
 }
 
 export type View = {
@@ -55,14 +47,20 @@ export type Request = {
     route: Route
 }
 
-export type Aggregate = {
+export type Pending = {
     route: Route,
     child: u32,
-    children: u32[],
-    fields: Fields
+    values: u32[],
+    start: u64,
+    count: u64,
+    names: string[]
 }
 
-export type Materialization = {
+export type Continuation = {
     tables: Tables,
-    aggregate: Aggregate
+    pending: Pending
+}
+
+export type Continued = TypePublication & {
+    graph_issue: bool
 }

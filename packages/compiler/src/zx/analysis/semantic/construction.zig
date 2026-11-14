@@ -24,18 +24,18 @@ pub fn create(types: *Types, value: zx.ir.TypeValue) zx.Error!zx.ir.TypeId {
 
     defer arena.deinit();
 
-    return createWith(generated.executeValue, types, arena.allocator(), &input, value == .error_set);
-}
-
-pub fn createWith(comptime entry: anytype, types: *Types, scratch: std.mem.Allocator, input: anytype, owns_names: bool) zx.Error!zx.ir.TypeId {
-    const result = zx.columns.invoke(entry, scratch, input) catch |err| switch (err) {
+    const result = zx.columns.invoke(generated.executeValue, arena.allocator(), &input) catch |err| switch (err) {
         error.OutOfMemory, error.IntegerOverflow, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };
 
+    return commit(types, arena.allocator(), result, .{ .start = 0, .end = 0 }, value == .error_set);
+}
+
+pub fn commit(types: *Types, scratch: std.mem.Allocator, result: anytype, span: zx.Span, owns_names: bool) zx.Error!zx.ir.TypeId {
     if (result.diagnostic.message.len != 0) return types.reporter.fail(
         std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), result.diagnostic.code) orelse unreachable,
-        .{ .start = 0, .end = 0 },
+        span,
         if (types.scratch != null) try types.allocator.dupe(u8, result.diagnostic.message) else result.diagnostic.message,
     );
 

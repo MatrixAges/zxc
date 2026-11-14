@@ -1,34 +1,38 @@
 import {
+    contract_code,
     depth_limit,
     numeric_mismatch,
+    type_mismatch_code,
     unconstrained_input,
-    unfinalized_sequence
+    unfinalized_sequence,
+    unsupported_code
 } from "./const"
-import { Issue, Route } from "./model"
+import { Route } from "./model"
 
-import type { Diagnostic } from "./model"
+import type { Diagnostic } from "../../../../zx/analysis/semantic/constructing/model"
 
 export type Input = Route
 
-export type Output = Diagnostic
+export type Output = Diagnostic?
 
 export default function (in: Input): Output {
     return match in {
         Route.Depth => ({
-            issue: Issue.Unsupported,
+            code: unsupported_code,
             message: depth_limit
         }),
         Route.Sequence => ({
-            issue: Issue.Contract,
+            code: contract_code,
             message: unfinalized_sequence
         }),
         Route.Unconstrained => ({
-            issue: Issue.TypeMismatch,
+            code: type_mismatch_code,
             message: unconstrained_input
         }),
-        _ => ({
-            issue: Issue.TypeMismatch,
+        Route.NumericMismatch => ({
+            code: type_mismatch_code,
             message: numeric_mismatch
-        })
+        }),
+        _ => null
     }
 }

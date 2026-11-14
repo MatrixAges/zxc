@@ -3,9 +3,9 @@ import { Kind } from "core/type_table/model"
 import { Route } from "./model"
 
 import type { Candidate } from "../../../../zx/analysis/semantic/types/model"
-import type { Aggregate } from "./model"
+import type { Pending } from "./model"
 
-export type Input = Aggregate
+export type Input = Pending
 
 export type Output = Candidate
 
@@ -17,13 +17,19 @@ export default function (in: Input): Output {
         _ => Kind.Object
     }
 
+    const members = in.values.splice(in.start, in.count, [])[1]
+    const empty: u32[] = []
+
     return {
         kind,
         first: in.child,
         second: 0,
         label: "",
-        children: in.children,
-        fields: in.fields,
+        children: kind == Kind.Tuple ? members : empty,
+        fields: {
+            names: in.names,
+            types: kind == Kind.Object ? members : empty
+        },
         names: []
     }
 }

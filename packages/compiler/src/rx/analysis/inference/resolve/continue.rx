@@ -1,0 +1,35 @@
+<Module>
+    <Type from="model" as="Resolve" />
+
+    <Args in={Resolve.Continuation} out={Resolve.Continued} />
+
+    <Call fn="diagnostic" in={$in.pending.route} />
+
+    <If on={$ctx.diagnostic != null}>
+        <Return
+            value={{
+                row: null,
+                id: 0,
+                graph_issue: true,
+                diagnostic: $ctx.diagnostic
+            }}
+        />
+    </If>
+
+    <Call fn="candidate" in={$in.pending} />
+
+    <Call
+        module="../../../../zx/analysis/semantic/construct_type"
+        in={{
+            tables: $in.tables,
+            candidate: $ctx.candidate
+        }}
+    />
+
+    <Return
+        value={{
+            ...$ctx.construct_type,
+            graph_issue: false
+        }}
+    />
+</Module>

@@ -5,8 +5,12 @@ const Export = @import("../../project.zig").Export;
 const State = @import("state.zig");
 
 pub fn collect(state: *State, requested: []const Export, roots: []const usize) State.Error![]const frontend.project.compiled.Export {
+    if (requested.len == 0) return &.{};
+
     const location: rx.ast.Location = .{ .offset = 0, .line = 1, .column = 1 };
-    _ = state.scratch.reset(.retain_capacity);
+
+    if (!state.scratch.reset(.retain_capacity)) return error.OutOfMemory;
+
     const invalid = try frontend.project.public_exports.invalidRootName(state.scratch.allocator(), requested);
     const result = try state.allocator.alloc(frontend.project.compiled.Export, requested.len);
 
