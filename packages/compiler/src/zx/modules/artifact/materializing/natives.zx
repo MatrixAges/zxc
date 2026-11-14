@@ -53,12 +53,15 @@ export default function (in: Input): Output {
                 })
 
                 const binding = copyBinding({
-                    identity: current.source.identities[selected],
-                    specifier: current.source.specifiers[selected],
-                    import_name: current.source.import_names[selected],
-                    namespace: current.source.type_namespaces[selected],
-                    names: current.source.type_names[selected],
-                    ids: mapped
+                    source: {
+                        identity: current.source.identities[selected],
+                        specifier: current.source.specifiers[selected],
+                        import_name: current.source.import_names[selected],
+                        namespace: current.source.type_namespaces[selected],
+                        names: current.source.type_names[selected],
+                        ids: current.source.type_ids[selected]
+                    },
+                    mapped_ids: mapped
                 })
 
                 current.identities = current.identities.push(binding.identity)[0]

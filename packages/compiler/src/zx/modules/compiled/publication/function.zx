@@ -1,0 +1,16 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Output as External } from "../../artifact/materializing/copy_external"
+
+export type Record = {
+    file: string,
+    symbols: Symbols,
+    expressions: Expressions,
+    control: Control,
+    stores: Stores,
+    contracts: Contracts,
+    external?: External
+}

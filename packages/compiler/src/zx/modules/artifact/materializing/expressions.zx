@@ -2,8 +2,8 @@ import type { Expressions } from "core/expression_table/model"
 
 export type Input = {
     source: Expressions,
-    types: u32[],
-    call_functions: u32[],
+    types?: u32[],
+    call_functions?: u32[],
     strings: string[]
 }
 
@@ -14,7 +14,7 @@ export default function (in: Input): Output {
 
     return {
         kinds: source.kinds.slice(),
-        types,
+        types: types ?? source.types.slice(),
         span_start: source.span_start.slice(),
         span_end: source.span_end.slice(),
         payloads: source.payloads.slice(),
@@ -76,7 +76,7 @@ export default function (in: Input): Output {
         update_targets: source.update_targets.slice(),
         update_indices: source.update_indices.slice(),
         update_values: source.update_values.slice(),
-        call_functions,
+        call_functions: call_functions ?? source.call_functions.slice(),
         call_arguments: source.call_arguments.slice(),
         call_store_first: source.call_store_first.slice(),
         call_store_count: source.call_store_count.slice(),

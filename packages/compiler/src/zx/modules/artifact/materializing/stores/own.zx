@@ -4,7 +4,7 @@ import type { Stores } from "core/store_table/model"
 
 export type Input = {
     source: Stores,
-    types: u32[]
+    types?: u32[]
 }
 
 export type Output = Stores
@@ -14,9 +14,9 @@ export default function (in: Input): Output {
 
     return {
         paths: copyNames(source.paths),
-        types,
+        types: types ?? source.types.slice(),
         handles: copyNames(source.handles),
-        readable: source.readable.map(value => value)[0],
-        writable: source.writable.map(value => value)[0]
+        readable: source.readable.slice(),
+        writable: source.writable.slice()
     }
 }

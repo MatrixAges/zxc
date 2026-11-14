@@ -4,22 +4,27 @@ import copyNames from "./copy_names"
 
 import type { Binding } from "core/native_module_table/model"
 
-export type Input = Binding
+export type Input = {
+    source: Binding,
+    mapped_ids?: u32[]
+}
 
 export type Output = Binding
 
 export default function (in: Input): Output {
+    const { source, mapped_ids } = in
+
     const identity: string? = match {
-        in.identity != null => strings.copy(in.identity),
+        source.identity != null => strings.copy(source.identity),
         _ => null
     }
 
     return {
         identity,
-        specifier: strings.copy(in.specifier),
-        import_name: strings.copy(in.import_name),
-        namespace: copyNames(in.namespace),
-        names: copyNames(in.names),
-        ids: in.ids
+        specifier: strings.copy(source.specifier),
+        import_name: strings.copy(source.import_name),
+        namespace: copyNames(source.namespace),
+        names: copyNames(source.names),
+        ids: mapped_ids ?? source.ids.slice()
     }
 }

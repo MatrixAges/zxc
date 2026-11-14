@@ -1,0 +1,75 @@
+<Module>
+    <Type from="function" as="Function" />
+
+    <Args in={Function.Record} out={Function.Record} />
+
+    <Call fn="file" in={$in.file} />
+
+    <Task name="names" out={$ctx.copy_names}>
+        <Call fn="../../artifact/materializing/copy_names" in={$in.symbols.names} />
+    </Task>
+
+    <Call
+        fn="../../artifact/materializing/symbols"
+        in={{
+            source: $in.symbols,
+            names: $ctx.task.names
+        }}
+    />
+
+    <Task name="strings" out={$ctx.copy_names}>
+        <Call fn="../../artifact/materializing/copy_names" in={$in.expressions.strings} />
+    </Task>
+
+    <Call
+        fn="../../artifact/materializing/expressions"
+        in={{
+            source: $in.expressions,
+            strings: $ctx.task.strings
+        }}
+    />
+
+    <Call
+        fn="../../artifact/materializing/stores/own"
+        in={{
+            source: $in.stores
+        }}
+    />
+
+    <Call
+        fn="../../artifact/remapping/contracts"
+        in={{
+            source: $in.contracts
+        }}
+    />
+
+    <Call fn="../../artifact/materializing/control" in={$in.control} />
+
+    <If on={$in.external != null}>
+        <Call fn="../../artifact/materializing/copy_external" in={$in.external} />
+
+        <Return
+            value={{
+                file: $ctx.file,
+                symbols: $ctx.symbols,
+                expressions: $ctx.expressions,
+                control: $ctx.control,
+                stores: $ctx.own,
+                contracts: $ctx.contracts,
+                external: $ctx.copy_external
+            }}
+        />
+    </If>
+
+    <Return
+        value={{
+            file: $ctx.file,
+            symbols: $ctx.symbols,
+            expressions: $ctx.expressions,
+            control: $ctx.control,
+            stores: $ctx.own,
+            contracts: $ctx.contracts,
+            external: null
+        }}
+    />
+</Module>

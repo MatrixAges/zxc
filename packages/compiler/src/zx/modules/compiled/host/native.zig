@@ -1,15 +1,30 @@
 const std = @import("std");
-const ir = @import("zx").ir;
+const zx = @import("zx");
+const ir = zx.ir;
 
 pub fn copy(allocator: std.mem.Allocator, source: ir.NativeModule) std.mem.Allocator.Error!ir.NativeModule {
-    const names = try strings(allocator, source.types.names);
+    const entry = @import("generated_artifact_native_record");
+    const Input = std.meta.Child(entry.Input);
+    const Binding = std.meta.Child(@FieldType(Input, "source"));
+
+    const binding: Binding = .{
+        .specifier = source.specifier,
+        .identity = source.identity,
+        .import_name = source.import_name,
+        .namespace = source.type_namespace,
+        .names = source.types.names,
+        .ids = source.types.type_ids,
+    };
+
+    const input: Input = .{ .source = &binding, .mapped_ids = null };
+    const owned = zx.columns.invoke(entry.executeValue, allocator, &input) catch return error.OutOfMemory;
 
     return .{
-        .specifier = try allocator.dupe(u8, source.specifier),
-        .identity = if (source.identity) |identity| try allocator.dupe(u8, identity) else null,
-        .import_name = try allocator.dupe(u8, source.import_name),
-        .type_namespace = try strings(allocator, source.type_namespace),
-        .types = .{ .names = names, .type_ids = try allocator.dupe(u32, source.types.type_ids) },
+        .specifier = owned.specifier,
+        .identity = owned.identity,
+        .import_name = owned.import_name,
+        .type_namespace = owned.namespace,
+        .types = .{ .names = owned.names, .type_ids = owned.ids },
     };
 }
 

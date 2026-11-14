@@ -10,8 +10,8 @@ import type { Mapping } from "./model"
 
 export type Input = {
     source: Contracts,
-    types: Mapping,
-    functions: Mapping
+    types?: Mapping,
+    functions?: Mapping
 }
 
 export type Output = Contracts
@@ -33,20 +33,29 @@ export default function (in: Input): Output {
             const expression = source.expressions[index]
             const symbol = source.symbols[index]
 
-            const symbol_types = ids({
-                values: symbol.types,
-                mapping: types
-            })
+            const symbol_types = match {
+                types != null => ids({
+                    values: symbol.types,
+                    mapping: types
+                }),
+                _ => symbol.types.slice()
+            }
 
-            const expression_types = ids({
-                values: expression.types,
-                mapping: types
-            })
+            const expression_types = match {
+                types != null => ids({
+                    values: expression.types,
+                    mapping: types
+                }),
+                _ => expression.types.slice()
+            }
 
-            const call_functions = ids({
-                values: expression.call_functions,
-                mapping: functions
-            })
+            const call_functions = match {
+                functions != null => ids({
+                    values: expression.call_functions,
+                    mapping: functions
+                }),
+                _ => expression.call_functions.slice()
+            }
 
             current.symbols = current.symbols.push(ownSymbols({
                 source: symbol,

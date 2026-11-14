@@ -50,8 +50,23 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
 
     const contracts = try descriptor(allocator, value.contracts);
 
-    errdefer allocator.destroy(contracts);
+    self.appendOwnedAssumeCapacity(value, .{
+        .symbols = symbols,
+        .expressions = expressions,
+        .stores = stores,
+        .contracts = contracts,
+    });
+}
 
+pub const Descriptors = struct {
+    symbols: *const ir.SymbolTable,
+    expressions: *const ir.ExpressionTable,
+    stores: *const ir.StoreTable,
+    contracts: *const ir.ContractTable,
+};
+
+/// Takes ownership of the function's table descriptors after capacity is reserved.
+pub fn appendOwnedAssumeCapacity(self: *Self, value: ir.Function, owned: Descriptors) void {
     self.appendPorts(.{
         .file_name = value.file_name,
         .input_type = value.input_type,
@@ -61,12 +76,12 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
     });
 
     self.store_modes.appendAssumeCapacity(value.store_mode);
-    self.contracts.appendAssumeCapacity(contracts);
-    self.symbols.appendAssumeCapacity(symbols);
-    self.expressions.appendAssumeCapacity(expressions);
+    self.contracts.appendAssumeCapacity(owned.contracts);
+    self.symbols.appendAssumeCapacity(owned.symbols);
+    self.expressions.appendAssumeCapacity(owned.expressions);
     self.control.appendAssumeCapacity(value.body.control);
     self.roots.appendAssumeCapacity(if (value.body.root) |id| @backingInt(id) else null);
-    self.stores.appendAssumeCapacity(stores);
+    self.stores.appendAssumeCapacity(owned.stores);
 }
 
 pub fn reserve(self: *Self, allocator: std.mem.Allocator, additional: usize) std.mem.Allocator.Error!void {
