@@ -2,7 +2,6 @@ import integers from "std:integer"
 import compatible from "core/native_module_table/compatible"
 import find from "core/native_module_table/find"
 
-import remap from "../remap/ids"
 import { accepted, conflicting_interface, out_of_memory } from "./const"
 
 import type { Modules } from "core/native_module_table/model"
@@ -47,7 +46,8 @@ export default function (in: Input): Output {
             table: in_base ? in.base : delta,
             index: existing,
             value: in.value,
-            mapping: in.types
+            mapping: in.types,
+            previous_mapping: in_base ? null : in.types
         })
 
         const index = in_base ? existing : base_count + existing
@@ -68,17 +68,12 @@ export default function (in: Input): Output {
 
     const value = in.value
 
-    const ids = remap({
-        values: value.ids,
-        mapping: in.types
-    })
-
     return {
         delta: {
             identities: delta.identities.push(value.identity)[0],
             import_names: delta.import_names.push(value.import_name)[0],
             specifiers: delta.specifiers.push(value.specifier)[0],
-            type_ids: delta.type_ids.push(ids)[0],
+            type_ids: delta.type_ids.push(value.ids)[0],
             type_names: delta.type_names.push(value.names)[0],
             type_namespaces: delta.type_namespaces.push(value.namespace)[0]
         },

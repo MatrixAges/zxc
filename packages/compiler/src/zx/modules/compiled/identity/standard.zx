@@ -1,13 +1,11 @@
+import bytes from "std:bytes"
+
+import { standard_prefix } from "../const"
+
 export type Input = string
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    return (
-        - in.length >= 4
-        - and in[0] == 115
-        - and in[1] == 116
-        - and in[2] == 100
-        - and in[3] == 58
-    )
+    return bytes.startsWithText(bytes.fromText(in), 0, standard_prefix)
 }

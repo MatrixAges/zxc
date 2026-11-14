@@ -1,0 +1,21 @@
+<Module>
+    <Type from="model" as="Model" />
+
+    <Args in={Model.Input} out={void} />
+
+    <Call
+        fn="text"
+        in={$in.pick([
+            "columns",
+            "progress"
+        ])}
+    />
+
+    <Call
+        fn="../rebase"
+        in={$in.omit([
+            "columns",
+            "progress"
+        ])}
+    />
+</Module>

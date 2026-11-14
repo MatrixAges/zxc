@@ -2,8 +2,8 @@ const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
 
-pub fn copy(allocator: std.mem.Allocator, source: ir.NativeModule) std.mem.Allocator.Error!ir.NativeModule {
-    const entry = @import("generated_artifact_native_record");
+pub fn materialize(allocator: std.mem.Allocator, source: ir.NativeModule, mapping: []const u32) std.mem.Allocator.Error!ir.NativeModule {
+    const entry = @import("generated_compiled_owned_native");
     const Input = std.meta.Child(entry.Input);
     const Binding = std.meta.Child(@FieldType(Input, "source"));
 
@@ -16,7 +16,7 @@ pub fn copy(allocator: std.mem.Allocator, source: ir.NativeModule) std.mem.Alloc
         .ids = source.types.type_ids,
     };
 
-    const input: Input = .{ .source = &binding, .mapped_ids = null };
+    const input: Input = .{ .source = &binding, .mapping = mapping };
     const owned = zx.columns.invoke(entry.executeValue, allocator, &input) catch return error.OutOfMemory;
 
     return .{

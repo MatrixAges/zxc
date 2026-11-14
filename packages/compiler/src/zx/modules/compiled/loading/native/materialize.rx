@@ -1,0 +1,29 @@
+<Module>
+    <Type from="core/native_module_table/model" as="Native" />
+
+    <Args
+        in={{
+            source: Native.Binding,
+            mapping: u32[]
+        }}
+        out={Native.Binding}
+    />
+
+    <Call
+        fn="../remap/ids"
+        in={{
+            values: $in.source.ids,
+            mapping: $in.mapping
+        }}
+    />
+
+    <Call
+        fn="../../../artifact/materializing/copy_binding"
+        in={{
+            source: $in.source,
+            mapped_ids: $ctx.ids
+        }}
+    />
+
+    <Return value={$ctx.copy_binding} />
+</Module>

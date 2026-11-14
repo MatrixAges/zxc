@@ -24,35 +24,16 @@ pub fn append(allocator: std.mem.Allocator, target: *ir.TypeStorage, origins: ?*
     const members: [][]const u8 = if (origins) |storage| storage.members.unusedCapacitySlice()[0..bindings.members.len] else &.{};
     const sources = .{ table.labels, table.field_names, table.names, bindings.owners, bindings.members };
     const tails = .{ labels, fields, names, owners, members };
-    var copied: [tails.len]usize = @splat(0);
 
-    errdefer inline for (tails, 0..) |tail, index| {
-        for (tail[0..copied[index]]) |item| allocator.free(item);
-    };
-
-    inline for (sources, tails, 0..) |column, tail, index| {
-        for (column, tail) |text, *item| {
-            item.* = try allocator.dupe(u8, text);
-            copied[index] += 1;
-        }
-    }
-
-    if (first.len != 0) {
-        const generated = @import("generated_type_merge_rebase");
-        const Input = std.meta.Child(generated.Input);
-
-        const input: Input = .{
+    if (first.len != 0 or bindings.ids.len != 0) {
+        try materialize(allocator, sources, tails, .{
             .kinds = table.kinds,
             .first = table.first,
-            .target = @ptrCast(&first),
+            .target = &first,
             .children = @intCast(target.children.items.len),
             .fields = @intCast(target.field_types.items.len),
             .names = @intCast(target.names.items.len),
-        };
-
-        var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-        zx.columns.invoke(generated.executeValue, empty.allocator(), &input) catch unreachable;
+        });
     }
 
     target.publishOwnedDelta(table);
@@ -66,4 +47,50 @@ pub fn append(allocator: std.mem.Allocator, target: *ir.TypeStorage, origins: ?*
 
         for (bindings.ids) |id| storage.names.appendAssumeCapacity(target.labels.items[id]);
     }
+}
+
+const generated = @import("generated_type_merge_publication");
+const Input = std.meta.Child(generated.Input);
+const Column = std.meta.Child(std.meta.Child(@FieldType(Input, "columns")));
+
+const Rebase = struct {
+    kinds: []const u8,
+    first: []const u32,
+    target: *const []u32,
+    children: u32,
+    fields: u32,
+    names: u32,
+};
+
+fn materialize(allocator: std.mem.Allocator, sources: anytype, tails: anytype, offsets: Rebase) std.mem.Allocator.Error!void {
+    var columns: [tails.len]Column = undefined;
+    var pointers: [tails.len]*const Column = undefined;
+
+    inline for (sources, 0..) |source, index| {
+        columns[index] = .{ .source = source, .target = @ptrCast(&tails[index]) };
+        pointers[index] = &columns[index];
+    }
+
+    var completed: [1]u64 = .{0};
+    const progress: []u64 = &completed;
+
+    errdefer inline for (tails, 0..) |tail, index| {
+        if (index < completed[0]) for (tail) |text| allocator.free(text);
+    };
+
+    const input: Input = .{
+        .columns = &pointers,
+        .progress = @ptrCast(&progress),
+        .kinds = offsets.kinds,
+        .first = offsets.first,
+        .target = @ptrCast(offsets.target),
+        .children = offsets.children,
+        .fields = offsets.fields,
+        .names = offsets.names,
+    };
+
+    zx.columns.invoke(generated.executeValue, allocator, &input) catch |err| switch (@as(anyerror, err)) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    };
 }

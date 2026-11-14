@@ -1,0 +1,28 @@
+import memory from "std:memory"
+
+import type { U64Buffer } from "std:memory"
+import type { Column } from "./model"
+
+export type Input = {
+    columns: Column[],
+    progress: U64Buffer
+}
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const { columns, progress } = in
+
+    const result = loop({
+        index: 0
+    }, {
+        while: state => state.index < columns.length,
+        next: state => {
+            const column = columns[state.index]
+
+            memory.copyStrings(column.target, column.source)
+            state.index += 1
+            memory.writeU64(progress, 0, state.index)
+        }
+    })
+}

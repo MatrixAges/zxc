@@ -1,0 +1,17 @@
+import type { StringBuffer, U32Buffer, U64Buffer } from "std:memory"
+
+export type Column = {
+    source: string[],
+    target: StringBuffer
+}
+
+export type Input = {
+    columns: Column[],
+    progress: U64Buffer,
+    kinds: u8[],
+    first: u32[],
+    target: U32Buffer,
+    children: u32,
+    fields: u32,
+    names: u32
+}

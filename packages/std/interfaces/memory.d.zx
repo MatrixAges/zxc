@@ -57,3 +57,9 @@ export declare function writeString(
     index: u64,
     value: string
 ): void throws { IndexOutOfBounds }
+
+export declare function copyStrings(
+    allocator,
+    target: StringBuffer,
+    source: string[]
+): void throws { IndexOutOfBounds, OutOfMemory }

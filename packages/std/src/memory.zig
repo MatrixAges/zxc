@@ -44,6 +44,22 @@ pub inline fn writeString(target: *const anyopaque, index: u64, value: []const u
     return write([]const u8, target, index, value);
 }
 
+/// Copies text into an exclusively borrowed destination and releases partial copies on failure.
+pub fn copyStrings(allocator: std.mem.Allocator, target: *const anyopaque, source: []const []const u8) (std.mem.Allocator.Error || error{IndexOutOfBounds})!void {
+    const output: *const [][]const u8 = @ptrCast(@alignCast(target));
+
+    if (source.len != output.len) return error.IndexOutOfBounds;
+
+    var copied: usize = 0;
+
+    errdefer for (output.*[0..copied]) |text| allocator.free(text);
+
+    for (source, output.*) |text, *item| {
+        item.* = try allocator.dupe(u8, text);
+        copied += 1;
+    }
+}
+
 // The caller exclusively lends a descriptor for a mutable slice for the duration of the call.
 inline fn write(comptime T: type, target: *const anyopaque, index: u64, value: T) error{IndexOutOfBounds}!void {
     const buffer: *const []T = @ptrCast(@alignCast(target));

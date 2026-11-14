@@ -13,7 +13,7 @@ pub fn apply(allocator: std.mem.Allocator, input: *const Input, library: *const 
     const natives = borrow.columns(ir.NativeModuleTable, output.natives.*);
 
     for (0..natives.count()) |index| {
-        try destination.native_modules.append(allocator, try @import("native.zig").copy(allocator, natives.at(index)));
+        try destination.native_modules.append(allocator, try @import("native.zig").materialize(allocator, natives.at(index), output.functions.types));
     }
 
     const functions = library.program.functions;

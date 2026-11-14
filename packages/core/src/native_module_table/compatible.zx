@@ -6,6 +6,7 @@ export type Input = {
     table: Modules,
     value: Binding,
     mapping: u32[],
+    previous_mapping?: u32[],
     index: u64
 }
 
@@ -50,17 +51,21 @@ export default function (in: Input): Output {
         ids,
         value: in.value,
         mapping: in.mapping,
+        previous_mapping: in.previous_mapping,
         index: 0,
         valid: same_namespace
     }, {
         while: current => current.valid && current.index < current.names.length,
         next: current => {
             const candidate = integers.widen(current.value.ids[current.index])
+            const id = current.ids[current.index]
+            const previous = current.previous_mapping
+            const expected = previous == null ? id : previous[integers.widen(id)]
 
             current.valid =
                 current.names[current.index] ==
                 current.value.names[current.index] &&
-                current.ids[current.index] == current.mapping[candidate]
+                expected == current.mapping[candidate]
             current.index += 1
         },
         return: state => state.valid
