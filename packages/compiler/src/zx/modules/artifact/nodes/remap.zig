@@ -41,6 +41,8 @@ pub fn FunctionView(comptime T: type) type {
     const FunctionMapping = std.meta.Child(@FieldType(T, "types"));
     const Ports = std.meta.Child(@FieldType(T, "ports"));
     const Contracts = std.meta.Child(@FieldType(T, "contracts"));
+    const Symbols = @FieldType(T, "symbols");
+    const Expressions = @FieldType(T, "expressions");
 
     return struct {
         const Self = @This();
@@ -68,9 +70,8 @@ pub fn FunctionView(comptime T: type) type {
                 .natives = &self.natives,
                 .ports = &self.ports,
                 .contracts = &self.contracts,
-                .symbols = value.symbols.types,
-                .expressions = value.expressions.types,
-                .calls = value.expressions.call_functions,
+                .symbols = zx.columns.pointer(Symbols, &value.symbols),
+                .expressions = zx.columns.pointer(Expressions, &value.expressions),
                 .stores = value.stores.types,
                 .candidate = if (candidate) |id| @backingInt(id) else null,
             };

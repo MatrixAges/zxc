@@ -1,3 +1,4 @@
+import copyNames from "../materializing/copy_names"
 import ids from "./ids"
 
 import type { Contracts } from "core/contract_table/model"
@@ -17,20 +18,25 @@ export default function (in: Input): Output {
     const symbols: u32[][] = []
     const expressions: u32[][] = []
     const calls: u32[][] = []
+    const names: string[][] = []
+    const strings: string[][] = []
 
     return loop({
         symbols,
         expressions,
         calls,
+        names,
+        strings,
         index: 0
     }, {
         while: current => current.index < source.kinds.length,
         next: current => {
             const index = current.index
             const expression = source.expressions[index]
+            const symbol = source.symbols[index]
 
             current.symbols = current.symbols.push(ids({
-                values: source.symbols[index].types,
+                values: symbol.types,
                 mapping: types
             }))[0]
             current.expressions = current.expressions.push(ids({
@@ -42,12 +48,17 @@ export default function (in: Input): Output {
                 mapping: functions
             }))[0]
 
+            current.names = current.names.push(copyNames(symbol.names))[0]
+            current.strings = current.strings.push(copyNames(expression.strings))[0]
+
             current.index += 1
         },
         return: state => ({
             symbols: state.symbols,
             types: state.expressions,
-            calls: state.calls
+            calls: state.calls,
+            names: state.names,
+            strings: state.strings
         })
     })
 }

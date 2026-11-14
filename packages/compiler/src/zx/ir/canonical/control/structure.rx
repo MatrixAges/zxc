@@ -1,0 +1,15 @@
+<Module>
+    <Type from="../body/tree" as="Tree" />
+
+    <Args in={Tree.Input} out={bool} />
+
+    <Call fn="validate" in={$in.control} />
+
+    <If on={!$ctx.validate}>
+        <Return value={false} />
+    </If>
+
+    <Call fn="../body/tree" in={$in} />
+
+    <Return value={$ctx.tree} />
+</Module>

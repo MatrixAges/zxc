@@ -16,7 +16,7 @@
         <Call
             fn="ids"
             in={{
-                values: $in.symbols,
+                values: $in.symbols.types,
                 mapping: $in.types
             }}
         />
@@ -25,9 +25,9 @@
     <Call
         module="columns"
         in={{
-            types: $in.expressions,
+            types: $in.expressions.types,
             type_mapping: $in.types,
-            functions: $in.calls,
+            functions: $in.expressions.call_functions,
             function_mapping: $in.functions
         }}
     />
@@ -59,12 +59,22 @@
         }}
     />
 
+    <Task name="names" out={$ctx.copy_names}>
+        <Call fn="../materializing/copy_names" in={$in.symbols.names} />
+    </Task>
+
+    <Task name="strings" out={$ctx.copy_names}>
+        <Call fn="../materializing/copy_names" in={$in.expressions.strings} />
+    </Task>
+
     <Return
         value={{
             ports: $ctx.ports,
             symbols: $ctx.task.symbols,
             expressions: $ctx.columns.types,
             calls: $ctx.columns.functions,
+            names: $ctx.task.names,
+            strings: $ctx.task.strings,
             stores: $ctx.task.stores,
             contracts: $ctx.contracts,
             recursive: $ctx.recursive

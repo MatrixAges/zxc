@@ -66,7 +66,7 @@ pub fn functionEntry(self: *Self, value: ir.Function, candidate: ?ir.FunctionId,
     result.expressions = try self.expressionsSeed(value.expressions);
     result.body = try self.body(value.body, .unchecked);
     result.stores = try self.stores(value.stores);
-    result.contracts = try self.contracts(value.contracts, {});
+    result.contracts = try self.contractsSeed(value.contracts);
     result.external = if (value.external) |entry| try self.external(entry) else null;
 
     const recursive = if (candidate) |id| if (@import("../function_body.zig").calls(result.expressions, id)) id else null else null;
@@ -97,8 +97,8 @@ pub fn materializeBody(self: *Self, value: *const ir.Function, mapped: anytype, 
         .output_type = @fromBackingInt(mapped.ports.output),
         .output_ownership = value.output_ownership,
         .store_mode = value.store_mode,
-        .symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols }),
-        .expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls }),
+        .symbols = try own(self.allocator, value.symbols, .{ .types = mapped.symbols, .names = mapped.names }),
+        .expressions = try own(self.allocator, value.expressions, .{ .types = mapped.expressions, .call_functions = mapped.calls, .strings = mapped.strings }),
         .body = try self.body(value.body, structure),
         .contracts = try self.contracts(value.contracts, mapped.contracts),
     };
@@ -169,11 +169,13 @@ fn expressionsSeed(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionT
     return result;
 }
 
-fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.ContractTable {
-    if (comptime @TypeOf(mapped) == void) {
-        if (!values.validStructure()) return error.InvalidModule;
-    }
+fn contractsSeed(self: *Self, values: ir.ContractTable) Error!ir.ContractTable {
+    if (!values.validStructure()) return error.InvalidModule;
 
+    return self.contracts(values, {});
+}
+
+fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.ContractTable {
     if (values.count() == 0) return .{};
 
     const owned_symbols = try self.allocator.alloc(*const ir.SymbolTable, values.count());
@@ -187,8 +189,13 @@ fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.Co
             symbol_table.* = try self.symbolsSeed(source_symbols.*);
             expression_table.* = try self.expressionsSeed(source_expressions.*);
         } else {
-            symbol_table.* = try own(self.allocator, source_symbols.*, .{ .types = mapped.symbols[index] });
-            expression_table.* = try own(self.allocator, source_expressions.*, .{ .types = mapped.types[index], .call_functions = mapped.calls[index] });
+            symbol_table.* = try own(self.allocator, source_symbols.*, .{ .types = mapped.symbols[index], .names = mapped.names[index] });
+
+            expression_table.* = try own(self.allocator, source_expressions.*, .{
+                .types = mapped.types[index],
+                .call_functions = mapped.calls[index],
+                .strings = mapped.strings[index],
+            });
         }
 
         symbols_slot.* = symbol_table;
@@ -199,7 +206,15 @@ fn contracts(self: *Self, values: ir.ContractTable, mapped: anytype) Error!ir.Co
 }
 
 fn body(self: *Self, value: ir.ControlBody, structure: Structure) Error!ir.ControlBody {
-    if (structure == .unchecked and !try value.validStructure(self.allocator)) return error.InvalidModule;
+    if (structure == .unchecked) {
+        const valid = if (comptime generated)
+            try @import("nodes/control.zig").valid(self.allocator, value)
+        else
+            try value.validStructure(self.allocator);
+
+        if (!valid) return error.InvalidModule;
+    }
+
     if (value.root == null) return .{};
 
     const table = try self.allocator.create(ir.ControlTable);

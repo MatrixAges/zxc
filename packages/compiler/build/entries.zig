@@ -193,6 +193,7 @@ pub const main = [_]Entry{
     .{ .path = "zx/modules/artifact/surface/binding.zx", .name = "artifact_surface_binding" },
     .{ .path = "zx/modules/artifact/remapping/columns.rx", .name = "artifact_remap" },
     .{ .path = "zx/modules/artifact/remapping/body_columns.rx", .name = "artifact_function_remap" },
+    .{ .path = "zx/ir/canonical/control/structure.rx", .name = "ir_control_structure" },
     .{ .path = "zx/modules/link/graph/order.rx", .name = "artifact_graph" },
     .{ .path = "zx/modules/link/dependencies/check.rx", .name = "artifact_dependencies" },
     .{ .path = "zx/modules/link/dependencies/bindings.rx", .name = "artifact_binding_checks" },

@@ -1,4 +1,6 @@
 import type { Contracts } from "core/contract_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
 
 export enum Kind {
     Dense,
@@ -26,14 +28,15 @@ export type Ports = {
 export type ContractColumns = {
     symbols: u32[][],
     types: u32[][],
-    calls: u32[][]
+    calls: u32[][],
+    names: string[][],
+    strings: string[][]
 }
 
 export type FunctionInput = {
     ports: Ports,
-    symbols: u32[],
-    expressions: u32[],
-    calls: u32[],
+    symbols: Symbols,
+    expressions: Expressions,
     stores: u32[],
     contracts: Contracts,
     types: Mapping,
@@ -47,6 +50,8 @@ export type FunctionOutput = {
     symbols: u32[],
     expressions: u32[],
     calls: u32[],
+    names: string[],
+    strings: string[],
     stores: u32[],
     contracts: ContractColumns,
     recursive?: u32

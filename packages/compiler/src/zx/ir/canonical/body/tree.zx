@@ -1,5 +1,5 @@
 import integers from "std:integer"
-import { max_nesting_depth } from "core/const"
+import { max_nesting_depth, max_u32 } from "core/const"
 import { StatementKind } from "core/control_table/model"
 
 import type { Control } from "core/control_table/model"
@@ -20,33 +20,21 @@ export default function (in: Input): Output {
 
     const root = integers.widen(block_id)
 
-    if (root >= in.control.block_first.length) {
+    const blocks = in.control.block_first
+
+    if (root >= blocks.length) {
         return false
     }
 
-    const flags: bool[] = []
-    const numbers: u64[] = []
+    if (blocks.length == 1) {
+        return true
+    }
 
-    const initialized = loop({
-        count: in.control.block_first.length,
-        root,
-        owned: flags,
-        depths: numbers
-    }, {
-        while: current => current.owned.length < current.count,
-        next: current => {
-            current.owned =
-                current.owned.push(
-                    current.owned.length == current.root
-                )[0]
-            current.depths = current.depths.push(0)[0]
-        }
-    })
+    const depths: u32[] = blocks.map(value => 0)[0]
 
     const checked = loop({
         control: in.control,
-        owned: initialized.owned,
-        depths: initialized.depths,
+        depths,
         block: 0,
         index: 0,
         edge: 0,
@@ -103,13 +91,19 @@ export default function (in: Input): Output {
                                     ) + current.edge]
                             )
                     }
-                    const depth = current.depths[child] + 1
+                    const child_depth = current.depths[child]
+                    const depth = integers.widen(child_depth) + 1
 
-                    current.valid = !current.owned[child] && depth <= max_nesting_depth
-                    current.owned[child] = true
+                    current.valid = child != root && depth <= max_nesting_depth
 
-                    if (depth > current.depths[current.block]) {
-                        current.depths[current.block] = depth
+                    if (current.valid) {
+                        current.depths[child] = max_u32
+
+                        if (
+                            depth > integers.widen(current.depths[current.block])
+                        ) {
+                            current.depths[current.block] = integers.narrow(depth)
+                        }
                     }
 
                     current.edge += 1
@@ -118,5 +112,8 @@ export default function (in: Input): Output {
         }
     })
 
-    return checked.valid && checked.owned.every(value => value)
+    // Children precede parents. Once attached, an earlier block only needs its marker.
+    return checked.valid && checked.depths.every(
+        (depth, index) => index == root || depth == max_u32
+    )
 }

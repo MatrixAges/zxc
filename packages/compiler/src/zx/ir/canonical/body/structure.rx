@@ -43,21 +43,13 @@
         <Return value={false} />
     </If>
 
-    <Task name="control" out={$ctx.validate}>
-        <Call fn="../control/validate" in={$in.body.control} />
-    </Task>
-
-    <If on={!$ctx.task.control}>
-        <Return value={false} />
-    </If>
-
     <Call
-        fn="./tree"
+        module="../control/structure"
         in={{
             control: $in.body.control,
             root: $in.body.root
         }}
     />
 
-    <Return value={$ctx.tree} />
+    <Return value={$ctx.structure} />
 </Module>
