@@ -25,7 +25,7 @@ shared_functions: ?zx.ir.FunctionTable = null,
 verified_functions: zx.ir.FunctionTable = .{},
 output_type: zx.ir.TypeId,
 loaded: []const Module.Loaded,
-results: []const Module.Binding,
+results: Module.Bindings,
 tasks: []const zx.ir.TypeId = &.{},
 
 captures: ?*Captures = null,
@@ -84,7 +84,8 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                 var published: ?Module.Binding = null;
 
                 if (target.optionalAttribute(task.node, "out")) |attribute| {
-                    const binding = self.results[self.next_binding];
+                    const binding = self.results.at(self.next_binding);
+
                     self.next_binding += 1;
                     const has_value = binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))));
 
@@ -255,7 +256,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
     self.bindings.shrinkRetainingCapacity(count);
 
     var out: ?[]const u8 = null;
-    const binding = self.results[self.next_binding];
+    const binding = self.results.at(self.next_binding);
 
     self.next_binding += 1;
 

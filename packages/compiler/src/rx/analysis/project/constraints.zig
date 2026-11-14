@@ -99,8 +99,8 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
             unused += @intFromBool(!fixed[index]);
         }
 
-        binding_ends[index] = requests.bindings.items.len;
-        task_ends[index] = requests.tasks.items.len;
+        binding_ends[index] = requests.bindings.len;
+        task_ends[index] = requests.tasks.len;
     }
 
     scope.reset(0);
@@ -275,7 +275,7 @@ const Walker = struct {
         const name = try std.fmt.allocPrint(graph.types.allocator, "{s}.{s}", .{ prefix, result.name });
         const binding = Expression.Binding{ .name = name, .value = output, .span = span };
 
-        try self.requests.bindings.append(graph.scratch, .{ .name = name, .value = output });
+        try self.requests.bindings.append(graph.types.allocator, .{ .name = name, .value = output });
         if (@import("../inference/bindings.zig").isVoid(graph, output)) return;
 
         for (expression.bindings.items) |previous| {

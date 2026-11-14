@@ -52,6 +52,14 @@ pub const Loaded = struct {
 
 pub const Binding = struct { name: []const u8, type_id: zx.ir.TypeId };
 
+pub const Bindings = struct {
+    names: []const []const u8,
+    types: []const zx.ir.TypeId,
+    pub fn at(self: Bindings, index: usize) Binding {
+        return .{ .name = self.names[index], .type_id = self.types[index] };
+    }
+};
+
 pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Result {
     const sources = [_]rx.ModuleSource{.{ .path = options.owner, .node = options.module }};
 

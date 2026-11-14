@@ -5,95 +5,101 @@ const Graph = @import("../inference/types.zig");
 const Ports = @import("constraints.zig").Ports;
 const Requests = @import("signatures/requests.zig");
 const generated = @import("rx_options").generated_graph;
-const rule = if (generated) @import("generated_rx_signature_order") else void;
-const seed = @import("signatures/seed.zig");
-const Stage = if (generated) rule.Output else seed.Stage;
+const rule = if (generated) @import("generated_rx_signature_publish") else void;
 
 pub const Signature = struct {
     input_type: zx.ir.TypeId,
     output_type: zx.ir.TypeId,
-    bindings: []const Module.Binding,
+    bindings: Module.Bindings,
     tasks: []const zx.ir.TypeId,
 };
 
 pub fn resolve(allocator: std.mem.Allocator, graph: *Graph, ports: Ports, requests: Requests) zx.Error![]const Signature {
+    if (ports.len == 0) return &.{};
+
     const signatures = try allocator.alloc(Signature, ports.len);
-
-    errdefer allocator.free(signatures);
-
-    const bindings = try allocator.alloc(Module.Binding, requests.bindings.items.len);
-
-    errdefer allocator.free(bindings);
-
-    const tasks = try allocator.alloc(zx.ir.TypeId, requests.tasks.items.len);
-
-    errdefer allocator.free(tasks);
-
-    const inputs = ports.items(.input);
-    const outputs = ports.items(.output);
+    const task_types = try allocator.alloc(u32, requests.tasks.len);
+    const bindings = requests.bindings.slice();
+    const names = bindings.items(.name);
+    const binding_types: []u32 = @ptrCast(bindings.items(.value));
+    const tasks = requests.tasks.slice();
+    const inputs: []u32 = @ptrCast(ports.items(.input));
+    const outputs: []u32 = @ptrCast(ports.items(.output));
     const binding_ends = ports.items(.binding_end);
     const task_ends = ports.items(.task_end);
-    var first_binding: usize = 0;
-    var first_task: usize = 0;
 
-    for (signatures, inputs, outputs, binding_ends, task_ends) |*signature, input, output, binding_end, task_end| {
-        const publication: Publication = .{
-            .graph = graph,
-            .signature = signature,
-            .input = input,
-            .output = output,
-            .binding_requests = requests.bindings.items[first_binding..binding_end],
-            .task_requests = requests.tasks.items[first_task..task_end],
-            .bindings = bindings[first_binding..binding_end],
-            .tasks = tasks[first_task..task_end],
+    if (comptime generated and @bitSizeOf(usize) == 64) {
+        const Input = std.meta.Child(rule.Input);
+        const rows = graph.nodes.slice();
+        const parents = graph.forest.state.items;
+
+        const nodes: std.meta.Child(@FieldType(Input, "nodes")) = .{
+            .parents = @ptrCast(&parents),
+            .kinds = rows.items(.kind),
+            .arguments = rows.items(.argument),
         };
 
-        try publication.run(.Start);
+        const ranges: std.meta.Child(@FieldType(Input, "ports")) = .{
+            .inputs = inputs,
+            .outputs = outputs,
+            .binding_ends = @ptrCast(binding_ends),
+            .task_ends = @ptrCast(task_ends),
+        };
 
-        first_binding = binding_end;
-        first_task = task_end;
+        const task_requests: std.meta.Child(@FieldType(Input, "tasks")) = .{
+            .ids = @ptrCast(tasks.items(.id)),
+            .values = @ptrCast(tasks.items(.value)),
+        };
+
+        const target: std.meta.Child(@FieldType(Input, "target")) = .{
+            .bindings = @ptrCast(&binding_types),
+            .tasks = @ptrCast(&task_types),
+            .inputs = @ptrCast(&inputs),
+            .outputs = @ptrCast(&outputs),
+        };
+
+        var cursor: std.meta.Child(@FieldType(Input, "cursor")) = .{ .module = 0, .binding = 0, .task = 0, .output = false };
+        var empty = std.heap.FixedBufferAllocator.init(&.{});
+
+        while (true) {
+            const input: Input = .{ .nodes = &nodes, .ports = &ranges, .tasks = &task_requests, .target = &target, .cursor = &cursor };
+            const progress = zx.columns.invoke(rule.executeValue, empty.allocator(), &input) catch unreachable;
+            const unresolved = progress.unresolved orelse break;
+            _ = try graph.resolve(@fromBackingInt(unresolved));
+            cursor = zx.columns.view(@TypeOf(cursor), progress.cursor);
+        }
+    } else {
+        var binding_start: usize = 0;
+        var task_start: usize = 0;
+
+        for (inputs, outputs, binding_ends, task_ends) |*input, *output, binding_end, task_end| {
+            for (binding_types[binding_start..binding_end]) |*binding| binding.* = @backingInt(try graph.resolve(@fromBackingInt(binding.*)));
+            for (tasks.items(.id)[task_start..task_end], tasks.items(.value)[task_start..task_end]) |id, value| task_types[task_start + id] = @backingInt(try graph.resolve(value));
+
+            input.* = @backingInt(try graph.resolve(@fromBackingInt(input.*)));
+            output.* = @backingInt(try graph.resolve(@fromBackingInt(output.*)));
+            binding_start = binding_end;
+            task_start = task_end;
+        }
+    }
+
+    var binding_start: usize = 0;
+    var task_start: usize = 0;
+
+    for (signatures, inputs, outputs, binding_ends, task_ends) |*signature, input, output, binding_end, task_end| {
+        signature.* = .{
+            .input_type = @fromBackingInt(input),
+            .output_type = @fromBackingInt(output),
+            .bindings = .{
+                .names = names[binding_start..binding_end],
+                .types = @ptrCast(binding_types[binding_start..binding_end]),
+            },
+            .tasks = @ptrCast(task_types[task_start..task_end]),
+        };
+
+        binding_start = binding_end;
+        task_start = task_end;
     }
 
     return signatures;
-}
-
-const Publication = struct {
-    graph: *Graph,
-    signature: *Signature,
-    input: Graph.Id,
-    output: Graph.Id,
-    binding_requests: []const Requests.Binding,
-    task_requests: []const Requests.Task,
-    bindings: []Module.Binding,
-    tasks: []zx.ir.TypeId,
-    inline fn run(self: Publication, comptime stage: Stage) zx.Error!void {
-        switch (stage) {
-            .Start => {},
-            .Bindings => {
-                for (self.binding_requests, self.bindings) |request, *binding| {
-                    binding.* = .{ .name = request.name, .type_id = try self.graph.resolve(request.value) };
-                }
-
-                self.signature.bindings = self.bindings;
-            },
-            .Tasks => {
-                for (self.task_requests) |request| self.tasks[request.id] = try self.graph.resolve(request.value);
-
-                self.signature.tasks = self.tasks;
-            },
-            .Input => self.signature.input_type = try self.graph.resolve(self.input),
-            .Output => self.signature.output_type = try self.graph.resolve(self.output),
-            .Done => return,
-        }
-
-        return self.run(comptime advance(stage));
-    }
-};
-
-fn advance(comptime stage: Stage) Stage {
-    if (!generated) return seed.advance(stage);
-
-    var empty = std.heap.FixedBufferAllocator.init(&.{});
-
-    return rule.executeValue(empty.allocator(), stage) catch unreachable;
 }

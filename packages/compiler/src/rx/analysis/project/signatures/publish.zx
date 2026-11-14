@@ -1,0 +1,80 @@
+import integers from "std:integer"
+import memory from "std:memory"
+
+import representative from "../../inference/forest/borrowed_root"
+import { Kind } from "../../inference/unification/model"
+import { Stage } from "./model"
+
+import type { Input as Request, Output as Progress } from "./model"
+
+export type Input = Request
+
+export type Output = Progress
+
+export default function (in: Input): Output {
+    const { nodes, ports, tasks, target } = in
+
+    const initial: Output = {
+        cursor: in.cursor,
+        unresolved: null
+    }
+
+    return loop(initial, {
+        while: state => {
+            const { module } = state.cursor
+
+            return module < ports.inputs.length && state.unresolved == null
+        },
+        next: state => {
+            const { module, binding, task, output } = state.cursor
+
+            const stage = match {
+                output => Stage.Output,
+                binding < ports.binding_ends[module] => Stage.Bindings,
+                task < ports.task_ends[module] => Stage.Tasks,
+                _ => Stage.Input
+            }
+
+            const value = match stage {
+                Stage.Bindings => memory.readU32(target.bindings, binding),
+                Stage.Tasks => tasks.values[task],
+                Stage.Input => ports.inputs[module],
+                _ => ports.outputs[module]
+            }
+            const root = representative({
+                parents: nodes.parents,
+                value
+            })
+            const row = integers.widen(root)
+
+            if (nodes.kinds[row] != Kind.Known) {
+                state.unresolved = root
+            } else {
+                const type_id = nodes.arguments[row]
+
+                switch (stage) {
+                    case Stage.Bindings:
+                        memory.writeU32(target.bindings, binding, type_id)
+                        state.cursor.binding += 1
+                    case Stage.Tasks:
+                        const start = module == 0 ? 0 : ports.task_ends[module - 1]
+
+                        memory.writeU32(
+                            target.tasks,
+                            start + tasks.ids[task],
+                            type_id
+                        )
+                        state.cursor.task += 1
+                    case Stage.Input:
+                        memory.writeU32(target.inputs, module, type_id)
+                        state.cursor.output = true
+                    default:
+                        memory.writeU32(target.outputs, module, type_id)
+                        state.cursor.module += 1
+                        state.cursor.output = false
+                }
+            }
+        },
+        return: state => state
+    })
+}

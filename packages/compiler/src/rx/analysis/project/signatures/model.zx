@@ -1,8 +1,54 @@
+import type { U32Buffer } from "std:memory"
+import type { Kind } from "../../inference/unification/model"
+
 export enum Stage {
-    Start,
     Bindings,
     Tasks,
     Input,
-    Output,
-    Done
+    Output
+}
+
+export type Cursor = {
+    module: u64,
+    binding: u64,
+    task: u64,
+    output: bool
+}
+
+export type Nodes = {
+    parents: U32Buffer,
+    kinds: Kind[],
+    arguments: u32[]
+}
+
+export type Ports = {
+    inputs: u32[],
+    outputs: u32[],
+    binding_ends: u64[],
+    task_ends: u64[]
+}
+
+export type Tasks = {
+    ids: u64[],
+    values: u32[]
+}
+
+export type Publication = {
+    bindings: U32Buffer,
+    tasks: U32Buffer,
+    inputs: U32Buffer,
+    outputs: U32Buffer
+}
+
+export type Input = {
+    nodes: Nodes,
+    ports: Ports,
+    tasks: Tasks,
+    target: Publication,
+    cursor: Cursor
+}
+
+export type Output = {
+    cursor: Cursor,
+    unresolved?: u32
 }

@@ -68,7 +68,7 @@ pub const main = [_]Entry{
     .{ .path = "rx/analysis/project/contracts/render.zx", .name = "rx_args_render", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/contracts/location.zx", .name = "rx_args_location", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/contracts/validate.rx", .name = "rx_args_validate", .owner = .rx_analysis },
-    .{ .path = "rx/analysis/project/signatures/order.rx", .name = "rx_signature_order", .owner = .rx_analysis },
+    .{ .path = "rx/analysis/project/signatures/publish.zx", .name = "rx_signature_publish", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/mixed/body/admit.rx", .name = "rx_mixed_body_admit", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/mixed/body/accept.zx", .name = "rx_mixed_body_accept", .owner = .rx_analysis },
     .{ .path = "rx/analysis/project/mixed/history/changed.zx", .name = "rx_mixed_dependency_changed", .owner = .rx_analysis },

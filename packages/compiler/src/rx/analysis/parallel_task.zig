@@ -134,7 +134,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
     if (parent.captures) |outer| outer.observeMapped(argument.expressions.references, positions);
 
     var out: ?[]const u8 = null;
-    const binding = parent.results[parent.next_binding];
+    const binding = parent.results.at(parent.next_binding);
 
     parent.next_binding += 1;
 

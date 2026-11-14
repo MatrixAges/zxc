@@ -11,7 +11,7 @@ pub const Options = struct {
     module: rx.ModuleSource,
     calls: []const Module.Loaded,
     steps: []const @import("project/flow.zig").Step,
-    bindings: []const Module.Binding,
+    bindings: Module.Bindings,
     tasks: []const zx.ir.TypeId = &.{},
     types: zx.ir.TypeTable,
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
